@@ -358,7 +358,7 @@ export const AnalysisAgent = ({
       <div
         ref={ctr}
         className={twMerge(
-          "analysis-agent-container grow bg-white",
+          "analysis-agent-container grow bg-white outline-none focus:outline-none",
           independentAnalysisSearchRef && !analysisData?.currentStage
             ? ""
             : "max-w-full border min-h-96 rounded-3xl border-gray-300 bg-white ",

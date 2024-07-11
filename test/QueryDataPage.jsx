@@ -1,16 +1,14 @@
-import { v4 } from "uuid";
 import { DefogAnalysisAgentStandalone } from "../lib/main";
 import React from "react";
 import ReactDOM from "react-dom/client";
 import "../lib/styles/index.scss";
-import "@blocknote/mantine/style.css";
+
 import {
   MessageMonitor,
   MessageManagerContext,
   MessageManager,
 } from "$ui-components";
 
-console.log(process);
 function QueryDataPage() {
   return (
     <MessageManagerContext.Provider value={MessageManager()}>
