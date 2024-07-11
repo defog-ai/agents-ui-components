@@ -2,7 +2,7 @@ import { v4 } from "uuid";
 import { DefogAnalysisAgentStandalone } from "../lib/main";
 import React from "react";
 import ReactDOM from "react-dom/client";
-import "./styles/index.scss";
+import "../lib/styles/index.scss";
 import "@blocknote/mantine/style.css";
 import {
   MessageMonitor,
