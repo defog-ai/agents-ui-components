@@ -1,6 +1,6 @@
 import { createReactBlockSpec } from "@blocknote/react";
 import { TableChart } from "../../defog-components/TableChart";
-import ErrorBoundary from "../../common/ErrorBoundary";
+import ErrorBoundary from "$common/ErrorBoundary";
 
 const TableChartBlock = createReactBlockSpec(
   {

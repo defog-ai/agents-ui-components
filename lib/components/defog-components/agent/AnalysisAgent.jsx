@@ -23,7 +23,7 @@ import { Input, MessageManagerContext } from "$ui-components";
 import { twMerge } from "tailwind-merge";
 import { ReactiveVariablesContext } from "$context/ReactiveVariablesContext";
 import { GlobalAgentContext } from "$context/GlobalAgentContext";
-import ErrorBoundary from "../../common/ErrorBoundary";
+import ErrorBoundary from "$common/ErrorBoundary";
 
 const getToolsEndpoint = setupBaseUrl("http", "get_user_tools");
 
@@ -357,7 +357,7 @@ export const AnalysisAgent = ({
           "analysis-agent-container grow bg-white",
           independentAnalysisSearchRef && !analysisData?.currentStage
             ? ""
-            : "max-w-full border rounded-3xl border-gray-300 bg-white ",
+            : "max-w-full border min-h-96 rounded-3xl border-gray-300 bg-white ",
           rootClassNames
         )}
       >

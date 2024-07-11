@@ -16,10 +16,8 @@ import {
   reFormatData,
   roundColumns,
 } from "./common/utils";
-import { FaRegCopy } from "react-icons/fa";
 
-import { TableOutlined, BarChartOutlined } from "@ant-design/icons";
-import ErrorBoundary from "../common/ErrorBoundary";
+import ErrorBoundary from "$common/ErrorBoundary";
 import ChartImage from "./ChartImage";
 
 import Editor from "react-simple-code-editor";
@@ -39,6 +37,11 @@ import { setupWebsocketManager } from "$utils/websocket-manager";
 import setupBaseUrl from "$utils/setupBaseUrl";
 import { getTableData, roundNumber } from "$utils/utils";
 import { ReactiveVariablesContext } from "$context/ReactiveVariablesContext";
+import {
+  ChartBarIcon,
+  DocumentDuplicateIcon,
+  TableCellsIcon,
+} from "@heroicons/react/20/solid";
 
 // tabBarLeftContent: extra content for the tab bar on the left side
 export function TableChart({
@@ -150,8 +153,9 @@ export function TableChart({
             data-reactive-var='true'
             data-reactive-var-name=${el.dataset.reactiveVarName}
             data-val=${roundNumber(+el.dataset.val)}
-            data-reactive-var-nest-location=${el.dataset.reactiveVarNestLocation
-          }
+            data-reactive-var-nest-location=${
+              el.dataset.reactiveVarNestLocation
+            }
             data-table-id=${el.dataset.tableId}>
           </reactive-var>`
         );
@@ -220,7 +224,7 @@ export function TableChart({
           />
         ),
         tabLabel: "Table",
-        icon: <TableOutlined />,
+        icon: <TableCellsIcon className="h-3 w-3 inline mr-1" />,
       },
     ];
 
@@ -251,7 +255,7 @@ export function TableChart({
           </ErrorBoundary>
         ),
         tabLabel: "Chart",
-        icon: <BarChartOutlined />,
+        icon: <ChartBarIcon className="w-3 h-3 inline mr-1" />,
       });
     } else {
       // if chartImagePath is present, load the image of the chart instead
@@ -418,8 +422,8 @@ export function TableChart({
               >
                 {roundNumber(obj[key])}
               </span>
-              <FaRegCopy
-                className="reactive-var-copy-icon"
+              <DocumentDuplicateIcon
+                className="reactive-var-copy-icon w-3 h-3"
                 title="Copy"
                 onClick={() => {
                   let clipboardItem = new ClipboardItem({

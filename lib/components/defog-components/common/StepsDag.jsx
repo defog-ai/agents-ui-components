@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
-import { HiWrenchScrewdriver } from "react-icons/hi2";
 import { Popover } from "antd";
 import { createDag } from "$utils/draw-dag";
-import { PlusSquareOutlined } from "@ant-design/icons";
 import { toolDisplayNames } from "$utils/utils";
 import { twMerge } from "tailwind-merge";
+import {
+  PlusCircleIcon,
+  WrenchScrewdriverIcon,
+} from "@heroicons/react/20/solid";
 
 const nodeCssSize = 15;
 
@@ -26,7 +28,7 @@ export default function StepsDag({
   disablePopovers = false,
   onPopoverOpenChange = () => {},
   alwaysShowPopover = false,
-  toolIcon = () => <HiWrenchScrewdriver />,
+  toolIcon = () => <WrenchScrewdriverIcon className="w-3 h-3" />,
   extraNodeClasses = () => "",
 }) {
   const [graph, setGraph] = useState({ nodes: {}, links: [] });
@@ -312,7 +314,7 @@ export default function StepsDag({
                     >
                       <div
                         className={twMerge(
-                          "graph-node bg-white pointer-events-auto max-w-[100px]",
+                          "graph-node pointer-events-auto max-w-[100px]",
                           d.data.isTool ? "tool" : "var",
                           d.data.isOutput ? " output" : "",
                           activeNode?.data?.id === d.data.id
@@ -320,7 +322,9 @@ export default function StepsDag({
                             : "",
                           d.data.isError ? "graph-node-error" : "",
                           `tool-run-${d.data.id}`,
-                          d.data.isAddStepNode ? "graph-node-add" : "",
+                          d.data.isAddStepNode
+                            ? "graph-node-add bg-transparent"
+                            : "bg-white",
                           reRunningSteps.some(
                             (s) => s.tool_run_id === d.data.id
                           )
@@ -338,7 +342,7 @@ export default function StepsDag({
                         {d.data.isTool ? (
                           <>{toolIcon(d)}</>
                         ) : d.data.isAddStepNode ? (
-                          <PlusSquareOutlined />
+                          <PlusCircleIcon className="h-4 w-4 stroke-gray-800 text-transparent bg-transparent" />
                         ) : (
                           <div className="graph-node-circle rounded-full w-4 h-4"></div>
                         )}

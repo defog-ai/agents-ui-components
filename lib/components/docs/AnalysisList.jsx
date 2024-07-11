@@ -5,7 +5,7 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
 import { Input } from "antd";
 import { GlobalAgentContext } from "$context/GlobalAgentContext";
-import ErrorBoundary from "../common/ErrorBoundary";
+import ErrorBoundary from "$common/ErrorBoundary";
 
 export function AnalysisList() {
   const globalAgentContext = useContext(GlobalAgentContext);

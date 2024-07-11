@@ -4,7 +4,7 @@ import { Row, Col } from "antd";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import { Pie } from "react-chartjs-2";
 import { setChartJSDefaults } from "../../common/utils";
-import ErrorBoundary from "../../../common/ErrorBoundary";
+import ErrorBoundary from "$common/ErrorBoundary";
 import { chartColors } from "$context/ThemeContext";
 
 ChartJS.register(ArcElement, Tooltip, Legend);

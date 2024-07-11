@@ -1,9 +1,8 @@
 import React, { Fragment, useCallback, useEffect, useState } from "react";
 import OtherDocs from "./OtherDocs";
-import { GrNewWindow } from "react-icons/gr";
-import { MdDeleteOutline } from "react-icons/md";
 import { Modal, message } from "antd";
 import { deleteDoc } from "$utils/utils";
+import { TrashIcon, PlusIcon } from "@heroicons/react/20/solid";
 // import { useRouter } from "next/router";
 
 const sidebarWidth = 170;
@@ -92,11 +91,9 @@ export default function DocNav({ token, currentDocId }) {
         {/* new doc button */}
         <div id="nav-new-doc">
           <a href={"?docId=new"} target="_blank" rel="noreferrer">
-            <div title="Start a new doc">
+            <div title="Start a new doc" className="flex items-center flex-row">
               <span>New</span>
-              <div>
-                <GrNewWindow />
-              </div>
+              <PlusIcon className="w-4 h-4 inline ml-1 stroke-gray-600 fill-gray-200" />
             </div>
           </a>
         </div>
@@ -107,11 +104,13 @@ export default function DocNav({ token, currentDocId }) {
         </div>
 
         {/* delete this doc */}
-        <div id="nav-delete-doc" title="Delete this doc" onClick={showModal}>
+        <div
+          id="nav-delete-doc flex items-center flex-row"
+          title="Delete this doc"
+          onClick={showModal}
+        >
           <span>Delete</span>
-          <div>
-            <MdDeleteOutline />
-          </div>
+          <TrashIcon className="w-4 h-4 inline ml-1 stroke-gray-600 fill-gray-200" />
           <Modal
             okText={"Yes, delete"}
             okType="danger"

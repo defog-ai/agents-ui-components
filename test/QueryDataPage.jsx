@@ -10,6 +10,7 @@ import {
   MessageManager,
 } from "$ui-components";
 
+console.log(process);
 function QueryDataPage() {
   return (
     <MessageManagerContext.Provider value={MessageManager()}>

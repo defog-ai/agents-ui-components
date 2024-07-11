@@ -16,14 +16,14 @@ import {
   reFormatData,
   roundColumns,
 } from "./common/utils";
-import { FaRegCopy } from "react-icons/fa";
 
 import {
-  TableOutlined,
-  BarChartOutlined,
-  DownloadOutlined,
-} from "@ant-design/icons";
-import ErrorBoundary from "../common/ErrorBoundary";
+  ArrowDownTrayIcon,
+  ChartBarIcon,
+  DocumentDuplicateIcon,
+  TableCellsIcon,
+} from "@heroicons/react/20/solid";
+import ErrorBoundary from "$common/ErrorBoundary";
 import ChartImage from "./ChartImage";
 
 import Editor from "react-simple-code-editor";
@@ -55,7 +55,7 @@ export function ToolResultsTable({
   sql = null,
   chartImages = null,
   reactiveVars = null,
-  handleEdit = () => { },
+  handleEdit = () => {},
 }) {
   const tableChartRef = useRef(null);
   const [sqlQuery, setSqlQuery] = useState(sql);
@@ -151,8 +151,9 @@ export function ToolResultsTable({
               data-reactive-var='true'
               data-reactive-var-name=${el.dataset.reactiveVarName}
               data-val=${roundNumber(+el.dataset.val)}
-              data-reactive-var-nest-location=${el.dataset.reactiveVarNestLocation
-          }
+              data-reactive-var-nest-location=${
+                el.dataset.reactiveVarNestLocation
+              }
               data-table-id=${el.dataset.toolRunId}>
             </reactive-var>`
         );
@@ -226,7 +227,7 @@ export function ToolResultsTable({
                             });
                           }}
                         >
-                          <FaRegCopy className="table-chart-cell-copy-icon" />
+                          <DocumentDuplicateIcon className="w-3 h-3 table-chart-cell-copy-icon" />
                         </div>
                       )}
                       arrow={false}
@@ -243,11 +244,7 @@ export function ToolResultsTable({
           />
         ),
         tabLabel: "Table",
-        icon: (
-          <div className="mr-1 inline">
-            <TableOutlined />
-          </div>
-        ),
+        icon: <TableCellsIcon className="w-4 h-4 mb-0.5 mr-1 inline" />,
       });
     }
 
@@ -330,11 +327,7 @@ export function ToolResultsTable({
             </ErrorBoundary>
           ),
           tabLabel: "Chart",
-          icon: (
-            <div className="mr-1 inline">
-              <BarChartOutlined />
-            </div>
-          ),
+          icon: <ChartBarIcon className="w-4 h-4 mb-0.5 mr-1 inline" />,
         });
       }
     } else {
@@ -411,7 +404,7 @@ export function ToolResultsTable({
               loading={csvLoading}
               disabled={csvLoading}
             >
-              <DownloadOutlined />
+              <ArrowDownTrayIcon className="w-4 h-4" />
             </Button>
           ),
         }}

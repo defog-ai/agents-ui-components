@@ -185,7 +185,8 @@ $grid: repeating-linear-gradient(
     margin-top: 2rem;
     // margin-bottom: 1em;
     button {
-      box-shadow: 1px 1px 2px $medium-orange-opacity,
+      box-shadow:
+        1px 1px 2px $medium-orange-opacity,
         3px 3px 2px $medium-orange-opacity;
 
       border: 1px solid $dark-orange;
@@ -216,7 +217,8 @@ $grid: repeating-linear-gradient(
     border-radius: 4px;
     margin-top: 0;
     button {
-      box-shadow: 1px 1px 2px $medium-orange-opacity,
+      box-shadow:
+        1px 1px 2px $medium-orange-opacity,
         3px 3px 2px $medium-orange-opacity;
       border: none;
       background-color: transparent;
@@ -348,21 +350,6 @@ $grid: repeating-linear-gradient(
       background-color: $text-medium;
     }
 
-    &.graph-node-add {
-      border-radius: 0;
-      border: none;
-      background-color: transparent;
-      svg path {
-        fill: $medium-gray;
-      }
-      &:hover {
-        background-color: transparent;
-        svg path {
-          fill: $medium-orange;
-        }
-      }
-    }
-
     &.to-be-deleted:not(.graph-node-add) {
       background-color: $dark-red !important;
       border: none !important;
@@ -449,9 +436,6 @@ $grid: repeating-linear-gradient(
       &.graph-node-add {
         border: none;
         background-color: transparent;
-        svg path {
-          fill: $text-dark;
-        }
       }
     }
 
@@ -1309,7 +1293,8 @@ $grid: repeating-linear-gradient(
   // background-color: #eff2fd;
   border: 1px solid $medium-orange;
   border-radius: 0;
-  box-shadow: 1px 1px 5px $medium-orange-opacity,
+  box-shadow:
+    1px 1px 5px $medium-orange-opacity,
     3px 3px 5px $medium-orange-opacity;
   padding: 0;
 
@@ -1344,7 +1329,8 @@ $grid: repeating-linear-gradient(
   // background-color: #eff2fd;
   border: 1px solid $medium-orange;
   border-radius: 0;
-  box-shadow: 1px 1px 5px $medium-orange-opacity,
+  box-shadow:
+    1px 1px 5px $medium-orange-opacity,
     3px 3px 5px $medium-orange-opacity;
   padding: 0;
 
@@ -1462,20 +1448,6 @@ $grid: repeating-linear-gradient(
     border: 0.5em solid white;
     border-radius: 4px;
     background: $very-light-gray;
-  }
-}
-
-.tool-run-analysis {
-  .tool-run-analysis-header {
-    border-radius: 4px;
-    font-size: 0.8em;
-    border-radius: 4px;
-    margin-bottom: 1em;
-    display: block;
-    color: $text-medium;
-    pointer-events: none;
-    margin-bottom: 1em;
-    font-family: $code;
   }
 }
 

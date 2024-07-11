@@ -13,7 +13,7 @@ import {
   RelatedAnalysesContext,
 } from "$context/GlobalAgentContext";
 import { getAllAnalyses, getAllDashboards } from "$utils/utils";
-import ErrorBoundary from "../common/ErrorBoundary";
+import ErrorBoundary from "$common/ErrorBoundary";
 import setupBaseUrl from "$utils/setupBaseUrl";
 import { setupWebsocketManager } from "$utils/websocket-manager";
 import { AnalysisVersionViewer } from "./agent/AnalysisVersionViewer";

@@ -1,8 +1,8 @@
 import { message } from "antd";
 import React, { useCallback, useMemo } from "react";
-import { MdDeleteOutline, MdOutlineAddBox } from "react-icons/md";
 import { easyToolInputTypes } from "$utils/utils";
 import { TextArea, SingleSelect, Input } from "$ui-components";
+import { TrashIcon } from "@heroicons/react/20/solid";
 
 const onHover = (ev, label, analysisId) => {
   // get the closest .analysis-content to the mouseovered element
@@ -263,7 +263,8 @@ export const inputTypeToUI = {
                 }}
               />
               <div className="list-remove">
-                <MdDeleteOutline
+                <TrashIcon
+                  className="w-4 h-4 mb-0.5 mr-1 inline bg-transparent stroke-gray-800"
                   onClick={() => {
                     // if the length is already at min, don't remove
                     if (initialValue.length <= min) {
@@ -289,7 +290,7 @@ export const inputTypeToUI = {
           );
         })}
         <div className="list-add">
-          <MdOutlineAddBox
+          <PlusCircleIcon
             onClick={() => {
               // if the length is already at max, don't add
               if (initialValue.length >= max) {
@@ -300,7 +301,7 @@ export const inputTypeToUI = {
               }
               onEdit(inputName, [...initialValue, ""]);
             }}
-          ></MdOutlineAddBox>
+          ></PlusCircleIcon>
         </div>
         <span className="list-bracket">]</span>
       </span>

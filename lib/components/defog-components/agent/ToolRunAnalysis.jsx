@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { setupWebsocketManager } from "$utils/websocket-manager";
 import { message } from "antd";
 import setupBaseUrl from "$utils/setupBaseUrl";
-import { LoadingOutlined } from "@ant-design/icons";
+import SpinningLoader from "../../icons/SpinningLoader";
 
 export default function ToolRunAnalysis({ question, data_csv, image = null }) {
   const [toolRunAnalysis, setToolRunAnalysis] = useState("");
@@ -63,7 +63,8 @@ export default function ToolRunAnalysis({ question, data_csv, image = null }) {
       >
         {!toolRunAnalysis || toolRunAnalysis === "" ? (
           <>
-            <LoadingOutlined /> Loading analysis...
+            <SpinningLoader classNames="text-gray-800 mr-0" /> Loading
+            analysis...
           </>
         ) : (
           toolRunAnalysis

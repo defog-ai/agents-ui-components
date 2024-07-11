@@ -1,8 +1,6 @@
 import React, { useState, useContext, Fragment } from "react";
 import { Button, message, Modal, Input, ConfigProvider } from "antd";
 
-import { CloseOutlined } from "@ant-design/icons";
-
 import { download_csv, isEmpty, transformToCSV } from "./common/utils";
 
 import styled from "styled-components";
@@ -11,6 +9,7 @@ import ThumbsDown from "./svg/ThumbsDown";
 import { ThemeContext } from "../context/ThemeContext";
 // import AgentMain from "./agent/ReportGen";
 import { TableChart } from "./TableChart";
+import { XCircleIcon } from "@heroicons/react/20/solid";
 
 const errorMessages = {
   noReponse:
@@ -77,11 +76,11 @@ const DefogDynamicViz = ({
 
     feedback === "Good"
       ? message.success(
-        "We are glad that this was a good result. Thank you for the feedback!"
-      )
+          "We are glad that this was a good result. Thank you for the feedback!"
+        )
       : message.info(
-        "Thank you for the feedback, we will use your feedback to make the results better!"
-      );
+          "Thank you for the feedback, we will use your feedback to make the results better!"
+        );
   };
 
   let results;
@@ -171,7 +170,10 @@ const DefogDynamicViz = ({
           onCancel={() => setModalVisible(false)}
           centered
           closeIcon={
-            <CloseOutlined style={{ color: theme.config.brandColor }} />
+            <XCircleIcon
+              className="w-3 h-3"
+              style={{ color: theme.config.brandColor }}
+            />
           }
         >
           <FeedbackModalWrap theme={theme.config}>
@@ -250,20 +252,20 @@ const ResultsWrap = styled.div`
   }
   .ant-tabs-content-holder {
     background: ${(props) =>
-    props.theme ? props.theme.background2 : "#F8FAFB"};
+      props.theme ? props.theme.background2 : "#F8FAFB"};
     padding: 12px;
     border-radius: 0px 0px 7px 7px;
     overflow: hidden;
   }
   .ant-tabs-ink-bar.ant-tabs-ink-bar-animated {
     background: ${(props) =>
-    props.theme ? props.theme.background2 : "#F8FAFB"};
+      props.theme ? props.theme.background2 : "#F8FAFB"};
     height: 100%;
     border-radius: 7px 7px 0px 0px;
   }
   .ant-tabs-tab {
     background: ${(props) =>
-    props.theme ? props.theme.background2 : "#F8FAFB"};
+      props.theme ? props.theme.background2 : "#F8FAFB"};
     padding: 12px 20px;
     border-radius: 7px 7px 0px 0px;
     opacity: 0.5;
@@ -287,13 +289,13 @@ const ResultsWrap = styled.div`
 
   .ant-table-wrapper .ant-table {
     background: ${(props) =>
-    props.theme ? props.theme.background2 : "#F8FAFB"};
+      props.theme ? props.theme.background2 : "#F8FAFB"};
     color: ${(props) => (props.theme ? props.theme.primaryText : "#0D0D0D")};
   }
   .ant-table-wrapper .ant-table-thead > tr > th,
   .ant-table-wrapper .ant-table-thead > tr > td {
     background: ${(props) =>
-    props.theme ? props.theme.background2 : "#F8FAFB"};
+      props.theme ? props.theme.background2 : "#F8FAFB"};
     color: ${(props) => (props.theme ? props.theme.primaryText : "#0D0D0D")};
   }
   .ant-table-wrapper .ant-table-column-sorter {
@@ -301,7 +303,7 @@ const ResultsWrap = styled.div`
   }
   .ant-table-wrapper .ant-table-thead th.ant-table-column-has-sorters:hover {
     background: ${(props) =>
-    props.theme ? props.theme.background1 : "#F8FAFB"};
+      props.theme ? props.theme.background1 : "#F8FAFB"};
   }
   .ant-table-wrapper .ant-table-column-sorter-up.active,
   .ant-table-wrapper .ant-table-column-sorter-down.active {
@@ -310,12 +312,12 @@ const ResultsWrap = styled.div`
 
   .ant-table-wrapper td.ant-table-column-sort {
     background: ${(props) =>
-    props.theme ? props.theme.background3 : "#F8FAFB"};
+      props.theme ? props.theme.background3 : "#F8FAFB"};
   }
   .ant-table-wrapper .ant-table-tbody > tr.ant-table-row:hover > td,
   .ant-table-wrapper .ant-table-tbody > tr > td.ant-table-cell-row-hover {
     background: ${(props) =>
-    props.theme ? props.theme.background1 : "#F8FAFB"};
+      props.theme ? props.theme.background1 : "#F8FAFB"};
   }
 
   .ant-table-wrapper
@@ -372,13 +374,13 @@ const ResultsWrap = styled.div`
       .ant-table-row-expand-icon-cell
     ):not([colspan])::before {
     background-color: ${(props) =>
-    props.theme ? props.theme.greyBorder : "#F8FAFB"};
+      props.theme ? props.theme.greyBorder : "#F8FAFB"};
   }
 
   .ant-table-wrapper .ant-table-thead > tr > th,
   .ant-table-wrapper .ant-table-thead > tr > td {
     border-bottom-color: ${(props) =>
-    props.theme ? props.theme.greyBorder : "#F8FAFB"};
+      props.theme ? props.theme.greyBorder : "#F8FAFB"};
   }
 
   .ant-table-wrapper
@@ -387,9 +389,9 @@ const ResultsWrap = styled.div`
     > tr
     > td {
     border-top-color: ${(props) =>
-    props.theme ? props.theme.greyBorder : "#F8FAFB"};
+      props.theme ? props.theme.greyBorder : "#F8FAFB"};
     border-bottom-color: ${(props) =>
-    props.theme ? props.theme.greyBorder : "#F8FAFB"};
+      props.theme ? props.theme.greyBorder : "#F8FAFB"};
   }
   .ant-table-wrapper
     .ant-table:not(.ant-table-bordered)
@@ -397,9 +399,9 @@ const ResultsWrap = styled.div`
     > tr:last-child
     > td {
     border-top-color: ${(props) =>
-    props.theme ? props.theme.greyBorder : "#F8FAFB"};
+      props.theme ? props.theme.greyBorder : "#F8FAFB"};
     border-bottom-color: ${(props) =>
-    props.theme ? props.theme.greyBorder : "#F8FAFB"};
+      props.theme ? props.theme.greyBorder : "#F8FAFB"};
   }
   .ant-pagination .ant-pagination-item a {
     color: ${(props) => (props.theme ? props.theme.primaryText : "#0D0D0D")};
@@ -424,12 +426,12 @@ const ResultsWrap = styled.div`
   }
   .ant-pagination .ant-pagination-item-active {
     border-color: ${(props) =>
-    props.theme ? props.theme.brandColor : "#2B59FF"};
+      props.theme ? props.theme.brandColor : "#2B59FF"};
   }
 
   .ant-select:not(.ant-select-customize-input) .ant-select-selector {
     background-color: ${(props) =>
-    props.theme ? props.theme.background1 : "#FFF"};
+      props.theme ? props.theme.background1 : "#FFF"};
     border: 1px solid
       ${(props) => (props.theme ? props.theme.brandColor : "#FFF")};
     color: ${(props) => (props.theme ? props.theme.primaryText : "#0D0D0D")};
@@ -452,7 +454,7 @@ const ResultsWrap = styled.div`
 
     button {
       background: ${(props) =>
-    props.theme ? props.theme.background2 : "#F8FAFB"};
+        props.theme ? props.theme.background2 : "#F8FAFB"};
       color: ${(props) => (props.theme ? props.theme.primaryText : "#0D0D0D")};
       border-radius: 7px 7px 0px 0px;
       min-height: 46px;
@@ -568,15 +570,15 @@ const FeedbackModalWrap = styled.div`
 
   .ant-input {
     background: ${(props) =>
-    props.theme ? props.theme.background1 : "#F8FAFB"};
+      props.theme ? props.theme.background1 : "#F8FAFB"};
     color: ${(props) => (props.theme ? props.theme.primaryText : "#0D0D0D")};
     box-shadow: none;
     border-color: ${(props) =>
-    props.theme ? props.theme.questionBorder : "#F8FAFB"};
+      props.theme ? props.theme.questionBorder : "#F8FAFB"};
 
     &:hover {
       border-color: ${(props) =>
-    props.theme ? props.theme.brandColor : "#F8FAFB"};
+        props.theme ? props.theme.brandColor : "#F8FAFB"};
     }
     &::placeholder {
       color: ${(props) => (props.theme ? props.theme.primaryText : "#0D0D0D")};
@@ -590,7 +592,7 @@ const FeedbackModalWrap = styled.div`
     box-shadow: none;
     border: none;
     background: ${(props) =>
-    props.theme ? props.theme.brandColor : "#2B59FF"};
+      props.theme ? props.theme.brandColor : "#2B59FF"};
     width: 100%;
 
     &:hover {
@@ -609,7 +611,7 @@ const ErrorMessageWrap = styled.div`
       align-items: center;
       span {
         color: ${(props) =>
-    props.theme ? props.theme.secondaryText : "#606060"};
+          props.theme ? props.theme.secondaryText : "#606060"};
       }
     }
   }

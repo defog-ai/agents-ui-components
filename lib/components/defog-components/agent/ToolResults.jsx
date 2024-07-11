@@ -7,12 +7,11 @@ import { ToolReRun } from "./ToolReRun";
 import AgentLoader from "../common/AgentLoader";
 import Lottie from "lottie-react";
 import LoadingLottie from "../svg/loader.json";
-import ErrorBoundary from "../../common/ErrorBoundary";
+import ErrorBoundary from "$common/ErrorBoundary";
 import { csvParse } from "d3";
 import { getToolRunData, parseData, toolDisplayNames } from "$utils/utils";
 import ToolRunAnalysis from "./ToolRunAnalysis";
 import { AddStepUI } from "./AddStepUI";
-import { MdDeleteOutline } from "react-icons/md";
 import { Modal } from "antd";
 import setupBaseUrl from "$utils/setupBaseUrl";
 import { ReactiveVariablesContext } from "$context/ReactiveVariablesContext";
@@ -56,13 +55,13 @@ export function ToolResults({
   activeNode,
   toolSocketManager = null,
   dag = null,
-  setActiveNode = () => { },
-  handleReRun = () => { },
+  setActiveNode = () => {},
+  handleReRun = () => {},
   reRunningSteps = [],
-  setPendingToolRunUpdates = (...args) => { },
+  setPendingToolRunUpdates = (...args) => {},
   toolRunDataCache = {},
-  setToolRunDataCache = (...args) => { },
-  handleDeleteSteps = async (...args) => { },
+  setToolRunDataCache = (...args) => {},
+  handleDeleteSteps = async (...args) => {},
   tools = {},
   analysisBusy = false,
 }) {
@@ -546,8 +545,8 @@ export function ToolResults({
             analysisId={analysisId}
           />
           <div className="h-60 mt-2 rounded-md border overflow-scroll w-full">
-            <div className="p-2 relative">
-              <p className="font-bold sticky top-0 w-full bg-white py-2 border-b">
+            <div className="relative">
+              <p className="font-bold m-0 sticky top-0 w-full p-2 bg-white shadow-sm border-b">
                 Analysis
               </p>
               {toolRunData?.parsedOutputs[activeNode.data.id]["analysis"] ? (
@@ -560,7 +559,7 @@ export function ToolResults({
                   data_csv={toolRunData?.outputs[activeNode.data.id]["data"]}
                   image={
                     toolRunData?.parsedOutputs[activeNode.data.id][
-                    "chart_images"
+                      "chart_images"
                     ]
                   }
                 />

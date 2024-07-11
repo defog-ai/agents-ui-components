@@ -35,6 +35,7 @@ export default ({ mode }) => {
         $utils: resolve(__dirname, "lib/components/utils"),
         $context: resolve(__dirname, "lib/components/context"),
         "$ui-components": resolve(__dirname, "lib/ui-components/lib/main"),
+        $common: resolve(__dirname, "lib/components/common"),
       },
     },
     rollupOptions: {
