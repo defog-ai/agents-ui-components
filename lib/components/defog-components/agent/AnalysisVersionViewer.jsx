@@ -18,6 +18,7 @@ import {
   Toggle,
   TextArea,
   MessageManagerContext,
+  DropFiles,
 } from "$ui-components";
 
 export function AnalysisVersionViewer({
@@ -218,7 +219,7 @@ export function AnalysisVersionViewer({
           className="max-w-full h-full flex flex-row bg-white text-gray-600 w-full"
           id="analysis-version-viewer"
         >
-          <div className="absolute h-full left-0 top-2 z-[10] md:sticky md:h-screen">
+          <div className="absolute h-full left-0 top-0 z-[10] md:sticky md:h-screen">
             <Sidebar
               location="left"
               open={sidebarOpen}
@@ -313,9 +314,9 @@ export function AnalysisVersionViewer({
           </div>
           <div
             className="grid grid-cols-1 md:grid-cols-1 grow rounded-tr-lg pb-14 p-2 md:p-4 relative min-w-0 h-full overflow-scroll "
-          // onClick={() => {
-          //   setSidebarOpen(false);
-          // }}
+            // onClick={() => {
+            //   setSidebarOpen(false);
+            // }}
           >
             <div
               className={twMerge(
@@ -405,18 +406,18 @@ export function AnalysisVersionViewer({
               )}
 
             {!activeAnalysisId && (
-              <div className="grow flex flex-col place-content-center w-full m-auto relative z-[1]">
+              <div className="grow flex flex-col place-content-center m-auto relative z-[1]">
                 {didUploadFile !== true ? (
-                  <div className="text-center">
-                    <p className="text-gray-400 cursor-default font-bold">
+                  <div className="text-gray-400 text-center border p-4 rounded-md">
+                    <p className="cursor-default block text-sm mb-2 font-bold">
                       Quickstart
                     </p>
 
-                    <ul className="text-gray-400">
+                    <ul className="text-gray-600 font-light">
                       {predefinedQuestions.map((question, i) => (
                         <li className="" key={i}>
                           <span
-                            className="cursor-pointer hover:underline"
+                            className="cursor-pointer hover:underline text-sm"
                             onClick={(ev) => {
                               ev.preventDefault();
 
@@ -436,18 +437,15 @@ export function AnalysisVersionViewer({
                   </div>
                 ) : null}
 
-                <div className="mt-5 m-auto">
-                  <label
-                    className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                    htmlFor="file_input"
-                  >
-                    Upload file
-                  </label>
-                  <input
-                    className="block w-52 text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
-                    id="file_input"
-                    type="file"
-                    onChange={(ev) => {
+                <div className="text-gray-400 mt-5 m-auto border p-4 rounded-md text-center">
+                  <p className="cursor-default block text-sm mb-2 font-bold">
+                    Or drop a CSV
+                  </p>
+                  <DropFiles
+                    label={null}
+                    rootClassNames="w-96 text-center bg-white"
+                    iconClassNames="text-gray-400"
+                    onDrop={(ev) => {
                       const file = ev.target.files[0];
                       if (!file) return;
 

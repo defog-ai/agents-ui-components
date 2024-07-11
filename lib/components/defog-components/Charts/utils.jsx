@@ -226,27 +226,6 @@ export const parseChartDim = (dim) => {
   return dim;
 };
 
-export function useWindowSize() {
-  const [size, setSize] = useState([0, 0]);
-  useEffect(() => {
-    function updateSize() {
-      setSize([window.innerWidth, window.innerHeight]);
-    }
-    window.addEventListener("resize", updateSize);
-    updateSize();
-    return () => window.removeEventListener("resize", updateSize);
-  }, []);
-  return size;
-}
-
-const breakpoints = {
-  xs: 0,
-  sm: 640,
-  md: 768,
-  lg: 1024,
-  xl: 1280,
-};
-
 export function sanitiseData(data, chart = false) {
   // check if it's not an array or undefined
   if (!Array.isArray(data) || !data) {
@@ -328,27 +307,6 @@ export function createChartData(data, columns) {
     xAxisColumnValues,
     cleanedData: cleanedData,
   };
-}
-
-export function useBreakPoint() {
-  const [breakpoint, setBreakpoint] = useState("lg");
-  const [width] = useWindowSize();
-
-  useEffect(() => {
-    if (width < breakpoints.sm) {
-      setBreakpoint("xs");
-    } else if (width < breakpoints.md) {
-      setBreakpoint("sm");
-    } else if (width < breakpoints.lg) {
-      setBreakpoint("md");
-    } else if (width < breakpoints.xl) {
-      setBreakpoint("lg");
-    } else {
-      setBreakpoint("xl");
-    }
-  }, [width]);
-
-  return breakpoint;
 }
 
 export const mplColorsToD3 = {

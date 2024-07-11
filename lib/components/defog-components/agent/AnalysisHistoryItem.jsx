@@ -1,4 +1,4 @@
-import { PlusCircleIcon } from "@heroicons/react/20/solid";
+import { PlusIcon } from "@heroicons/react/20/solid";
 import { twMerge } from "tailwind-merge";
 
 export function AnalysisHistoryItem({
@@ -30,14 +30,14 @@ export function AnalysisHistoryItem({
       </div>
       {!isDummy && (
         <div
-          className="rounded-sm hover:bg-blue-500 p-1 flex justify-center hover:text-white text-gray-300 group "
+          className="rounded-sm hover:bg-blue-500 p-1 flex justify-center group "
           onClick={() => {
             setActiveAnalysisId(analysis?.analysisId);
             // add this to a dashboard
             setAddToDashboardSelection(analysis);
           }}
         >
-          <PlusCircleIcon className="h-3 w-3" />
+          <PlusIcon className="h-4 w-4 text-gray-400 group-hover:text-white" />
         </div>
       )}
     </div>

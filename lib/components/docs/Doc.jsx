@@ -9,7 +9,6 @@ import { createEditorConfig } from "./createEditorConfig";
 import * as Y from "yjs";
 import YPartyKitProvider from "y-partykit/provider";
 import { CustomFormattingToolbar } from "./CustomFormattingToolbar";
-import LoadingReport from "../reports/ReportLoading";
 import DocNav from "./DocNav";
 import {
   GlobalAgentContext,
@@ -218,7 +217,7 @@ export function Doc({ docId = null, user = null, token = null }) {
       </ReactiveVariablesContext.Provider>
     </RelatedAnalysesContext.Provider>
   ) : (
-    <LoadingReport title={"Loading your document..."} />
+    <h5 title={"Loading your document..."} />
   );
 }
 
