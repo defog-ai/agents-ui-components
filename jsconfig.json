@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "checkJs": true,
+    "paths": {
+      "$ui-components": ["./lib/ui-components/lib/main.js"],
+      "$context/*": ["./lib/components/context/*"],
+      "$utils/*": ["./lib/components/utils/*"]
+    },
+
+    "jsx": "react-jsx"
+  }
+}

@@ -1,0 +1,3 @@
+[submodule "lib/ui-components"]
+	path = lib/ui-components
+	url = https://github.com/defog-ai/ui-components
