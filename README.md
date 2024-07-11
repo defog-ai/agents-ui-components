@@ -14,6 +14,17 @@ This will cause the folder to be added as a submodule and also your .gitmodules 
 
 To get the latest code from inside a submodule, run git pull inside the submodule folder.
 
+
+Note: to get all the styles working, you will also have to do these imports in your code:
+
+For docs:
+`import "@blocknote/mantine/style.css";`
+
+For all other stuff:
+`import agents-ui-components/lib/styles/index.scss`
+
+
+
 ## Developing/Testing
 
 All component source files live inside `lib/`.
