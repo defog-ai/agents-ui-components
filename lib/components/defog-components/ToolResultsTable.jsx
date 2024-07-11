@@ -269,16 +269,16 @@ export function ToolResultsTable({
       });
     }
 
-    if (tableData) {
-      tabs.push({
-        component: (
-          <ErrorBoundary>
-            <ChartContainer rows={tableData.data} columns={tableData.columns} />
-          </ErrorBoundary>
-        ),
-        tabLabel: "Line Chart",
-      });
-    }
+    // if (tableData) {
+    //   tabs.push({
+    //     component: (
+    //       <ErrorBoundary>
+    //         <ChartContainer rows={tableData.data} columns={tableData.columns} />
+    //       </ErrorBoundary>
+    //     ),
+    //     tabLabel: "Line Chart",
+    //   });
+    // }
 
     if (toolRunData.tool_name === "boxplot") {
       tabs.push({
