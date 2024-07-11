@@ -3,15 +3,15 @@ import {
   arrayOfObjectsToObject,
   parseData,
   toolboxDisplayNames,
-} from "$utils/utils";
+} from "../../utils/utils";
 import { useCallback, useContext, useState } from "react";
 import ToolCreatorAssistant from "./ToolCreatorAssistant";
 import { SparklesIcon } from "@heroicons/react/20/solid";
 import DefineTool from "./DefineTool";
-import SpinningLoader from "$components/icons/SpinningLoader";
+import SpinningLoader from "../../../components/icons/SpinningLoader";
 import ToolCodeEditor from "./ToolCodeEditor";
 import { twMerge } from "tailwind-merge";
-import setupBaseUrl from "$utils/setupBaseUrl";
+import setupBaseUrl from "../../utils/setupBaseUrl";
 import {
   MessageManagerContext,
   Modal,
@@ -19,7 +19,7 @@ import {
   Sidebar,
   Input,
   Button,
-} from "$ui-components";
+} from "../../../ui-components/lib/main";
 
 const generateToolCodeEndpoint = setupBaseUrl("http", "generate_tool_code");
 

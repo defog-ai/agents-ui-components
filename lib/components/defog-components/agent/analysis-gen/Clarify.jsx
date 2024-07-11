@@ -5,8 +5,7 @@ import LoadingLottie from "../../svg/loader.json";
 import AgentLoader from "../../common/AgentLoader";
 import Writer from "../Writer";
 import Search from "antd/es/input/Search";
-import { Input } from "$ui-components";
-import { PlayIcon } from "@heroicons/react/20/solid";
+import { Input } from "../../../../ui-components/lib/main";
 
 export default function Clarify({
   data,

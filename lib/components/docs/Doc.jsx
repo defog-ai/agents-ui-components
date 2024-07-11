@@ -13,14 +13,14 @@ import DocNav from "./DocNav";
 import {
   GlobalAgentContext,
   RelatedAnalysesContext,
-} from "$context/GlobalAgentContext";
-import { getAllAnalyses, getToolboxes } from "$utils/utils";
+} from "../context/GlobalAgentContext";
+import { getAllAnalyses, getToolboxes } from "../utils/utils";
 import { DocSidebars } from "./DocSidebars";
 import { ReactiveVariablesContext } from "./ReactiveVariablesContext";
 import { ReactiveVariableNode } from "./customTiptap/ReactiveVariableNode";
 import { ReactiveVariableMention } from "./customTiptap/ReactiveVariableMention";
-import setupBaseUrl from "$utils/setupBaseUrl";
-import { setupWebsocketManager } from "$utils/websocket-manager";
+import setupBaseUrl from "../utils/setupBaseUrl";
+import { setupWebsocketManager } from "../utils/websocket-manager";
 import { customBlockSchema } from "./createCustomBlockSchema";
 import { filterSuggestionItems } from "@blocknote/core";
 import { getCustomSlashMenuItems } from "./createCustomSlashMenuItems";

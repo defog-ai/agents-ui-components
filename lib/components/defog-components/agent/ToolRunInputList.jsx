@@ -1,7 +1,7 @@
 import { message } from "antd";
 import React, { useCallback, useEffect, useState } from "react";
-import { easyToolInputTypes } from "$utils/utils";
-import { Input, SingleSelect, TextArea } from "$ui-components";
+import { easyToolInputTypes } from "../../utils/utils";
+import { Input, SingleSelect, TextArea } from "../../../ui-components/lib/main";
 import { TrashIcon, PlusCircleIcon } from "@heroicons/react/20/solid";
 
 const inputTypeToUI = {

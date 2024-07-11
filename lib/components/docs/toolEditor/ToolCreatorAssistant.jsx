@@ -1,4 +1,4 @@
-import SpinningLoader from "$components/icons/SpinningLoader";
+import SpinningLoader from "../../../components/icons/SpinningLoader";
 import { ToolFlow } from "./ToolFlow";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 

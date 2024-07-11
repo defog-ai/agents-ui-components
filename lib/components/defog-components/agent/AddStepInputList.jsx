@@ -1,7 +1,7 @@
 import { message } from "antd";
 import React, { useCallback, useMemo } from "react";
-import { easyToolInputTypes } from "$utils/utils";
-import { TextArea, SingleSelect, Input } from "$ui-components";
+import { easyToolInputTypes } from "../../utils/utils";
+import { TextArea, SingleSelect, Input } from "../../../ui-components/lib/main";
 import { TrashIcon } from "@heroicons/react/20/solid";
 
 const onHover = (ev, label, analysisId) => {

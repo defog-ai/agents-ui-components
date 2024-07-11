@@ -8,22 +8,26 @@ import React, {
   useMemo,
   useSyncExternalStore,
 } from "react";
-import { ThemeContext, lightThemeColor } from "$context/ThemeContext";
+import { ThemeContext, lightThemeColor } from "../../context/ThemeContext";
 import AgentLoader from "../common/AgentLoader";
 import Lottie from "lottie-react";
 import LoadingLottie from "../svg/loader.json";
 import { ToolResults } from "./ToolResults";
 import StepsDag from "../common/StepsDag";
-import { sentenceCase, toolShortNames, trimStringToLength } from "$utils/utils";
+import {
+  sentenceCase,
+  toolShortNames,
+  trimStringToLength,
+} from "../../utils/utils";
 import Clarify from "./analysis-gen/Clarify";
 import AnalysisManager from "./analysisManager";
-import setupBaseUrl from "$utils/setupBaseUrl";
+import setupBaseUrl from "../../utils/setupBaseUrl";
 import { AnalysisFeedback } from "./feedback/AnalysisFeedback";
-import { Input, MessageManagerContext } from "$ui-components";
+import { Input, MessageManagerContext } from "../../../ui-components/lib/main";
 import { twMerge } from "tailwind-merge";
-import { ReactiveVariablesContext } from "$context/ReactiveVariablesContext";
-import { GlobalAgentContext } from "$context/GlobalAgentContext";
-import ErrorBoundary from "$common/ErrorBoundary";
+import { ReactiveVariablesContext } from "../../context/ReactiveVariablesContext";
+import { GlobalAgentContext } from "../../context/GlobalAgentContext";
+import ErrorBoundary from "../../common/ErrorBoundary";
 
 const getToolsEndpoint = setupBaseUrl("http", "get_user_tools");
 

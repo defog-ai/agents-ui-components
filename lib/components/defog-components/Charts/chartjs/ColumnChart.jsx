@@ -13,7 +13,7 @@ import {
 import { Bar } from "react-chartjs-2";
 
 import { setChartJSDefaults } from "../../common/utils";
-import ErrorBoundary from "$common/ErrorBoundary";
+import ErrorBoundary from "../../../common/ErrorBoundary";
 
 ChartJS.register(
   CategoryScale,

@@ -8,7 +8,7 @@ import React, {
 import Clarify from "./Clarify";
 import { ThemeContext } from "../../../../context/ThemeContext";
 import { Select, Tabs, Input } from "antd";
-import { GlobalAgentContext } from "$context/GlobalAgentContext";
+import { GlobalAgentContext } from "../../../context/GlobalAgentContext";
 
 const generationStages = ["clarify"];
 
@@ -26,10 +26,10 @@ export default function AnalysisGen({
   stageDone = true,
   // if any stage is currently loading, disable submits on all stages
   currentStage = null,
-  handleSubmit = () => { },
+  handleSubmit = () => {},
   globalLoading,
   searchRef = null,
-  handleEdit = () => { },
+  handleEdit = () => {},
 }) {
   const { Search } = Input;
   const { theme } = useContext(ThemeContext);
@@ -72,27 +72,27 @@ export default function AnalysisGen({
               >
                 {components[stage]
                   ? React.createElement(components[stage], {
-                    data: analysisData[stage],
-                    handleSubmit: (
-                      ev,
-                      stageInput = {},
-                      submitSourceStage = null
-                    ) => {
-                      setActiveTab(String(i + 2 > 2 ? 2 : i + 2));
+                      data: analysisData[stage],
+                      handleSubmit: (
+                        ev,
+                        stageInput = {},
+                        submitSourceStage = null
+                      ) => {
+                        setActiveTab(String(i + 2 > 2 ? 2 : i + 2));
 
-                      stageInput.toolboxes = toolboxSelection
-                        ? [toolboxSelection]
-                        : [];
+                        stageInput.toolboxes = toolboxSelection
+                          ? [toolboxSelection]
+                          : [];
 
-                      return handleSubmit(ev, stageInput, submitSourceStage);
-                    },
-                    theme: theme,
-                    allowDisable: false,
-                    globalLoading: globalLoading,
-                    stageDone: stage === currentStage ? stageDone : true,
-                    isCurrentStage: stage === currentStage,
-                    handleEdit,
-                  })
+                        return handleSubmit(ev, stageInput, submitSourceStage);
+                      },
+                      theme: theme,
+                      allowDisable: false,
+                      globalLoading: globalLoading,
+                      stageDone: stage === currentStage ? stageDone : true,
+                      isCurrentStage: stage === currentStage,
+                      handleEdit,
+                    })
                   : null}
               </div>
             ),
@@ -175,8 +175,8 @@ export default function AnalysisGen({
           <Tabs
             items={tabs}
             tabPosition="top"
-          // activeKey={activeTab}
-          // onTabClick={(key) => setActiveTab(key)}
+            // activeKey={activeTab}
+            // onTabClick={(key) => setActiveTab(key)}
           ></Tabs>
         ) : (
           <></>

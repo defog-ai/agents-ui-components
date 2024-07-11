@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { setupWebsocketManager } from "$utils/websocket-manager";
+import { setupWebsocketManager } from "../../utils/websocket-manager";
 import { message } from "antd";
-import setupBaseUrl from "$utils/setupBaseUrl";
+import setupBaseUrl from "../../utils/setupBaseUrl";
 import SpinningLoader from "../../icons/SpinningLoader";
 
 export default function ToolRunAnalysis({ question, data_csv, image = null }) {

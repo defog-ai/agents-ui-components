@@ -9,7 +9,7 @@ dayjs.extend(weekOfYear);
 dayjs.extend(customParseFormat);
 dayjs.extend(isoWeek);
 
-import { chartColors } from "$context/ThemeContext";
+import { chartColors } from "../../context/ThemeContext";
 import { mean } from "d3-array";
 
 const dateFormats = [
@@ -349,7 +349,7 @@ export const mapToObject = (
   parentNestLocation = [],
   processValue = (d) => d,
   // hook will allow you to do extra computation on every recursive call to this function
-  hook = () => { }
+  hook = () => {}
 ) =>
   Object.fromEntries(
     Array.from(map.entries(), ([key, value]) => {

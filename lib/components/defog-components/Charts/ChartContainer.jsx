@@ -3,8 +3,7 @@
 
 import { useMemo } from "react";
 import { createChartData } from "./utils";
-import { MultiSelect } from "$ui-components";
-import { SingleSelect } from "$ui-components";
+import { MultiSelect, SingleSelect } from "../../../ui-components/lib/main";
 
 /**
  * Lays out the chart body, x and y axis in a nice flexbox layout.

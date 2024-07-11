@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ToolEditorInput } from "./ToolEditorInput";
-import { Table, Modal } from "$ui-components";
+import { Table, Modal } from "../../../ui-components/lib/main";
 import { CodeBracketSquareIcon } from "@heroicons/react/20/solid";
 import ToolCodeEditor from "./ToolCodeEditor";
 

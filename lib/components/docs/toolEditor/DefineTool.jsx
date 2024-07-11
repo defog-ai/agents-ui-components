@@ -1,4 +1,4 @@
-import { Input, TextArea } from "$ui-components";
+import { Input, TextArea } from "../../../ui-components/lib/main";
 import ToolCodeEditor from "./ToolCodeEditor";
 
 export function DefineTool({

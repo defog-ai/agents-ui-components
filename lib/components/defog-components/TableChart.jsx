@@ -17,7 +17,7 @@ import {
   roundColumns,
 } from "./common/utils";
 
-import ErrorBoundary from "$common/ErrorBoundary";
+import ErrorBoundary from "../common/ErrorBoundary";
 import ChartImage from "./ChartImage";
 
 import Editor from "react-simple-code-editor";
@@ -32,11 +32,11 @@ import AgentLoader from "./common/AgentLoader";
 import Lottie from "lottie-react";
 
 import LoadingLottie from "./svg/loader.json";
-import { ThemeContext, lightThemeColor } from "$context/ThemeContext";
-import { setupWebsocketManager } from "$utils/websocket-manager";
-import setupBaseUrl from "$utils/setupBaseUrl";
-import { getTableData, roundNumber } from "$utils/utils";
-import { ReactiveVariablesContext } from "$context/ReactiveVariablesContext";
+import { ThemeContext, lightThemeColor } from "../context/ThemeContext";
+import { setupWebsocketManager } from "../utils/websocket-manager";
+import setupBaseUrl from "../utils/setupBaseUrl";
+import { getTableData, roundNumber } from "../utils/utils";
+import { ReactiveVariablesContext } from "../context/ReactiveVariablesContext";
 import {
   ChartBarIcon,
   DocumentDuplicateIcon,

@@ -1,6 +1,6 @@
-import setupBaseUrl from "$utils/setupBaseUrl";
+import setupBaseUrl from "../../utils/setupBaseUrl";
 import { Input, Modal, Select, message } from "antd";
-import { Button } from "$ui-components";
+import { Button } from "../../../ui-components/lib/main";
 import {
   arrayOfObjectsToObject,
   breakLinesPretty,
@@ -9,7 +9,7 @@ import {
   preventModifyTargetRanges,
   snakeCase,
   toolboxDisplayNames,
-} from "$utils/utils";
+} from "../../utils/utils";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import ReactCodeMirror from "@uiw/react-codemirror";

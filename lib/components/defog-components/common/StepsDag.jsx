@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Popover } from "antd";
-import { createDag } from "$utils/draw-dag";
-import { toolDisplayNames } from "$utils/utils";
+import { createDag } from "../../utils/draw-dag";
+import { toolDisplayNames } from "../../utils/utils";
 import { twMerge } from "tailwind-merge";
 import {
   PlusCircleIcon,

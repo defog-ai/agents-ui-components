@@ -10,7 +10,7 @@ import {
   PlusIcon,
 } from "@heroicons/react/20/solid";
 import Papa from "papaparse";
-import { sentenceCase, useGhostImage } from "$utils/utils";
+import { sentenceCase, useGhostImage } from "../../utils/utils";
 import { twMerge } from "tailwind-merge";
 import {
   Sidebar,
@@ -19,7 +19,7 @@ import {
   TextArea,
   MessageManagerContext,
   DropFiles,
-} from "$ui-components";
+} from "../../../ui-components/lib/main";
 
 export function AnalysisVersionViewer({
   dashboards,

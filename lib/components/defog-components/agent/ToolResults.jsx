@@ -7,14 +7,14 @@ import { ToolReRun } from "./ToolReRun";
 import AgentLoader from "../common/AgentLoader";
 import Lottie from "lottie-react";
 import LoadingLottie from "../svg/loader.json";
-import ErrorBoundary from "$common/ErrorBoundary";
+import ErrorBoundary from "../../common/ErrorBoundary";
 import { csvParse } from "d3";
-import { getToolRunData, parseData, toolDisplayNames } from "$utils/utils";
+import { getToolRunData, parseData, toolDisplayNames } from "../../utils/utils";
 import ToolRunAnalysis from "./ToolRunAnalysis";
 import { AddStepUI } from "./AddStepUI";
 import { Modal } from "antd";
-import setupBaseUrl from "$utils/setupBaseUrl";
-import { ReactiveVariablesContext } from "$context/ReactiveVariablesContext";
+import setupBaseUrl from "../../utils/setupBaseUrl";
+import { ReactiveVariablesContext } from "../../context/ReactiveVariablesContext";
 
 function parseOutputs(data, analysisData) {
   let parsedOutputs = {};

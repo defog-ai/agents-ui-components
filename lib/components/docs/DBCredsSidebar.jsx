@@ -1,6 +1,6 @@
 import { AutoComplete, Button, Input, Select } from "antd";
 import React, { useContext, useEffect, useRef, useState } from "react";
-import { GlobalAgentContext } from "$context/GlobalAgentContext";
+import { GlobalAgentContext } from "../context/GlobalAgentContext";
 
 export function DBCredsSidebar() {
   const globalAgentContext = useContext(GlobalAgentContext);

@@ -1,7 +1,7 @@
 import { Button, Modal } from "antd";
 import StepsDag from "../../common/StepsDag";
 import { useCallback, useEffect, useState } from "react";
-import { toolDisplayNames, toolShortNames } from "$utils/utils";
+import { toolDisplayNames, toolShortNames } from "../../../utils/utils";
 
 export default function BadModal({
   open,

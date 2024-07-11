@@ -29,15 +29,6 @@ export default ({ mode }) => {
       },
       manifest: true,
     },
-    resolve: {
-      alias: {
-        $lib: resolve(__dirname, "lib/"),
-        $utils: resolve(__dirname, "lib/components/utils"),
-        $context: resolve(__dirname, "lib/components/context"),
-        "$ui-components": resolve(__dirname, "lib/ui-components/lib/main"),
-        $common: resolve(__dirname, "lib/components/common"),
-      },
-    },
     rollupOptions: {
       // make sure to externalize deps that shouldn't be bundled
       // into your library

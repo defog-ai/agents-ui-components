@@ -1,4 +1,4 @@
-import { ThemeContext } from "$context/ThemeContext";
+import { ThemeContext } from "../../context/ThemeContext";
 import React, { useContext } from "react";
 import styled from "styled-components";
 
@@ -46,11 +46,11 @@ const QAWrap = styled.div`
     align-items: center;
     border: 1px solid;
     border-color: ${(props) =>
-    props.theme
-      ? props.isAnswer
-        ? props.theme.answerBorder
-        : props.theme.questionBorder
-      : "#fff"};
+      props.theme
+        ? props.isAnswer
+          ? props.theme.answerBorder
+          : props.theme.questionBorder
+        : "#fff"};
 
     @container (max-width: 650px) {
       min-width: 28px;
@@ -74,11 +74,11 @@ const QAWrap = styled.div`
     padding: 12px 20px;
     border: 1px solid;
     border-color: ${(props) =>
-    props.theme
-      ? props.isAnswer
-        ? props.theme.answerBorder
-        : props.theme.questionBorder
-      : "#fff"};
+      props.theme
+        ? props.isAnswer
+          ? props.theme.answerBorder
+          : props.theme.questionBorder
+        : "#fff"};
 
     @container (max-width: 650px) {
       padding: 12px;

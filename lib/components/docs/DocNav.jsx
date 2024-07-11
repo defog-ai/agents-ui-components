@@ -1,7 +1,7 @@
 import React, { Fragment, useCallback, useEffect, useState } from "react";
 import OtherDocs from "./OtherDocs";
 import { Modal, message } from "antd";
-import { deleteDoc } from "$utils/utils";
+import { deleteDoc } from "../utils/utils";
 import { TrashIcon, PlusIcon } from "@heroicons/react/20/solid";
 // import { useRouter } from "next/router";
 

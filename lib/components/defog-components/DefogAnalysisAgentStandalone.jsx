@@ -11,13 +11,13 @@ import { v4 } from "uuid";
 import {
   GlobalAgentContext,
   RelatedAnalysesContext,
-} from "$context/GlobalAgentContext";
-import { getAllAnalyses, getAllDashboards } from "$utils/utils";
-import ErrorBoundary from "$common/ErrorBoundary";
-import setupBaseUrl from "$utils/setupBaseUrl";
-import { setupWebsocketManager } from "$utils/websocket-manager";
+} from "../context/GlobalAgentContext";
+import { getAllAnalyses, getAllDashboards } from "../utils/utils";
+import ErrorBoundary from "../common/ErrorBoundary";
+import setupBaseUrl from "../utils/setupBaseUrl";
+import { setupWebsocketManager } from "../utils/websocket-manager";
 import { AnalysisVersionViewer } from "./agent/AnalysisVersionViewer";
-import { ReactiveVariablesContext } from "$context/ReactiveVariablesContext";
+import { ReactiveVariablesContext } from "../context/ReactiveVariablesContext";
 
 export function DefogAnalysisAgentStandalone({
   analysisId,

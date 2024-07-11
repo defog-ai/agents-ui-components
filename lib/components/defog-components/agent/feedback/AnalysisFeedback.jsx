@@ -4,8 +4,8 @@ import { useState } from "react";
 import GoodModal from "./GoodModal";
 import BadModal from "./BadModal";
 import { Popover, message } from "antd";
-import ErrorBoundary from "$common/ErrorBoundary";
-import setupBaseUrl from "$utils/setupBaseUrl";
+import ErrorBoundary from "../../../common/ErrorBoundary";
+import setupBaseUrl from "../../../utils/setupBaseUrl";
 
 const feedbackUrl = setupBaseUrl("http", "submit_feedback");
 
