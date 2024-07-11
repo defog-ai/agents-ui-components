@@ -6,7 +6,7 @@ import {
   ArchiveBoxXMarkIcon,
 } from "@heroicons/react/20/solid";
 
-export default function DocIcon({
+export function DocIcon({
   doc,
   addDocIcon = false,
   recentlyViewed = false,

@@ -217,7 +217,7 @@ export function Doc({ docId = null, user = null, token = null }) {
       </ReactiveVariablesContext.Provider>
     </RelatedAnalysesContext.Provider>
   ) : (
-    <h5 title={"Loading your document..."} />
+    <h5>Loading your document...</h5>
   );
 }
 

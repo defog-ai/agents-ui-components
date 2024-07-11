@@ -23,7 +23,7 @@ import {
 
 const generateToolCodeEndpoint = setupBaseUrl("http", "generate_tool_code");
 
-export default function AddTool({ toolbox, onAddTool = (...args) => {} }) {
+export function AddTool({ toolbox, onAddTool = (...args) => {} }) {
   const [modalOpen, setModalOpen] = useState(false);
 
   const [toolAssistMode, setToolAssistMode] = useState(false);

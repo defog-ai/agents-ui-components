@@ -1,7 +1,7 @@
 import { Input, TextArea } from "$ui-components";
 import ToolCodeEditor from "./ToolCodeEditor";
 
-export default function DefineTool({
+export function DefineTool({
   toolName,
   handleChange = (...args) => {},
   toolDocString,
