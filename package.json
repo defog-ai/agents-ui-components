@@ -18,14 +18,22 @@
     }
   },
   "dependencies": {
+    "@blocknote/core": "^0.14.5",
+    "@blocknote/mantine": "^0.14.6",
+    "@blocknote/react": "^0.14.6",
     "@codemirror/lang-python": "^6.1.6",
     "@codemirror/lang-sql": "^6.7.0",
     "@headlessui/react": "^2.1.2",
     "@heroicons/react": "^2.1.5",
+    "@tiptap/core": "^2.4.0",
+    "@tiptap/pm": "^2.4.0",
+    "@tiptap/suggestion": "^2.4.0",
+    "@uiw/codemirror-extensions-classname": "^4.23.0",
     "@uiw/react-codemirror": "^4.23.0",
     "antd": "^5.19.1",
     "chart.js": "^4.4.3",
     "chroma-js": "^2.4.2",
+    "codemirror": "^6.0.1",
     "d3": "^7.9.0",
     "d3-array": "^3.2.4",
     "d3-dag": "^1.1.0",
@@ -40,6 +48,7 @@
     "styled-components": "^6.1.11",
     "tailwind-merge": "^2.4.0",
     "uuid": "^10.0.0",
+    "y-partykit": "^0.0.29",
     "yjs": "^13.6.18"
   },
   "peerDependencies": {
