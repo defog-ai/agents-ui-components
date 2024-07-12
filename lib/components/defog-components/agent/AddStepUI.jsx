@@ -11,16 +11,16 @@ import {
   SingleSelect,
 } from "../../../ui-components/lib/main";
 
-const createNewStepEndpoint = setupBaseUrl("http", "create_new_step");
-
 export function AddStepUI({
   analysisId,
   activeNode,
+  apiEndpoint,
   dag,
   handleReRun = () => {},
   parentNodeData = {},
   tools = {},
 }) {
+  const createNewStepEndpoint = setupBaseUrl(protocol="http", path="create_new_step", apiEndpoint=apiEndpoint);
   const toolOptions = Object.keys(tools).map((tool) => {
     return { value: tool, label: tools[tool]?.tool_name };
   });

@@ -7,15 +7,15 @@ import { Popover, message } from "antd";
 import ErrorBoundary from "../../../common/ErrorBoundary";
 import setupBaseUrl from "../../../utils/setupBaseUrl";
 
-const feedbackUrl = setupBaseUrl("http", "submit_feedback");
-
 export function AnalysisFeedback({
   analysisId,
   analysisSteps,
   user_question,
   token,
   keyName,
+  apiEndpoint,
 }) {
+  const feedbackUrl = setupBaseUrl(protocol="http", path="submit_feedback", apiEndpoint=apiEndpoint);
   const [modalVisible, setModalVisible] = useState(null);
 
   const submitFeedback = async (feedback) => {

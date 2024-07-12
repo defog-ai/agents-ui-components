@@ -1,6 +1,6 @@
 import React, { Fragment, useEffect, useRef } from "react";
 
-export default function ChartImage({ images = [] }) {
+export default function ChartImage({ apiEndpoint, images = [] }) {
   const imgRefs = useRef(images.map(() => null));
 
   return (
@@ -9,7 +9,7 @@ export default function ChartImage({ images = [] }) {
         <img
           ref={(ref) => (imgRefs.current[i] = ref)}
           src={
-            `${process.env.NEXT_PUBLIC_AGENTS_ENDPOINT}/get_assets?path=` +
+            `${apiEndpoint}/get_assets?path=` +
             encodeURIComponent(image.path)
           }
           key={i}

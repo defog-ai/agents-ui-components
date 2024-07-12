@@ -28,15 +28,15 @@ import { ReactiveVariablesContext } from "../../context/ReactiveVariablesContext
 import { GlobalAgentContext } from "../../context/GlobalAgentContext";
 import ErrorBoundary from "../../common/ErrorBoundary";
 
-const getToolsEndpoint = setupBaseUrl("http", "get_user_tools");
+const getToolsEndpoint = setupBaseUrl(protocol="http", path="get_user_tools", apiEndpoint=apiEndpoint);
 
 export const AnalysisAgent = ({
   analysisId,
-  user,
   token,
   keyName,
   devMode,
   didUploadFile,
+  apiEndpoint,
   editor,
   block,
   rootClassNames = "",
@@ -165,6 +165,7 @@ export const AnalysisAgent = ({
   const analysisManager = useMemo(() => {
     return AnalysisManager({
       analysisId,
+      apiEndpoint,
       onNewData: onMainSocketMessage,
       onReRunData: onReRunMessage,
       onManagerDestroyed: onManagerDestroyed,
@@ -172,7 +173,6 @@ export const AnalysisAgent = ({
       didUploadFile,
       keyName,
       devMode,
-      userEmail: user,
       createAnalysisRequestBody,
     });
   }, [analysisId]);
@@ -343,6 +343,7 @@ export const AnalysisAgent = ({
             analysisSteps={analysisData?.gen_steps?.steps || []}
             analysisId={analysisId}
             user_question={analysisData?.user_question}
+            apiEndpoint={apiEndpoint}
             token={token}
             keyName={keyName}
           />
@@ -429,6 +430,7 @@ export const AnalysisAgent = ({
                               activeNode={activeNode}
                               analysisData={analysisData}
                               toolSocketManager={toolSocketManager}
+                              apiEndpoint={apiEndpoint}
                               dag={dag}
                               setActiveNode={setActiveNode}
                               handleReRun={handleReRun}

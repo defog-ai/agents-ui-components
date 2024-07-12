@@ -4,7 +4,7 @@ import { message } from "antd";
 import setupBaseUrl from "../../utils/setupBaseUrl";
 import { SpinningLoader } from "../../../ui-components/lib/main";
 
-export default function ToolRunAnalysis({ question, data_csv, image = null }) {
+export default function ToolRunAnalysis({ question, data_csv, apiEndpoint, image = null }) {
   const [toolRunAnalysis, setToolRunAnalysis] = useState("");
   const [socketManager, setSocketManager] = useState(null);
 
@@ -30,7 +30,7 @@ export default function ToolRunAnalysis({ question, data_csv, image = null }) {
 
   useEffect(() => {
     async function setup() {
-      const urlToConnect = setupBaseUrl("ws", "analyse_data");
+      const urlToConnect = setupBaseUrl(protocol="ws", path="analyse_data", apiEndpoint=apiEndpoint);
       try {
         const mgr = await setupWebsocketManager(urlToConnect, onMessage);
         setSocketManager(mgr);

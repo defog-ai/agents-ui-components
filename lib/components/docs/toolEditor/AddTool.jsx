@@ -22,15 +22,13 @@ import {
   SpinningLoader,
 } from "../../../ui-components/lib/main";
 
-const generateToolCodeEndpoint = setupBaseUrl("http", "generate_tool_code");
 
-export function AddTool({ toolbox, onAddTool = (...args) => {} }) {
+export function AddTool({ toolbox, apiEndpoint, onAddTool = (...args) => {} }) {
+  const generateToolCodeEndpoint = setupBaseUrl(protocol="http", path="generate_tool_code", apiEndpoint=apiEndpoint);
+  
   const [modalOpen, setModalOpen] = useState(false);
-
   const [toolAssistMode, setToolAssistMode] = useState(false);
-
   const [testingResults, setTestingResults] = useState(null);
-
   const [tool, setTool] = useState({
     code: "",
     description: "",
@@ -68,7 +66,7 @@ export function AddTool({ toolbox, onAddTool = (...args) => {} }) {
   const tryAddTool = async () => {
     setLoading(true);
     try {
-      const res = await addTool(tool);
+      const res = await addTool(tool, apiEndpoint);
 
       if (res.success) {
         messageManager.success("Tool added successfully");
