@@ -9,8 +9,7 @@ import {
   ArrowsPointingOutIcon,
   PlusIcon,
 } from "@heroicons/react/20/solid";
-import Papa from "papaparse";
-import { sentenceCase, useGhostImage } from "../../utils/utils";
+import { parseCsvFile, sentenceCase, useGhostImage } from "../../utils/utils";
 import { twMerge } from "tailwind-merge";
 import {
   Sidebar,
@@ -19,6 +18,7 @@ import {
   TextArea,
   MessageManagerContext,
   DropFiles,
+  SpinningLoader,
 } from "../../../ui-components/lib/main";
 
 export function AnalysisVersionViewer({
@@ -83,6 +83,9 @@ export function AnalysisVersionViewer({
   const analysisDomRefs = useRef({});
 
   const [loading, setLoading] = useState(false);
+
+  const [parsingFile, setParsingFile] = useState(false);
+
   const searchCtr = useRef(null);
   const searchRef = useRef(null);
   const [addToDashboardSelection, setAddToDashboardSelection] = useState(false);
@@ -93,28 +96,35 @@ export function AnalysisVersionViewer({
 
   const [sidebarOpen, setSidebarOpen] = useState(defaultSidebarOpen);
 
-  const uploadFileToServer = async (parsedData) => {
-    // upload the file to the server
-    setLoading(true);
-    console.log(parsedData);
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_AGENTS_ENDPOINT}/integration/upload_csv`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          data: parsedData,
-          keyName: keyName,
-          token: token,
-        }),
-      }
-    );
-    const data = await response.json();
-    console.log(data);
-    setDidUploadFile(true);
-    setLoading(false);
+  const uploadFileToServer = async ({ parsedData, rows, columns }) => {
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_AGENTS_ENDPOINT}/integration/upload_csv/`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            data: parsedData,
+            keyName: keyName,
+            token: token,
+          }),
+        }
+      );
+      const data = await response.json();
+      console.log(data);
+
+      setDidUploadFile(true);
+      setTableColumns(columns);
+      setTableData(rows);
+    } catch (e) {
+      messageManager.error("Failed to upload the file");
+      console.log(e.stack);
+    } finally {
+      setParsingFile(false);
+      setLoading(false);
+    }
   };
 
   const handleSubmit = useCallback(
@@ -429,9 +439,15 @@ export function AnalysisVersionViewer({
                       {predefinedQuestions.map((question, i) => (
                         <li className="" key={i}>
                           <span
-                            className="cursor-pointer hover:underline text-sm"
+                            className={twMerge(
+                              "cursor-pointer text-sm",
+                              loading
+                                ? "text-gray-300 cursor-not-allowed"
+                                : "hover:underline"
+                            )}
                             onClick={(ev) => {
                               ev.preventDefault();
+                              if (loading) return;
 
                               handleSubmit(
                                 sentenceCase(question),
@@ -449,50 +465,68 @@ export function AnalysisVersionViewer({
                   </div>
                 ) : null}
 
-                <div className="text-gray-400 mt-5 m-auto border p-4 rounded-md text-center">
-                  <p className="cursor-default block text-sm mb-2 font-bold">
-                    Or drop a CSV
-                  </p>
-                  <DropFiles
-                    label={null}
-                    rootClassNames="w-96 text-center bg-white"
-                    iconClassNames="text-gray-400"
-                    onDrop={(ev) => {
-                      const file = ev.target.files[0];
-                      if (!file) return;
-
-                      // read file as CSV
-                      let parsedData = null;
-                      Papa.parse(file, {
-                        dynamicTyping: true,
-                        skipEmptyLines: true,
-                        complete: (results) => {
-                          parsedData = results.data;
-                          let columns = parsedData[0];
-                          // convert headers from a list of strings to a list of objects, where each object has a title and a dataIndex
-                          columns = columns.map((title, i) => ({
-                            title: title,
-                            dataIndex: i,
-                            key: title,
-                          }));
-                          let data = parsedData.slice(1);
-                          data = data.map((row, i) => ({
-                            key: i,
-                            ...Object.fromEntries(
-                              columns.map((col, j) => [col.dataIndex, row[j]])
-                            ),
-                          }));
-                          setTableColumns(columns);
-                          setTableData(data);
-
-                          uploadFileToServer(parsedData);
-                        },
-                      });
-                    }}
-                  />
+                <div className="text-gray-400 mt-5 m-auto text-center">
                   {didUploadFile === true ? (
                     <Table rows={tableData} columns={tableColumns} />
-                  ) : null}
+                  ) : (
+                    <DropFiles
+                      label={null}
+                      rootClassNames="w-96 text-center bg-white p-4 border rounded-md"
+                      iconClassNames="text-gray-400"
+                      icon={
+                        parsingFile ? (
+                          <SpinningLoader classNames="w-4 h-4 text-gray-300" />
+                        ) : null
+                      }
+                      onFileSelect={(ev) => {
+                        // this is when the user selects a file from the file dialog
+                        try {
+                          let file = ev.target.files[0];
+                          if (!file || file.type !== "text/csv") {
+                            throw new Error("Only CSV files are accepted");
+                          }
+                          setLoading(true);
+                          setParsingFile(true);
+
+                          parseCsvFile(file, uploadFileToServer);
+                        } catch (e) {
+                          messageManager.error("Failed to parse the file");
+                          setLoading(false);
+                          setParsingFile(false);
+                        }
+                      }}
+                      onDrop={(ev) => {
+                        ev.preventDefault();
+                        try {
+                          let file = ev?.dataTransfer?.items?.[0];
+                          if (
+                            !file ||
+                            !file.kind ||
+                            file.kind !== "file" ||
+                            file.type !== "text/csv"
+                          ) {
+                            throw new Error("Only CSV files are accepted");
+                          }
+
+                          file = file.getAsFile();
+
+                          setLoading(true);
+                          setParsingFile(true);
+
+                          parseCsvFile(file, uploadFileToServer);
+                        } catch (e) {
+                          messageManager.error("Failed to parse the file");
+                          console.log(e.stack);
+                          setLoading(false);
+                          setParsingFile(false);
+                        }
+                      }}
+                    >
+                      <p className="text-gray-400 cursor-default block text-sm mb-2 font-bold">
+                        Or drop a CSV
+                      </p>
+                    </DropFiles>
+                  )}
                 </div>
               </div>
             )}
