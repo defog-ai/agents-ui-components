@@ -21,8 +21,11 @@ import { twMerge } from "tailwind-merge";
 import { SparklesIcon, TrashIcon } from "@heroicons/react/20/solid";
 const { TextArea } = Input;
 
-const addToolEndpoint = setupBaseUrl("http", "add_tool");
-const generateToolCodeEndpoint = setupBaseUrl("http", "generate_tool_code");
+const addToolEndpoint = setupBaseUrl({ protocol: "http", path: "add_tool" });
+const generateToolCodeEndpoint = setupBaseUrl({
+  protocol: "http",
+  path: "generate_tool_code",
+});
 const skipImages = false;
 
 export default function ManualToolCreator({ tool, onAddTool, handleChange }) {

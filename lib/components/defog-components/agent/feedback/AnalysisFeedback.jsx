@@ -15,7 +15,11 @@ export function AnalysisFeedback({
   keyName,
   apiEndpoint,
 }) {
-  const feedbackUrl = setupBaseUrl(protocol="http", path="submit_feedback", apiEndpoint=apiEndpoint);
+  const feedbackUrl = setupBaseUrl({
+    protocol: "http",
+    path: "submit_feedback",
+    apiEndpoint: apiEndpoint,
+  });
   const [modalVisible, setModalVisible] = useState(null);
 
   const submitFeedback = async (feedback) => {

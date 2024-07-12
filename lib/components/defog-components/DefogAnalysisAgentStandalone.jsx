@@ -65,7 +65,11 @@ export function DefogAnalysisAgentStandalone({
         items.analyses = analyses.analyses;
       }
 
-      const urlToConnect = setupBaseUrl(procotol="ws", path="ws", apiEndpoint=apiEndpoint);
+      const urlToConnect = setupBaseUrl({
+        procotol: "ws",
+        path: "ws",
+        apiEndpoint: apiEndpoint,
+      });
       const mgr = await setupWebsocketManager(urlToConnect);
       setSocketManager(mgr);
 

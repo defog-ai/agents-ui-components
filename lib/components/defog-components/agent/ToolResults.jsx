@@ -46,8 +46,6 @@ function parseOutputs(data, analysisData) {
   return parsedOutputs;
 }
 
-const deleteStepsEndpoint = setupBaseUrl(protocol="http", path="delete_steps", apiEndpoint=apiEndpoint);
-
 export function ToolResults({
   analysisId,
   analysisData,
@@ -65,6 +63,11 @@ export function ToolResults({
   tools = {},
   analysisBusy = false,
 }) {
+  const deleteStepsEndpoint = setupBaseUrl({
+    protocol: "http",
+    path: "delete_steps",
+    apiEndpoint: apiEndpoint,
+  });
   const [toolRunId, setToolRunId] = useState(null);
   const [toolRunData, setToolRunData] = useState(null);
   const [toolRunDataLoading, setToolRunDataLoading] = useState(false);

@@ -28,8 +28,6 @@ import { ReactiveVariablesContext } from "../../context/ReactiveVariablesContext
 import { GlobalAgentContext } from "../../context/GlobalAgentContext";
 import ErrorBoundary from "../../common/ErrorBoundary";
 
-const getToolsEndpoint = setupBaseUrl(protocol="http", path="get_user_tools", apiEndpoint=apiEndpoint);
-
 export const AnalysisAgent = ({
   analysisId,
   token,
@@ -48,6 +46,11 @@ export const AnalysisAgent = ({
   onManagerDestroyed = (...args) => {},
   sqlOnly,
 }) => {
+  const getToolsEndpoint = setupBaseUrl({
+    protocol: "http",
+    path: "get_user_tools",
+    apiEndpoint: apiEndpoint,
+  });
   // console.log("Key name", keyName);
   // console.log("Did upload file", didUploadFile);
   const [pendingToolRunUpdates, setPendingToolRunUpdates] = useState({});

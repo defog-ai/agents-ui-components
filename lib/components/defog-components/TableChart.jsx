@@ -121,7 +121,11 @@ export function TableChart({
 
     async function setupSocket() {
       try {
-        const urlToConnect = setupBaseUrl(protocol="ws", path="table_chart", apiEndpoint=apiEndpoint);
+        const urlToConnect = setupBaseUrl({
+          protocol: "ws",
+          path: "table_chart",
+          apiEndpoint: apiEndpoint,
+        });
         const mgr = await setupWebsocketManager(urlToConnect, onMessage);
         setSocketManager(mgr);
         let tableData = await getTableData(tableId);
@@ -198,7 +202,7 @@ export function TableChart({
     }
     if (!tableData || !response) {
       return (
-          <AgentLoader message={"Loading table"} lottieData={LoadingLottie} />
+        <AgentLoader message={"Loading table"} lottieData={LoadingLottie} />
       );
     }
     const roundedData = roundColumns(response.data, response.columns);

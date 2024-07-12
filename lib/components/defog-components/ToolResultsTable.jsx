@@ -22,7 +22,6 @@ import {
   ChartBarIcon,
   DocumentDuplicateIcon,
   TableCellsIcon,
-  apiEndpoint,
 } from "@heroicons/react/20/solid";
 import ErrorBoundary from "../common/ErrorBoundary";
 import ChartImage from "./ChartImage";
@@ -43,8 +42,6 @@ import Heatmap from "./Charts/Heatmap";
 import Boxplot from "./Charts/Boxplot";
 import { ChartContainer } from "./Charts/ChartContainer";
 
-const downloadCsvEndpoint = setupBaseUrl(protocol="http", path="download_csv", apiEndpoint=apiEndpoint);
-
 // tabBarLeftContent: extra content for the tab bar on the left side
 export function ToolResultsTable({
   toolRunData,
@@ -59,6 +56,11 @@ export function ToolResultsTable({
   reactiveVars = null,
   handleEdit = () => {},
 }) {
+  const downloadCsvEndpoint = setupBaseUrl({
+    protocol: "http",
+    path: "download_csv",
+    apiEndpoint: apiEndpoint,
+  });
   const tableChartRef = useRef(null);
   const [sqlQuery, setSqlQuery] = useState(sql);
   const [toolCode, setToolCode] = useState(codeStr);
@@ -337,7 +339,7 @@ export function ToolResultsTable({
       tabs.push({
         component: (
           <ErrorBoundary>
-            <ChartImage apiEndpoint={apiEndpoint} images={chartImages}  />
+            <ChartImage apiEndpoint={apiEndpoint} images={chartImages} />
           </ErrorBoundary>
         ),
         tabLabel: chartNames[chartImages[0].type] || "Chart",
