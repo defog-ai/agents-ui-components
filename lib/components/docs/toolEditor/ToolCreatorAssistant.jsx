@@ -1,11 +1,12 @@
-import SpinningLoader from "../../../components/icons/SpinningLoader";
+
+import { SpinningLoader } from "../../../ui-components/lib/main";
 import { ToolFlow } from "./ToolFlow";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 
 export default function ToolCreatorAssistant({
   tool,
   loading,
-  handleChange = (...args) => {},
+  handleChange = (...args) => { },
   testingResults = null,
 }) {
   const toolName = tool.tool_name;

@@ -8,7 +8,7 @@ import { useCallback, useContext, useState } from "react";
 import ToolCreatorAssistant from "./ToolCreatorAssistant";
 import { SparklesIcon } from "@heroicons/react/20/solid";
 import DefineTool from "./DefineTool";
-import SpinningLoader from "../../../components/icons/SpinningLoader";
+
 import ToolCodeEditor from "./ToolCodeEditor";
 import { twMerge } from "tailwind-merge";
 import setupBaseUrl from "../../utils/setupBaseUrl";
@@ -19,11 +19,12 @@ import {
   Sidebar,
   Input,
   Button,
+  SpinningLoader,
 } from "../../../ui-components/lib/main";
 
 const generateToolCodeEndpoint = setupBaseUrl("http", "generate_tool_code");
 
-export function AddTool({ toolbox, onAddTool = (...args) => {} }) {
+export function AddTool({ toolbox, onAddTool = (...args) => { } }) {
   const [modalOpen, setModalOpen] = useState(false);
 
   const [toolAssistMode, setToolAssistMode] = useState(false);
