@@ -98,20 +98,17 @@ export function AnalysisVersionViewer({
 
   const uploadFileToServer = async ({ parsedData, rows, columns }) => {
     try {
-      const response = await fetch(
-        `${apiEndpoint}/integration/upload_csv/`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            data: parsedData,
-            keyName: keyName,
-            token: token,
-          }),
-        }
-      );
+      const response = await fetch(`${apiEndpoint}/integration/upload_csv`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          data: parsedData,
+          keyName: keyName,
+          token: token,
+        }),
+      });
       const data = await response.json();
       console.log(data);
 
