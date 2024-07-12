@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { setupWebsocketManager } from "../../utils/websocket-manager";
 import { message } from "antd";
 import setupBaseUrl from "../../utils/setupBaseUrl";
-import SpinningLoader from "../../../ui-components/lib/main"
+import { SpinningLoader } from "../../../ui-components/lib/main";
 
 export default function ToolRunAnalysis({ question, data_csv, image = null }) {
   const [toolRunAnalysis, setToolRunAnalysis] = useState("");
@@ -62,10 +62,10 @@ export default function ToolRunAnalysis({ question, data_csv, image = null }) {
         className="small code max-w-2xl w-full"
       >
         {!toolRunAnalysis || toolRunAnalysis === "" ? (
-          <>
+          <div>
             <SpinningLoader classNames="text-gray-800 mr-0" /> Loading
             analysis...
-          </>
+          </div>
         ) : (
           toolRunAnalysis
         )}

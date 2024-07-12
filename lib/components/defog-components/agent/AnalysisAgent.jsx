@@ -10,7 +10,6 @@ import React, {
 } from "react";
 import { ThemeContext, lightThemeColor } from "../../context/ThemeContext";
 import AgentLoader from "../common/AgentLoader";
-import Lottie from "lottie-react";
 import LoadingLottie from "../svg/loader.json";
 import { ToolResults } from "./ToolResults";
 import StepsDag from "../common/StepsDag";

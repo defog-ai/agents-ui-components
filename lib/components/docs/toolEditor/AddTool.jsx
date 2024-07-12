@@ -7,7 +7,7 @@ import {
 import { useCallback, useContext, useState } from "react";
 import ToolCreatorAssistant from "./ToolCreatorAssistant";
 import { SparklesIcon } from "@heroicons/react/20/solid";
-import DefineTool from "./DefineTool";
+import { DefineTool } from "./DefineTool";
 
 import ToolCodeEditor from "./ToolCodeEditor";
 import { twMerge } from "tailwind-merge";
@@ -24,7 +24,7 @@ import {
 
 const generateToolCodeEndpoint = setupBaseUrl("http", "generate_tool_code");
 
-export function AddTool({ toolbox, onAddTool = (...args) => { } }) {
+export function AddTool({ toolbox, onAddTool = (...args) => {} }) {
   const [modalOpen, setModalOpen] = useState(false);
 
   const [toolAssistMode, setToolAssistMode] = useState(false);
@@ -181,6 +181,7 @@ export function AddTool({ toolbox, onAddTool = (...args) => { } }) {
 
         <div className="flex flex-row relative">
           <Sidebar
+            open={true}
             location="left"
             title=""
             rootClassNames="min-h-full bg-gray-50"
@@ -271,10 +272,10 @@ export function AddTool({ toolbox, onAddTool = (...args) => { } }) {
                   }}
                 >
                   {loading ? (
-                    <>
-                      <SpinningLoader fill="text-gray-300" />
+                    <div>
+                      <SpinningLoader classNames="text-gray-300" />
                       Generating
-                    </>
+                    </div>
                   ) : (
                     "Generate"
                   )}
