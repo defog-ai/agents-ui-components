@@ -9,9 +9,6 @@ export default ({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
 
   return defineConfig({
-    define: {
-      "process.env": env,
-    },
     css: {
       postcss: {
         plugins: [tailwindcss()],
