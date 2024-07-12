@@ -2,12 +2,11 @@ import { DefogAnalysisAgentStandalone } from "../lib/main";
 import React from "react";
 import ReactDOM from "react-dom/client";
 import "../lib/styles/index.scss";
-
 import {
   MessageMonitor,
-  MessageManagerContext,
   MessageManager,
-} from "$ui-components";
+  MessageManagerContext,
+} from "../lib/ui-components/lib/main";
 
 function QueryDataPage() {
   return (

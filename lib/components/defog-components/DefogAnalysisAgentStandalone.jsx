@@ -18,9 +18,14 @@ import setupBaseUrl from "../utils/setupBaseUrl";
 import { setupWebsocketManager } from "../utils/websocket-manager";
 import { AnalysisVersionViewer } from "./agent/AnalysisVersionViewer";
 import { ReactiveVariablesContext } from "../context/ReactiveVariablesContext";
+import {
+  MessageManager,
+  MessageManagerContext,
+  MessageMonitor,
+} from "../../ui-components/lib/main";
 
 export function DefogAnalysisAgentStandalone({
-  analysisId,
+  analysisId = v4(),
   token,
   devMode,
   keyName,
@@ -30,8 +35,8 @@ export function DefogAnalysisAgentStandalone({
   searchBarClasses = "",
   searchBarDraggable = true,
   defaultSidebarOpen = false,
+  disableMessages = false,
 }) {
-  const [id, setId] = useState(analysisId || "analysis-" + v4());
   const [globalAgentContext, setDocContext] = useState(
     useContext(GlobalAgentContext)
   );
@@ -66,7 +71,7 @@ export function DefogAnalysisAgentStandalone({
       }
 
       const urlToConnect = setupBaseUrl({
-        procotol: "ws",
+        protocol: "ws",
         path: "ws",
         apiEndpoint: apiEndpoint,
       });
@@ -117,45 +122,48 @@ export function DefogAnalysisAgentStandalone({
 
   return (
     <ErrorBoundary>
-      <RelatedAnalysesContext.Provider
-        value={{
-          val: relatedAnalysesContext,
-          update: setRelatedAnalysesContext,
-        }}
-      >
-        <ReactiveVariablesContext.Provider
-          value={{ val: reactiveContext, update: setReactiveContext }}
+      <MessageManagerContext.Provider value={MessageManager()}>
+        <MessageMonitor disabled={disableMessages} />
+        <RelatedAnalysesContext.Provider
+          value={{
+            val: relatedAnalysesContext,
+            update: setRelatedAnalysesContext,
+          }}
         >
-          <GlobalAgentContext.Provider
-            value={{ val: globalAgentContext, update: setDocContext }}
+          <ReactiveVariablesContext.Provider
+            value={{ val: reactiveContext, update: setReactiveContext }}
           >
-            <div className="w-full h-full">
-              <div className="editor-container h-full p-0">
-                <div className="defog-analysis-container h-full">
-                  <div
-                    data-content-type="analysis"
-                    className="m-0 h-full"
-                    data-analysis-id={analysisId}
-                  >
-                    <AnalysisVersionViewer
-                      apiEndpoint={apiEndpoint}
-                      token={token}
-                      dashboards={dashboards}
-                      devMode={devMode}
-                      keyName={keyName}
-                      autoScroll={autoScroll}
-                      sideBarClasses={sideBarClasses}
-                      searchBarClasses={searchBarClasses}
-                      searchBarDraggable={searchBarDraggable}
-                      defaultSidebarOpen={defaultSidebarOpen}
-                    />
+            <GlobalAgentContext.Provider
+              value={{ val: globalAgentContext, update: setDocContext }}
+            >
+              <div className="w-full h-full">
+                <div className="editor-container h-full p-0">
+                  <div className="defog-analysis-container h-full">
+                    <div
+                      data-content-type="analysis"
+                      className="m-0 h-full"
+                      data-analysis-id={analysisId}
+                    >
+                      <AnalysisVersionViewer
+                        apiEndpoint={apiEndpoint}
+                        token={token}
+                        dashboards={dashboards}
+                        devMode={devMode}
+                        keyName={keyName}
+                        autoScroll={autoScroll}
+                        sideBarClasses={sideBarClasses}
+                        searchBarClasses={searchBarClasses}
+                        searchBarDraggable={searchBarDraggable}
+                        defaultSidebarOpen={defaultSidebarOpen}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </GlobalAgentContext.Provider>
-        </ReactiveVariablesContext.Provider>
-      </RelatedAnalysesContext.Provider>
+            </GlobalAgentContext.Provider>
+          </ReactiveVariablesContext.Provider>
+        </RelatedAnalysesContext.Provider>
+      </MessageManagerContext.Provider>
     </ErrorBoundary>
   );
 }

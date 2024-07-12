@@ -9,9 +9,9 @@ const docId = v4();
 import "@blocknote/mantine/style.css";
 import {
   MessageMonitor,
-  MessageManagerContext,
   MessageManager,
-} from "$ui-components";
+  MessageManagerContext,
+} from "../lib/ui-components/lib/main";
 
 function DocPage() {
   return (
