@@ -5,7 +5,6 @@ import { ToolRunInputList } from "./ToolRunInputList";
 import { ToolRunOutputList } from "./ToolRunOutputList";
 import { ToolReRun } from "./ToolReRun";
 import AgentLoader from "../common/AgentLoader";
-import Lottie from "lottie-react";
 import LoadingLottie from "../svg/loader.json";
 import ErrorBoundary from "../../common/ErrorBoundary";
 import { csvParse } from "d3";
@@ -450,7 +449,7 @@ export function ToolResults({
             message={
               toolRunDataLoading ? "Loading data..." : "Running analysis..."
             }
-            lottie={<Lottie animationData={LoadingLottie} loop={true} />}
+            lottieData={LoadingLottie}
           />
         </div>
       ) : activeNode && toolRunData && activeNode.data.isAddStepNode ? (

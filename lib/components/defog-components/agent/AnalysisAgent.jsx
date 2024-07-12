@@ -372,7 +372,7 @@ export const AnalysisAgent = ({
             <div className="analysis-data-loader">
               <AgentLoader
                 message={"Setting up..."}
-                lottie={<Lottie animationData={LoadingLottie} loop={true} />}
+                lottieData={LoadingLottie}
               />
             </div>
           ) : (
@@ -460,12 +460,7 @@ export const AnalysisAgent = ({
                                 ? "Generating SQL..."
                                 : "Executing plan..."
                             }
-                            lottie={
-                              <Lottie
-                                animationData={LoadingLottie}
-                                loop={true}
-                              />
-                            }
+                            lottieData={LoadingLottie}
                           />
                         )
                       )}

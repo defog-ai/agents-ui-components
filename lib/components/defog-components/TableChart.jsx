@@ -29,7 +29,6 @@ import "prismjs/components/prism-python";
 
 import "prismjs/themes/prism.css";
 import AgentLoader from "./common/AgentLoader";
-import Lottie from "lottie-react";
 
 import LoadingLottie from "./svg/loader.json";
 import { ThemeContext, lightThemeColor } from "../context/ThemeContext";
@@ -201,10 +200,7 @@ export function TableChart({
         <ThemeContext.Provider
           value={{ theme: { type: "light", config: lightThemeColor } }}
         >
-          <AgentLoader
-            message={"Loading table"}
-            lottie={<Lottie animationData={LoadingLottie} loop={true} />}
-          />
+          <AgentLoader message={"Loading table"} lottieData={LoadingLottie} />
         </ThemeContext.Provider>
       );
     }
