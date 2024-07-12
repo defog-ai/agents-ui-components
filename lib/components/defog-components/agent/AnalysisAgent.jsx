@@ -49,7 +49,6 @@ export const AnalysisAgent = ({
   onManagerDestroyed = (...args) => {},
   sqlOnly,
 }) => {
-  console.log("Rendering");
   // console.log("Key name", keyName);
   // console.log("Did upload file", didUploadFile);
   const [pendingToolRunUpdates, setPendingToolRunUpdates] = useState({});

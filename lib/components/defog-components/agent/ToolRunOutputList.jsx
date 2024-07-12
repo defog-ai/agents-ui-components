@@ -80,7 +80,7 @@ export function ToolRunOutputList({
         )}
         {codeStr && (
           <>
-            <p
+            <div
               style={{ pointerEvents: "all", cursor: "pointer" }}
               className=""
               onClick={() => {
@@ -109,7 +109,7 @@ export function ToolRunOutputList({
                 />
                 Code
               </div>
-            </p>
+            </div>
             <div
               ref={codeCtrRef}
               style={{
