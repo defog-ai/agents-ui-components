@@ -1,3 +1,5 @@
+export { reFormatData } from "./components/defog-components/common/utils";
+
 export { DocIcon } from "./components/docs/DocIcon";
 
 export { AddTool } from "./components/docs/toolEditor/AddTool";
