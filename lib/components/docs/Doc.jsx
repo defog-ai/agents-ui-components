@@ -27,13 +27,14 @@ import { getCustomSlashMenuItems } from "./createCustomSlashMenuItems";
 import { BlockNoteView } from "@blocknote/mantine";
 
 // remove the last slash from the url
-const partyEndpoint = process.env.NEXT_PUBLIC_AGENTS_ENDPOINT;
-const recentlyViewedEndpoint = setupBaseUrl(
-  "http",
-  "add_to_recently_viewed_docs"
-);
+export function Doc({ docId = null, user = null, token = null, apiEndpoint = null }) {
+  const partyEndpoint = apiEndpoint;
+  const recentlyViewedEndpoint = setupBaseUrl(
+    protocol="http",
+    path="add_to_recently_viewed_docs",
+    apiEndpoint=apiEndpoint,
+  );
 
-export function Doc({ docId = null, user = null, token = null }) {
   const [loading, setLoading] = useState(true);
   const [globalAgentContext, setGlobalAgentContext] = useState(
     useContext(GlobalAgentContext)
@@ -68,7 +69,7 @@ export function Doc({ docId = null, user = null, token = null }) {
         items.toolboxes = toolboxes.toolboxes;
       }
 
-      const urlToConnect = setupBaseUrl("ws", "ws");
+      const urlToConnect = setupBaseUrl(protocol="ws", path="ws", apiEndpoint=apiEndpoint,);
       const mgr = await setupWebsocketManager(urlToConnect);
       setSocketManager(mgr);
 

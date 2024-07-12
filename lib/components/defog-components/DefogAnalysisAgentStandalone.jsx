@@ -21,10 +21,10 @@ import { ReactiveVariablesContext } from "../context/ReactiveVariablesContext";
 
 export function DefogAnalysisAgentStandalone({
   analysisId,
-  user,
   token,
   devMode,
   keyName,
+  apiEndpoint,
   autoScroll = true,
   sideBarClasses = "",
   searchBarClasses = "",
@@ -55,8 +55,8 @@ export function DefogAnalysisAgentStandalone({
     async function setup() {
       // setup user items
       const items = globalAgentContext.userItems;
-      const analyses = await getAllAnalyses(keyName);
-      const dashboards = await getAllDashboards(token, keyName);
+      const analyses = await getAllAnalyses(keyName, apiEndpoint);
+      const dashboards = await getAllDashboards(token, keyName, apiEndpoint);
       if (dashboards?.success) {
         setDashboards(dashboards.docs);
       }
@@ -65,7 +65,7 @@ export function DefogAnalysisAgentStandalone({
         items.analyses = analyses.analyses;
       }
 
-      const urlToConnect = setupBaseUrl("ws", "ws");
+      const urlToConnect = setupBaseUrl(procotol="ws", path="ws", apiEndpoint=apiEndpoint);
       const mgr = await setupWebsocketManager(urlToConnect);
       setSocketManager(mgr);
 
@@ -134,8 +134,8 @@ export function DefogAnalysisAgentStandalone({
                     data-analysis-id={analysisId}
                   >
                     <AnalysisVersionViewer
+                      apiEndpoint={apiEndpoint}
                       token={token}
-                      user={user}
                       dashboards={dashboards}
                       devMode={devMode}
                       keyName={keyName}

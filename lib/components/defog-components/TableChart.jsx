@@ -47,6 +47,7 @@ export function TableChart({
   tableId,
   tabBarLeftContent = null,
   analysisData,
+  apiEndpoint,
 }) {
   const [response, setResponse] = useState(null);
   const [tableData, setTableData] = useState(null);
@@ -120,7 +121,7 @@ export function TableChart({
 
     async function setupSocket() {
       try {
-        const urlToConnect = setupBaseUrl("ws", "table_chart");
+        const urlToConnect = setupBaseUrl(protocol="ws", path="table_chart", apiEndpoint=apiEndpoint);
         const mgr = await setupWebsocketManager(urlToConnect, onMessage);
         setSocketManager(mgr);
         let tableData = await getTableData(tableId);

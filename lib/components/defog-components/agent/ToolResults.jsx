@@ -46,7 +46,7 @@ function parseOutputs(data, analysisData) {
   return parsedOutputs;
 }
 
-const deleteStepsEndpoint = setupBaseUrl("http", "delete_steps");
+const deleteStepsEndpoint = setupBaseUrl(protocol="http", path="delete_steps", apiEndpoint=apiEndpoint);
 
 export function ToolResults({
   analysisId,
@@ -54,6 +54,7 @@ export function ToolResults({
   activeNode,
   toolSocketManager = null,
   dag = null,
+  apiEndpoint,
   setActiveNode = () => {},
   handleReRun = () => {},
   reRunningSteps = [],
@@ -151,7 +152,7 @@ export function ToolResults({
         res = toolRunDataCache[newId];
         hasCache = true;
       } else {
-        res = await getToolRunData(newId);
+        res = await getToolRunData(newId, apiEndpoint);
       }
 
       const newToolRunDataCache = { ...toolRunDataCache };
@@ -220,7 +221,7 @@ export function ToolResults({
             if (toolRunDataCache[id]) {
               return toolRunDataCache[id];
             }
-            return getToolRunData(id);
+            return getToolRunData(id, apiEndpoint);
           })
         );
 
@@ -359,7 +360,7 @@ export function ToolResults({
             if (toolRunDataCache[id]) {
               return toolRunDataCache[id];
             }
-            return getToolRunData(id);
+            return getToolRunData(id, apiEndpoint);
           })
         );
 
@@ -456,6 +457,7 @@ export function ToolResults({
         <AddStepUI
           analysisId={analysisId}
           activeNode={activeNode}
+          apiEndpoint={apiEndpoint}
           dag={dag}
           handleReRun={handleReRun}
           parentNodeData={parentNodeData}
@@ -534,6 +536,7 @@ export function ToolResults({
             toolRunData={toolRunData}
             toolRunId={toolRunId}
             tableData={toolRunData?.parsedOutputs[activeNode.data.id]["data"]}
+            apiEndpoint={apiEndpoint}
             chartImages={
               toolRunData?.parsedOutputs[activeNode.data.id]["chart_images"]
             }
@@ -556,6 +559,7 @@ export function ToolResults({
                 <ToolRunAnalysis
                   question={analysisData.user_question}
                   data_csv={toolRunData?.outputs[activeNode.data.id]["data"]}
+                  apiEndpoint={apiEndpoint}
                   image={
                     toolRunData?.parsedOutputs[activeNode.data.id][
                       "chart_images"

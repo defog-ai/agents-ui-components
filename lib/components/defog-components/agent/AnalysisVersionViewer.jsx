@@ -23,10 +23,10 @@ import {
 
 export function AnalysisVersionViewer({
   dashboards,
-  user,
   token,
   devMode,
   keyName,
+  apiEndpoint,
   // this isn't always reinforced
   // we check for this only when we're creating a new analysis
   // but not otherwise
@@ -99,7 +99,7 @@ export function AnalysisVersionViewer({
   const uploadFileToServer = async ({ parsedData, rows, columns }) => {
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_AGENTS_ENDPOINT}/integration/upload_csv/`,
+        `${apiEndpoint}/integration/upload_csv/`,
         {
           method: "POST",
           headers: {
@@ -358,8 +358,8 @@ export function AnalysisVersionViewer({
                         createAnalysisRequestBody={
                           analysis.createAnalysisRequestBody
                         }
-                        user={user}
                         token={token}
+                        apiEndpoint={apiEndpoint}
                         keyName={keyName}
                         initiateAutoSubmit={true}
                         searchRef={searchRef}
