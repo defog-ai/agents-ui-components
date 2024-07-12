@@ -1,10 +1,9 @@
-import { Divider, Select, Slider, Space } from "antd";
+import { Divider, Select, Slider, Space, Input as AntdInput } from "antd";
 import React, { useState, useRef } from "react";
 import Lottie from "lottie-react";
 import LoadingLottie from "../../svg/loader.json";
 import AgentLoader from "../../common/AgentLoader";
 import Writer from "../Writer";
-import Search from "antd/es/input/Search";
 import { Input } from "../../../../ui-components/lib/main";
 
 export default function Clarify({
@@ -14,6 +13,7 @@ export default function Clarify({
   stageDone = true,
   isCurrentStage = false,
 }) {
+  const { Search } = AntdInput;
   const [submitted, setSubmitted] = useState(false);
   const answers = useRef(data?.clarification_questions);
 
