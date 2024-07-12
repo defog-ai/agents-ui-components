@@ -5,7 +5,7 @@ import React, {
   Fragment,
   useMemo,
 } from "react";
-import Context from "./common/Context";
+
 import "./standalone-fonts.module.css";
 import { v4 } from "uuid";
 import {
@@ -26,7 +26,6 @@ export function DefogAnalysisAgentStandalone({
   devMode,
   keyName,
 }) {
-  const [context, setContext] = useState({});
   const [id, setId] = useState(analysisId || "analysis-" + v4());
   const [globalAgentContext, setDocContext] = useState(
     useContext(GlobalAgentContext)
@@ -121,27 +120,25 @@ export function DefogAnalysisAgentStandalone({
           <GlobalAgentContext.Provider
             value={{ val: globalAgentContext, update: setDocContext }}
           >
-            <Context.Provider value={[context, setContext]}>
-              <div className="w-full h-full">
-                <div className="editor-container h-full p-0">
-                  <div className="defog-analysis-container h-full">
-                    <div
-                      data-content-type="analysis"
-                      className="m-0 h-full"
-                      data-analysis-id={analysisId}
-                    >
-                      <AnalysisVersionViewer
-                        token={token}
-                        user={user}
-                        dashboards={dashboards}
-                        devMode={devMode}
-                        keyName={keyName}
-                      />
-                    </div>
+            <div className="w-full h-full">
+              <div className="editor-container h-full p-0">
+                <div className="defog-analysis-container h-full">
+                  <div
+                    data-content-type="analysis"
+                    className="m-0 h-full"
+                    data-analysis-id={analysisId}
+                  >
+                    <AnalysisVersionViewer
+                      token={token}
+                      user={user}
+                      dashboards={dashboards}
+                      devMode={devMode}
+                      keyName={keyName}
+                    />
                   </div>
                 </div>
               </div>
-            </Context.Provider>
+            </div>
           </GlobalAgentContext.Provider>
         </ReactiveVariablesContext.Provider>
       </RelatedAnalysesContext.Provider>
