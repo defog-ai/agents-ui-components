@@ -38,6 +38,11 @@ export function AnalysisVersionViewer({
     "show me 5 rows and create a heatmap",
     "what is the average of x column",
   ],
+  autoScroll = true,
+  sideBarClasses = "",
+  searchBarClasses = "",
+  searchBarDraggable = true,
+  defaultSidebarOpen = false,
 }) {
   const [activeAnalysisId, setActiveAnalysisId] = useState(null);
 
@@ -86,7 +91,7 @@ export function AnalysisVersionViewer({
   const [tableColumns, setTableColumns] = useState([]);
   const [didUploadFile, setDidUploadFile] = useState(false);
 
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(defaultSidebarOpen);
 
   const uploadFileToServer = async (parsedData) => {
     // upload the file to the server
@@ -193,6 +198,7 @@ export function AnalysisVersionViewer({
   );
 
   useEffect(() => {
+    if (!searchBarDraggable) return;
     function setSearchBar() {
       if (!searchCtr.current) return;
 
@@ -209,7 +215,7 @@ export function AnalysisVersionViewer({
     return () => {
       window.removeEventListener("resize", setSearchBar);
     };
-  }, []);
+  }, [searchBarDraggable]);
 
   // w-0
   return (
@@ -219,7 +225,7 @@ export function AnalysisVersionViewer({
           className="max-w-full h-full flex flex-row bg-white text-gray-600 w-full"
           id="analysis-version-viewer"
         >
-          <div className="absolute h-full left-0 top-0 z-[10] md:sticky md:h-screen">
+          <div className="absolute h-full left-0 top-0 z-[10] md:sticky md:h-full">
             <Sidebar
               location="left"
               open={sidebarOpen}
@@ -227,9 +233,10 @@ export function AnalysisVersionViewer({
                 setSidebarOpen(open);
               }}
               title={<span className="font-bold">History</span>}
-              rootClassNames={
-                "transition-all z-20 h-[calc(100%-1rem)] rounded-md lg:rounded-none lg:rounded-tr-md lg:rounded-br-md bg-gray-100 border h-screen md:h-full sticky top-0 md:relative"
-              }
+              rootClassNames={twMerge(
+                "transition-all z-20 h-[calc(100%-1rem)] rounded-md lg:rounded-none lg:rounded-tr-md lg:rounded-br-md bg-gray-100 border h-screen md:h-full sticky top-0 md:relative",
+                sideBarClasses
+              )}
               iconClassNames={`${sidebarOpen ? "" : "text-white bg-primary-highlight"}`}
               openClassNames={"border-gray-300 shadow-md"}
               closedClassNames={"border-transparent bg-transparent shadow-none"}
@@ -262,7 +269,10 @@ export function AnalysisVersionViewer({
                               setAddToDashboardSelection
                             }
                             onClick={() => {
-                              if (analysisDomRefs[version.analysisId].ctr) {
+                              if (
+                                analysisDomRefs[version.analysisId].ctr &&
+                                autoScroll
+                              ) {
                                 analysisDomRefs[
                                   version.analysisId
                                 ].ctr.scrollIntoView({
@@ -355,14 +365,16 @@ export function AnalysisVersionViewer({
                             mgr,
                             id,
                           };
-                          // scroll to ctr
-                          setTimeout(() => {
-                            analysisDomRefs[id].ctr.scrollIntoView({
-                              behavior: "smooth",
-                              block: "start",
-                              inline: "nearest",
-                            });
-                          }, 100);
+                          if (autoScroll) {
+                            // scroll to ctr
+                            setTimeout(() => {
+                              analysisDomRefs[id].ctr.scrollIntoView({
+                                behavior: "smooth",
+                                block: "start",
+                                inline: "nearest",
+                              });
+                            }, 100);
+                          }
                         }}
                         onManagerDestroyed={(mgr, id) => {
                           const data = mgr.analysisData;
@@ -486,60 +498,71 @@ export function AnalysisVersionViewer({
             )}
 
             <div
-              className="w-10/12 m-auto lg:w-2/4 fixed z-10 bg-white rounded-lg shadow-custom border border-gray-400 hover:border-blue-500 focus:border-blue-500 flex flex-row"
+              className={twMerge(
+                "w-10/12 m-auto lg:w-2/4 fixed z-10 bg-white rounded-lg shadow-custom border border-gray-400 hover:border-blue-500 focus:border-blue-500 flex flex-row",
+                searchBarClasses
+              )}
               style={{
                 left: "0",
                 right: "0",
-                bottom: window.innerHeight > 800 ? "30%" : "20px",
+                bottom: searchBarDraggable
+                  ? window.innerHeight > 800
+                    ? "30%"
+                    : "20px"
+                  : null,
               }}
               ref={searchCtr}
             >
-              <div
-                className="cursor-move min-h-full w-3 flex items-center ml-1 group"
-                draggable
-                onDragStart={(e) => {
-                  e.dataTransfer.setDragImage(ghostImage, 0, 0);
-                }}
-                onDrag={(e) => {
-                  if (!e.clientX || !e.clientY || !searchCtr.current) return;
+              {searchBarDraggable && (
+                <div
+                  className="cursor-move min-h-full w-3 flex items-center ml-1 group"
+                  draggable={searchBarDraggable}
+                  onDragStart={(e) => {
+                    if (!searchBarDraggable) return;
+                    e.dataTransfer.setDragImage(ghostImage, 0, 0);
+                  }}
+                  onDrag={(e) => {
+                    if (!searchBarDraggable) return;
+                    if (!e.clientX || !e.clientY || !searchCtr.current) return;
 
-                  const eBottom =
-                    window.innerHeight -
-                    e.clientY -
-                    searchCtr.current.clientHeight;
-                  const eLeft = e.clientX;
+                    const eBottom =
+                      window.innerHeight -
+                      e.clientY -
+                      searchCtr.current.clientHeight;
+                    const eLeft = e.clientX;
 
-                  const minBottom = 20;
+                    const minBottom = 20;
 
-                  const maxBottom =
-                    window.innerHeight - 20 - searchCtr.current.clientHeight;
+                    const maxBottom =
+                      window.innerHeight - 20 - searchCtr.current.clientHeight;
 
-                  if (eBottom < minBottom) {
-                    searchCtr.current.style.bottom = minBottom + "px";
-                  } else if (eBottom > maxBottom) {
-                    searchCtr.current.style.bottom = maxBottom + "px";
-                  } else {
-                    searchCtr.current.style.bottom = eBottom + "px";
-                  }
+                    if (eBottom < minBottom) {
+                      searchCtr.current.style.bottom = minBottom + "px";
+                    } else if (eBottom > maxBottom) {
+                      searchCtr.current.style.bottom = maxBottom + "px";
+                    } else {
+                      searchCtr.current.style.bottom = eBottom + "px";
+                    }
 
-                  const maxLeft =
-                    window.innerWidth - searchCtr.current.clientWidth - 20;
+                    const maxLeft =
+                      window.innerWidth - searchCtr.current.clientWidth - 20;
 
-                  const minLeft = 20;
+                    const minLeft = 20;
 
-                  searchCtr.current.style.right = "auto";
+                    searchCtr.current.style.right = "auto";
 
-                  if (eLeft < minLeft) {
-                    searchCtr.current.style.left = minLeft + "px";
-                  } else if (eLeft > maxLeft) {
-                    searchCtr.current.style.left = maxLeft + "px";
-                  } else {
-                    searchCtr.current.style.left = eLeft + "px";
-                  }
-                }}
-              >
-                <ArrowsPointingOutIcon className="h-3 w-3 text-gray-400 group-hover:text-primary-text" />
-              </div>
+                    if (eLeft < minLeft) {
+                      searchCtr.current.style.left = minLeft + "px";
+                    } else if (eLeft > maxLeft) {
+                      searchCtr.current.style.left = maxLeft + "px";
+                    } else {
+                      searchCtr.current.style.left = eLeft + "px";
+                    }
+                  }}
+                >
+                  <ArrowsPointingOutIcon className="h-3 w-3 text-gray-400 group-hover:text-primary-text" />
+                </div>
+              )}
               <div className="grow rounded-md md:items-center flex flex-col-reverse md:flex-row">
                 <div className="flex flex-row grow">
                   <div className="flex md:flex-row-reverse md:items-center flex-col grow">

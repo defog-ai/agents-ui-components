@@ -197,11 +197,7 @@ export function TableChart({
     }
     if (!tableData || !response) {
       return (
-        <ThemeContext.Provider
-          value={{ theme: { type: "light", config: lightThemeColor } }}
-        >
           <AgentLoader message={"Loading table"} lottieData={LoadingLottie} />
-        </ThemeContext.Provider>
       );
     }
     const roundedData = roundColumns(response.data, response.columns);

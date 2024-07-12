@@ -25,6 +25,11 @@ export function DefogAnalysisAgentStandalone({
   token,
   devMode,
   keyName,
+  autoScroll = true,
+  sideBarClasses = "",
+  searchBarClasses = "",
+  searchBarDraggable = true,
+  defaultSidebarOpen = false,
 }) {
   const [id, setId] = useState(analysisId || "analysis-" + v4());
   const [globalAgentContext, setDocContext] = useState(
@@ -134,6 +139,11 @@ export function DefogAnalysisAgentStandalone({
                       dashboards={dashboards}
                       devMode={devMode}
                       keyName={keyName}
+                      autoScroll={autoScroll}
+                      sideBarClasses={sideBarClasses}
+                      searchBarClasses={searchBarClasses}
+                      searchBarDraggable={searchBarDraggable}
+                      defaultSidebarOpen={defaultSidebarOpen}
                     />
                   </div>
                 </div>
