@@ -57,19 +57,16 @@ export default function ToolRunAnalysis({ question, data_csv, image = null }) {
 
   return (
     toolRunAnalysis.slice(0, 4) !== "NONE" && (
-      <p
-        style={{ whiteSpace: "pre-wrap" }}
-        className="small code max-w-2xl w-full"
-      >
+      <div style={{ whiteSpace: "pre-wrap" }} className="max-w-2xl w-full">
         {!toolRunAnalysis || toolRunAnalysis === "" ? (
           <div>
             <SpinningLoader classNames="text-gray-800 mr-0" /> Loading
             analysis...
           </div>
         ) : (
-          toolRunAnalysis
+          <p className="small code p-2">{toolRunAnalysis}</p>
         )}
-      </p>
+      </div>
     )
   );
 }

@@ -333,19 +333,17 @@ export function AnalysisVersionViewer({
             </Sidebar>
           </div>
           <div
+            className={twMerge(
+              "absolute left-0 top-0 h-screen w-full overlay md:hidden bg-gray-800 z-[4] transition-all",
+              sidebarOpen ? "opacity-50 block" : "opacity-0 pointer-events-none"
+            )}
+          ></div>
+          <div
             className="grid grid-cols-1 md:grid-cols-1 grow rounded-tr-lg pb-14 p-2 md:p-4 relative min-w-0 h-full overflow-scroll "
             // onClick={() => {
             //   setSidebarOpen(false);
             // }}
           >
-            <div
-              className={twMerge(
-                "absolute left-0 top-0 h-full w-full overlay md:hidden bg-gray-800 z-[1] transition-all",
-                sidebarOpen
-                  ? "opacity-30 block"
-                  : "opacity-0 pointer-events-none"
-              )}
-            ></div>
             {activeRootAnalysisId &&
               sessionAnalyses[activeRootAnalysisId].versionList.map(
                 (analysis) => {
