@@ -22,11 +22,17 @@ import Clarify from "./analysis-gen/Clarify";
 import AnalysisManager from "./analysisManager";
 import setupBaseUrl from "../../utils/setupBaseUrl";
 import { AnalysisFeedback } from "./feedback/AnalysisFeedback";
-import { Input, MessageManagerContext } from "../../../ui-components/lib/main";
+import {
+  Collapse,
+  Input,
+  MessageManagerContext,
+  SpinningLoader,
+} from "../../../ui-components/lib/main";
 import { twMerge } from "tailwind-merge";
 import { ReactiveVariablesContext } from "../../context/ReactiveVariablesContext";
 import { GlobalAgentContext } from "../../context/GlobalAgentContext";
 import ErrorBoundary from "../../common/ErrorBoundary";
+import { useWindowSize } from "../../hooks/useWindowSize";
 
 export const AnalysisAgent = ({
   analysisId,
@@ -59,6 +65,8 @@ export const AnalysisAgent = ({
   const [activeNode, setActiveNodePrivate] = useState(null);
   const [dag, setDag] = useState(null);
   const [dagLinks, setDagLinks] = useState([]);
+
+  const windowSize = useWindowSize();
 
   // in case this isn't called from analysis version viewer (which has a central singular search bar)
   // we will have an independent search bar for each analysis as well
@@ -425,7 +433,7 @@ export const AnalysisAgent = ({
               )}
 
               {analysisData.currentStage === "gen_steps" ? (
-                <div className="analysis-content w-full flex flex-row h-full">
+                <div className="analysis-content w-full flex flex-col-reverse md:flex-row h-full">
                   <div className="analysis-results min-w-0 grow flex flex-col relative border-r">
                     {titleDiv}
                     <ErrorBoundary>
@@ -475,41 +483,61 @@ export const AnalysisAgent = ({
                     </ErrorBoundary>
                   </div>
                   {analysisData?.gen_steps?.steps && (
-                    <div className="analysis-steps flex-initial rounded-t-3xl md:rounded-r-3xl md:rounded-tl-none bg-gray-50">
-                      <StepsDag
-                        steps={analysisData?.gen_steps?.steps || []}
-                        nodeSize={[40, 10]}
-                        nodeGap={[30, 50]}
-                        setActiveNode={setActiveNode}
-                        reRunningSteps={reRunningSteps}
-                        activeNode={activeNode}
-                        stageDone={
-                          analysisData.currentStage === "gen_steps"
-                            ? !analysisBusy
-                            : true
-                        }
-                        dag={dag}
-                        setDag={setDag}
-                        dagLinks={dagLinks}
-                        setDagLinks={setDagLinks}
-                        extraNodeClasses={(node) => {
-                          return node.data.isTool
-                            ? `rounded-md px-1 text-center`
-                            : "";
-                        }}
-                        toolIcon={(node) => (
-                          <p className="text-sm truncate m-0">
-                            {trimStringToLength(
-                              toolShortNames[node?.data?.step?.tool_name] ||
-                                tools[node?.data?.step?.tool_name][
-                                  "tool_name"
-                                ] ||
-                                node?.data?.step?.tool_name,
-                              15
+                    <div className="border-b border-b-gray-300 md:border-b-none  analysis-steps flex-initial rounded-t-3xl md:rounded-r-3xl md:rounded-tl-none bg-gray-50">
+                      <Collapse
+                        rootClassNames="mb-0 bg-gray-50 w-full rounded-t-3xl md:rounded-r-3xl md:rounded-tl-none md:h-full"
+                        title={
+                          <div className="">
+                            <span className="font-light md:font-bold text-sm">
+                              Steps
+                            </span>
+                            {analysisData.currentStage === "gen_steps" &&
+                            analysisBusy ? (
+                              <SpinningLoader classNames="ml-2 w-3 h-3 text-gray-400"></SpinningLoader>
+                            ) : (
+                              ""
                             )}
-                          </p>
-                        )}
-                      />
+                          </div>
+                        }
+                        headerClassNames="md:hidden flex flex-row items-center pl-5 md:pointer-events-none md:cursor-default"
+                        iconClassNames="md:hidden"
+                        collapsed={windowSize[0] < 768}
+                      >
+                        <StepsDag
+                          steps={analysisData?.gen_steps?.steps || []}
+                          nodeSize={[40, 10]}
+                          nodeGap={[30, 50]}
+                          setActiveNode={setActiveNode}
+                          reRunningSteps={reRunningSteps}
+                          activeNode={activeNode}
+                          stageDone={
+                            analysisData.currentStage === "gen_steps"
+                              ? !analysisBusy
+                              : true
+                          }
+                          dag={dag}
+                          setDag={setDag}
+                          dagLinks={dagLinks}
+                          setDagLinks={setDagLinks}
+                          extraNodeClasses={(node) => {
+                            return node.data.isTool
+                              ? `rounded-md px-1 text-center`
+                              : "";
+                          }}
+                          toolIcon={(node) => (
+                            <p className="text-sm truncate m-0">
+                              {trimStringToLength(
+                                toolShortNames[node?.data?.step?.tool_name] ||
+                                  tools[node?.data?.step?.tool_name][
+                                    "tool_name"
+                                  ] ||
+                                  node?.data?.step?.tool_name,
+                                15
+                              )}
+                            </p>
+                          )}
+                        />
+                      </Collapse>
                     </div>
                   )}
                 </div>
