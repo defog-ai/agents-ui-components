@@ -549,7 +549,7 @@ export function ToolResults({
             nodeId={activeNode.data.id}
             analysisId={analysisId}
           />
-          <div className="h-60 mt-2 rounded-md border overflow-scroll w-full mb-2">
+          <div className="h-60 mt-2 rounded-md text-sm border overflow-scroll w-full mb-2">
             <div className="relative">
               <p className="font-bold m-0 sticky top-0 w-full p-2 bg-white shadow-sm border-b">
                 Analysis

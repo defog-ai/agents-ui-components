@@ -470,7 +470,7 @@ export const AnalysisAgent = ({
                       )}
                     </ErrorBoundary>
                   </div>
-                  <div className="analysis-steps overflow-scroll rounded-t-3xl md:rounded-r-3xl md:rounded-tl-none bg-gray-50">
+                  <div className="analysis-steps grow overflow-scroll rounded-t-3xl md:rounded-r-3xl md:rounded-tl-none bg-gray-50">
                     <StepsDag
                       steps={analysisData?.gen_steps?.steps || []}
                       nodeSize={[40, 10]}
