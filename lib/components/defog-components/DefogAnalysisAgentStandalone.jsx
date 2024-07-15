@@ -141,11 +141,11 @@ export function DefogAnalysisAgentStandalone({
               value={{ val: globalAgentContext, update: setDocContext }}
             >
               <div className="w-full h-full">
-                <div className="editor-container h-full p-0">
-                  <div className="defog-analysis-container h-full">
+                <div className="editor-container w-full h-full p-0">
+                  <div className="defog-analysis-container w-full  h-full">
                     <div
                       data-content-type="analysis"
-                      className="m-0 h-full"
+                      className="m-0 h-full w-full"
                       data-analysis-id={analysisId}
                     >
                       <AnalysisVersionViewer

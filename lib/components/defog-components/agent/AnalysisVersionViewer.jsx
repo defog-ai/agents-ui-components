@@ -460,7 +460,7 @@ export function AnalysisVersionViewer({
                   </div>
                 ) : null}
 
-                <div className="text-gray-400 mt-5 m-auto text-center max-w-full">
+                <div className="text-gray-400 mt-5 m-auto text-center max-w-full hidden md:block">
                   {didUploadFile === true ? (
                     <Table rows={tableData} columns={tableColumns} />
                   ) : (
@@ -528,7 +528,7 @@ export function AnalysisVersionViewer({
 
             <div
               className={twMerge(
-                "w-10/12 m-auto lg:w-2/4 fixed z-10 bg-white rounded-lg shadow-custom border border-gray-400 hover:border-blue-500 focus:border-blue-500 flex flex-row",
+                "w-full md:w-10/12 lg:w-2/4 m-auto fixed z-10 bg-white rounded-lg shadow-custom border border-gray-400 hover:border-blue-500 focus:border-blue-500 flex flex-row",
                 searchBarClasses
               )}
               style={{
