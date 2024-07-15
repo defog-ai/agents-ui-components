@@ -98,11 +98,7 @@ export function AnalysisVersionViewer({
 
   const uploadFileToServer = async ({ parsedData, rows, columns }) => {
     try {
-<<<<<<< Updated upstream
-      const response = await fetch(`${apiEndpoint}/integration/upload_csv`, {
-=======
       const response = await fetch(`${apiEndpoint}/integration/upload_csv/`, {
->>>>>>> Stashed changes
         method: "POST",
         headers: {
           "Content-Type": "application/json",
