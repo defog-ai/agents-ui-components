@@ -427,7 +427,7 @@ export const AnalysisAgent = ({
                     <ErrorBoundary>
                       {analysisData?.gen_steps?.steps.length ? (
                         <>
-                          <div className=" grow px-6 rounded-bl-3xl w-full bg-gray-50">
+                          <div className=" grow px-6 rounded-b-3xl md:rounded-br-none w-full bg-gray-50">
                             <ToolResults
                               analysisId={analysisId}
                               activeNode={activeNode}

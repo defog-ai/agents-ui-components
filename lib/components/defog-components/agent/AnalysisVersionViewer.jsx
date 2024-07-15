@@ -98,7 +98,11 @@ export function AnalysisVersionViewer({
 
   const uploadFileToServer = async ({ parsedData, rows, columns }) => {
     try {
+<<<<<<< Updated upstream
       const response = await fetch(`${apiEndpoint}/integration/upload_csv`, {
+=======
+      const response = await fetch(`${apiEndpoint}/integration/upload_csv/`, {
+>>>>>>> Stashed changes
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -232,7 +236,7 @@ export function AnalysisVersionViewer({
           className="max-w-full h-full flex flex-row bg-white text-gray-600 w-full"
           id="analysis-version-viewer"
         >
-          <div className="absolute h-full left-0 top-0 z-[10] md:sticky md:h-full">
+          <div className="absolute h-full left-0 top-0 z-[20] md:sticky md:h-full">
             <Sidebar
               location="left"
               open={sidebarOpen}
@@ -241,7 +245,7 @@ export function AnalysisVersionViewer({
               }}
               title={<span className="font-bold">History</span>}
               rootClassNames={twMerge(
-                "transition-all z-20 h-[calc(100%-1rem)] rounded-md lg:rounded-none lg:rounded-tr-md lg:rounded-br-md bg-gray-100 border h-screen md:h-full sticky top-0 md:relative",
+                "transition-all z-20 h-[calc(100%-1rem)] rounded-md rounded-l-none lg:rounded-none lg:rounded-tr-md lg:rounded-br-md bg-gray-100 border h-screen md:h-full sticky top-0 md:relative",
                 sideBarClasses
               )}
               iconClassNames={`${sidebarOpen ? "" : "text-white bg-primary-highlight"}`}
@@ -348,7 +352,7 @@ export function AnalysisVersionViewer({
                     <div key={analysis.analysisId}>
                       <AnalysisAgent
                         rootClassNames={
-                          "mb-4 ml-3 min-h-96 [&_.analysis-content]:min-h-96 shadow-md analysis-" +
+                          "mb-4 md:ml-3 min-h-96 [&_.analysis-content]:min-h-96 shadow-md analysis-" +
                           analysis.analysisId
                         }
                         analysisId={analysis.analysisId}
@@ -423,7 +427,7 @@ export function AnalysisVersionViewer({
               )}
 
             {!activeAnalysisId && (
-              <div className="grow flex flex-col place-content-center m-auto relative z-[1]">
+              <div className="grow flex flex-col place-content-center m-auto max-w-full relative z-[1]">
                 {didUploadFile !== true ? (
                   <div className="text-gray-400 text-center border p-4 rounded-md">
                     <p className="cursor-default block text-sm mb-2 font-bold">
@@ -460,13 +464,13 @@ export function AnalysisVersionViewer({
                   </div>
                 ) : null}
 
-                <div className="text-gray-400 mt-5 m-auto text-center">
+                <div className="text-gray-400 mt-5 m-auto text-center max-w-full">
                   {didUploadFile === true ? (
                     <Table rows={tableData} columns={tableColumns} />
                   ) : (
                     <DropFiles
                       label={null}
-                      rootClassNames="w-96 text-center bg-white p-4 border rounded-md"
+                      rootClassNames="w-96 max-w-full text-center bg-white p-4 border rounded-md"
                       iconClassNames="text-gray-400"
                       icon={
                         parsingFile ? (

@@ -34,8 +34,9 @@ export function DefogAnalysisAgentStandalone({
   sideBarClasses = "",
   searchBarClasses = "",
   searchBarDraggable = true,
-  defaultSidebarOpen = false,
+  defaultSidebarOpen = null,
   disableMessages = false,
+  messageMonitorClasses = "",
 }) {
   const [globalAgentContext, setDocContext] = useState(
     useContext(GlobalAgentContext)
@@ -123,7 +124,10 @@ export function DefogAnalysisAgentStandalone({
   return (
     <ErrorBoundary>
       <MessageManagerContext.Provider value={MessageManager()}>
-        <MessageMonitor disabled={disableMessages} />
+        <MessageMonitor
+          disabled={disableMessages}
+          rootClassNames={messageMonitorClasses}
+        />
         <RelatedAnalysesContext.Provider
           value={{
             val: relatedAnalysesContext,
@@ -154,7 +158,10 @@ export function DefogAnalysisAgentStandalone({
                         sideBarClasses={sideBarClasses}
                         searchBarClasses={searchBarClasses}
                         searchBarDraggable={searchBarDraggable}
-                        defaultSidebarOpen={defaultSidebarOpen}
+                        defaultSidebarOpen={() =>
+                          defaultSidebarOpen ||
+                          (window.innerWidth < 768 ? false : true)
+                        }
                       />
                     </div>
                   </div>
