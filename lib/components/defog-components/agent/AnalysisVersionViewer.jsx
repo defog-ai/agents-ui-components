@@ -232,6 +232,10 @@ export function AnalysisVersionViewer({
   return (
     <>
       <div className="relative h-full">
+        {/* top and bottom fades if we are on small screens and if we have some analyses going */}
+        {activeAnalysisId && activeRootAnalysisId && (
+          <div className="lg:hidden absolute bottom-0 left-0 w-full h-40 pointer-events-none bg-gradient-to-b from-transparent to-gray-400 z-10"></div>
+        )}
         <div
           className="max-w-full h-full flex flex-row bg-white text-gray-600 w-full"
           id="analysis-version-viewer"
@@ -341,12 +345,15 @@ export function AnalysisVersionViewer({
           </div>
           <div
             className={twMerge(
-              "absolute left-0 top-0 h-screen w-full overlay lg:hidden bg-gray-800 z-[4] transition-all",
+              "absolute left-0 top-0 h-screen w-full overlay lg:hidden bg-gray-800 z-[11] transition-all",
               sidebarOpen ? "opacity-50 block" : "opacity-0 pointer-events-none"
             )}
+            onClick={() => {
+              setSidebarOpen(false);
+            }}
           ></div>
           <div
-            className="grid grid-cols-1 lg:grid-cols-1 grow rounded-tr-lg pb-14 p-2 lg:p-4 relative min-w-0 h-full overflow-scroll "
+            className="grid grid-cols-1 lg:grid-cols-1 grow rounded-tr-lg p-2 lg:p-4 relative min-w-0 h-full overflow-scroll "
             // onClick={() => {
             //   setSidebarOpen(false);
             // }}

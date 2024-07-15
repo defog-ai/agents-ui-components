@@ -348,8 +348,8 @@ export const AnalysisAgent = ({
   );
 
   const titleDiv = (
-    <div className="flex flex-row p-6 items-center lg:items-start">
-      <h1 className="font-bold text-xl text-gray-700 basis-0 grow">
+    <div className="flex flex-row flex-wrap gap-4 p-6 items-center lg:items-start">
+      <h1 className="font-bold text-xl text-gray-700 basis-0 grow min-w-[50%]">
         {sentenceCase(
           analysisData?.user_question ||
             createAnalysisRequestBody.user_question ||
@@ -357,7 +357,7 @@ export const AnalysisAgent = ({
         )}
       </h1>
       {!analysisBusy && analysisData && (
-        <div className="ml-4 basis-0 text-nowrap whitespace-nowrap">
+        <div className="basis-0 text-nowrap whitespace-nowrap">
           <AnalysisFeedback
             analysisSteps={analysisData?.gen_steps?.steps || []}
             analysisId={analysisId}
