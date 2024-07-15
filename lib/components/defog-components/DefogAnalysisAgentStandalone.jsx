@@ -126,7 +126,7 @@ export function DefogAnalysisAgentStandalone({
       <MessageManagerContext.Provider value={MessageManager()}>
         <MessageMonitor
           disabled={disableMessages}
-          // rootClassNames={messageMonitorClasses}
+          rootClassNames={messageMonitorClasses}
         />
         <RelatedAnalysesContext.Provider
           value={{

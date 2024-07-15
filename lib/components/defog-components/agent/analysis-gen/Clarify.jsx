@@ -154,7 +154,7 @@ export default function Clarify({
           onChange={(ev) => updateAnswer(ev.target.value, i)}
           defaultValue={q.response}
           placeholder="Your response"
-          inputClassNames="ring-0 bg-transparent rounded-none border-b border-dotted border-gray-300 focus:border-blue-500 focus:ring-0 focus:border-b-primary-highlight focus:border-solid shadow-none pl-0"
+          inputClassNames="ring-0 bg-transparent rounded-none border-b border-dotted border-gray-300 focus:border-blue-500 focus:ring-0 focus:border-b-primary-highlight shadow-none pl-0"
         ></Input>
       );
     },

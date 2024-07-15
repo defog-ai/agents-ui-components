@@ -106,6 +106,7 @@ export const AnalysisAgent = ({
     } catch (e) {
       messageManager.error(e);
       console.log(e);
+
       setAnalysisBusy(false);
       setGlobalLoading(false);
     }
@@ -182,7 +183,7 @@ export const AnalysisAgent = ({
 
   analysisManager.setOnReRunDataCallback(onReRunMessage);
 
-  const [analysisBusy, setAnalysisBusy] = useState(initiateAutoSubmit);
+  const [analysisBusy, setAnalysisBusy] = useState(false);
 
   const analysisData = useSyncExternalStore(
     analysisManager.subscribeToDataChanges,
@@ -239,6 +240,15 @@ export const AnalysisAgent = ({
         const tools = (await response.json())["tools"];
         setTools(tools);
 
+        if (
+          initiateAutoSubmit &&
+          !analysisManager?.analysisData?.currentStage
+        ) {
+          handleSubmit(analysisManager?.analysisData?.user_question, {}, null);
+        } else {
+          setAnalysisBusy(false);
+        }
+
         if (analysisManager.wasNewAnalysisCreated) {
           // also have to set globalAgentContext in this case
           globalAgentContext.update({
@@ -251,14 +261,6 @@ export const AnalysisAgent = ({
               ],
             },
           });
-        }
-        if (
-          initiateAutoSubmit &&
-          !analysisManager?.analysisData?.currentStage
-        ) {
-          handleSubmit(analysisManager?.analysisData?.user_question, {}, null);
-        } else {
-          setAnalysisBusy(false);
         }
       } catch (e) {
         messageManager.error(e);
@@ -299,6 +301,7 @@ export const AnalysisAgent = ({
       } catch (e) {
         messageManager.error(e);
         console.log(e.stack);
+
         setAnalysisBusy(false);
         setGlobalLoading(false);
 
@@ -355,15 +358,15 @@ export const AnalysisAgent = ({
     </div>
   );
 
+  console.log(analysisData, analysisBusy);
+
   return (
     <ErrorBoundary>
       <div
         ref={ctr}
         className={twMerge(
-          "analysis-agent-container grow bg-white outline-none focus:outline-none",
-          independentAnalysisSearchRef && !analysisData?.currentStage
-            ? ""
-            : "max-w-full border min-h-96 rounded-3xl border-gray-300 bg-white ",
+          "analysis-agent-container relative grow bg-white outline-none focus:outline-none rounded-3xl border border-gray-300 bg-white",
+          independentAnalysisSearchRef ? "" : "max-w-full min-h-96",
           rootClassNames
         )}
       >
@@ -372,10 +375,11 @@ export const AnalysisAgent = ({
           key="1"
         >
           {!analysisData ? (
-            <div className="analysis-data-loader">
+            <div className="bg-gray-50 absolute h-full w-full rounded-3xl">
               <AgentLoader
                 message={"Setting up..."}
                 lottieData={LoadingLottie}
+                classNames={"m-0 h-full bg-transparent"}
               />
             </div>
           ) : (
@@ -421,13 +425,13 @@ export const AnalysisAgent = ({
               )}
 
               {analysisData.currentStage === "gen_steps" ? (
-                <div className="analysis-content flex flex-col-reverse md:flex-row h-full">
-                  <div className="analysis-results w-full flex flex-col grow basis-0 relative border-r">
+                <div className="analysis-content w-full flex flex-row h-full">
+                  <div className="analysis-results min-w-0 grow flex flex-col relative border-r">
                     {titleDiv}
                     <ErrorBoundary>
                       {analysisData?.gen_steps?.steps.length ? (
                         <>
-                          <div className=" grow px-6 rounded-b-3xl md:rounded-br-none w-full bg-gray-50">
+                          <div className="grow px-6 rounded-b-3xl md:rounded-br-none w-full bg-gray-50">
                             <ToolResults
                               analysisId={analysisId}
                               activeNode={activeNode}
@@ -470,40 +474,44 @@ export const AnalysisAgent = ({
                       )}
                     </ErrorBoundary>
                   </div>
-                  <div className="analysis-steps grow overflow-scroll rounded-t-3xl md:rounded-r-3xl md:rounded-tl-none bg-gray-50">
-                    <StepsDag
-                      steps={analysisData?.gen_steps?.steps || []}
-                      nodeSize={[40, 10]}
-                      nodeGap={[30, 50]}
-                      setActiveNode={setActiveNode}
-                      reRunningSteps={reRunningSteps}
-                      activeNode={activeNode}
-                      stageDone={
-                        analysisData.currentStage === "gen_steps"
-                          ? !analysisBusy
-                          : true
-                      }
-                      dag={dag}
-                      setDag={setDag}
-                      dagLinks={dagLinks}
-                      setDagLinks={setDagLinks}
-                      extraNodeClasses={(node) => {
-                        return node.data.isTool
-                          ? `rounded-md px-1 text-center`
-                          : "";
-                      }}
-                      toolIcon={(node) => (
-                        <p className="text-sm truncate m-0">
-                          {trimStringToLength(
-                            toolShortNames[node?.data?.step?.tool_name] ||
-                              tools[node?.data?.step?.tool_name]["tool_name"] ||
-                              node?.data?.step?.tool_name,
-                            15
-                          )}
-                        </p>
-                      )}
-                    />
-                  </div>
+                  {analysisData?.gen_steps?.steps && (
+                    <div className="analysis-steps flex-initial rounded-t-3xl md:rounded-r-3xl md:rounded-tl-none bg-gray-50">
+                      <StepsDag
+                        steps={analysisData?.gen_steps?.steps || []}
+                        nodeSize={[40, 10]}
+                        nodeGap={[30, 50]}
+                        setActiveNode={setActiveNode}
+                        reRunningSteps={reRunningSteps}
+                        activeNode={activeNode}
+                        stageDone={
+                          analysisData.currentStage === "gen_steps"
+                            ? !analysisBusy
+                            : true
+                        }
+                        dag={dag}
+                        setDag={setDag}
+                        dagLinks={dagLinks}
+                        setDagLinks={setDagLinks}
+                        extraNodeClasses={(node) => {
+                          return node.data.isTool
+                            ? `rounded-md px-1 text-center`
+                            : "";
+                        }}
+                        toolIcon={(node) => (
+                          <p className="text-sm truncate m-0">
+                            {trimStringToLength(
+                              toolShortNames[node?.data?.step?.tool_name] ||
+                                tools[node?.data?.step?.tool_name][
+                                  "tool_name"
+                                ] ||
+                                node?.data?.step?.tool_name,
+                              15
+                            )}
+                          </p>
+                        )}
+                      />
+                    </div>
+                  )}
                 </div>
               ) : (
                 <></>

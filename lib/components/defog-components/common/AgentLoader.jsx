@@ -1,4 +1,5 @@
 import React, { Suspense, lazy } from "react";
+import { twMerge } from "tailwind-merge";
 
 const Lottie = lazy(() => import("lottie-react"));
 
@@ -8,9 +9,10 @@ const AgentLoader = ({
   svg = null,
   lottieData = null,
   children = null,
+  classNames,
 }) => {
   return (
-    <div className="agent-loader">
+    <div className={twMerge("agent-loader", classNames)}>
       {svg && svg}
       {lottieData && (
         <Suspense fallback={<div>Loading...</div>}>
