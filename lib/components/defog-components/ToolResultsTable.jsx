@@ -254,24 +254,24 @@ export function ToolResultsTable({
 
     const inputs = toolRunData.step.inputs;
 
-    if (toolRunData.tool_name === "heatmap") {
-      tabs.push({
-        component: (
-          <ErrorBoundary>
-            <Heatmap
-              rows={tableData.data}
-              columns={tableData.columns}
-              xCol={inputs.x_column}
-              yCol={inputs.y_column}
-              colorCol={inputs.color_column}
-              aggregationType={inputs.aggregation_type || "sum"}
-              colorScaleName={inputs.color_scale || "viridis"}
-            />
-          </ErrorBoundary>
-        ),
-        tabLabel: "Heatmap",
-      });
-    }
+    // if (toolRunData.tool_name === "heatmap") {
+    //   tabs.push({
+    //     component: (
+    //       <ErrorBoundary>
+    //         <Heatmap
+    //           rows={tableData.data}
+    //           columns={tableData.columns}
+    //           xCol={inputs.x_column}
+    //           yCol={inputs.y_column}
+    //           colorCol={inputs.color_column}
+    //           aggregationType={inputs.aggregation_type || "sum"}
+    //           colorScaleName={inputs.color_scale || "viridis"}
+    //         />
+    //       </ErrorBoundary>
+    //     ),
+    //     tabLabel: "Heatmap",
+    //   });
+    // }
 
     // if (tableData) {
     //   tabs.push({
@@ -284,25 +284,25 @@ export function ToolResultsTable({
     //   });
     // }
 
-    if (toolRunData.tool_name === "boxplot") {
-      tabs.push({
-        component: (
-          <ErrorBoundary>
-            <Boxplot
-              rows={tableData.data}
-              columns={tableData.columns}
-              xCol={inputs.boxplot_x_column}
-              yCol={inputs.boxplot_y_column}
-              facetCol={inputs.facet_column}
-              aggregationType={
-                inputs.aggregation_type === "None" ? null : inputs.estimator
-              }
-            />
-          </ErrorBoundary>
-        ),
-        tabLabel: "Boxplot",
-      });
-    }
+    // if (toolRunData.tool_name === "boxplot") {
+    //   tabs.push({
+    //     component: (
+    //       <ErrorBoundary>
+    //         <Boxplot
+    //           rows={tableData.data}
+    //           columns={tableData.columns}
+    //           xCol={inputs.boxplot_x_column}
+    //           yCol={inputs.boxplot_y_column}
+    //           facetCol={inputs.facet_column}
+    //           aggregationType={
+    //             inputs.aggregation_type === "None" ? null : inputs.estimator
+    //           }
+    //         />
+    //       </ErrorBoundary>
+    //     ),
+    //     tabLabel: "Boxplot",
+    //   });
+    // }
 
     if (!chartImages || chartImages.length <= 0) {
       if (tableData) {

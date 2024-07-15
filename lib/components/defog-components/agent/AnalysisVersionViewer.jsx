@@ -234,7 +234,7 @@ export function AnalysisVersionViewer({
       <div className="relative h-full">
         {/* top and bottom fades if we are on small screens and if we have some analyses going */}
         {activeAnalysisId && activeRootAnalysisId && (
-          <div className="lg:hidden absolute bottom-0 left-0 w-full h-40 pointer-events-none bg-gradient-to-b from-transparent to-gray-400 z-10"></div>
+          <div className="lg:hidden absolute bottom-0 left-0 w-full h-48 pointer-events-none bg-gradient-to-b from-transparent to-slate-300 z-10"></div>
         )}
         <div
           className="max-w-full h-full flex flex-row bg-white text-gray-600 w-full"
