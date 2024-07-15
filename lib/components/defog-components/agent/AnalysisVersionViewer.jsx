@@ -20,6 +20,8 @@ import {
   DropFiles,
   SpinningLoader,
 } from "../../../ui-components/lib/main";
+import { useWindowSize } from "../../hooks/useWindowSize";
+import { breakpoints } from "../../hooks/useBreakPoint";
 
 export function AnalysisVersionViewer({
   dashboards,
@@ -123,6 +125,8 @@ export function AnalysisVersionViewer({
       setLoading(false);
     }
   };
+
+  const windowSize = useWindowSize();
 
   const handleSubmit = useCallback(
     (question, rootAnalysisId, isRoot, directParentId) => {
@@ -232,7 +236,7 @@ export function AnalysisVersionViewer({
           className="max-w-full h-full flex flex-row bg-white text-gray-600 w-full"
           id="analysis-version-viewer"
         >
-          <div className="absolute h-full left-0 top-0 z-[20] md:sticky md:h-full">
+          <div className="absolute h-full left-0 top-0 z-[20] lg:sticky lg:h-full">
             <Sidebar
               location="left"
               open={sidebarOpen}
@@ -241,10 +245,10 @@ export function AnalysisVersionViewer({
               }}
               title={<span className="font-bold">History</span>}
               rootClassNames={twMerge(
-                "transition-all z-20 h-[calc(100%-1rem)] rounded-md rounded-l-none lg:rounded-none lg:rounded-tr-md lg:rounded-br-md bg-gray-100 border h-screen md:h-full sticky top-0 md:relative",
+                "transition-all z-20 h-[calc(100%-1rem)] rounded-md rounded-l-none lg:rounded-none lg:rounded-tr-md lg:rounded-br-md bg-gray-100 border h-screen lg:h-full sticky top-0 lg:relative",
                 sideBarClasses
               )}
-              iconClassNames={`${sidebarOpen ? "" : "text-white bg-primary-highlight"}`}
+              iconClassNames={`${sidebarOpen ? "" : "text-white bg-secondary-highlight-2"}`}
               openClassNames={"border-gray-300 shadow-md"}
               closedClassNames={"border-transparent bg-transparent shadow-none"}
               contentClassNames={
@@ -288,6 +292,9 @@ export function AnalysisVersionViewer({
                                   inline: "nearest",
                                 });
                               }
+
+                              if (windowSize < breakpoints.lg)
+                                setSidebarOpen(false);
                             }}
                             extraClasses={
                               version.isRoot ? "" : "ml-2 border-l-2"
@@ -319,6 +326,9 @@ export function AnalysisVersionViewer({
                         // start a new root analysis
                         setActiveRootAnalysisId(null);
                         setActiveAnalysisId(null);
+
+                        // on ipad/phone, close sidebar when new button is clicked
+                        if (windowSize < breakpoints.lg) setSidebarOpen(false);
                       }}
                     >
                       New <PlusIcon className="ml-2 w-4 h-4 inline" />
@@ -331,12 +341,12 @@ export function AnalysisVersionViewer({
           </div>
           <div
             className={twMerge(
-              "absolute left-0 top-0 h-screen w-full overlay md:hidden bg-gray-800 z-[4] transition-all",
+              "absolute left-0 top-0 h-screen w-full overlay lg:hidden bg-gray-800 z-[4] transition-all",
               sidebarOpen ? "opacity-50 block" : "opacity-0 pointer-events-none"
             )}
           ></div>
           <div
-            className="grid grid-cols-1 md:grid-cols-1 grow rounded-tr-lg pb-14 p-2 md:p-4 relative min-w-0 h-full overflow-scroll "
+            className="grid grid-cols-1 lg:grid-cols-1 grow rounded-tr-lg pb-14 p-2 lg:p-4 relative min-w-0 h-full overflow-scroll "
             // onClick={() => {
             //   setSidebarOpen(false);
             // }}
@@ -348,7 +358,7 @@ export function AnalysisVersionViewer({
                     <div key={analysis.analysisId}>
                       <AnalysisAgent
                         rootClassNames={
-                          "mb-4 md:ml-3 min-h-96 [&_.analysis-content]:min-h-96 shadow-md analysis-" +
+                          "mb-4 lg:ml-3 min-h-96 [&_.analysis-content]:min-h-96 shadow-md analysis-" +
                           analysis.analysisId
                         }
                         analysisId={analysis.analysisId}
@@ -460,7 +470,7 @@ export function AnalysisVersionViewer({
                   </div>
                 ) : null}
 
-                <div className="text-gray-400 mt-5 m-auto text-center max-w-full hidden md:block">
+                <div className="text-gray-400 mt-5 m-auto text-center max-w-full hidden lg:block">
                   {didUploadFile === true ? (
                     <Table rows={tableData} columns={tableColumns} />
                   ) : (
@@ -528,7 +538,7 @@ export function AnalysisVersionViewer({
 
             <div
               className={twMerge(
-                "w-full md:w-10/12 lg:w-2/4 m-auto fixed z-10 bg-white rounded-lg shadow-custom border border-gray-400 hover:border-blue-500 focus:border-blue-500 flex flex-row",
+                "w-full lg:w-10/12 lg:w-2/4 m-auto fixed z-10 bg-white rounded-lg shadow-custom border border-gray-400 hover:border-blue-500 focus:border-blue-500 flex flex-row",
                 searchBarClasses
               )}
               style={{
@@ -592,9 +602,9 @@ export function AnalysisVersionViewer({
                   <ArrowsPointingOutIcon className="h-3 w-3 text-gray-400 group-hover:text-primary-text" />
                 </div>
               )}
-              <div className="grow rounded-md md:items-center flex flex-col-reverse md:flex-row">
+              <div className="grow rounded-md lg:items-center flex flex-col-reverse lg:flex-row">
                 <div className="flex flex-row grow">
-                  <div className="flex md:flex-row-reverse md:items-center flex-col grow">
+                  <div className="flex lg:flex-row-reverse lg:items-center flex-col grow">
                     <TextArea
                       rootClassNames="grow border-none bg-transparent py-1.5 text-gray-900 px-2 placeholder:text-gray-400 sm:leading-6 text-sm break-all focus:ring-0 focus:outline-none"
                       textAreaClassNames="resize-none"
@@ -629,7 +639,7 @@ export function AnalysisVersionViewer({
                       defaultOn={sqlOnly}
                       offLabel="SQL/Agents"
                       onLabel={"SQL only"}
-                      rootClassNames="items-start md:border-r py-2 md:py-0 px-2 w-36"
+                      rootClassNames="items-start lg:border-r py-2 lg:py-0 px-2 w-36"
                     />
                   </div>
                   <button

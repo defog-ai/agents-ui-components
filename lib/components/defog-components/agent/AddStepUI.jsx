@@ -48,7 +48,7 @@ export function AddStepUI({
   return !activeNode ? (
     <>Something went wrong</>
   ) : (
-    <div className="add-step-ctr min-h-60 md:min-h-0">
+    <div className="add-step-ctr min-h-60 lg:min-h-0">
       <h1 className="text-lg font-bold my-2">New step</h1>
       <h1 className="my-2">TOOL</h1>
       <div className="tool-action-buttons">

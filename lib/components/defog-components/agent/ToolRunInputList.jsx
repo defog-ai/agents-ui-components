@@ -62,7 +62,7 @@ const inputTypeToUI = {
     if (!initialValue) initialValue = "";
     return (
       <TextArea
-        rootClassNames="tool-input-value md:w-80"
+        rootClassNames="tool-input-value lg:w-80"
         textAreaClassNames="resize-none"
         value={initialValue}
         key={toolRunId + "_" + inputName}
@@ -98,7 +98,7 @@ const inputTypeToUI = {
 
     return (
       <TextArea
-        rootClassNames="tool-input-value md:w-80"
+        rootClassNames="tool-input-value lg:w-80"
         key={toolRunId + "_" + inputName}
         value={initialValue}
         textAreaClassNames="resize-none"
@@ -112,7 +112,7 @@ const inputTypeToUI = {
     if (!initialValue) initialValue = 0.0;
     return (
       <TextArea
-        rootClassNames="tool-input-value md:w-80"
+        rootClassNames="tool-input-value lg:w-80"
         value={initialValue}
         key={toolRunId + "_" + inputName}
         defaultRows={1}
@@ -454,7 +454,7 @@ export function ToolRunInputList({
               className="font-mono flex flex-row flex-wrap gap-3 items-center *:my-1 pb-4 text-xs"
             >
               <span className="">
-                <span className="rounded-md p-1 bg-gray-200 text-gray-400 mr-2">
+                <span className="rounded-lg p-1 bg-gray-200 text-gray-400 mr-2">
                   {easyToolInputTypes[sanitizedType] || sanitizedType}
                 </span>
                 <span className="font-bold">

@@ -32,6 +32,7 @@ import { twMerge } from "tailwind-merge";
 import { ReactiveVariablesContext } from "../../context/ReactiveVariablesContext";
 import { GlobalAgentContext } from "../../context/GlobalAgentContext";
 import ErrorBoundary from "../../common/ErrorBoundary";
+import { breakpoints } from "../../hooks/useBreakPoint";
 import { useWindowSize } from "../../hooks/useWindowSize";
 
 export const AnalysisAgent = ({
@@ -347,7 +348,7 @@ export const AnalysisAgent = ({
   );
 
   const titleDiv = (
-    <div className="flex flex-row p-6 items-center md:items-start">
+    <div className="flex flex-row p-6 items-center lg:items-start">
       <h1 className="font-bold text-xl text-gray-700 basis-0 grow">
         {sentenceCase(
           analysisData?.user_question ||
@@ -438,13 +439,13 @@ export const AnalysisAgent = ({
               )}
 
               {analysisData.currentStage === "gen_steps" ? (
-                <div className="analysis-content w-full flex flex-col-reverse md:flex-row h-full">
+                <div className="analysis-content w-full flex flex-col-reverse lg:flex-row h-full">
                   <div className="analysis-results min-w-0 grow flex flex-col relative border-r">
                     {titleDiv}
                     <ErrorBoundary>
                       {analysisData?.gen_steps?.steps.length ? (
                         <>
-                          <div className="grow px-6 rounded-b-3xl md:rounded-br-none w-full bg-gray-50">
+                          <div className="grow px-6 rounded-b-3xl lg:rounded-br-none w-full bg-gray-50">
                             <ToolResults
                               analysisId={analysisId}
                               activeNode={activeNode}
@@ -487,12 +488,12 @@ export const AnalysisAgent = ({
                     </ErrorBoundary>
                   </div>
                   {analysisData?.gen_steps?.steps && (
-                    <div className="border-b border-b-gray-300 md:border-b-none  analysis-steps flex-initial rounded-t-3xl md:rounded-r-3xl md:rounded-tl-none bg-gray-50">
+                    <div className="border-b border-b-gray-300 lg:border-b-none  analysis-steps flex-initial rounded-t-3xl lg:rounded-r-3xl lg:rounded-tl-none bg-gray-50">
                       <Collapse
-                        rootClassNames="mb-0 bg-gray-50 w-full rounded-t-3xl md:rounded-r-3xl md:rounded-tl-none md:h-full"
+                        rootClassNames="mb-0 bg-gray-50 w-full rounded-t-3xl lg:rounded-r-3xl lg:rounded-tl-none lg:h-full"
                         title={
                           <div className="">
-                            <span className="font-light md:font-bold text-sm">
+                            <span className="font-light lg:font-bold text-sm">
                               Steps
                             </span>
                             {analysisData.currentStage === "gen_steps" &&
@@ -503,10 +504,10 @@ export const AnalysisAgent = ({
                             )}
                           </div>
                         }
-                        headerClassNames="md:hidden flex flex-row items-center pl-5 md:pointer-events-none md:cursor-default"
-                        iconClassNames="md:hidden"
-                        collapsed={windowSize[0] < 768}
-                        alwaysOpen={windowSize[0] >= 768}
+                        headerClassNames="lg:hidden flex flex-row items-center pl-5 lg:pointer-events-none lg:cursor-default"
+                        iconClassNames="lg:hidden"
+                        collapsed={windowSize[0] < breakpoints.lg}
+                        alwaysOpen={windowSize[0] >= breakpoints.lg}
                       >
                         <StepsDag
                           steps={analysisData?.gen_steps?.steps || []}

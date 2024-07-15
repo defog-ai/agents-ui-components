@@ -74,7 +74,7 @@ export const inputTypeToUI = {
     if (!initialValue) initialValue = "";
     return (
       <TextArea
-        rootClassNames="tool-input-value md:w-80"
+        rootClassNames="tool-input-value lg:w-80"
         textAreaClassNames="resize-none"
         defaultRows={1}
         value={initialValue || ""}
@@ -103,7 +103,7 @@ export const inputTypeToUI = {
   },
   int: (inputName, initialValue, onEdit, config = {}) => (
     <TextArea
-      rootClassNames="tool-input-value md:w-80"
+      rootClassNames="tool-input-value lg:w-80"
       textAreaClassNames="resize-none"
       defaultRows={1}
       value={initialValue || ""}
@@ -114,7 +114,7 @@ export const inputTypeToUI = {
   ),
   float: (inputName, initialValue, onEdit, config = {}) => (
     <TextArea
-      rootClassNames="tool-input-value md:w-80"
+      rootClassNames="tool-input-value lg:w-80"
       textAreaClassNames="resize-none"
       defaultRows={1}
       value={initialValue}
@@ -150,7 +150,7 @@ export const inputTypeToUI = {
         optionRenderer={(option, focus, selected) => {
           return (
             <div
-              className="p-2 text-sm bg-white text-gray-500 rounded-md border-l-8 border-l-lime-400"
+              className="p-2 text-sm bg-white text-gray-500 rounded-lg border-l-8 border-l-lime-400"
               onMouseOver={(ev) => onHover(ev, option.label, config.analysisId)}
               onMouseOut={(ev) =>
                 onHoverOut(ev, option.label, config.analysisId)
@@ -412,7 +412,7 @@ export function AddStepInputList({
             className="font-mono flex flex-row flex-wrap gap-3 items-center *:my-1 pb-4 text-xs"
           >
             <span className="">
-              <span className="rounded-md p-1 bg-gray-200 text-gray-400 mr-2">
+              <span className="rounded-lg p-1 bg-gray-200 text-gray-400 mr-2">
                 {easyToolInputTypes[sanitizedType] || sanitizedType}
               </span>
               <span className="font-bold">

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useWindowSize } from "./useWindowSize";
 
-const breakpoints = {
+export const breakpoints = {
   xs: 0,
   sm: 640,
   md: 768,
