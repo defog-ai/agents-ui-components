@@ -508,8 +508,8 @@ export function ToolResultsTable({
               >
                 {roundNumber(obj[key])}
               </span>
-              <FaRegCopy
-                className="reactive-var-copy-icon"
+              <DocumentDuplicateIcon
+                className="w-3 h-3 reactive-var-copy-icon"
                 title="Copy"
                 onClick={() => {
                   let clipboardItem = new ClipboardItem({
