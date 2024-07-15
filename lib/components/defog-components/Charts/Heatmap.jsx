@@ -57,8 +57,6 @@ export default function Heatmap({
     setProcessedData(aggregatedData);
   }, [rows, xCol, yCol, colorCol, aggregationType]);
 
-  console.log(processedData);
-
   const colorMax = max(processedData, (d) => d.value);
 
   // Define scales

@@ -349,7 +349,11 @@ export const AnalysisAgent = ({
   const titleDiv = (
     <div className="flex flex-row p-6 items-center md:items-start">
       <h1 className="font-bold text-xl text-gray-700 basis-0 grow">
-        {sentenceCase(analysisData?.user_question || "")}
+        {sentenceCase(
+          analysisData?.user_question ||
+            createAnalysisRequestBody.user_question ||
+            ""
+        )}
       </h1>
       {!analysisBusy && analysisData && (
         <div className="ml-4 basis-0 text-nowrap whitespace-nowrap">
@@ -366,8 +370,6 @@ export const AnalysisAgent = ({
     </div>
   );
 
-  console.log(analysisData, analysisBusy);
-
   return (
     <ErrorBoundary>
       <div
@@ -382,10 +384,13 @@ export const AnalysisAgent = ({
           value={{ theme: { type: "light", config: lightThemeColor } }}
           key="1"
         >
-          {!analysisData ? (
-            <div className="bg-gray-50 absolute h-full w-full rounded-3xl">
+          {/* if we don't have anlaysis data, and current stage is null, and we DO have a search ref */}
+          {/* means tis is being externally initialised using analysis viewer and initateautosubmit is true */}
+          {!analysisData || (!analysisData.currentStage && searchRef) ? (
+            <div className="transition-all w-full bg-gray-50 rounded-3xl">
+              {titleDiv}
               <AgentLoader
-                message={"Setting up..."}
+                message={!analysisData ? "Setting up..." : "Thinking..."}
                 lottieData={LoadingLottie}
                 classNames={"m-0 h-full bg-transparent"}
               />
@@ -470,14 +475,13 @@ export const AnalysisAgent = ({
                         </>
                       ) : (
                         analysisBusy && (
-                          <AgentLoader
-                            message={
-                              analysisData.currentStage === "gen_steps"
-                                ? "Generating SQL..."
-                                : "Executing plan..."
-                            }
-                            lottieData={LoadingLottie}
-                          />
+                          <div className="bg-gray-50 h-full w-full rounded-3xl">
+                            <AgentLoader
+                              message={"Fetching data..."}
+                              lottieData={LoadingLottie}
+                              classNames={"m-0 h-full bg-transparent"}
+                            />
+                          </div>
                         )
                       )}
                     </ErrorBoundary>
@@ -502,6 +506,7 @@ export const AnalysisAgent = ({
                         headerClassNames="md:hidden flex flex-row items-center pl-5 md:pointer-events-none md:cursor-default"
                         iconClassNames="md:hidden"
                         collapsed={windowSize[0] < 768}
+                        alwaysOpen={windowSize[0] >= 768}
                       >
                         <StepsDag
                           steps={analysisData?.gen_steps?.steps || []}

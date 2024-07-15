@@ -277,78 +277,82 @@ export default function StepsDag({
                 };
 
                 return (
-                  <foreignObject
-                    x={style.left}
-                    y={style.top}
+                  <g
                     key={d.data.id}
-                    width={100}
-                    height={100}
-                    className="pointer-events-none"
+                    transform={`translate(${style.left}, ${style.top})`}
                   >
-                    <Popover
-                      {...extraProps}
-                      onOpenChange={(visible) =>
-                        onPopoverOpenChange(d, visible)
-                      }
-                      rootClassName={
-                        "graph-node-popover pointer-events-auto" +
-                        (d.data.isError ? "popover-error" : "")
-                      }
-                      placement="left"
-                      title={
-                        !disablePopovers &&
-                        (d?.data?.isAddStepNode
-                          ? ""
-                          : d?.data?.isTool
-                            ? toolDisplayNames[d?.data?.step?.tool_name] || null
-                            : `Output`)
-                      }
-                      content={
-                        !disablePopovers &&
-                        (d?.data?.isAddStepNode
-                          ? "Create new step"
-                          : d?.data?.isTool
-                            ? d?.data?.step?.description || d.data.id
-                            : null)
-                      }
+                    <foreignObject
+                      key={d.data.id}
+                      width={100}
+                      height={100}
+                      className="fixed pointer-events-none"
                     >
-                      <div
-                        className={twMerge(
-                          "graph-node pointer-events-auto max-w-[100px]",
-                          d.data.isTool ? "tool" : "var",
-                          d.data.isOutput ? " output" : "",
-                          activeNode?.data?.id === d.data.id
-                            ? "graph-node-active "
-                            : "",
-                          d.data.isError ? "graph-node-error" : "",
-                          `tool-run-${d.data.id}`,
-                          d.data.isAddStepNode
-                            ? "graph-node-add bg-transparent"
-                            : "bg-white",
-                          reRunningSteps.some(
-                            (s) => s.tool_run_id === d.data.id
-                          )
-                            ? "graph-node-re-running"
-                            : "",
-                          extraNodeClasses(d)
-                        )}
-                        key={d.data.id}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          e.preventDefault();
-                          setActiveNode(d);
-                        }}
+                      <Popover
+                        {...extraProps}
+                        onOpenChange={(visible) =>
+                          onPopoverOpenChange(d, visible)
+                        }
+                        rootClassName={
+                          "graph-node-popover pointer-events-auto" +
+                          (d.data.isError ? "popover-error" : "")
+                        }
+                        placement="left"
+                        title={
+                          !disablePopovers &&
+                          (d?.data?.isAddStepNode
+                            ? ""
+                            : d?.data?.isTool
+                              ? toolDisplayNames[d?.data?.step?.tool_name] ||
+                                null
+                              : `Output`)
+                        }
+                        content={
+                          !disablePopovers &&
+                          (d?.data?.isAddStepNode
+                            ? "Create new step"
+                            : d?.data?.isTool
+                              ? d?.data?.step?.description || d.data.id
+                              : null)
+                        }
                       >
-                        {d.data.isTool ? (
-                          <>{toolIcon(d)}</>
-                        ) : d.data.isAddStepNode ? (
-                          <PlusCircleIcon className="h-4 w-4 stroke-gray-800 text-transparent bg-transparent" />
-                        ) : (
-                          <div className="graph-node-circle rounded-full w-4 h-4"></div>
-                        )}
-                      </div>
-                    </Popover>
-                  </foreignObject>
+                        <div
+                          className={twMerge(
+                            "graph-node pointer-events-auto max-w-[100px]",
+                            d.data.isTool ? "tool" : "var",
+                            d.data.isOutput ? " output" : "",
+                            activeNode?.data?.id === d.data.id
+                              ? "graph-node-active "
+                              : "",
+                            d.data.isError ? "graph-node-error" : "",
+                            `tool-run-${d.data.id}`,
+                            d.data.isAddStepNode
+                              ? "graph-node-add bg-transparent"
+                              : "bg-white",
+                            reRunningSteps.some(
+                              (s) => s.tool_run_id === d.data.id
+                            )
+                              ? "graph-node-re-running"
+                              : "",
+                            extraNodeClasses(d)
+                          )}
+                          key={d.data.id}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            setActiveNode(d);
+                          }}
+                        >
+                          {d.data.isTool ? (
+                            <>{toolIcon(d)}</>
+                          ) : d.data.isAddStepNode ? (
+                            <PlusCircleIcon className="h-4 w-4 stroke-gray-800 text-transparent bg-transparent" />
+                          ) : (
+                            <div className="graph-node-circle rounded-full w-4 h-4"></div>
+                          )}
+                        </div>
+                      </Popover>
+                    </foreignObject>
+                  </g>
                 );
               })}
           </svg>
