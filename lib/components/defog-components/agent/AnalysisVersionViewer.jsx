@@ -474,7 +474,7 @@ export function AnalysisVersionViewer({
                   </div>
                 ) : null}
 
-                <div className="text-gray-400 mt-5 m-auto text-center max-w-full hidden lg:block">
+                <div className="text-gray-400 mt-5 m-auto text-center max-w-full">
                   {didUploadFile === true ? (
                     <Table rows={tableData} columns={tableColumns} />
                   ) : (
