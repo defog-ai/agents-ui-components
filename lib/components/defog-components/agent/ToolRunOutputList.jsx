@@ -11,6 +11,7 @@ export function ToolRunOutputList({
   handleEdit = () => {},
   availableOutputNodes = [],
   setActiveNode,
+  showCode = true,
 }) {
   //   parse outputs
   //   each output is a node somewhere in the dag
@@ -78,7 +79,7 @@ export function ToolRunOutputList({
             ></CodeEditor>
           </>
         )}
-        {codeStr && (
+        {codeStr && showCode && (
           <>
             <div
               style={{ pointerEvents: "all", cursor: "pointer" }}

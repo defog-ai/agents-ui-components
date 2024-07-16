@@ -1,30 +1,37 @@
 import { createContext } from "react";
 
-export const GlobalAgentContext = createContext({
-    userItems: {
-        analyses: [],
-        toolboxes: [],
-        metadata: {},
-    },
-    socketManagers: {
-        mainMgr: null,
-        rerunMgr: null,
-        toolMgr: null,
-    },
-    dbCreds: {
-        dbType: "postgres",
-        host: "",
-        port: "",
-        user: "",
-        password: "",
-        database: "",
-        hasCreds: false,
-    },
-    recipeShowing: null,
-});
+export const defaultAgentConfig = {
+  userItems: {
+    analyses: [],
+    toolboxes: [],
+    metadata: {},
+  },
+  socketManagers: {
+    mainManager: null,
+    reRunManager: null,
+    toolSocketManager: null,
+  },
+  dbCreds: {
+    dbType: "postgres",
+    host: "",
+    port: "",
+    user: "",
+    password: "",
+    database: "",
+    hasCreds: false,
+  },
+  recipeShowing: null,
+  config: {
+    // set things like
+    showAnalysis: true,
+    showCode: true,
+  },
+};
+
+export const GlobalAgentContext = createContext(null);
 
 export const ToolRunContext = createContext({
-    toolRunData: {},
+  toolRunData: {},
 });
 
 export const RelatedAnalysesContext = createContext({});

@@ -14,6 +14,7 @@ import { AddStepUI } from "./AddStepUI";
 import { Modal } from "antd";
 import setupBaseUrl from "../../utils/setupBaseUrl";
 import { ReactiveVariablesContext } from "../../context/ReactiveVariablesContext";
+import { GlobalAgentContext } from "../../context/GlobalAgentContext";
 
 function parseOutputs(data, analysisData) {
   let parsedOutputs = {};
@@ -72,6 +73,7 @@ export function ToolResults({
   const [toolRunData, setToolRunData] = useState(null);
   const [toolRunDataLoading, setToolRunDataLoading] = useState(false);
   const reactiveContext = useContext(ReactiveVariablesContext);
+  const globalAgentContext = useContext(GlobalAgentContext);
   const [edited, setEdited] = useState(false);
 
   const [parentNodeData, setParentNodeData] = useState({});
@@ -521,6 +523,7 @@ export function ToolResults({
             <div className="my-4">
               <h1 className="text-gray-400 mb-4">OUTPUTS</h1>
               <ToolRunOutputList
+                showCode={globalAgentContext.val.config.showCode}
                 analysisId={analysisId}
                 toolRunId={toolRunId}
                 step={toolRunData.step}
@@ -549,29 +552,31 @@ export function ToolResults({
             nodeId={activeNode.data.id}
             analysisId={analysisId}
           />
-          <div className="h-60 mt-2 rounded-md text-sm border overflow-scroll w-full mb-2">
-            <div className="relative">
-              <p className="font-bold m-0 sticky top-0 w-full p-2 bg-white shadow-sm border-b">
-                Analysis
-              </p>
-              {toolRunData?.parsedOutputs[activeNode.data.id]["analysis"] ? (
-                <p style={{ whiteSpace: "pre-wrap" }} className="text-xs">
-                  {toolRunData?.parsedOutputs[activeNode.data.id]["analysis"]}
+          {globalAgentContext.val.config.showAnalysis && (
+            <div className="h-60 mt-2 rounded-md text-sm border overflow-scroll w-full mb-2">
+              <div className="relative">
+                <p className="font-bold m-0 sticky top-0 w-full p-2 bg-white shadow-sm border-b">
+                  Analysis
                 </p>
-              ) : (
-                <ToolRunAnalysis
-                  question={analysisData.user_question}
-                  data_csv={toolRunData?.outputs[activeNode.data.id]["data"]}
-                  apiEndpoint={apiEndpoint}
-                  image={
-                    toolRunData?.parsedOutputs[activeNode.data.id][
-                      "chart_images"
-                    ]
-                  }
-                />
-              )}
+                {toolRunData?.parsedOutputs[activeNode.data.id]["analysis"] ? (
+                  <p style={{ whiteSpace: "pre-wrap" }} className="text-xs">
+                    {toolRunData?.parsedOutputs[activeNode.data.id]["analysis"]}
+                  </p>
+                ) : (
+                  <ToolRunAnalysis
+                    question={analysisData.user_question}
+                    data_csv={toolRunData?.outputs[activeNode.data.id]["data"]}
+                    apiEndpoint={apiEndpoint}
+                    image={
+                      toolRunData?.parsedOutputs[activeNode.data.id][
+                        "chart_images"
+                      ]
+                    }
+                  />
+                )}
+              </div>
             </div>
-          </div>
+          )}
         </>
       ) : (
         <></>

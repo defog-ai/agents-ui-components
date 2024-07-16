@@ -1,5 +1,13 @@
 import { Modal } from "antd";
-import { useCallback, useContext, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { v4 } from "uuid";
 import { AnalysisAgent } from "./AnalysisAgent";
 import { AnalysisHistoryItem } from "./AnalysisHistoryItem";
@@ -13,15 +21,13 @@ import { parseCsvFile, sentenceCase, useGhostImage } from "../../utils/utils";
 import { twMerge } from "tailwind-merge";
 import {
   Sidebar,
-  Table,
   Toggle,
   TextArea,
   MessageManagerContext,
-  DropFiles,
-  SpinningLoader,
 } from "../../../ui-components/lib/main";
 import { useWindowSize } from "../../hooks/useWindowSize";
 import { breakpoints } from "../../hooks/useBreakPoint";
+import { AnalysisVersionManager } from "./analysisVersionManager";
 
 export function AnalysisVersionViewer({
   dashboards,
@@ -42,6 +48,8 @@ export function AnalysisVersionViewer({
   searchBarClasses = "",
   searchBarDraggable = true,
   defaultSidebarOpen = false,
+  didUploadFile = false,
+  showAnalysis = true,
 }) {
   const [activeAnalysisId, setActiveAnalysisId] = useState(null);
 
@@ -57,135 +65,67 @@ export function AnalysisVersionViewer({
 
   const ghostImage = useGhostImage();
 
-  // an object that stores all analysis in this "session"
-  // structure:
-  // {
-  //  rootAnalysisId: {
-  //     root: {
-  //       analysisId: "analysis-1",
-  //       user_question: "Show me 5 rows",
-  //     },
-  //     versionList: [
-  //       {
-  //        analysisId: "analysis-1-v1",
-  //        user_question: "Show me 5 rows",
-  //        manager: ...
-  //       },
-  //      ...
-  //    ]
-  //   }
-  //  ...
-  // }
-  const [sessionAnalyses, setSessionAnalyses] = useState({});
-  // just a duplicate of the above but in a flat object
-  const [allAnalyses, setAllAnalyses] = useState({});
   const analysisDomRefs = useRef({});
 
   const [loading, setLoading] = useState(false);
-
-  const [parsingFile, setParsingFile] = useState(false);
 
   const searchCtr = useRef(null);
   const searchRef = useRef(null);
   const [addToDashboardSelection, setAddToDashboardSelection] = useState(false);
   const [selectedDashboards, setSelectedDashboards] = useState([]);
-  const [tableData, setTableData] = useState([]);
-  const [tableColumns, setTableColumns] = useState([]);
-  const [didUploadFile, setDidUploadFile] = useState(false);
 
   const [sidebarOpen, setSidebarOpen] = useState(defaultSidebarOpen);
 
-  const uploadFileToServer = async ({ parsedData, rows, columns }) => {
-    try {
-      const response = await fetch(`${apiEndpoint}/integration/upload_csv`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          data: parsedData,
-          keyName: keyName,
-          token: token,
-        }),
-      });
-      const data = await response.json();
-      console.log(data);
-
-      setDidUploadFile(true);
-      setTableColumns(columns);
-      setTableData(rows);
-    } catch (e) {
-      messageManager.error("Failed to upload the file");
-      console.log(e.stack);
-    } finally {
-      setParsingFile(false);
-      setLoading(false);
-    }
-  };
-
   const windowSize = useWindowSize();
 
+  const analysisVersionManager = useMemo(() => {
+    return AnalysisVersionManager();
+  }, []);
+
+  const sessionAnalyses = useSyncExternalStore(
+    analysisVersionManager.subscribeToDataChanges,
+    analysisVersionManager.getTree
+  );
+
+  const allAnalyses = useSyncExternalStore(
+    analysisVersionManager.subscribeToDataChanges,
+    analysisVersionManager.getAll
+  );
+
   const handleSubmit = useCallback(
-    (question, rootAnalysisId, isRoot, directParentId) => {
+    (
+      question,
+      rootAnalysisId = null,
+      isRoot = false,
+      directParentId = null
+    ) => {
       try {
+        if (!analysisVersionManager)
+          throw new Error("Analysis version manager not found");
+
         setLoading(true);
 
-        // if we have an active root analysis, we're appending to that
-        // otherwise we're starting a new analysis
-        const newId = "analysis-" + v4();
-        let newAnalysis = {
-          analysisId: newId,
-          isRoot: isRoot,
-          rootAnalysisId: isRoot ? newId : rootAnalysisId,
-          user_question: question,
-        };
-
-        newAnalysis.directParentId = directParentId;
-
-        // this is extra stuff we will send to the backend when creating an entry
-        // in the db
-        let createAnalysisRequestExtraParams = {
-          user_question: question,
-          is_root_analysis: isRoot,
-          root_analysis_id: rootAnalysisId,
-          direct_parent_id: directParentId,
-        };
-
-        newAnalysis.createAnalysisRequestBody = {
-          // the backend receives an extra param called "other_data" when appending to the table
-          other_data: createAnalysisRequestExtraParams,
-        };
-
-        let newSessionAnalyses = { ...sessionAnalyses };
+        const { newId, newAnalysis } = analysisVersionManager.submit({
+          question,
+          rootAnalysisId,
+          isRoot,
+          directParentId,
+        });
 
         // if we have an active root analysis, we're appending to that
         // otherwise we're starting a new root analysis
+        // if no root analysis id, means this is meant to be a new root analysis
         if (!rootAnalysisId) {
           setActiveRootAnalysisId(newAnalysis.analysisId);
-          newSessionAnalyses[newAnalysis.analysisId] = {
-            root: newAnalysis,
-            versionList: [newAnalysis],
-          };
-        } else {
-          const rootAnalysis = sessionAnalyses[rootAnalysisId].root;
-          newSessionAnalyses[rootAnalysis.analysisId].versionList.push(
-            newAnalysis
-          );
         }
 
         console.groupCollapsed("Analysis version viewer");
         console.groupEnd();
 
-        setSessionAnalyses(newSessionAnalyses);
         setActiveAnalysisId(newAnalysis.analysisId);
         setActiveRootAnalysisId(newAnalysis.rootAnalysisId);
 
         searchRef.current.value = "";
-
-        setAllAnalyses({
-          ...allAnalyses,
-          [newAnalysis.analysisId]: newAnalysis,
-        });
 
         // remove the earliest one only if we have more than 10
         setLast10Analysis((prev) => {
@@ -202,7 +142,7 @@ export function AnalysisVersionViewer({
         setLoading(false);
       }
     },
-    [sessionAnalyses, allAnalyses]
+    []
   );
 
   useEffect(() => {
@@ -246,7 +186,7 @@ export function AnalysisVersionViewer({
               }}
               title={<span className="font-bold">History</span>}
               rootClassNames={twMerge(
-                "transition-all z-20 h-[calc(100%-1rem)] rounded-md rounded-l-none lg:rounded-none lg:rounded-tr-md lg:rounded-br-md bg-gray-100 border h-screen lg:h-full sticky top-0 lg:relative",
+                "transition-all z-20 h-[calc(100%-1rem)] rounded-md rounded-l-none lg:rounded-none lg:rounded-tr-md lg:rounded-br-md bg-gray-100 border sticky top-0 lg:relative",
                 sideBarClasses
               )}
               iconClassNames={`${sidebarOpen ? "" : "text-white bg-secondary-highlight-2"}`}
@@ -294,7 +234,7 @@ export function AnalysisVersionViewer({
                                 });
                               }
 
-                              if (windowSize < breakpoints.lg)
+                              if (windowSize[0] < breakpoints.lg)
                                 setSidebarOpen(false);
                             }}
                             extraClasses={
@@ -329,7 +269,8 @@ export function AnalysisVersionViewer({
                         setActiveAnalysisId(null);
 
                         // on ipad/phone, close sidebar when new button is clicked
-                        if (windowSize < breakpoints.lg) setSidebarOpen(false);
+                        if (windowSize[0] < breakpoints.lg)
+                          setSidebarOpen(false);
                       }}
                     >
                       New <PlusIcon className="ml-2 w-4 h-4 inline" />
@@ -342,27 +283,23 @@ export function AnalysisVersionViewer({
           </div>
           <div
             className={twMerge(
-              "absolute left-0 top-0 h-screen w-full overlay lg:hidden bg-gray-800 z-[11] transition-all",
+              "absolute left-0 top-0 h-full w-full overlay lg:hidden bg-gray-800 z-[11] transition-all",
               sidebarOpen ? "opacity-50 block" : "opacity-0 pointer-events-none"
             )}
             onClick={() => {
               setSidebarOpen(false);
             }}
           ></div>
-          <div
-            className="grid grid-cols-1 lg:grid-cols-1 grow rounded-tr-lg p-2 lg:p-4 relative min-w-0 h-full overflow-scroll "
-            // onClick={() => {
-            //   setSidebarOpen(false);
-            // }}
-          >
+          <div className="grid grid-cols-1 auto-cols-max lg:grid-cols-1 grow rounded-tr-lg p-2 lg:p-4 relative min-w-0 h-full overflow-scroll">
             {activeRootAnalysisId &&
               sessionAnalyses[activeRootAnalysisId].versionList.map(
                 (analysis) => {
                   return (
                     <div key={analysis.analysisId}>
                       <AnalysisAgent
+                        showAnalysis={showAnalysis}
                         rootClassNames={
-                          "mb-4 lg:ml-3 min-h-96 [&_.analysis-content]:min-h-96 shadow-md analysis-" +
+                          "w-full mb-4 lg:ml-3 min-h-96 [&_.analysis-content]:min-h-96 shadow-md analysis-" +
                           analysis.analysisId
                         }
                         analysisId={analysis.analysisId}
@@ -396,35 +333,15 @@ export function AnalysisVersionViewer({
                           }
                         }}
                         onManagerDestroyed={(mgr, id) => {
-                          const data = mgr.analysisData;
-                          // remove the analysis from the sessionAnalyses
-                          setSessionAnalyses((prev) => {
-                            let newSessionAnalyses = { ...prev };
-                            if (newSessionAnalyses[id]) {
-                              delete newSessionAnalyses[id];
-                            } else {
-                              const rootAnalysisId = data.root_analysis_id;
-                              if (rootAnalysisId) {
-                                const rootAnalysis =
-                                  newSessionAnalyses[rootAnalysisId];
-                                if (rootAnalysis) {
-                                  rootAnalysis.versionList =
-                                    rootAnalysis.versionList.filter(
-                                      (item) => item.analysisId !== id
-                                    );
-                                }
-                              }
-                            }
+                          const analysisData = mgr.analysisData;
 
-                            return newSessionAnalyses;
-                          });
-                          setAllAnalyses((prev) => {
-                            let newAllAnalyses = { ...prev };
-                            if (newAllAnalyses[id]) {
-                              delete newAllAnalyses[id];
-                            }
-                            return newAllAnalyses;
-                          });
+                          // remove the analysis from the sessionAnalyses
+                          analysisVersionManager.removeAnalysis(
+                            analysisData,
+                            analysisData.isRoot,
+                            analysisData.analysis_id
+                          );
+
                           setActiveAnalysisId(null);
                           if (activeRootAnalysisId === id) {
                             setActiveRootAnalysisId(null);
@@ -437,7 +354,7 @@ export function AnalysisVersionViewer({
               )}
 
             {!activeAnalysisId && (
-              <div className="grow flex flex-col place-content-center m-auto max-w-full relative z-[1]">
+              <div className=" grow flex flex-col place-content-center m-auto max-w-full relative z-[1]">
                 {didUploadFile !== true ? (
                   <div className="text-gray-400 text-center border p-4 rounded-md">
                     <p className="cursor-default block text-sm mb-2 font-bold">
@@ -473,76 +390,12 @@ export function AnalysisVersionViewer({
                     </ul>
                   </div>
                 ) : null}
-
-                <div className="text-gray-400 mt-5 m-auto text-center max-w-full">
-                  {didUploadFile === true ? (
-                    <Table rows={tableData} columns={tableColumns} />
-                  ) : (
-                    <DropFiles
-                      label={null}
-                      rootClassNames="w-96 max-w-full text-center bg-white p-4 border rounded-md"
-                      iconClassNames="text-gray-400"
-                      icon={
-                        parsingFile ? (
-                          <SpinningLoader classNames="w-4 h-4 text-gray-300" />
-                        ) : null
-                      }
-                      onFileSelect={(ev) => {
-                        // this is when the user selects a file from the file dialog
-                        try {
-                          let file = ev.target.files[0];
-                          if (!file || file.type !== "text/csv") {
-                            throw new Error("Only CSV files are accepted");
-                          }
-                          setLoading(true);
-                          setParsingFile(true);
-
-                          parseCsvFile(file, uploadFileToServer);
-                        } catch (e) {
-                          messageManager.error("Failed to parse the file");
-                          setLoading(false);
-                          setParsingFile(false);
-                        }
-                      }}
-                      onDrop={(ev) => {
-                        ev.preventDefault();
-                        try {
-                          let file = ev?.dataTransfer?.items?.[0];
-                          if (
-                            !file ||
-                            !file.kind ||
-                            file.kind !== "file" ||
-                            file.type !== "text/csv"
-                          ) {
-                            throw new Error("Only CSV files are accepted");
-                          }
-
-                          file = file.getAsFile();
-
-                          setLoading(true);
-                          setParsingFile(true);
-
-                          parseCsvFile(file, uploadFileToServer);
-                        } catch (e) {
-                          messageManager.error("Failed to parse the file");
-                          console.log(e.stack);
-                          setLoading(false);
-                          setParsingFile(false);
-                        }
-                      }}
-                    >
-                      <p className="text-gray-400 cursor-default block text-sm mb-2 font-bold">
-                        Or drop a CSV
-                      </p>
-                    </DropFiles>
-                  )}
-                </div>
               </div>
             )}
 
             <div
               className={twMerge(
-                "w-full lg:w-10/12 lg:w-2/4 m-auto fixed z-10 bg-white rounded-lg shadow-custom border border-gray-400 hover:border-blue-500 focus:border-blue-500 flex flex-row",
+                "w-full lg:w-8/12 m-auto fixed z-10 bg-white rounded-lg shadow-custom border border-gray-400 hover:border-blue-500 focus:border-blue-500 flex flex-row",
                 searchBarClasses
               )}
               style={{
@@ -639,11 +492,12 @@ export function AnalysisVersionViewer({
                     <Toggle
                       disabled={loading}
                       titleClassNames="font-bold text-gray-400"
-                      onToggle={(v) => setSqlOnly(v)}
+                      // if true, means advanced, means sql only off
+                      onToggle={(v) => setSqlOnly(!v)}
                       defaultOn={sqlOnly}
-                      offLabel="SQL/Agents"
-                      onLabel={"SQL only"}
-                      rootClassNames="items-start lg:border-r py-2 lg:py-0 px-2 w-36"
+                      offLabel="Advanced"
+                      onLabel={"Advanced"}
+                      rootClassNames="items-start lg:border-r py-2 lg:py-0 px-2 w-32"
                     />
                   </div>
                   <button

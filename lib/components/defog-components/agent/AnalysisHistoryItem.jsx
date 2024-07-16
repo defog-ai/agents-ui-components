@@ -2,11 +2,11 @@ import { PlusIcon } from "@heroicons/react/20/solid";
 import { twMerge } from "tailwind-merge";
 
 export function AnalysisHistoryItem({
-  analysis,
-  isActive,
   setActiveAnalysisId,
   setActiveRootAnalysisId,
   setAddToDashboardSelection,
+  analysis = null,
+  isActive = false,
   extraClasses = "",
   isDummy = false,
   onClick = () => {},

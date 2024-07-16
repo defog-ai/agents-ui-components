@@ -9,6 +9,7 @@ import React, {
 import "./standalone-fonts.module.css";
 import { v4 } from "uuid";
 import {
+  defaultAgentConfig,
   GlobalAgentContext,
   RelatedAnalysesContext,
 } from "../context/GlobalAgentContext";
@@ -18,11 +19,6 @@ import setupBaseUrl from "../utils/setupBaseUrl";
 import { setupWebsocketManager } from "../utils/websocket-manager";
 import { AnalysisVersionViewer } from "./agent/AnalysisVersionViewer";
 import { ReactiveVariablesContext } from "../context/ReactiveVariablesContext";
-import {
-  MessageManager,
-  MessageManagerContext,
-  MessageMonitor,
-} from "../../ui-components/lib/main";
 
 export function DefogAnalysisAgentStandalone({
   analysisId = v4(),
@@ -38,10 +34,17 @@ export function DefogAnalysisAgentStandalone({
   disableMessages = false,
   messageMonitorClasses = "",
   predefinedQuestions = [],
+  config = {},
 }) {
-  const [globalAgentContext, setDocContext] = useState(
-    useContext(GlobalAgentContext)
+  const [agentConfig, setAgentConfig] = useState(
+    Object.assign({}, defaultAgentConfig, {
+      config: {
+        ...defaultAgentConfig.config,
+        ...config,
+      },
+    })
   );
+
   const [reactiveContext, setReactiveContext] = useState(
     useContext(ReactiveVariablesContext)
   );
@@ -61,7 +64,7 @@ export function DefogAnalysisAgentStandalone({
   useEffect(() => {
     async function setup() {
       // setup user items
-      const items = globalAgentContext.userItems;
+      const items = agentConfig.userItems;
       const analyses = await getAllAnalyses(keyName, apiEndpoint);
       const dashboards = await getAllDashboards(token, keyName, apiEndpoint);
       if (dashboards?.success) {
@@ -92,8 +95,8 @@ export function DefogAnalysisAgentStandalone({
       );
       setToolSocketManager(toolSocketManager);
 
-      setDocContext({
-        ...globalAgentContext,
+      setAgentConfig({
+        ...agentConfig,
         userItems: items,
         socketManagers: {
           mainManager: mgr,
@@ -124,55 +127,49 @@ export function DefogAnalysisAgentStandalone({
 
   return (
     <ErrorBoundary>
-      <MessageManagerContext.Provider value={MessageManager()}>
-        <MessageMonitor
-          disabled={disableMessages}
-          rootClassNames={messageMonitorClasses}
-        />
-        <RelatedAnalysesContext.Provider
-          value={{
-            val: relatedAnalysesContext,
-            update: setRelatedAnalysesContext,
-          }}
+      <RelatedAnalysesContext.Provider
+        value={{
+          val: relatedAnalysesContext,
+          update: setRelatedAnalysesContext,
+        }}
+      >
+        <ReactiveVariablesContext.Provider
+          value={{ val: reactiveContext, update: setReactiveContext }}
         >
-          <ReactiveVariablesContext.Provider
-            value={{ val: reactiveContext, update: setReactiveContext }}
+          <GlobalAgentContext.Provider
+            value={{ val: agentConfig, update: setAgentConfig }}
           >
-            <GlobalAgentContext.Provider
-              value={{ val: globalAgentContext, update: setDocContext }}
-            >
-              <div className="w-full h-full">
-                <div className="editor-container w-full h-full p-0">
-                  <div className="defog-analysis-container w-full  h-full">
-                    <div
-                      data-content-type="analysis"
-                      className="m-0 h-full w-full"
-                      data-analysis-id={analysisId}
-                    >
-                      <AnalysisVersionViewer
-                        apiEndpoint={apiEndpoint}
-                        token={token}
-                        dashboards={dashboards}
-                        devMode={devMode}
-                        keyName={keyName}
-                        autoScroll={autoScroll}
-                        sideBarClasses={sideBarClasses}
-                        searchBarClasses={searchBarClasses}
-                        searchBarDraggable={searchBarDraggable}
-                        defaultSidebarOpen={() =>
-                          defaultSidebarOpen ||
-                          (window.innerWidth < 768 ? false : true)
-                        }
-                        predefinedQuestions={predefinedQuestions}
-                      />
-                    </div>
+            <div className="w-full h-full">
+              <div className="editor-container w-full h-full p-0">
+                <div className="defog-analysis-container w-full  h-full">
+                  <div
+                    data-content-type="analysis"
+                    className="m-0 h-full w-full"
+                    data-analysis-id={analysisId}
+                  >
+                    <AnalysisVersionViewer
+                      apiEndpoint={apiEndpoint}
+                      token={token}
+                      dashboards={dashboards}
+                      devMode={devMode}
+                      keyName={keyName}
+                      autoScroll={autoScroll}
+                      sideBarClasses={sideBarClasses}
+                      searchBarClasses={searchBarClasses}
+                      searchBarDraggable={searchBarDraggable}
+                      defaultSidebarOpen={() =>
+                        defaultSidebarOpen ||
+                        (window.innerWidth < 768 ? false : true)
+                      }
+                      predefinedQuestions={predefinedQuestions}
+                    />
                   </div>
                 </div>
               </div>
-            </GlobalAgentContext.Provider>
-          </ReactiveVariablesContext.Provider>
-        </RelatedAnalysesContext.Provider>
-      </MessageManagerContext.Provider>
+            </div>
+          </GlobalAgentContext.Provider>
+        </ReactiveVariablesContext.Provider>
+      </RelatedAnalysesContext.Provider>
     </ErrorBoundary>
   );
 }
