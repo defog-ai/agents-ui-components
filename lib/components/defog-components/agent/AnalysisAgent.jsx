@@ -32,8 +32,8 @@ import { twMerge } from "tailwind-merge";
 import { ReactiveVariablesContext } from "../../context/ReactiveVariablesContext";
 import { GlobalAgentContext } from "../../context/GlobalAgentContext";
 import ErrorBoundary from "../../common/ErrorBoundary";
-import { breakpoints } from "../../hooks/useBreakPoint";
-import { useWindowSize } from "../../hooks/useWindowSize";
+import { breakpoints } from "../../../ui-components/lib/hooks/useBreakPoint";
+import { useWindowSize } from "../../../ui-components/lib/hooks/useWindowSize";
 
 export const AnalysisAgent = ({
   analysisId,

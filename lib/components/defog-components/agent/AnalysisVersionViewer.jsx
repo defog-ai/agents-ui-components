@@ -25,8 +25,8 @@ import {
   TextArea,
   MessageManagerContext,
 } from "../../../ui-components/lib/main";
-import { useWindowSize } from "../../hooks/useWindowSize";
-import { breakpoints } from "../../hooks/useBreakPoint";
+import { useWindowSize } from "../../../ui-components/lib/hooks/useWindowSize";
+import { breakpoints } from "../../../ui-components/lib/hooks/useBreakPoint";
 import { AnalysisVersionManager } from "./analysisVersionManager";
 
 export function AnalysisVersionViewer({

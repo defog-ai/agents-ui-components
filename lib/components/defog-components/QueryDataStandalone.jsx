@@ -70,19 +70,19 @@ export function QueryDataStandalone({
       )}
     >
       <div className="w-full relative mb-4 text-gray-500 text-xs">
-        <div className="w-24 font-bold absolute z-10 left-0 bg-gray-50 whitespace-nowrap py-2">
-          Select dataset:
+        <div className="w-16 font-bold absolute z-10 left-0 whitespace-nowrap py-2">
+          Dataset:
         </div>
-        <div className="pl-24 overflow-scroll flex flex-row gap-2 items-center rounded-md">
+        <div className="pl-16 overflow-scroll flex flex-row gap-2 items-center rounded-md">
           {availableDbs.map((db, i) => {
             return (
               <span
                 key={db + "-" + i}
                 onClick={() => setSelectedDb(db)}
                 className={twMerge(
-                  "p-2 bg-gray-200 rounded-full cursor-pointer",
+                  "p-2 bg-gray-200 border border-gray-300 rounded-full cursor-pointer",
                   selectedDb === db
-                    ? "bg-gray-600 text-white"
+                    ? "bg-gray-600 border-transparent text-white"
                     : "hover:bg-gray-300 cursor-pointer"
                 )}
               >
