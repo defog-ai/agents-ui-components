@@ -100,7 +100,7 @@ export function AnalysisVersionViewer({
 
   const uploadFileToServer = async ({ parsedData, rows, columns }) => {
     try {
-      const response = await fetch(`${apiEndpoint}/integration/upload_csv/`, {
+      const response = await fetch(`${apiEndpoint}/integration/upload_csv`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
