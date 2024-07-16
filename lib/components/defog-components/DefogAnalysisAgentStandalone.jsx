@@ -37,6 +37,7 @@ export function DefogAnalysisAgentStandalone({
   defaultSidebarOpen = null,
   disableMessages = false,
   messageMonitorClasses = "",
+  predefinedQuestions = [],
 }) {
   const [globalAgentContext, setDocContext] = useState(
     useContext(GlobalAgentContext)
@@ -162,6 +163,7 @@ export function DefogAnalysisAgentStandalone({
                           defaultSidebarOpen ||
                           (window.innerWidth < 768 ? false : true)
                         }
+                        predefinedQuestions={predefinedQuestions}
                       />
                     </div>
                   </div>

@@ -36,10 +36,7 @@ export function AnalysisVersionViewer({
   maxRenderedAnalysis = 2,
   // array of strings
   // each string is a question
-  predefinedQuestions = [
-    "show me 5 rows and create a heatmap",
-    "what is the average of x column",
-  ],
+  predefinedQuestions = [],
   autoScroll = true,
   sideBarClasses = "",
   searchBarClasses = "",
