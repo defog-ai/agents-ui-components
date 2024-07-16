@@ -297,7 +297,6 @@ export function AnalysisVersionViewer({
                   return (
                     <div key={analysis.analysisId}>
                       <AnalysisAgent
-                        showAnalysis={showAnalysis}
                         rootClassNames={
                           "w-full mb-4 lg:ml-3 min-h-96 [&_.analysis-content]:min-h-96 shadow-md analysis-" +
                           analysis.analysisId

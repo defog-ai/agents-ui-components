@@ -6,13 +6,16 @@
 
 import { useContext, useEffect, useState } from "react";
 import {
-  SingleSelect,
   SpinningLoader,
-  DropFiles,
   MessageManagerContext,
+  DropFilesHeadless,
 } from "../../ui-components/lib/main";
 import { parseCsvFile } from "../utils/utils";
 import { twMerge } from "tailwind-merge";
+import {
+  ArrowDownCircleIcon,
+  ArrowDownTrayIcon,
+} from "@heroicons/react/20/solid";
 
 export function QueryDataStandalone({
   keyName,
@@ -29,6 +32,7 @@ export function QueryDataStandalone({
   const [selectedDb, setSelectedDb] = useState(defaultSelectedDb);
   const [parsingFile, setParsingFile] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [dropping, setDropping] = useState(false);
   const messageManager = useContext(MessageManagerContext);
 
   const uploadFileToServer = async ({ file, parsedData, rows, columns }) => {
@@ -60,8 +64,6 @@ export function QueryDataStandalone({
     }
   };
 
-  console.log(selectedDb);
-
   return (
     <div
       className={twMerge(
@@ -70,10 +72,10 @@ export function QueryDataStandalone({
       )}
     >
       <div className="w-full relative mb-4 text-gray-500 text-xs">
-        <div className="w-16 font-bold absolute z-10 left-0 whitespace-nowrap py-2">
+        <div className="w-16 font-bold sm:absolute z-10 left-0 whitespace-nowrap py-2">
           Dataset:
         </div>
-        <div className="pl-16 overflow-scroll flex flex-row gap-2 items-center rounded-md">
+        <div className="sm:pl-16 overflow-scroll flex flex-row gap-2 items-center rounded-md">
           {availableDbs.map((db, i) => {
             return (
               <span
@@ -83,80 +85,100 @@ export function QueryDataStandalone({
                   "p-2 bg-gray-200 border border-gray-300 rounded-full cursor-pointer",
                   selectedDb === db
                     ? "bg-gray-600 border-transparent text-white"
-                    : "hover:bg-gray-300 cursor-pointer"
+                    : "hover:bg-gray-300"
                 )}
               >
                 {db}
               </span>
             );
           })}
+
+          {allowUploadFile && (
+            <DropFilesHeadless
+              rootClassNames="flex items-center cursor-pointer group ml-auto self-end"
+              disabled={loading}
+              onDragEnter={(ev) => {
+                ev.preventDefault();
+                ev.stopPropagation();
+
+                setDropping(true);
+
+                console.log(ev.target);
+              }}
+              onDragLeave={(ev) => {
+                ev.preventDefault();
+                ev.stopPropagation();
+
+                setDropping(false);
+              }}
+              onFileSelect={(ev) => {
+                // this is when the user selects a file from the file dialog
+                try {
+                  let file = ev.target.files[0];
+                  if (!file || file.type !== "text/csv") {
+                    throw new Error("Only CSV files are accepted");
+                  }
+                  setLoading(true);
+                  setParsingFile(true);
+
+                  parseCsvFile(file, uploadFileToServer);
+                } catch (e) {
+                  messageManager.error("Failed to parse the file");
+                  setLoading(false);
+                  setParsingFile(false);
+                }
+              }}
+              onDrop={(ev) => {
+                ev.preventDefault();
+                try {
+                  let file = ev?.dataTransfer?.items?.[0];
+                  if (
+                    !file ||
+                    !file.kind ||
+                    file.kind !== "file" ||
+                    file.type !== "text/csv"
+                  ) {
+                    throw new Error("Only CSV files are accepted");
+                  }
+
+                  file = file.getAsFile();
+
+                  setLoading(true);
+                  setParsingFile(true);
+
+                  parseCsvFile(file, uploadFileToServer);
+                } catch (e) {
+                  messageManager.error("Failed to parse the file");
+                  console.log(e.stack);
+                  setLoading(false);
+                  setParsingFile(false);
+                }
+              }}
+            >
+              <span
+                className={twMerge(
+                  "rounded-full bg-secondary-highlight-1/40 text-white p-2 group-hover:bg-secondary-highlight-1 group-hover:text-white cursor-pointer flex items-center whitespace-nowrap"
+                )}
+              >
+                {parsingFile ? (
+                  <>
+                    Uploading
+                    <SpinningLoader classNames="h-4 w-4 inline m-0 ml-2" />
+                  </>
+                ) : (
+                  <>
+                    <span className="hidden sm:inline">
+                      {dropping ? "Drop here!" : "Upload / Drop a CSV"}
+                    </span>
+                    <span className="inline sm:hidden">Upload a CSV</span>
+                    <ArrowDownTrayIcon className="h-4 w-4 inline ml-1" />
+                  </>
+                )}
+              </span>
+            </DropFilesHeadless>
+          )}
         </div>
       </div>
-      {allowUploadFile && !selectedDb && (
-        <DropFiles
-          disabled={loading}
-          labelClassNames="text-sm"
-          label={"Or drop a CSV"}
-          rootClassNames="w-full max-w-96"
-          contentClassNames="w-full bg-white p-4 ring-1 ring-gray-300 rounded-md shadow-sm"
-          iconClassNames="text-gray-400"
-          icon={
-            parsingFile ? (
-              <span className="text-xs">
-                Parsing{" "}
-                <SpinningLoader classNames="w-4 h-4 text-gray-300 ml-1" />
-              </span>
-            ) : null
-          }
-          onFileSelect={(ev) => {
-            // this is when the user selects a file from the file dialog
-            try {
-              let file = ev.target.files[0];
-              if (!file || file.type !== "text/csv") {
-                throw new Error("Only CSV files are accepted");
-              }
-              setLoading(true);
-              setParsingFile(true);
-
-              parseCsvFile(file, uploadFileToServer);
-            } catch (e) {
-              messageManager.error("Failed to parse the file");
-              setLoading(false);
-              setParsingFile(false);
-            }
-          }}
-          onDrop={(ev) => {
-            ev.preventDefault();
-            try {
-              let file = ev?.dataTransfer?.items?.[0];
-              if (
-                !file ||
-                !file.kind ||
-                file.kind !== "file" ||
-                file.type !== "text/csv"
-              ) {
-                throw new Error("Only CSV files are accepted");
-              }
-
-              file = file.getAsFile();
-
-              setLoading(true);
-              setParsingFile(true);
-
-              parseCsvFile(file, uploadFileToServer);
-            } catch (e) {
-              messageManager.error("Failed to parse the file");
-              console.log(e.stack);
-              setLoading(false);
-              setParsingFile(false);
-            }
-          }}
-        >
-          {/* <p className="text-gray-400 cursor-default block text-sm mb-2 font-bold">
-            Or drop a CSV
-          </p> */}
-        </DropFiles>
-      )}
       {children}
     </div>
   );
