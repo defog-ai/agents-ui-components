@@ -34,6 +34,11 @@ import { GlobalAgentContext } from "../../context/GlobalAgentContext";
 import ErrorBoundary from "../../common/ErrorBoundary";
 import { breakpoints } from "../../../ui-components/lib/hooks/useBreakPoint";
 import { useWindowSize } from "../../../ui-components/lib/hooks/useWindowSize";
+import {
+  StopCircleIcon,
+  StopIcon,
+  XCircleIcon,
+} from "@heroicons/react/20/solid";
 
 export const AnalysisAgent = ({
   analysisId,
@@ -316,6 +321,7 @@ export const AnalysisAgent = ({
 
         // if the current stage is null, just destroy this analysis
         if (submitStage === null) {
+          analysisManager.removeEventListeners();
           analysisManager.destroy();
         }
       }
@@ -356,7 +362,7 @@ export const AnalysisAgent = ({
             ""
         )}
       </h1>
-      {!analysisBusy && analysisData && (
+      {!analysisBusy && analysisData ? (
         <div className="basis-0 text-nowrap whitespace-nowrap">
           <AnalysisFeedback
             analysisSteps={analysisData?.gen_steps?.steps || []}
@@ -367,6 +373,20 @@ export const AnalysisAgent = ({
             keyName={keyName}
           />
         </div>
+      ) : (
+        analysisBusy && (
+          <div className="basis-0 text-nowrap whitespace-nowrap">
+            <StopCircleIcon
+              className="w-6 h-6 text-rose-300"
+              onClick={() => {
+                setGlobalLoading(false);
+                setAnalysisBusy(false);
+                analysisManager.removeEventListeners();
+                analysisManager.destroy();
+              }}
+            ></StopCircleIcon>
+          </div>
+        )
       )}
     </div>
   );
@@ -488,7 +508,7 @@ export const AnalysisAgent = ({
                     </ErrorBoundary>
                   </div>
                   {analysisData?.gen_steps?.steps && (
-                    <div className="border-b border-b-gray-300 lg:border-b-none  analysis-steps flex-initial rounded-t-3xl lg:rounded-r-3xl lg:rounded-tl-none bg-gray-50">
+                    <div className="border-b border-b-gray-300 sm:border-b-0 lg:border-b-none  analysis-steps flex-initial rounded-t-3xl lg:rounded-r-3xl lg:rounded-tl-none bg-gray-50">
                       <Collapse
                         rootClassNames="mb-0 bg-gray-50 w-full rounded-t-3xl lg:rounded-r-3xl lg:rounded-tl-none lg:h-full"
                         title={

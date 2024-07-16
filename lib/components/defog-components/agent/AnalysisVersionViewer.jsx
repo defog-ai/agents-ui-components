@@ -35,6 +35,7 @@ export function AnalysisVersionViewer({
   devMode,
   keyName,
   apiEndpoint,
+  tempDb,
   // this isn't always reinforced
   // we check for this only when we're creating a new analysis
   // but not otherwise
@@ -49,7 +50,6 @@ export function AnalysisVersionViewer({
   searchBarDraggable = true,
   defaultSidebarOpen = false,
   didUploadFile = false,
-  showAnalysis = true,
 }) {
   const [activeAnalysisId, setActiveAnalysisId] = useState(null);
 
@@ -171,7 +171,7 @@ export function AnalysisVersionViewer({
       <div className="relative h-full">
         {/* top and bottom fades if we are on small screens and if we have some analyses going */}
         {activeAnalysisId && activeRootAnalysisId && (
-          <div className="lg:hidden absolute bottom-0 left-0 w-full h-48 pointer-events-none bg-gradient-to-b from-transparent to-gray-300 z-10"></div>
+          <div className="lg:hidden absolute bottom-0 left-0 w-full h-[10%] pointer-events-none bg-gradient-to-b from-transparent to-gray-300 z-10"></div>
         )}
         <div
           className="max-w-full h-full flex flex-row bg-white text-gray-600 w-full"
@@ -186,7 +186,7 @@ export function AnalysisVersionViewer({
               }}
               title={<span className="font-bold">History</span>}
               rootClassNames={twMerge(
-                "transition-all z-20 h-[calc(100%-1rem)] rounded-md rounded-l-none lg:rounded-none lg:rounded-tr-md lg:rounded-br-md bg-gray-100 border sticky top-0 lg:relative",
+                "transition-all z-20 h-[calc(100%-1rem)] rounded-md rounded-l-none lg:rounded-none lg:rounded-tr-md lg:rounded-br-md bg-gray-100 border-r sticky top-0 lg:relative",
                 sideBarClasses
               )}
               iconClassNames={`${sidebarOpen ? "" : "text-white bg-secondary-highlight-2"}`}
@@ -222,10 +222,11 @@ export function AnalysisVersionViewer({
                             }
                             onClick={() => {
                               if (
-                                analysisDomRefs[version.analysisId].ctr &&
+                                analysisDomRefs.current[version.analysisId]
+                                  .ctr &&
                                 autoScroll
                               ) {
-                                analysisDomRefs[
+                                analysisDomRefs.current[
                                   version.analysisId
                                 ].ctr.scrollIntoView({
                                   behavior: "smooth",
@@ -290,7 +291,7 @@ export function AnalysisVersionViewer({
               setSidebarOpen(false);
             }}
           ></div>
-          <div className="grid grid-cols-1 auto-cols-max lg:grid-cols-1 grow rounded-tr-lg p-2 lg:p-4 relative min-w-0 h-full overflow-scroll">
+          <div className="grid grid-cols-1 pt-10 sm:pt-0 auto-cols-max lg:grid-cols-1 grow rounded-tr-lg p-2 lg:p-4 relative min-w-0 h-full overflow-scroll">
             {activeRootAnalysisId &&
               sessionAnalyses[activeRootAnalysisId].versionList.map(
                 (analysis) => {
@@ -298,7 +299,7 @@ export function AnalysisVersionViewer({
                     <div key={analysis.analysisId}>
                       <AnalysisAgent
                         rootClassNames={
-                          "w-full mb-4 lg:ml-3 min-h-96 [&_.analysis-content]:min-h-96 shadow-md analysis-" +
+                          "w-full mb-4 min-h-96 [&_.analysis-content]:min-h-96 shadow-md analysis-" +
                           analysis.analysisId
                         }
                         analysisId={analysis.analysisId}
@@ -315,7 +316,7 @@ export function AnalysisVersionViewer({
                         didUploadFile={didUploadFile}
                         sqlOnly={sqlOnly}
                         onManagerCreated={(mgr, id, ctr) => {
-                          analysisDomRefs[id] = {
+                          analysisDomRefs.current[id] = {
                             ctr,
                             mgr,
                             id,
@@ -323,7 +324,7 @@ export function AnalysisVersionViewer({
                           if (autoScroll) {
                             // scroll to ctr
                             setTimeout(() => {
-                              analysisDomRefs[id].ctr.scrollIntoView({
+                              analysisDomRefs.current[id].ctr.scrollIntoView({
                                 behavior: "smooth",
                                 block: "start",
                                 inline: "nearest",
