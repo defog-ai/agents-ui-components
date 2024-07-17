@@ -325,8 +325,6 @@ export function AnalysisVersionViewer({
                           mgr,
                           id,
                         };
-
-                        console.log(analysisDomRefs.current, id);
                         if (autoScroll) {
                           // scroll to ctr
                           scrollTo(id);
