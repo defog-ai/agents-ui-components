@@ -3,7 +3,7 @@
 
 import { v4 } from "uuid";
 
-export function AnalysisVersionManager({ initialTree = {} }) {
+export function AnalysisVersionManager(initialTree = {}) {
   // an object that stores all analysis in this "session" as a tree
   // structure:
   // {

@@ -1,10 +1,4 @@
-import React, {
-  useContext,
-  useEffect,
-  useState,
-  Fragment,
-  useMemo,
-} from "react";
+import React, { useContext, useEffect, useState, Fragment } from "react";
 
 import "./standalone-fonts.module.css";
 import { v4 } from "uuid";
@@ -20,6 +14,9 @@ import { setupWebsocketManager } from "../utils/websocket-manager";
 import { AnalysisVersionViewer } from "./agent/AnalysisVersionViewer";
 import { ReactiveVariablesContext } from "../context/ReactiveVariablesContext";
 import { AnalysisVersionManager } from "./agent/analysisVersionManager";
+import { twMerge } from "tailwind-merge";
+
+const defaultManager = AnalysisVersionManager();
 
 export function DefogAnalysisAgentStandalone({
   analysisId = v4(),
@@ -32,11 +29,10 @@ export function DefogAnalysisAgentStandalone({
   searchBarClasses = "",
   searchBarDraggable = true,
   defaultSidebarOpen = null,
-  disableMessages = false,
-  messageMonitorClasses = "",
   predefinedQuestions = [],
   config = {},
-  analysisVersionManager = AnalysisVersionManager(),
+  analysisVersionManager = defaultManager,
+  rootClassNames = "",
 }) {
   const [agentConfig, setAgentConfig] = useState(
     Object.assign({}, defaultAgentConfig, {
@@ -141,7 +137,7 @@ export function DefogAnalysisAgentStandalone({
           <GlobalAgentContext.Provider
             value={{ val: agentConfig, update: setAgentConfig }}
           >
-            <div className="w-full h-full">
+            <div className={twMerge("w-full h-full", rootClassNames)}>
               <div className="editor-container w-full h-full p-0">
                 <div className="defog-analysis-container w-full  h-full">
                   <div

@@ -123,9 +123,6 @@ export function AnalysisVersionViewer({
           );
         }
 
-        console.groupCollapsed("Analysis version viewer");
-        console.groupEnd();
-
         analysisVersionManager.setActiveAnalysisId(newAnalysis.analysisId);
         analysisVersionManager.setActiveRootAnalysisId(
           newAnalysis.rootAnalysisId
@@ -397,7 +394,7 @@ export function AnalysisVersionViewer({
 
             <div
               className={twMerge(
-                "w-full lg:w-8/12 m-auto fixed z-10 bg-white rounded-lg shadow-custom border border-gray-400 hover:border-blue-500 focus:border-blue-500 flex flex-row",
+                "w-full lg:w-8/12 m-auto fixed z-20 bg-white rounded-lg shadow-custom border border-gray-400 hover:border-blue-500 focus:border-blue-500 flex flex-row",
                 searchBarClasses
               )}
               style={{
