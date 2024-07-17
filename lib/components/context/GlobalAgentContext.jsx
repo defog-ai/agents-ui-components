@@ -25,6 +25,7 @@ export const defaultAgentConfig = {
     // set things like
     showAnalysis: true,
     showCode: true,
+    allowDashboardAdd: true,
   },
 };
 

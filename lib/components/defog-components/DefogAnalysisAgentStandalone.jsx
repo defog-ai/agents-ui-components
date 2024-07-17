@@ -19,6 +19,7 @@ import setupBaseUrl from "../utils/setupBaseUrl";
 import { setupWebsocketManager } from "../utils/websocket-manager";
 import { AnalysisVersionViewer } from "./agent/AnalysisVersionViewer";
 import { ReactiveVariablesContext } from "../context/ReactiveVariablesContext";
+import { AnalysisVersionManager } from "./agent/analysisVersionManager";
 
 export function DefogAnalysisAgentStandalone({
   analysisId = v4(),
@@ -35,6 +36,7 @@ export function DefogAnalysisAgentStandalone({
   messageMonitorClasses = "",
   predefinedQuestions = [],
   config = {},
+  analysisVersionManager = AnalysisVersionManager(),
 }) {
   const [agentConfig, setAgentConfig] = useState(
     Object.assign({}, defaultAgentConfig, {
@@ -148,6 +150,7 @@ export function DefogAnalysisAgentStandalone({
                     data-analysis-id={analysisId}
                   >
                     <AnalysisVersionViewer
+                      analysisVersionManager={analysisVersionManager}
                       apiEndpoint={apiEndpoint}
                       token={token}
                       dashboards={dashboards}

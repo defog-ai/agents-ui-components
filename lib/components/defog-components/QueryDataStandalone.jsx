@@ -80,7 +80,10 @@ export function QueryDataStandalone({
             return (
               <span
                 key={db + "-" + i}
-                onClick={() => setSelectedDb(db)}
+                onClick={() => {
+                  setSelectedDb(db);
+                  onDbChange(db);
+                }}
                 className={twMerge(
                   "p-2 bg-gray-200 border border-gray-300 rounded-full cursor-pointer",
                   selectedDb === db

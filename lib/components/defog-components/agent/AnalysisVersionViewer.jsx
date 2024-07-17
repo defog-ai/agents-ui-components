@@ -17,7 +17,7 @@ import {
   ArrowsPointingOutIcon,
   PlusIcon,
 } from "@heroicons/react/20/solid";
-import { parseCsvFile, sentenceCase, useGhostImage } from "../../utils/utils";
+import { sentenceCase, useGhostImage } from "../../utils/utils";
 import { twMerge } from "tailwind-merge";
 import {
   Sidebar,
@@ -28,6 +28,7 @@ import {
 import { useWindowSize } from "../../../ui-components/lib/hooks/useWindowSize";
 import { breakpoints } from "../../../ui-components/lib/hooks/useBreakPoint";
 import { AnalysisVersionManager } from "./analysisVersionManager";
+import ErrorBoundary from "../../common/ErrorBoundary";
 
 export function AnalysisVersionViewer({
   dashboards,
@@ -35,12 +36,7 @@ export function AnalysisVersionViewer({
   devMode,
   keyName,
   apiEndpoint,
-  tempDb,
-  // this isn't always reinforced
-  // we check for this only when we're creating a new analysis
-  // but not otherwise
-  // the priority is to have the new analysis rendered to not lose the manager
-  maxRenderedAnalysis = 2,
+  analysisVersionManager = AnalysisVersionManager(),
   // array of strings
   // each string is a question
   predefinedQuestions = [],
@@ -51,15 +47,7 @@ export function AnalysisVersionViewer({
   defaultSidebarOpen = false,
   didUploadFile = false,
 }) {
-  const [activeAnalysisId, setActiveAnalysisId] = useState(null);
-
   const messageManager = useContext(MessageManagerContext);
-
-  const [activeRootAnalysisId, setActiveRootAnalysisId] = useState(null); // this is the currently selected root analysis
-
-  // we render these in the history panel and don't unmount them
-  // for faster switching between them
-  const [last10Analysis, setLast10Analysis] = useState([]); // this is the last 10 analysis
 
   const [sqlOnly, setSqlOnly] = useState(false);
 
@@ -78,11 +66,7 @@ export function AnalysisVersionViewer({
 
   const windowSize = useWindowSize();
 
-  const analysisVersionManager = useMemo(() => {
-    return AnalysisVersionManager();
-  }, []);
-
-  const sessionAnalyses = useSyncExternalStore(
+  const analysisTree = useSyncExternalStore(
     analysisVersionManager.subscribeToDataChanges,
     analysisVersionManager.getTree
   );
@@ -91,6 +75,23 @@ export function AnalysisVersionViewer({
     analysisVersionManager.subscribeToDataChanges,
     analysisVersionManager.getAll
   );
+
+  const activeAnalysisId = useSyncExternalStore(
+    analysisVersionManager.subscribeToActiveAnalysisIdChanges,
+    analysisVersionManager.getActiveAnalysisId
+  );
+
+  const activeRootAnalysisId = useSyncExternalStore(
+    analysisVersionManager.subscribeToActiveAnalysisIdChanges,
+    analysisVersionManager.getActiveRootAnalysisId
+  );
+
+  useEffect(() => {
+    setLoading(false);
+    setSelectedDashboards([]);
+    setAddToDashboardSelection(false);
+    analysisDomRefs.current = {};
+  }, [analysisVersionManager]);
 
   const handleSubmit = useCallback(
     (
@@ -110,31 +111,27 @@ export function AnalysisVersionViewer({
           rootAnalysisId,
           isRoot,
           directParentId,
+          sqlOnly: sqlOnly,
         });
 
         // if we have an active root analysis, we're appending to that
         // otherwise we're starting a new root analysis
         // if no root analysis id, means this is meant to be a new root analysis
         if (!rootAnalysisId) {
-          setActiveRootAnalysisId(newAnalysis.analysisId);
+          analysisVersionManager.setActiveRootAnalysisId(
+            newAnalysis.analysisId
+          );
         }
 
         console.groupCollapsed("Analysis version viewer");
         console.groupEnd();
 
-        setActiveAnalysisId(newAnalysis.analysisId);
-        setActiveRootAnalysisId(newAnalysis.rootAnalysisId);
+        analysisVersionManager.setActiveAnalysisId(newAnalysis.analysisId);
+        analysisVersionManager.setActiveRootAnalysisId(
+          newAnalysis.rootAnalysisId
+        );
 
         searchRef.current.value = "";
-
-        // remove the earliest one only if we have more than 10
-        setLast10Analysis((prev) => {
-          if (prev.length >= maxRenderedAnalysis) {
-            return [...prev.slice(1), newAnalysis];
-          } else {
-            return [...prev, newAnalysis];
-          }
-        });
       } catch (e) {
         messageManager.error("Failed to create analysis");
         console.log(e.stack);
@@ -165,9 +162,19 @@ export function AnalysisVersionViewer({
     };
   }, [searchBarDraggable]);
 
+  function scrollTo(id) {
+    if (!analysisDomRefs.current?.[id]?.ctr) return;
+
+    analysisDomRefs.current[id].ctr.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+      inline: "nearest",
+    });
+  }
+
   // w-0
   return (
-    <>
+    <ErrorBoundary>
       <div className="relative h-full">
         {/* top and bottom fades if we are on small screens and if we have some analyses going */}
         {activeAnalysisId && activeRootAnalysisId && (
@@ -200,12 +207,14 @@ export function AnalysisVersionViewer({
               <div className="flex flex-col text-sm relative history-list">
                 <AnalysisVersionViewerLinks
                   analyses={allAnalyses}
-                  activeAnalysisId={activeAnalysisId}
+                  activeAnalysisId={
+                    allAnalyses?.[activeAnalysisId] ? activeAnalysisId : null
+                  }
                 />
-                {Object.keys(sessionAnalyses).map((rootAnalysisId, i) => {
-                  const root = sessionAnalyses[rootAnalysisId].root;
+                {Object.keys(analysisTree).map((rootAnalysisId, i) => {
+                  const root = analysisTree[rootAnalysisId].root;
                   const analysisVersionList =
-                    sessionAnalyses[rootAnalysisId].versionList;
+                    analysisTree?.[rootAnalysisId]?.versionList || [];
 
                   return (
                     <div key={root.analysisId} className="">
@@ -215,24 +224,18 @@ export function AnalysisVersionViewer({
                             key={version.analysisId}
                             analysis={version}
                             isActive={activeAnalysisId === version.analysisId}
-                            setActiveRootAnalysisId={setActiveRootAnalysisId}
-                            setActiveAnalysisId={setActiveAnalysisId}
+                            setActiveRootAnalysisId={
+                              analysisVersionManager.setActiveRootAnalysisId
+                            }
+                            setActiveAnalysisId={
+                              analysisVersionManager.setActiveAnalysisId
+                            }
                             setAddToDashboardSelection={
                               setAddToDashboardSelection
                             }
                             onClick={() => {
-                              if (
-                                analysisDomRefs.current[version.analysisId]
-                                  .ctr &&
-                                autoScroll
-                              ) {
-                                analysisDomRefs.current[
-                                  version.analysisId
-                                ].ctr.scrollIntoView({
-                                  behavior: "smooth",
-                                  block: "start",
-                                  inline: "nearest",
-                                });
+                              if (autoScroll) {
+                                scrollTo(version.analysisId);
                               }
 
                               if (windowSize[0] < breakpoints.lg)
@@ -250,8 +253,12 @@ export function AnalysisVersionViewer({
                 {!activeRootAnalysisId ? (
                   <AnalysisHistoryItem
                     isDummy={true}
-                    setActiveRootAnalysisId={setActiveRootAnalysisId}
-                    setActiveAnalysisId={setActiveAnalysisId}
+                    setActiveRootAnalysisId={
+                      analysisVersionManager.setActiveRootAnalysisId
+                    }
+                    setActiveAnalysisId={
+                      analysisVersionManager.setActiveAnalysisId
+                    }
                     isActive={!activeRootAnalysisId}
                   />
                 ) : (
@@ -266,8 +273,8 @@ export function AnalysisVersionViewer({
                       onClick={() => {
                         if (loading) return;
                         // start a new root analysis
-                        setActiveRootAnalysisId(null);
-                        setActiveAnalysisId(null);
+                        analysisVersionManager.setActiveRootAnalysisId(null);
+                        analysisVersionManager.setActiveAnalysisId(null);
 
                         // on ipad/phone, close sidebar when new button is clicked
                         if (windowSize[0] < breakpoints.lg)
@@ -293,65 +300,60 @@ export function AnalysisVersionViewer({
           ></div>
           <div className="grid grid-cols-1 pt-10 sm:pt-0 auto-cols-max lg:grid-cols-1 grow rounded-tr-lg p-2 lg:p-4 relative min-w-0 h-full overflow-scroll">
             {activeRootAnalysisId &&
-              sessionAnalyses[activeRootAnalysisId].versionList.map(
-                (analysis) => {
-                  return (
-                    <div key={analysis.analysisId}>
-                      <AnalysisAgent
-                        rootClassNames={
-                          "w-full mb-4 min-h-96 [&_.analysis-content]:min-h-96 shadow-md analysis-" +
-                          analysis.analysisId
-                        }
-                        analysisId={analysis.analysisId}
-                        createAnalysisRequestBody={
-                          analysis.createAnalysisRequestBody
-                        }
-                        token={token}
-                        apiEndpoint={apiEndpoint}
-                        keyName={keyName}
-                        initiateAutoSubmit={true}
-                        searchRef={searchRef}
-                        setGlobalLoading={setLoading}
-                        devMode={devMode}
-                        didUploadFile={didUploadFile}
-                        sqlOnly={sqlOnly}
-                        onManagerCreated={(mgr, id, ctr) => {
-                          analysisDomRefs.current[id] = {
-                            ctr,
-                            mgr,
-                            id,
-                          };
-                          if (autoScroll) {
-                            // scroll to ctr
-                            setTimeout(() => {
-                              analysisDomRefs.current[id].ctr.scrollIntoView({
-                                behavior: "smooth",
-                                block: "start",
-                                inline: "nearest",
-                              });
-                            }, 100);
-                          }
-                        }}
-                        onManagerDestroyed={(mgr, id) => {
-                          const analysisData = mgr.analysisData;
+              analysisTree?.[activeRootAnalysisId]?.versionList &&
+              analysisTree[activeRootAnalysisId].versionList.map((analysis) => {
+                return (
+                  <div key={analysis.analysisId}>
+                    <AnalysisAgent
+                      rootClassNames={
+                        "w-full mb-4 min-h-96 [&_.analysis-content]:min-h-96 shadow-md analysis-" +
+                        analysis.analysisId
+                      }
+                      analysisId={analysis.analysisId}
+                      createAnalysisRequestBody={
+                        analysis.createAnalysisRequestBody
+                      }
+                      token={token}
+                      apiEndpoint={apiEndpoint}
+                      keyName={keyName}
+                      initiateAutoSubmit={true}
+                      hasExternalSearchBar={true}
+                      setGlobalLoading={setLoading}
+                      devMode={devMode}
+                      didUploadFile={didUploadFile}
+                      sqlOnly={analysis.createAnalysisRequestBody.sqlOnly}
+                      onManagerCreated={(mgr, id, ctr) => {
+                        analysisDomRefs.current[id] = {
+                          ctr,
+                          mgr,
+                          id,
+                        };
 
-                          // remove the analysis from the sessionAnalyses
-                          analysisVersionManager.removeAnalysis(
-                            analysisData,
-                            analysisData.isRoot,
-                            analysisData.analysis_id
-                          );
+                        console.log(analysisDomRefs.current, id);
+                        if (autoScroll) {
+                          // scroll to ctr
+                          scrollTo(id);
+                        }
+                      }}
+                      onManagerDestroyed={(mgr, id) => {
+                        const analysisData = mgr.analysisData;
 
-                          setActiveAnalysisId(null);
-                          if (activeRootAnalysisId === id) {
-                            setActiveRootAnalysisId(null);
-                          }
-                        }}
-                      />
-                    </div>
-                  );
-                }
-              )}
+                        // remove the analysis from the analysisTree
+                        analysisVersionManager.removeAnalysis({
+                          analysisId: analysis.analysisId,
+                          isRoot: analysis.isRoot,
+                          rootAnalysisId: analysis.rootAnalysisId,
+                        });
+
+                        analysisVersionManager.setActiveAnalysisId(null);
+                        if (activeRootAnalysisId === id) {
+                          analysisVersionManager.setActiveRootAnalysisId(null);
+                        }
+                      }}
+                    />
+                  </div>
+                );
+              })}
 
             {!activeAnalysisId && (
               <div className=" grow flex flex-col place-content-center m-auto max-w-full relative z-[1]">
@@ -573,6 +575,6 @@ export function AnalysisVersionViewer({
           ))}
         </div>
       </Modal>
-    </>
+    </ErrorBoundary>
   );
 }

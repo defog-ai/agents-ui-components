@@ -34,11 +34,7 @@ import { GlobalAgentContext } from "../../context/GlobalAgentContext";
 import ErrorBoundary from "../../common/ErrorBoundary";
 import { breakpoints } from "../../../ui-components/lib/hooks/useBreakPoint";
 import { useWindowSize } from "../../../ui-components/lib/hooks/useWindowSize";
-import {
-  StopCircleIcon,
-  StopIcon,
-  XCircleIcon,
-} from "@heroicons/react/20/solid";
+import { StopCircleIcon } from "@heroicons/react/20/solid";
 
 export const AnalysisAgent = ({
   analysisId,
@@ -52,7 +48,7 @@ export const AnalysisAgent = ({
   rootClassNames = "",
   createAnalysisRequestBody = {},
   initiateAutoSubmit = false,
-  searchRef = null,
+  hasExternalSearchBar = null,
   setGlobalLoading = (...args) => {},
   onManagerCreated = (...args) => {},
   onManagerDestroyed = (...args) => {},
@@ -123,6 +119,12 @@ export const AnalysisAgent = ({
 
       setAnalysisBusy(false);
       setGlobalLoading(false);
+
+      // if the current stage is null, just destroy this analysis
+      if (!newAnalysisData.currentStage) {
+        analysisManager.removeEventListeners();
+        analysisManager.destroy();
+      }
     }
   }
 
@@ -278,7 +280,8 @@ export const AnalysisAgent = ({
         }
       } catch (e) {
         messageManager.error(e);
-        console.log(e.stack);
+        analysisManager.removeEventListeners();
+        analysisManager.destroy();
       }
     }
     initialiseAnalysis();
@@ -362,7 +365,12 @@ export const AnalysisAgent = ({
             ""
         )}
       </h1>
-      {!analysisBusy && analysisData ? (
+      {!analysisBusy &&
+      analysisData &&
+      !(
+        !analysisData ||
+        (!analysisData.currentStage && hasExternalSearchBar)
+      ) ? (
         <div className="basis-0 text-nowrap whitespace-nowrap">
           <AnalysisFeedback
             analysisSteps={analysisData?.gen_steps?.steps || []}
@@ -374,19 +382,17 @@ export const AnalysisAgent = ({
           />
         </div>
       ) : (
-        analysisBusy && (
-          <div className="basis-0 text-nowrap whitespace-nowrap">
-            <StopCircleIcon
-              className="w-6 h-6 text-rose-300"
-              onClick={() => {
-                setGlobalLoading(false);
-                setAnalysisBusy(false);
-                analysisManager.removeEventListeners();
-                analysisManager.destroy();
-              }}
-            ></StopCircleIcon>
-          </div>
-        )
+        <div className="basis-0 text-nowrap whitespace-nowrap group cursor-pointer">
+          <StopCircleIcon
+            className="w-6 h-6 text-rose-300 group-hover:text-rose-500"
+            onClick={() => {
+              setGlobalLoading(false);
+              setAnalysisBusy(false);
+              analysisManager.removeEventListeners();
+              analysisManager.destroy();
+            }}
+          ></StopCircleIcon>
+        </div>
       )}
     </div>
   );
@@ -407,7 +413,8 @@ export const AnalysisAgent = ({
         >
           {/* if we don't have anlaysis data, and current stage is null, and we DO have a search ref */}
           {/* means tis is being externally initialised using analysis viewer and initateautosubmit is true */}
-          {!analysisData || (!analysisData.currentStage && searchRef) ? (
+          {!analysisData ||
+          (!analysisData.currentStage && hasExternalSearchBar) ? (
             <div className="transition-all w-full bg-gray-50 rounded-3xl">
               {titleDiv}
               <AgentLoader
@@ -418,7 +425,7 @@ export const AnalysisAgent = ({
             </div>
           ) : (
             <>
-              {!searchRef && !analysisData.currentStage ? (
+              {!hasExternalSearchBar && !analysisData.currentStage ? (
                 <div className="w-10/12">
                   <Input
                     ref={independentAnalysisSearchRef}

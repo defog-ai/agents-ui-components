@@ -1,16 +1,20 @@
 import { PlusIcon } from "@heroicons/react/20/solid";
+import { useContext } from "react";
 import { twMerge } from "tailwind-merge";
+import { GlobalAgentContext } from "../../context/GlobalAgentContext";
 
 export function AnalysisHistoryItem({
   setActiveAnalysisId,
   setActiveRootAnalysisId,
-  setAddToDashboardSelection,
+  setAddToDashboardSelection = (...args) => {},
   analysis = null,
   isActive = false,
   extraClasses = "",
   isDummy = false,
   onClick = () => {},
 }) {
+  const agentContext = useContext(GlobalAgentContext);
+
   return (
     <div
       className={twMerge(
@@ -28,7 +32,7 @@ export function AnalysisHistoryItem({
       <div className="grow">
         {isDummy ? "New analysis" : analysis?.user_question}
       </div>
-      {!isDummy && (
+      {!isDummy && agentContext.val.config.allowDashboardAdd && (
         <div
           className="rounded-sm hover:bg-blue-500 p-1 flex justify-center group "
           onClick={() => {
