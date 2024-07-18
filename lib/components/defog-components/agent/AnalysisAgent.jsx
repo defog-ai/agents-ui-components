@@ -41,7 +41,6 @@ export const AnalysisAgent = ({
   token,
   keyName,
   devMode,
-  didUploadFile,
   apiEndpoint,
   editor,
   block,
@@ -52,6 +51,7 @@ export const AnalysisAgent = ({
   setGlobalLoading = (...args) => {},
   onManagerCreated = (...args) => {},
   onManagerDestroyed = (...args) => {},
+  isTemp,
   sqlOnly,
 }) => {
   const getToolsEndpoint = setupBaseUrl({
@@ -60,7 +60,7 @@ export const AnalysisAgent = ({
     apiEndpoint: apiEndpoint,
   });
   // console.log("Key name", keyName);
-  // console.log("Did upload file", didUploadFile);
+  // console.log("Did upload file", isTemp);
   const [pendingToolRunUpdates, setPendingToolRunUpdates] = useState({});
   const [reRunningSteps, setRerunningSteps] = useState([]);
   const reactiveContext = useContext(ReactiveVariablesContext);
@@ -190,7 +190,7 @@ export const AnalysisAgent = ({
       onReRunData: onReRunMessage,
       onManagerDestroyed: onManagerDestroyed,
       token,
-      didUploadFile,
+      isTemp,
       keyName,
       devMode,
       createAnalysisRequestBody,
