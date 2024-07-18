@@ -1,9 +1,3 @@
-// lets us query data with:
-// 1. uploaded csv
-// 2. selecting from a dropdown of available databses (aka keyNames aka api keys)
-// allows editing the db metadata, and glossary
-// allows passing predefined queries
-
 import { useContext, useEffect, useState } from "react";
 import {
   SpinningLoader,
@@ -17,6 +11,17 @@ import {
   ArrowDownTrayIcon,
 } from "@heroicons/react/20/solid";
 
+/**
+ * This is a scaffolding component
+ * which allows us to have db selections and file upload buttons on top
+ * the actual content inside of this component should be rendered as children of this component
+ * for eg:
+ * ```
+ * <QueryDataStandalone {...props}>
+ *   <Content>
+ * </QueryDataStandalone>
+ * ```
+ */
 export function QueryDataStandalone({
   keyName,
   token,
