@@ -6,10 +6,7 @@ import {
 } from "../../ui-components/lib/main";
 import { parseCsvFile } from "../utils/utils";
 import { twMerge } from "tailwind-merge";
-import {
-  ArrowDownCircleIcon,
-  ArrowDownTrayIcon,
-} from "@heroicons/react/20/solid";
+import { ArrowDownTrayIcon } from "@heroicons/react/20/solid";
 
 /**
  * This is a scaffolding component
