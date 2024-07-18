@@ -3,7 +3,7 @@
 
 import { v4 } from "uuid";
 
-export function AnalysisVersionManager(initialTree = {}) {
+export function AnalysisVersionManager(initialTree = {}, id = v4()) {
   // an object that stores all analysis in this "session" as a tree
   // structure:
   // {
@@ -23,6 +23,7 @@ export function AnalysisVersionManager(initialTree = {}) {
   //   }
   //  ...
   // }
+  let _id = id;
   let analysisTree = initialTree;
   // just a duplicate of the above but in a flat object
   let allAnalyses = Object.values(analysisTree).reduce((acc, item) => {
@@ -199,5 +200,6 @@ export function AnalysisVersionManager(initialTree = {}) {
     getActiveRootAnalysisId,
     submit,
     removeAnalysis,
+    getMgrId: () => _id,
   };
 }

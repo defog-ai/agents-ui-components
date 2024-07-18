@@ -49,7 +49,7 @@ export function AnalysisVersionViewer({
 }) {
   const messageManager = useContext(MessageManagerContext);
 
-  const [sqlOnly, setSqlOnly] = useState(false);
+  const [sqlOnly, setSqlOnly] = useState(true);
 
   const ghostImage = useGhostImage();
 
@@ -136,7 +136,7 @@ export function AnalysisVersionViewer({
         setLoading(false);
       }
     },
-    []
+    [analysisVersionManager, sqlOnly]
   );
 
   useEffect(() => {
@@ -299,6 +299,7 @@ export function AnalysisVersionViewer({
             {activeRootAnalysisId &&
               analysisTree?.[activeRootAnalysisId]?.versionList &&
               analysisTree[activeRootAnalysisId].versionList.map((analysis) => {
+                console.log(analysis);
                 return (
                   <div key={analysis.analysisId}>
                     <AnalysisAgent
@@ -318,7 +319,9 @@ export function AnalysisVersionViewer({
                       setGlobalLoading={setLoading}
                       devMode={devMode}
                       didUploadFile={didUploadFile}
-                      sqlOnly={analysis.createAnalysisRequestBody.sqlOnly}
+                      // we store this at the time of creation of the analysis
+                      // and don't change it for this specific analysis afterwards.
+                      sqlOnly={analysis.createAnalysisRequestBody.sql_only}
                       onManagerCreated={(mgr, id, ctr) => {
                         analysisDomRefs.current[id] = {
                           ctr,
@@ -491,7 +494,7 @@ export function AnalysisVersionViewer({
                       titleClassNames="font-bold text-gray-400"
                       // if true, means advanced, means sql only off
                       onToggle={(v) => setSqlOnly(!v)}
-                      defaultOn={sqlOnly}
+                      defaultOn={!sqlOnly}
                       offLabel="Advanced"
                       onLabel={"Advanced"}
                       rootClassNames="items-start lg:border-r py-2 lg:py-0 px-2 w-32"

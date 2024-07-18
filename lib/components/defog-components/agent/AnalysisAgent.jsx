@@ -307,7 +307,6 @@ export const AnalysisAgent = ({
     (query, stageInput = {}, submitStage = null) => {
       try {
         if (!query) throw new Error("Query is empty");
-        console.log("sql_only", sqlOnly);
         analysisManager.submit(
           query,
           { ...stageInput, sql_only: sqlOnly },
