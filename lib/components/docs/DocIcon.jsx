@@ -1,6 +1,4 @@
 import React from "react";
-
-import Link from "next/link";
 import {
   ArchiveBoxArrowDownIcon,
   ArchiveBoxXMarkIcon,
@@ -14,7 +12,7 @@ export function DocIcon({
 }) {
   return (
     <div className="doc-icon-ctr">
-      <Link
+      <a
         target="_blank"
         href={{
           pathname: "/doc",
@@ -50,7 +48,7 @@ export function DocIcon({
         ) : (
           <></>
         )}
-      </Link>
+      </a>
       {!addDocIcon && !recentlyViewed ? (
         <div
           className="doc-archive-icon"

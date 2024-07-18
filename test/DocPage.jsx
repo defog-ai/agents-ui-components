@@ -1,5 +1,5 @@
 import { v4 } from "uuid";
-import { Doc } from "../lib/main";
+import { Doc } from "../lib/doc";
 import React from "react";
 import ReactDOM from "react-dom/client";
 import "../lib/styles/index.scss";
