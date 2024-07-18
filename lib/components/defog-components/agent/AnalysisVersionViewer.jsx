@@ -299,7 +299,6 @@ export function AnalysisVersionViewer({
             {activeRootAnalysisId &&
               analysisTree?.[activeRootAnalysisId]?.versionList &&
               analysisTree[activeRootAnalysisId].versionList.map((analysis) => {
-                console.log(analysis);
                 return (
                   <div key={analysis.analysisId}>
                     <AnalysisAgent
@@ -356,20 +355,20 @@ export function AnalysisVersionViewer({
             {!activeAnalysisId && (
               <div className=" grow flex flex-col place-content-center m-auto max-w-full relative z-[1]">
                 {didUploadFile !== true ? (
-                  <div className="text-gray-400 text-center border p-4 rounded-md">
-                    <p className="cursor-default block text-sm mb-2 font-bold">
+                  <div className="text-gray-400 text-center rounded-md">
+                    <p className="cursor-default block text-sm mb-4 font-bold">
                       Quickstart
                     </p>
 
-                    <ul className="text-gray-600 font-light">
+                    <ul className="text-gray-500 font-light">
                       {predefinedQuestions.map((question, i) => (
                         <li className="" key={i}>
-                          <span
+                          <button
                             className={twMerge(
-                              "cursor-pointer text-sm",
+                              "cursor-pointer text-sm p-2 border border-gray-200 rounded-md shadow-sm",
                               loading
-                                ? "text-gray-300 cursor-not-allowed"
-                                : "hover:underline"
+                                ? "bg-gray-100 text-gray-300 cursor-not-allowed"
+                                : "hover:bg-gray-50 hover:border"
                             )}
                             onClick={(ev) => {
                               ev.preventDefault();
@@ -384,7 +383,7 @@ export function AnalysisVersionViewer({
                             }}
                           >
                             {sentenceCase(question)}
-                          </span>
+                          </button>
                         </li>
                       ))}
                     </ul>

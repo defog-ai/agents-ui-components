@@ -15,6 +15,7 @@ import { AnalysisVersionViewer } from "./agent/AnalysisVersionViewer";
 import { ReactiveVariablesContext } from "../context/ReactiveVariablesContext";
 import { AnalysisVersionManager } from "./agent/analysisVersionManager";
 import { twMerge } from "tailwind-merge";
+import { SpinningLoader } from "../../ui-components/lib/main";
 
 const defaultManager = AnalysisVersionManager();
 
@@ -51,7 +52,7 @@ export function DefogAnalysisAgentStandalone({
   );
 
   // this is the main socket manager for the agent
-  const [socketManager, setSocketManager] = useState(null);
+  const [mainSocketManager, setMainSocketManager] = useState(null);
   // this is for editing tool inputs/outputs
   const [toolSocketManager, setToolSocketManager] = useState(null);
   // this is for handling re runs of tools
@@ -61,25 +62,13 @@ export function DefogAnalysisAgentStandalone({
 
   useEffect(() => {
     async function setup() {
-      // setup user items
-      const items = agentConfig.userItems;
-      const analyses = await getAllAnalyses(keyName, apiEndpoint);
-      const dashboards = await getAllDashboards(token, keyName, apiEndpoint);
-      if (dashboards?.success) {
-        setDashboards(dashboards.docs);
-      }
-
-      if (analyses && analyses.success) {
-        items.analyses = analyses.analyses;
-      }
-
       const urlToConnect = setupBaseUrl({
         protocol: "ws",
         path: "ws",
         apiEndpoint: apiEndpoint,
       });
-      const mgr = await setupWebsocketManager(urlToConnect);
-      setSocketManager(mgr);
+      const mainMgr = await setupWebsocketManager(urlToConnect);
+      setMainSocketManager(mainMgr);
 
       const rerunMgr = await setupWebsocketManager(
         urlToConnect.replace("/ws", "/step_rerun")
@@ -87,19 +76,37 @@ export function DefogAnalysisAgentStandalone({
 
       setReRunManager(rerunMgr);
 
-      const toolSocketManager = await setupWebsocketManager(
+      const toolSocketMgr = await setupWebsocketManager(
         urlToConnect.replace("/ws", "/edit_tool_run"),
         (d) => console.log(d)
       );
-      setToolSocketManager(toolSocketManager);
+
+      setToolSocketManager(toolSocketMgr);
+
+      // setup user items
+      const items = agentConfig.userItems;
+      // let analyses, dashboards;
+      // if(!config.skipAnalysesFetch) {
+      // analyses = await getAllAnalyses(keyName, apiEndpoint);
+      // }
+      // if(!config.skipDashboardsFetch) {
+      // let dashboards = await getAllDashboards(token, keyName, apiEndpoint);
+      // if (dashboards?.success) {
+      //   setDashboards(dashboards.docs);
+      // }
+      // }
+
+      // if (analyses && analyses.success) {
+      //   items.analyses = analyses.analyses;
+      // }
 
       setAgentConfig({
         ...agentConfig,
         userItems: items,
         socketManagers: {
-          mainManager: mgr,
+          mainManager: mainMgr,
           reRunManager: rerunMgr,
-          toolSocketManager: toolSocketManager,
+          toolSocketManager: toolSocketMgr,
         },
       });
     }
@@ -107,10 +114,10 @@ export function DefogAnalysisAgentStandalone({
     setup();
 
     return () => {
-      if (socketManager && socketManager.close) {
-        socketManager.close();
+      if (mainSocketManager && mainSocketManager.close) {
+        mainSocketManager.close();
         // also stop the timeout
-        socketManager.clearSocketTimeout();
+        mainSocketManager.clearSocketTimeout();
       }
       if (reRunManager && reRunManager.close) {
         reRunManager.close();
@@ -145,23 +152,34 @@ export function DefogAnalysisAgentStandalone({
                     className="m-0 h-full w-full"
                     data-analysis-id={analysisId}
                   >
-                    <AnalysisVersionViewer
-                      analysisVersionManager={analysisVersionManager}
-                      apiEndpoint={apiEndpoint}
-                      token={token}
-                      dashboards={dashboards}
-                      devMode={devMode}
-                      keyName={keyName}
-                      autoScroll={autoScroll}
-                      sideBarClasses={sideBarClasses}
-                      searchBarClasses={searchBarClasses}
-                      searchBarDraggable={searchBarDraggable}
-                      defaultSidebarOpen={() =>
-                        defaultSidebarOpen ||
-                        (window.innerWidth < 768 ? false : true)
-                      }
-                      predefinedQuestions={predefinedQuestions}
-                    />
+                    {mainSocketManager?.isConnected?.() &&
+                    toolSocketManager?.isConnected?.() &&
+                    reRunManager?.isConnected?.() ? (
+                      <AnalysisVersionViewer
+                        analysisVersionManager={analysisVersionManager}
+                        apiEndpoint={apiEndpoint}
+                        token={token}
+                        dashboards={dashboards}
+                        devMode={devMode}
+                        keyName={keyName}
+                        autoScroll={autoScroll}
+                        sideBarClasses={sideBarClasses}
+                        searchBarClasses={searchBarClasses}
+                        searchBarDraggable={searchBarDraggable}
+                        defaultSidebarOpen={() =>
+                          defaultSidebarOpen ||
+                          (window.innerWidth < 768 ? false : true)
+                        }
+                        predefinedQuestions={predefinedQuestions}
+                      />
+                    ) : (
+                      <div className="w-full h-full flex flex-col justify-center items-center ">
+                        <div className="mb-2 text-gray-400 text-sm">
+                          Setting up
+                        </div>
+                        <SpinningLoader classNames="w-5 h-5 text-gray-500" />
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

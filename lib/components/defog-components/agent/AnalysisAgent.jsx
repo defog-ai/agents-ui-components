@@ -295,10 +295,6 @@ export const AnalysisAgent = ({
         analysisManager.setReRunSocket(reRunManager);
 
         analysisManager.addEventListeners();
-
-        return () => {
-          analysisManager.removeEventListeners();
-        };
       }
     }
   }, [analysisManager, mainManager, reRunManager]);
@@ -445,6 +441,7 @@ export const AnalysisAgent = ({
                   <Clarify
                     data={analysisData.clarify}
                     handleSubmit={(stageInput, submitStage) => {
+                      debugger;
                       handleSubmit(
                         analysisData?.user_question,
                         stageInput,
