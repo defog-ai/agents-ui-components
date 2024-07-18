@@ -19,7 +19,7 @@ import { ArrowDownTrayIcon } from "@heroicons/react/20/solid";
  * </QueryDataStandalone>
  * ```
  */
-export function QueryDataStandalone({
+export function QueryDataScaffolding({
   keyName,
   token,
   rootClassNames = (selectedDb) => "",
