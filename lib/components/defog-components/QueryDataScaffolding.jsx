@@ -20,51 +20,22 @@ import { ArrowDownTrayIcon } from "@heroicons/react/20/solid";
  * ```
  */
 export function QueryDataScaffolding({
-  keyName,
-  token,
   rootClassNames = (selectedDb) => "",
-  apiEndpoint = null,
   availableDbs = [],
   defaultSelectedDb = null,
   allowUploadFile = true,
   onDbChange = (...args) => {},
-  onFileUploadSuccess = (...args) => {},
   children = null,
+  fileUploading = false,
+  onParseCsv = (...args) => {},
 }) {
   const [selectedDb, setSelectedDb] = useState(defaultSelectedDb);
-  const [parsingFile, setParsingFile] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [dropping, setDropping] = useState(false);
   const messageManager = useContext(MessageManagerContext);
 
-  const uploadFileToServer = async ({ file, parsedData, rows, columns }) => {
-    try {
-      const response = await fetch(`${apiEndpoint}/integration/upload_csv`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          data: parsedData,
-          keyName: keyName,
-          token: token,
-        }),
-      });
-      const data = await response.json();
-      console.log(data);
-
-      if (data.status !== "success") {
-        throw new Error("Failed to upload the file");
-      }
-      onFileUploadSuccess({ file, parsedData, columns, rows });
-    } catch (e) {
-      messageManager.error("Failed to upload the file");
-      console.log(e.stack);
-    } finally {
-      setParsingFile(false);
-      setLoading(false);
-    }
-  };
+  useEffect(() => {
+    setSelectedDb(defaultSelectedDb);
+  }, [defaultSelectedDb]);
 
   return (
     <div
@@ -83,6 +54,8 @@ export function QueryDataScaffolding({
               <span
                 key={db + "-" + i}
                 onClick={() => {
+                  if (fileUploading) return;
+
                   setSelectedDb(db);
                   onDbChange(db);
                 }}
@@ -90,7 +63,10 @@ export function QueryDataScaffolding({
                   "p-2 bg-gray-200 border border-gray-300 rounded-full cursor-pointer",
                   selectedDb === db
                     ? "bg-gray-600 border-transparent text-white"
-                    : "hover:bg-gray-300"
+                    : "hover:bg-gray-300",
+                  fileUploading
+                    ? "cursor-not-allowed bg-gray-200 text-gray-400 hover:bg-gray-200"
+                    : ""
                 )}
               >
                 {db}
@@ -101,7 +77,7 @@ export function QueryDataScaffolding({
           {allowUploadFile && (
             <DropFilesHeadless
               rootClassNames="flex items-center cursor-pointer group ml-auto self-end"
-              disabled={loading}
+              disabled={fileUploading}
               onDragEnter={(ev) => {
                 ev.preventDefault();
                 ev.stopPropagation();
@@ -123,14 +99,9 @@ export function QueryDataScaffolding({
                   if (!file || file.type !== "text/csv") {
                     throw new Error("Only CSV files are accepted");
                   }
-                  setLoading(true);
-                  setParsingFile(true);
-
-                  parseCsvFile(file, uploadFileToServer);
+                  parseCsvFile(file, onParseCsv);
                 } catch (e) {
-                  messageManager.error("Failed to parse the file");
-                  setLoading(false);
-                  setParsingFile(false);
+                  messageManager.error(e || "Failed to parse the file");
                 }
               }}
               onDrop={(ev) => {
@@ -148,27 +119,25 @@ export function QueryDataScaffolding({
 
                   file = file.getAsFile();
 
-                  setLoading(true);
-                  setParsingFile(true);
-
-                  parseCsvFile(file, uploadFileToServer);
+                  parseCsvFile(file, onParseCsv);
                 } catch (e) {
                   messageManager.error("Failed to parse the file");
                   console.log(e.stack);
-                  setLoading(false);
-                  setParsingFile(false);
                 }
               }}
             >
               <span
                 className={twMerge(
-                  "rounded-full bg-secondary-highlight-1/40 text-white p-2 group-hover:bg-secondary-highlight-1 group-hover:text-white cursor-pointer flex items-center whitespace-nowrap"
+                  "rounded-full cursor-pointe p-2 flex items-center whitespace-nowrap",
+                  fileUploading
+                    ? "bg-gray-200 text-gray-400"
+                    : "bg-secondary-highlight-1/40 text-white group-hover:bg-secondary-highlight-1 group-hover:text-white"
                 )}
               >
-                {parsingFile ? (
+                {fileUploading ? (
                   <>
                     Uploading
-                    <SpinningLoader classNames="h-4 w-4 inline m-0 ml-2" />
+                    <SpinningLoader classNames="h-4 w-4 inline m-0 ml-2 text-gray-500" />
                   </>
                 ) : (
                   <>
