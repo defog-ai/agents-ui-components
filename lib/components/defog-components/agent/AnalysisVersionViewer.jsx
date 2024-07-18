@@ -354,43 +354,6 @@ export function AnalysisVersionViewer({
 
             {!activeAnalysisId && (
               <div className=" grow flex flex-col place-content-center m-auto max-w-full relative z-[1]">
-<<<<<<< Updated upstream
-                {didUploadFile !== true ? (
-                  <div className="text-gray-400 text-center rounded-md">
-                    <p className="cursor-default block text-sm mb-4 font-bold">
-                      Quickstart
-                    </p>
-
-                    <ul className="text-gray-500 font-light">
-                      {predefinedQuestions.map((question, i) => (
-                        <li className="" key={i}>
-                          <button
-                            className={twMerge(
-                              "cursor-pointer text-sm p-2 border border-gray-200 rounded-md shadow-sm",
-                              loading
-                                ? "bg-gray-100 text-gray-300 cursor-not-allowed"
-                                : "hover:bg-gray-50 hover:border"
-                            )}
-                            onClick={(ev) => {
-                              ev.preventDefault();
-                              if (loading) return;
-
-                              handleSubmit(
-                                sentenceCase(question),
-                                activeRootAnalysisId,
-                                !activeRootAnalysisId,
-                                activeAnalysisId
-                              );
-                            }}
-                          >
-                            {sentenceCase(question)}
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ) : null}
-=======
                 <div className="text-gray-400 text-center rounded-md">
                   <p className="cursor-default block text-sm mb-4 font-bold">
                     Quickstart
@@ -424,7 +387,6 @@ export function AnalysisVersionViewer({
                     ))}
                   </ul>
                 </div>
->>>>>>> Stashed changes
               </div>
             )}
 

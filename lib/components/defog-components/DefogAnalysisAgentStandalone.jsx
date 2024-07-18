@@ -167,10 +167,7 @@ export function DefogAnalysisAgentStandalone({
                         sideBarClasses={sideBarClasses}
                         searchBarClasses={searchBarClasses}
                         searchBarDraggable={searchBarDraggable}
-<<<<<<< Updated upstream
-=======
                         isTemp={isTemp}
->>>>>>> Stashed changes
                         defaultSidebarOpen={() =>
                           defaultSidebarOpen ||
                           (window.innerWidth < 768 ? false : true)
