@@ -5,7 +5,12 @@ export const AnalysisVersionViewerLinks = ({ analyses, activeAnalysisId }) => {
   // creates links bet
   const ctr = useRef(null);
   useEffect(() => {
-    if (!ctr.current || !activeAnalysisId) return;
+    if (!ctr.current) return;
+
+    if (!activeAnalysisId) {
+      setPaths([]);
+      return;
+    }
 
     const listCtr = ctr.current.closest(".history-list");
     if (!listCtr) return;
