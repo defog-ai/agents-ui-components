@@ -147,7 +147,7 @@ export function AnalysisVersionViewer({
       searchCtr.current.style.left = "0";
       searchCtr.current.style.right = "0";
       searchCtr.current.style.bottom =
-        window.innerHeight > 800 ? "30%" : "20px";
+        window.innerWidth > 1600 ? "30%" : "20px";
     }
 
     setSearchBar();
@@ -399,7 +399,7 @@ export function AnalysisVersionViewer({
                 left: "0",
                 right: "0",
                 bottom: searchBarDraggable
-                  ? window.innerHeight > 800
+                  ? window.innerWidth > 1600
                     ? "30%"
                     : "20px"
                   : null,

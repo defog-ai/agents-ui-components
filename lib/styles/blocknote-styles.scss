@@ -1085,15 +1085,6 @@ $grid: repeating-linear-gradient(
             flex-direction: column;
             background-color: $very-light-gray;
             font-size: 0.9em;
-            .tool-run-error-icon {
-              color: $dark-red;
-              font-weight: bold;
-              svg {
-                position: relative;
-                top: 2px;
-                fill: $dark-red;
-              }
-            }
             .tool-run-error-message {
               color: $text-medium;
             }

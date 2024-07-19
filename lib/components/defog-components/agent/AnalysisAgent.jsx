@@ -205,6 +205,7 @@ export const AnalysisAgent = ({
     analysisManager.subscribeToDataChanges,
     analysisManager.getAnalysisData
   );
+  console.log(analysisData);
 
   function setActiveNode(node) {
     setActiveNodePrivate(node);
