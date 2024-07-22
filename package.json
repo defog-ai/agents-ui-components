@@ -25,6 +25,7 @@
     "@codemirror/lang-sql": "^6.7.0",
     "@headlessui/react": "^2.1.2",
     "@heroicons/react": "^2.1.5",
+    "@sqlite.org/sqlite-wasm": "^3.46.0-build2",
     "@tiptap/core": "^2.4.0",
     "@tiptap/pm": "^2.4.0",
     "@tiptap/suggestion": "^2.4.0",
