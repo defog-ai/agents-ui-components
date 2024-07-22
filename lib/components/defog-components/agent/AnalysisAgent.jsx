@@ -70,7 +70,7 @@ export const AnalysisAgent = ({
 
   const windowSize = useWindowSize();
 
-  // in case this isn't called from analysis version viewer (which has a central singular search bar)
+  // in case this isn't called from analysis tree viewer (which has a central singular search bar)
   // we will have an independent search bar for each analysis as well
   const independentAnalysisSearchRef = useRef();
   const [toolRunDataCache, setToolRunDataCache] = useState({});

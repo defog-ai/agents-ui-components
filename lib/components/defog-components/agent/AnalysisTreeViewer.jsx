@@ -11,7 +11,7 @@ import {
 import { v4 } from "uuid";
 import { AnalysisAgent } from "./AnalysisAgent";
 import { AnalysisHistoryItem } from "./AnalysisHistoryItem";
-import { AnalysisVersionViewerLinks } from "./AnalysisVersionViewerLinks";
+import { AnalysisTreeViewerLinks } from "./AnalysisTreeViewerLinks";
 import {
   ArrowRightEndOnRectangleIcon,
   ArrowsPointingOutIcon,
@@ -27,16 +27,16 @@ import {
 } from "../../../ui-components/lib/main";
 import { useWindowSize } from "../../../ui-components/lib/hooks/useWindowSize";
 import { breakpoints } from "../../../ui-components/lib/hooks/useBreakPoint";
-import { AnalysisVersionManager } from "./analysisVersionManager";
+import { AnalysisTreeManager } from "./analysisTreeManager";
 import ErrorBoundary from "../../common/ErrorBoundary";
 
-export function AnalysisVersionViewer({
+export function AnalysisTreeViewer({
   dashboards,
   token,
   devMode,
   keyName,
   apiEndpoint,
-  analysisVersionManager = AnalysisVersionManager(),
+  analysisTreeManager = AnalysisTreeManager(),
   // array of strings
   // each string is a question
   predefinedQuestions = [],
@@ -67,23 +67,23 @@ export function AnalysisVersionViewer({
   const windowSize = useWindowSize();
 
   const analysisTree = useSyncExternalStore(
-    analysisVersionManager.subscribeToDataChanges,
-    analysisVersionManager.getTree
+    analysisTreeManager.subscribeToDataChanges,
+    analysisTreeManager.getTree
   );
 
   const allAnalyses = useSyncExternalStore(
-    analysisVersionManager.subscribeToDataChanges,
-    analysisVersionManager.getAll
+    analysisTreeManager.subscribeToDataChanges,
+    analysisTreeManager.getAll
   );
 
   const activeAnalysisId = useSyncExternalStore(
-    analysisVersionManager.subscribeToActiveAnalysisIdChanges,
-    analysisVersionManager.getActiveAnalysisId
+    analysisTreeManager.subscribeToActiveAnalysisIdChanges,
+    analysisTreeManager.getActiveAnalysisId
   );
 
   const activeRootAnalysisId = useSyncExternalStore(
-    analysisVersionManager.subscribeToActiveAnalysisIdChanges,
-    analysisVersionManager.getActiveRootAnalysisId
+    analysisTreeManager.subscribeToActiveAnalysisIdChanges,
+    analysisTreeManager.getActiveRootAnalysisId
   );
 
   useEffect(() => {
@@ -91,7 +91,7 @@ export function AnalysisVersionViewer({
     setSelectedDashboards([]);
     setAddToDashboardSelection(false);
     analysisDomRefs.current = {};
-  }, [analysisVersionManager]);
+  }, [analysisTreeManager]);
 
   const handleSubmit = useCallback(
     (
@@ -101,12 +101,12 @@ export function AnalysisVersionViewer({
       directParentId = null
     ) => {
       try {
-        if (!analysisVersionManager)
-          throw new Error("Analysis version manager not found");
+        if (!analysisTreeManager)
+          throw new Error("Analysis tree manager not found");
 
         setLoading(true);
 
-        const { newId, newAnalysis } = analysisVersionManager.submit({
+        const { newId, newAnalysis } = analysisTreeManager.submit({
           question,
           rootAnalysisId,
           isRoot,
@@ -118,15 +118,11 @@ export function AnalysisVersionViewer({
         // otherwise we're starting a new root analysis
         // if no root analysis id, means this is meant to be a new root analysis
         if (!rootAnalysisId) {
-          analysisVersionManager.setActiveRootAnalysisId(
-            newAnalysis.analysisId
-          );
+          analysisTreeManager.setActiveRootAnalysisId(newAnalysis.analysisId);
         }
 
-        analysisVersionManager.setActiveAnalysisId(newAnalysis.analysisId);
-        analysisVersionManager.setActiveRootAnalysisId(
-          newAnalysis.rootAnalysisId
-        );
+        analysisTreeManager.setActiveAnalysisId(newAnalysis.analysisId);
+        analysisTreeManager.setActiveRootAnalysisId(newAnalysis.rootAnalysisId);
 
         searchRef.current.value = "";
       } catch (e) {
@@ -136,7 +132,7 @@ export function AnalysisVersionViewer({
         setLoading(false);
       }
     },
-    [analysisVersionManager, sqlOnly]
+    [analysisTreeManager, sqlOnly]
   );
 
   useEffect(() => {
@@ -179,7 +175,7 @@ export function AnalysisVersionViewer({
         )}
         <div
           className="max-w-full h-full flex flex-row bg-white text-gray-600 w-full"
-          id="analysis-version-viewer"
+          id="analysis-tree-viewer"
         >
           <div className="absolute h-full left-0 top-0 z-[20] lg:sticky lg:h-full">
             <Sidebar
@@ -202,7 +198,7 @@ export function AnalysisVersionViewer({
               }
             >
               <div className="flex flex-col text-sm relative history-list">
-                <AnalysisVersionViewerLinks
+                <AnalysisTreeViewerLinks
                   analyses={allAnalyses}
                   activeAnalysisId={
                     allAnalyses?.[activeAnalysisId] ? activeAnalysisId : null
@@ -210,37 +206,35 @@ export function AnalysisVersionViewer({
                 />
                 {Object.keys(analysisTree).map((rootAnalysisId, i) => {
                   const root = analysisTree[rootAnalysisId].root;
-                  const analysisVersionList =
-                    analysisTree?.[rootAnalysisId]?.versionList || [];
+                  const analysisTreeList =
+                    analysisTree?.[rootAnalysisId]?.treeList || [];
 
                   return (
                     <div key={root.analysisId} className="">
-                      {analysisVersionList.map((version, i) => {
+                      {analysisTreeList.map((tree, i) => {
                         return (
                           <AnalysisHistoryItem
-                            key={version.analysisId}
-                            analysis={version}
-                            isActive={activeAnalysisId === version.analysisId}
+                            key={tree.analysisId}
+                            analysis={tree}
+                            isActive={activeAnalysisId === tree.analysisId}
                             setActiveRootAnalysisId={
-                              analysisVersionManager.setActiveRootAnalysisId
+                              analysisTreeManager.setActiveRootAnalysisId
                             }
                             setActiveAnalysisId={
-                              analysisVersionManager.setActiveAnalysisId
+                              analysisTreeManager.setActiveAnalysisId
                             }
                             setAddToDashboardSelection={
                               setAddToDashboardSelection
                             }
                             onClick={() => {
                               if (autoScroll) {
-                                scrollTo(version.analysisId);
+                                scrollTo(tree.analysisId);
                               }
 
                               if (windowSize[0] < breakpoints.lg)
                                 setSidebarOpen(false);
                             }}
-                            extraClasses={
-                              version.isRoot ? "" : "ml-2 border-l-2"
-                            }
+                            extraClasses={tree.isRoot ? "" : "ml-2 border-l-2"}
                           />
                         );
                       })}
@@ -251,10 +245,10 @@ export function AnalysisVersionViewer({
                   <AnalysisHistoryItem
                     isDummy={true}
                     setActiveRootAnalysisId={
-                      analysisVersionManager.setActiveRootAnalysisId
+                      analysisTreeManager.setActiveRootAnalysisId
                     }
                     setActiveAnalysisId={
-                      analysisVersionManager.setActiveAnalysisId
+                      analysisTreeManager.setActiveAnalysisId
                     }
                     isActive={!activeRootAnalysisId}
                   />
@@ -270,8 +264,8 @@ export function AnalysisVersionViewer({
                       onClick={() => {
                         if (loading) return;
                         // start a new root analysis
-                        analysisVersionManager.setActiveRootAnalysisId(null);
-                        analysisVersionManager.setActiveAnalysisId(null);
+                        analysisTreeManager.setActiveRootAnalysisId(null);
+                        analysisTreeManager.setActiveAnalysisId(null);
 
                         // on ipad/phone, close sidebar when new button is clicked
                         if (windowSize[0] < breakpoints.lg)
@@ -297,8 +291,8 @@ export function AnalysisVersionViewer({
           ></div>
           <div className="grid grid-cols-1 pt-10 sm:pt-0 auto-cols-max lg:grid-cols-1 grow rounded-tr-lg p-2 lg:p-4 relative min-w-0 h-full overflow-scroll">
             {activeRootAnalysisId &&
-              analysisTree?.[activeRootAnalysisId]?.versionList &&
-              analysisTree[activeRootAnalysisId].versionList.map((analysis) => {
+              analysisTree?.[activeRootAnalysisId]?.treeList &&
+              analysisTree[activeRootAnalysisId].treeList.map((analysis) => {
                 return (
                   <div key={analysis.analysisId}>
                     <AnalysisAgent
@@ -336,15 +330,15 @@ export function AnalysisVersionViewer({
                         const analysisData = mgr.analysisData;
 
                         // remove the analysis from the analysisTree
-                        analysisVersionManager.removeAnalysis({
+                        analysisTreeManager.removeAnalysis({
                           analysisId: analysis.analysisId,
                           isRoot: analysis.isRoot,
                           rootAnalysisId: analysis.rootAnalysisId,
                         });
 
-                        analysisVersionManager.setActiveAnalysisId(null);
+                        analysisTreeManager.setActiveAnalysisId(null);
                         if (activeRootAnalysisId === id) {
-                          analysisVersionManager.setActiveRootAnalysisId(null);
+                          analysisTreeManager.setActiveRootAnalysisId(null);
                         }
                       }}
                     />

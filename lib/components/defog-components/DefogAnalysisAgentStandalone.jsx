@@ -11,13 +11,13 @@ import { getAllAnalyses, getAllDashboards } from "../utils/utils";
 import ErrorBoundary from "../common/ErrorBoundary";
 import setupBaseUrl from "../utils/setupBaseUrl";
 import { setupWebsocketManager } from "../utils/websocket-manager";
-import { AnalysisVersionViewer } from "./agent/AnalysisVersionViewer";
+import { AnalysisTreeViewer } from "./agent/AnalysisTreeViewer";
 import { ReactiveVariablesContext } from "../context/ReactiveVariablesContext";
-import { AnalysisVersionManager } from "./agent/analysisVersionManager";
+import { AnalysisTreeManager } from "./agent/analysisTreeManager";
 import { twMerge } from "tailwind-merge";
 import { SpinningLoader } from "../../ui-components/lib/main";
 
-const defaultManager = AnalysisVersionManager();
+const defaultManager = AnalysisTreeManager();
 
 export function DefogAnalysisAgentStandalone({
   analysisId = v4(),
@@ -32,7 +32,7 @@ export function DefogAnalysisAgentStandalone({
   defaultSidebarOpen = null,
   predefinedQuestions = [],
   config = {},
-  analysisVersionManager = defaultManager,
+  analysisTreeManager = defaultManager,
   rootClassNames = "",
   isTemp = false,
 }) {
@@ -156,8 +156,8 @@ export function DefogAnalysisAgentStandalone({
                     {mainSocketManager?.isConnected?.() &&
                     toolSocketManager?.isConnected?.() &&
                     reRunManager?.isConnected?.() ? (
-                      <AnalysisVersionViewer
-                        analysisVersionManager={analysisVersionManager}
+                      <AnalysisTreeViewer
+                        analysisTreeManager={analysisTreeManager}
                         apiEndpoint={apiEndpoint}
                         token={token}
                         dashboards={dashboards}

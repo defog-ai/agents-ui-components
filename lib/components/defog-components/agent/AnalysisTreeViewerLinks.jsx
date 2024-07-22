@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 
-export const AnalysisVersionViewerLinks = ({ analyses, activeAnalysisId }) => {
+export const AnalysisTreeViewerLinks = ({ analyses, activeAnalysisId }) => {
   const [paths, setPaths] = useState([]);
   // creates links bet
   const ctr = useRef(null);
