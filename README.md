@@ -4,6 +4,10 @@ Contains a bunch of reusable agent components.
 
 This uses our [ui-components](https://github.com/defog-ai/ui-components) repo as a submodule.
 
+For the following docs, you may want to keep this figure in mind (The text labels are component names)
+<img width="974" alt="image" src="https://github.com/user-attachments/assets/0b361c8c-2b42-4f5e-8075-5fbc945a958b">
+
+
 ## Main components
 
 The two main components you will use are:
