@@ -37,6 +37,7 @@ export function DefogAnalysisAgentStandalone({
   isTemp = false,
   metadata = null,
   sqliteConn = null,
+  showToggle = true,
 }) {
   const [agentConfig, setAgentConfig] = useState(
     Object.assign({}, defaultAgentConfig, {
@@ -173,6 +174,7 @@ export function DefogAnalysisAgentStandalone({
                         searchBarClasses={searchBarClasses}
                         searchBarDraggable={searchBarDraggable}
                         isTemp={isTemp}
+                        showToggle={showToggle}
                         metadata={metadata}
                         defaultSidebarOpen={() =>
                           defaultSidebarOpen ||

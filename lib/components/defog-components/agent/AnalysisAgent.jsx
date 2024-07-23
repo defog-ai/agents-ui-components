@@ -277,6 +277,7 @@ export const AnalysisAgent = ({
 
         const response = await fetch(getToolsEndpoint, {
           method: "POST",
+          signal: AbortSignal.timeout(10000),
         });
 
         const tools = (await response.json())["tools"];
@@ -431,6 +432,15 @@ export const AnalysisAgent = ({
     return toolRun?.data?.step?.tool_run_id;
   }, [activeNode]);
 
+  console.log(
+    toolRunDataCache,
+    isTemp,
+    sqlOnly,
+    activeNode,
+    activeToolRunId,
+    analysisManager.toolRunDataCache
+  );
+
   return (
     <ErrorBoundary>
       <div
@@ -512,9 +522,9 @@ export const AnalysisAgent = ({
                               // if this is sqlonly, we will wait for tool run data to be updated before showing anything
                               // because in the normal case, the tool run data can be fetched from the servers
                               // but in sql only case, we only have a local copy
-                              (!sqlOnly ||
-                                toolRunDataCache[activeToolRunId] ||
-                                !isTemp) && (
+                              (!isTemp ||
+                                (isTemp &&
+                                  toolRunDataCache[activeToolRunId])) && (
                                 <ToolResults
                                   analysisId={analysisId}
                                   activeNode={activeNode}

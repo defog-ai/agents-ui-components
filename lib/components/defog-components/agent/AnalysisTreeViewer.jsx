@@ -47,6 +47,7 @@ export function AnalysisTreeViewer({
   defaultSidebarOpen = false,
   isTemp = false,
   metadata = null,
+  showToggle = true,
 }) {
   const messageManager = useContext(MessageManagerContext);
 
@@ -113,7 +114,8 @@ export function AnalysisTreeViewer({
           keyName,
           isRoot,
           directParentId,
-          sqlOnly: sqlOnly,
+          // force sql only if showToggle is false (currently in temp dbs)
+          sqlOnly: showToggle ? sqlOnly : true,
           isTemp,
         });
 
@@ -482,16 +484,18 @@ export function AnalysisTreeViewer({
                           : "Type your question here"
                       }
                     />
-                    <Toggle
-                      disabled={loading}
-                      titleClassNames="font-bold text-gray-400"
-                      // if true, means advanced, means sql only off
-                      onToggle={(v) => setSqlOnly(!v)}
-                      defaultOn={!sqlOnly}
-                      offLabel="Advanced"
-                      onLabel={"Advanced"}
-                      rootClassNames="items-start lg:border-r py-2 lg:py-0 px-2 w-32"
-                    />
+                    {showToggle && (
+                      <Toggle
+                        disabled={loading}
+                        titleClassNames="font-bold text-gray-400"
+                        // if true, means advanced, means sql only off
+                        onToggle={(v) => setSqlOnly(!v)}
+                        defaultOn={!sqlOnly}
+                        offLabel="Advanced"
+                        onLabel={"Advanced"}
+                        rootClassNames="items-start lg:border-r py-2 lg:py-0 px-2 w-32"
+                      />
+                    )}
                   </div>
                   <button
                     type="button"
