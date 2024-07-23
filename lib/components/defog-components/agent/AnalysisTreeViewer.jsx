@@ -46,6 +46,7 @@ export function AnalysisTreeViewer({
   searchBarDraggable = true,
   defaultSidebarOpen = false,
   isTemp = false,
+  metadata = null,
 }) {
   const messageManager = useContext(MessageManagerContext);
 
@@ -94,24 +95,26 @@ export function AnalysisTreeViewer({
   }, [analysisTreeManager]);
 
   const handleSubmit = useCallback(
-    (
+    async function (
       question,
       rootAnalysisId = null,
       isRoot = false,
       directParentId = null
-    ) => {
+    ) {
       try {
         if (!analysisTreeManager)
           throw new Error("Analysis tree manager not found");
 
         setLoading(true);
 
-        const { newId, newAnalysis } = analysisTreeManager.submit({
+        const { newId, newAnalysis } = await analysisTreeManager.submit({
           question,
           rootAnalysisId,
+          keyName,
           isRoot,
           directParentId,
           sqlOnly: sqlOnly,
+          isTemp,
         });
 
         // if we have an active root analysis, we're appending to that
@@ -132,7 +135,7 @@ export function AnalysisTreeViewer({
         setLoading(false);
       }
     },
-    [analysisTreeManager, sqlOnly]
+    [analysisTreeManager, sqlOnly, isTemp, keyName]
   );
 
   useEffect(() => {
@@ -206,12 +209,12 @@ export function AnalysisTreeViewer({
                 />
                 {Object.keys(analysisTree).map((rootAnalysisId, i) => {
                   const root = analysisTree[rootAnalysisId].root;
-                  const analysisTreeList =
-                    analysisTree?.[rootAnalysisId]?.treeList || [];
+                  const analysisChildList =
+                    analysisTree?.[rootAnalysisId]?.childList || [];
 
                   return (
                     <div key={root.analysisId} className="">
-                      {analysisTreeList.map((tree, i) => {
+                      {analysisChildList.map((tree, i) => {
                         return (
                           <AnalysisHistoryItem
                             key={tree.analysisId}
@@ -291,8 +294,8 @@ export function AnalysisTreeViewer({
           ></div>
           <div className="grid grid-cols-1 pt-10 sm:pt-0 auto-cols-max lg:grid-cols-1 grow rounded-tr-lg p-2 lg:p-4 relative min-w-0 h-full overflow-scroll">
             {activeRootAnalysisId &&
-              analysisTree?.[activeRootAnalysisId]?.treeList &&
-              analysisTree[activeRootAnalysisId].treeList.map((analysis) => {
+              analysisTree?.[activeRootAnalysisId]?.childList &&
+              analysisTree[activeRootAnalysisId].childList.map((analysis) => {
                 return (
                   <div key={analysis.analysisId}>
                     <AnalysisAgent
@@ -312,6 +315,7 @@ export function AnalysisTreeViewer({
                       setGlobalLoading={setLoading}
                       devMode={devMode}
                       isTemp={isTemp}
+                      metadata={metadata}
                       // we store this at the time of creation of the analysis
                       // and don't change it for this specific analysis afterwards.
                       sqlOnly={analysis.createAnalysisRequestBody.sql_only}
@@ -327,8 +331,6 @@ export function AnalysisTreeViewer({
                         }
                       }}
                       onManagerDestroyed={(mgr, id) => {
-                        const analysisData = mgr.analysisData;
-
                         // remove the analysis from the analysisTree
                         analysisTreeManager.removeAnalysis({
                           analysisId: analysis.analysisId,

@@ -35,6 +35,8 @@ export function DefogAnalysisAgentStandalone({
   analysisTreeManager = defaultManager,
   rootClassNames = "",
   isTemp = false,
+  metadata = null,
+  sqliteConn = null,
 }) {
   const [agentConfig, setAgentConfig] = useState(
     Object.assign({}, defaultAgentConfig, {
@@ -143,7 +145,10 @@ export function DefogAnalysisAgentStandalone({
           value={{ val: reactiveContext, update: setReactiveContext }}
         >
           <GlobalAgentContext.Provider
-            value={{ val: agentConfig, update: setAgentConfig }}
+            value={{
+              val: { ...agentConfig, sqliteConn },
+              update: setAgentConfig,
+            }}
           >
             <div className={twMerge("w-full h-full", rootClassNames)}>
               <div className="editor-container w-full h-full p-0">
@@ -168,6 +173,7 @@ export function DefogAnalysisAgentStandalone({
                         searchBarClasses={searchBarClasses}
                         searchBarDraggable={searchBarDraggable}
                         isTemp={isTemp}
+                        metadata={metadata}
                         defaultSidebarOpen={() =>
                           defaultSidebarOpen ||
                           (window.innerWidth < 768 ? false : true)

@@ -51,8 +51,9 @@ export const AnalysisAgent = ({
   setGlobalLoading = (...args) => {},
   onManagerCreated = (...args) => {},
   onManagerDestroyed = (...args) => {},
-  isTemp,
-  sqlOnly,
+  isTemp = false,
+  sqlOnly = false,
+  metadata = null,
 }) => {
   const getToolsEndpoint = setupBaseUrl({
     protocol: "http",
@@ -186,14 +187,18 @@ export const AnalysisAgent = ({
     return AnalysisManager({
       analysisId,
       apiEndpoint,
+      token,
+      keyName,
+      devMode,
+      metadata,
+      isTemp,
+      sqlOnly,
       onNewData: onMainSocketMessage,
       onReRunData: onReRunMessage,
       onManagerDestroyed: onManagerDestroyed,
-      token,
-      isTemp,
-      keyName,
-      devMode,
       createAnalysisRequestBody,
+      mainSocket: null, // Add mainSocket property
+      rerunSocket: null, // Add rerunSocket property
     });
   }, [analysisId]);
 
@@ -205,7 +210,20 @@ export const AnalysisAgent = ({
     analysisManager.subscribeToDataChanges,
     analysisManager.getAnalysisData
   );
-  console.log(analysisData);
+
+  useEffect(() => {
+    // update context
+    globalAgentContext.update({
+      ...globalAgentContext.val,
+      userItems: {
+        ...globalAgentContext.val.userItems,
+        analysisData: {
+          ...globalAgentContext.val.userItems.analysisData,
+          [analysisId]: analysisData,
+        },
+      },
+    });
+  }, [analysisData]);
 
   function setActiveNode(node) {
     setActiveNodePrivate(node);
@@ -248,7 +266,14 @@ export const AnalysisAgent = ({
   useEffect(() => {
     async function initialiseAnalysis() {
       try {
-        await analysisManager.init();
+        const { analysisData = {}, toolRunDataCacheUpdates = {} } =
+          await analysisManager.init({
+            question: createAnalysisRequestBody.other_data.user_question,
+            existingData:
+              globalAgentContext?.val?.userItems?.analysisData?.[analysisId] ||
+              null,
+            sqliteConn: globalAgentContext.val.sqliteConn,
+          });
 
         const response = await fetch(getToolsEndpoint, {
           method: "POST",
@@ -256,6 +281,8 @@ export const AnalysisAgent = ({
 
         const tools = (await response.json())["tools"];
         setTools(tools);
+
+        setToolRunDataCache(analysisManager.toolRunDataCache);
 
         if (
           initiateAutoSubmit &&
@@ -276,10 +303,15 @@ export const AnalysisAgent = ({
                 ...globalAgentContext.val.userItems.analyses,
                 analysisId,
               ],
+              analysisData: {
+                ...globalAgentContext.val.userItems.analysisData,
+                [analysisId]: analysisData,
+              },
             },
           });
         }
       } catch (e) {
+        console.log(e.stack);
         messageManager.error(e);
         analysisManager.removeEventListeners();
         analysisManager.destroy();
@@ -304,11 +336,7 @@ export const AnalysisAgent = ({
     (query, stageInput = {}, submitStage = null) => {
       try {
         if (!query) throw new Error("Query is empty");
-        analysisManager.submit(
-          query,
-          { ...stageInput, sql_only: sqlOnly },
-          submitStage
-        );
+        analysisManager.submit(query, { ...stageInput }, submitStage);
         setAnalysisBusy(true);
         setGlobalLoading(true);
       } catch (e) {
@@ -393,6 +421,16 @@ export const AnalysisAgent = ({
     </div>
   );
 
+  const activeToolRunId = useMemo(() => {
+    if (!activeNode) return null;
+
+    const toolRun = activeNode?.data?.isTool
+      ? activeNode
+      : [...activeNode?.parents()][0];
+
+    return toolRun?.data?.step?.tool_run_id;
+  }, [activeNode]);
+
   return (
     <ErrorBoundary>
       <div
@@ -470,32 +508,37 @@ export const AnalysisAgent = ({
                       {analysisData?.gen_steps?.steps.length ? (
                         <>
                           <div className="grow px-6 rounded-b-3xl lg:rounded-br-none w-full bg-gray-50">
-                            <ToolResults
-                              analysisId={analysisId}
-                              activeNode={activeNode}
-                              analysisData={analysisData}
-                              toolSocketManager={toolSocketManager}
-                              apiEndpoint={apiEndpoint}
-                              dag={dag}
-                              setActiveNode={setActiveNode}
-                              handleReRun={handleReRun}
-                              reRunningSteps={reRunningSteps}
-                              setPendingToolRunUpdates={
-                                setPendingToolRunUpdates
-                              }
-                              toolRunDataCache={toolRunDataCache}
-                              setToolRunDataCache={setToolRunDataCache}
-                              tools={tools}
-                              analysisBusy={analysisBusy}
-                              handleDeleteSteps={async (toolRunIds) => {
-                                try {
-                                  await analysisManager.deleteSteps(toolRunIds);
-                                } catch (e) {
-                                  messageManager.error(e);
-                                  console.log(e.stack);
-                                }
-                              }}
-                            ></ToolResults>
+                            {activeToolRunId &&
+                              toolRunDataCache?.[activeToolRunId] && (
+                                <ToolResults
+                                  analysisId={analysisId}
+                                  activeNode={activeNode}
+                                  analysisData={analysisData}
+                                  toolSocketManager={toolSocketManager}
+                                  apiEndpoint={apiEndpoint}
+                                  dag={dag}
+                                  setActiveNode={setActiveNode}
+                                  handleReRun={handleReRun}
+                                  reRunningSteps={reRunningSteps}
+                                  setPendingToolRunUpdates={
+                                    setPendingToolRunUpdates
+                                  }
+                                  toolRunDataCache={toolRunDataCache}
+                                  setToolRunDataCache={setToolRunDataCache}
+                                  tools={tools}
+                                  analysisBusy={analysisBusy}
+                                  handleDeleteSteps={async (toolRunIds) => {
+                                    try {
+                                      await analysisManager.deleteSteps(
+                                        toolRunIds
+                                      );
+                                    } catch (e) {
+                                      messageManager.error(e);
+                                      console.log(e.stack);
+                                    }
+                                  }}
+                                ></ToolResults>
+                              )}
                           </div>
                         </>
                       ) : (

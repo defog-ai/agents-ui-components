@@ -5,6 +5,7 @@ export const defaultAgentConfig = {
     analyses: [],
     toolboxes: [],
     metadata: {},
+    analysisData: {},
   },
   socketManagers: {
     mainManager: null,
