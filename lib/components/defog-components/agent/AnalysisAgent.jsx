@@ -432,14 +432,14 @@ export const AnalysisAgent = ({
     return toolRun?.data?.step?.tool_run_id;
   }, [activeNode]);
 
-  console.log(
-    toolRunDataCache,
-    isTemp,
-    sqlOnly,
-    activeNode,
-    activeToolRunId,
-    analysisManager.toolRunDataCache
-  );
+  // console.log(
+  //   toolRunDataCache,
+  //   isTemp,
+  //   sqlOnly,
+  //   activeNode,
+  //   activeToolRunId,
+  //   analysisManager.toolRunDataCache
+  // );
 
   return (
     <ErrorBoundary>
