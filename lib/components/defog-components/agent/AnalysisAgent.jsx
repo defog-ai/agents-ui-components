@@ -513,7 +513,8 @@ export const AnalysisAgent = ({
                               // because in the normal case, the tool run data can be fetched from the servers
                               // but in sql only case, we only have a local copy
                               (!sqlOnly ||
-                                toolRunDataCache[activeToolRunId]) && (
+                                toolRunDataCache[activeToolRunId] ||
+                                !isTemp) && (
                                 <ToolResults
                                   analysisId={analysisId}
                                   activeNode={activeNode}
