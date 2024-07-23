@@ -509,7 +509,11 @@ export const AnalysisAgent = ({
                         <>
                           <div className="grow px-6 rounded-b-3xl lg:rounded-br-none w-full bg-gray-50">
                             {activeToolRunId &&
-                              toolRunDataCache?.[activeToolRunId] && (
+                              // if this is sqlonly, we will wait for tool run data to be updated before showing anything
+                              // because in the normal case, the tool run data can be fetched from the servers
+                              // but in sql only case, we only have a local copy
+                              (!sqlOnly ||
+                                toolRunDataCache[activeToolRunId]) && (
                                 <ToolResults
                                   analysisId={analysisId}
                                   activeNode={activeNode}
