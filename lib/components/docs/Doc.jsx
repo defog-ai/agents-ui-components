@@ -17,8 +17,8 @@ import {
 import { getAllAnalyses, getToolboxes } from "../utils/utils";
 import { DocSidebars } from "./DocSidebars";
 import { ReactiveVariablesContext } from "./ReactiveVariablesContext";
-import { ReactiveVariableNode } from "./customTiptap/ReactiveVariableNode";
-import { ReactiveVariableMention } from "./customTiptap/ReactiveVariableMention";
+import { ReactiveVariableNode } from "./custom-tiptap/ReactiveVariableNode";
+import { ReactiveVariableMention } from "./custom-tiptap/ReactiveVariableMention";
 import setupBaseUrl from "../utils/setupBaseUrl";
 import { setupWebsocketManager } from "../utils/websocket-manager";
 import { customBlockSchema } from "./createCustomBlockSchema";

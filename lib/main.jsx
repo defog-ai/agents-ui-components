@@ -1,9 +1,7 @@
 "use client";
 
-export { reFormatData } from "./components/defog-components/common/utils";
-
-export { AddTool } from "./components/docs/toolEditor/AddTool";
-export { DefineTool } from "./components/docs/toolEditor/DefineTool";
+export { AddTool } from "./components/docs/tool-editor/AddTool";
+export { DefineTool } from "./components/docs/tool-editor/DefineTool";
 
 // import "./agents-ui-components.scss";
 export { DefogAnalysisAgentStandalone } from "./components/defog-components/DefogAnalysisAgentStandalone";

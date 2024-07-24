@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ToolEditorInput } from "./ToolEditorInput";
 import { Table, Modal } from "../../../ui-components/lib/main";
 import { CodeBracketSquareIcon } from "@heroicons/react/20/solid";
-import ToolCodeEditor from "./ToolCodeEditor";
+import NewToolCodeEditor from "./NewToolCodeEditor";
 
 export function ToolFlow({
   toolName,
@@ -136,7 +136,7 @@ export function ToolFlow({
           {/* if code, just show a mono div with code inside */}
           {activeInput.type === "code" && (
             <>
-              <ToolCodeEditor
+              <NewNewToolCodeEditor
                 editable
                 toolCode={activeInput.code}
                 className="h-96 overflow-scroll"

@@ -1,15 +1,11 @@
 import { Select } from "antd";
 import React, { useEffect, useState, useRef, Fragment } from "react";
-import {
-  cleanString,
-  createChartConfig,
-  getColValues,
-  isEmpty,
-} from "../../common/utils";
+import { cleanString, getColValues, isEmpty } from "../../agent/agentUtils";
 import PieChart from "./PieChart";
 import ColumnChart from "./ColumnChart";
 import TrendChart from "./TrendChart";
 import styled from "styled-components";
+import { createChartJSConfig } from "../chartUtils";
 
 function arrToAntD(arr, labelProp = "key", valueProp = "key") {
   return arr.map((d) => ({
@@ -287,7 +283,7 @@ export default function ChartJSContainer({
     }
 
     setChartConfig(
-      createChartConfig(
+      createChartJSConfig(
         data,
         xAxis,
         yAxis,

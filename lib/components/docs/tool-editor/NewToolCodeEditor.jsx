@@ -4,7 +4,7 @@ import { useRef } from "react";
 import { EditorView } from "@codemirror/view";
 import { twMerge } from "tailwind-merge";
 
-export default function ToolCodeEditor({
+export default function NewToolCodeEditor({
   toolCode,
   className = "",
   editable = false,

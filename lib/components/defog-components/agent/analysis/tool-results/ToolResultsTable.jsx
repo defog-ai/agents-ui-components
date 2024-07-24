@@ -4,18 +4,11 @@ import React, {
   useEffect,
   useState,
   useMemo,
-  useContext,
   useRef,
-  useCallback,
 } from "react";
 import { Tabs, Button, message, Popover } from "antd";
-import ChartJSContainer from "./Charts/chartjs/ChartJSContainer";
-import {
-  chartNames,
-  processData,
-  reFormatData,
-  roundColumns,
-} from "./common/utils";
+import ChartJSContainer from "../../../Charts/chartjs/ChartJSContainer";
+import { chartNames, processData, roundColumns } from "../../agentUtils";
 
 import {
   ArrowDownTrayIcon,
@@ -23,7 +16,7 @@ import {
   DocumentDuplicateIcon,
   TableCellsIcon,
 } from "@heroicons/react/20/solid";
-import ErrorBoundary from "../common/ErrorBoundary";
+import ErrorBoundary from "../../../../common/ErrorBoundary";
 import ChartImage from "./ChartImage";
 
 import Editor from "react-simple-code-editor";
@@ -34,13 +27,13 @@ import "prismjs/components/prism-sql";
 import "prismjs/components/prism-python";
 
 import "prismjs/themes/prism.css";
-import { roundNumber } from "../utils/utils";
-import setupBaseUrl from "../utils/setupBaseUrl";
-import { Table } from "../../ui-components/lib/main";
-import Heatmap from "./Charts/Heatmap";
+import { roundNumber } from "../../../../utils/utils";
+import setupBaseUrl from "../../../../utils/setupBaseUrl";
+import { Table } from "../../../../../ui-components/lib/main";
+// import Heatmap from "../../../Charts/Heatmap";
 // import LinePlot from "./Charts/LinePlot";
-import Boxplot from "./Charts/Boxplot";
-import { ChartContainer } from "./Charts/ChartContainer";
+// import Boxplot from "../../../Charts/Boxplot";
+// import { ChartContainer } from "../../../Charts/ChartContainer";
 
 // tabBarLeftContent: extra content for the tab bar on the left side
 export function ToolResultsTable({

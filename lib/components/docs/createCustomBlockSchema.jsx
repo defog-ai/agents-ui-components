@@ -1,6 +1,5 @@
 import { BlockNoteSchema, defaultBlockSpecs } from "@blocknote/core";
-import AnalysisBlock from "./customBlocks/AnalysisBlock";
-import TableChartBlock from "./customBlocks/TableChartBlock";
+import AnalysisBlock from "./custom-blocks/AnalysisBlock";
 
 // make a copy and filter out table key from defaultblockspecs
 const blockSpecsWithoutTable = { ...defaultBlockSpecs };
@@ -10,7 +9,6 @@ const customBlockSchema = BlockNoteSchema.create({
   blockSpecs: {
     ...blockSpecsWithoutTable,
     analysis: AnalysisBlock,
-    "table-chart": TableChartBlock,
   },
 });
 

@@ -2,14 +2,14 @@ import { message } from "antd";
 
 import { useContext, useEffect, useState } from "react";
 import { AddStepInputList } from "./AddStepInputList";
-import { ToolReRun } from "./ToolReRun";
-import setupBaseUrl from "../../utils/setupBaseUrl";
+import setupBaseUrl from "../../../utils/setupBaseUrl";
 import { v4 } from "uuid";
-import { createInitialToolInputs } from "../../utils/utils";
+import { createInitialToolInputs } from "../../../utils/utils";
 import {
   MessageManagerContext,
   SingleSelect,
-} from "../../../ui-components/lib/main";
+} from "../../../../ui-components/lib/main";
+import { ToolReRun } from "../analysis/tool-results/ToolReRun";
 
 export function AddStepUI({
   analysisId,

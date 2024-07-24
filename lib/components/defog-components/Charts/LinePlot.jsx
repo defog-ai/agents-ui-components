@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { aggregateData, createScaleBasedOnColumnType } from "./utils";
+import { aggregateData, createScaleBasedOnColumnType } from "./chartUtils";
 import { line } from "d3";
 
 /**

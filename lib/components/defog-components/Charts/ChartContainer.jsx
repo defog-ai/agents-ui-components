@@ -2,7 +2,7 @@
 // if not found, just renders the chartjs charts
 
 import { useMemo } from "react";
-import { createChartData } from "./utils";
+import { createChartData } from "./chartUtils";
 import { MultiSelect, SingleSelect } from "../../../ui-components/lib/main";
 
 /**

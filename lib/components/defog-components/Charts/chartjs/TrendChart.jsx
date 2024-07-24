@@ -11,8 +11,8 @@ import {
   Legend,
 } from "chart.js";
 import { Line } from "react-chartjs-2";
-import { setChartJSDefaults } from "../../common/utils";
 import ErrorBoundary from "../../../common/ErrorBoundary";
+import { setChartJSDefaults } from "../chartUtils";
 
 ChartJS.register(
   CategoryScale,

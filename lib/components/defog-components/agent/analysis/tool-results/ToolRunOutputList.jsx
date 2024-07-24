@@ -1,5 +1,5 @@
 import { ArrowRightIcon, ChevronRightIcon } from "@heroicons/react/20/solid";
-import { CodeEditor } from "../CodeEditor";
+import { CodeEditor } from "./CodeEditor";
 import { useRef, useState } from "react";
 
 export function ToolRunOutputList({

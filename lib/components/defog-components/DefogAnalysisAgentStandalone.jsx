@@ -7,13 +7,13 @@ import {
   GlobalAgentContext,
   RelatedAnalysesContext,
 } from "../context/GlobalAgentContext";
-import { getAllAnalyses, getAllDashboards } from "../utils/utils";
+// import { getAllAnalyses, getAllDashboards } from "../utils/utils";
 import ErrorBoundary from "../common/ErrorBoundary";
 import setupBaseUrl from "../utils/setupBaseUrl";
 import { setupWebsocketManager } from "../utils/websocket-manager";
-import { AnalysisTreeViewer } from "./agent/AnalysisTreeViewer";
+import { AnalysisTreeViewer } from "./agent/analysis-tree-viewer/AnalysisTreeViewer";
+import { AnalysisTreeManager } from "./agent/analysis-tree-viewer/analysisTreeManager";
 import { ReactiveVariablesContext } from "../context/ReactiveVariablesContext";
-import { AnalysisTreeManager } from "./agent/analysisTreeManager";
 import { twMerge } from "tailwind-merge";
 import { SpinningLoader } from "../../ui-components/lib/main";
 

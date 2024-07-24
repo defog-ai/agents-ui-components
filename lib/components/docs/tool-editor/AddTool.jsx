@@ -9,7 +9,6 @@ import ToolCreatorAssistant from "./ToolCreatorAssistant";
 import { SparklesIcon } from "@heroicons/react/20/solid";
 import { DefineTool } from "./DefineTool";
 
-import ToolCodeEditor from "./ToolCodeEditor";
 import { twMerge } from "tailwind-merge";
 import setupBaseUrl from "../../utils/setupBaseUrl";
 import {
@@ -21,6 +20,7 @@ import {
   Button,
   SpinningLoader,
 } from "../../../ui-components/lib/main";
+import NewToolCodeEditor from "./NewToolCodeEditor";
 
 export function AddTool({ toolbox, apiEndpoint, onAddTool = (...args) => {} }) {
   const generateToolCodeEndpoint = setupBaseUrl({
@@ -232,7 +232,7 @@ export function AddTool({ toolbox, apiEndpoint, onAddTool = (...args) => {} }) {
                     testingResults={testingResults}
                   />
                 ) : (
-                  <ToolCodeEditor
+                  <NewToolCodeEditor
                     className="w-full"
                     editable={!loading}
                     toolCode={tool.code}

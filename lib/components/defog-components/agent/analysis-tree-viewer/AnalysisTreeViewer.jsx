@@ -8,27 +8,26 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
-import { v4 } from "uuid";
-import { AnalysisAgent } from "./AnalysisAgent";
-import { AnalysisHistoryItem } from "./AnalysisHistoryItem";
-import { AnalysisTreeViewerLinks } from "./AnalysisTreeViewerLinks";
+import { AnalysisAgent } from "../analysis/AnalysisAgent";
+import { AnalysisTreeItem } from "./AnalysisTreeItem";
 import {
   ArrowRightEndOnRectangleIcon,
   ArrowsPointingOutIcon,
   PlusIcon,
 } from "@heroicons/react/20/solid";
-import { sentenceCase, useGhostImage } from "../../utils/utils";
+import { sentenceCase, useGhostImage } from "../../../utils/utils";
 import { twMerge } from "tailwind-merge";
 import {
   Sidebar,
   Toggle,
   TextArea,
   MessageManagerContext,
-} from "../../../ui-components/lib/main";
-import { useWindowSize } from "../../../ui-components/lib/hooks/useWindowSize";
-import { breakpoints } from "../../../ui-components/lib/hooks/useBreakPoint";
+} from "../../../../ui-components/lib/main";
+import { useWindowSize } from "../../../../ui-components/lib/hooks/useWindowSize";
+import { breakpoints } from "../../../../ui-components/lib/hooks/useBreakPoint";
 import { AnalysisTreeManager } from "./analysisTreeManager";
-import ErrorBoundary from "../../common/ErrorBoundary";
+import ErrorBoundary from "../../../common/ErrorBoundary";
+import { AnalysisTreeViewerLinks } from "./AnalysisTreeViewerLinks";
 
 export function AnalysisTreeViewer({
   dashboards,
@@ -218,7 +217,7 @@ export function AnalysisTreeViewer({
                     <div key={root.analysisId} className="">
                       {analysisChildList.map((tree, i) => {
                         return (
-                          <AnalysisHistoryItem
+                          <AnalysisTreeItem
                             key={tree.analysisId}
                             analysis={tree}
                             isActive={activeAnalysisId === tree.analysisId}
@@ -247,7 +246,7 @@ export function AnalysisTreeViewer({
                   );
                 })}
                 {!activeRootAnalysisId ? (
-                  <AnalysisHistoryItem
+                  <AnalysisTreeItem
                     isDummy={true}
                     setActiveRootAnalysisId={
                       analysisTreeManager.setActiveRootAnalysisId

@@ -4,7 +4,7 @@ import CodeMirror, { EditorView } from "@uiw/react-codemirror";
 import { python } from "@codemirror/lang-python";
 import { sql } from "@codemirror/lang-sql";
 import { twMerge } from "tailwind-merge";
-import ErrorBoundary from "../common/ErrorBoundary";
+import ErrorBoundary from "../../../../common/ErrorBoundary";
 
 export function CodeEditor({
   analysisId = null,

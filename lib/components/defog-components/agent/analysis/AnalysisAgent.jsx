@@ -8,33 +8,33 @@ import React, {
   useMemo,
   useSyncExternalStore,
 } from "react";
-import { ThemeContext, lightThemeColor } from "../../context/ThemeContext";
-import AgentLoader from "../common/AgentLoader";
-import LoadingLottie from "../svg/loader.json";
-import { ToolResults } from "./ToolResults";
-import StepsDag from "../common/StepsDag";
+import { ThemeContext, lightThemeColor } from "../../../context/ThemeContext";
+import AgentLoader from "../../common/AgentLoader";
+import LoadingLottie from "../../svg/loader.json";
+import StepsDag from "./StepsDag";
 import {
   sentenceCase,
   toolShortNames,
   trimStringToLength,
-} from "../../utils/utils";
-import Clarify from "./analysis-gen/Clarify";
+} from "../../../utils/utils";
+import Clarify from "./Clarify";
 import AnalysisManager from "./analysisManager";
-import setupBaseUrl from "../../utils/setupBaseUrl";
-import { AnalysisFeedback } from "./feedback/AnalysisFeedback";
+import setupBaseUrl from "../../../utils/setupBaseUrl";
+import { AnalysisFeedback } from "../feedback/AnalysisFeedback";
 import {
   Collapse,
   Input,
   MessageManagerContext,
   SpinningLoader,
-} from "../../../ui-components/lib/main";
+} from "../../../../ui-components/lib/main";
 import { twMerge } from "tailwind-merge";
-import { ReactiveVariablesContext } from "../../context/ReactiveVariablesContext";
-import { GlobalAgentContext } from "../../context/GlobalAgentContext";
-import ErrorBoundary from "../../common/ErrorBoundary";
-import { breakpoints } from "../../../ui-components/lib/hooks/useBreakPoint";
-import { useWindowSize } from "../../../ui-components/lib/hooks/useWindowSize";
+import { ReactiveVariablesContext } from "../../../context/ReactiveVariablesContext";
+import { GlobalAgentContext } from "../../../context/GlobalAgentContext";
+import ErrorBoundary from "../../../common/ErrorBoundary";
+import { breakpoints } from "../../../../ui-components/lib/hooks/useBreakPoint";
+import { useWindowSize } from "../../../../ui-components/lib/hooks/useWindowSize";
 import { StopCircleIcon } from "@heroicons/react/20/solid";
+import { ToolResults } from "./tool-results/ToolResults";
 
 export const AnalysisAgent = ({
   analysisId,
@@ -446,7 +446,7 @@ export const AnalysisAgent = ({
       <div
         ref={ctr}
         className={twMerge(
-          "analysis-agent-container relative grow bg-white outline-none focus:outline-none rounded-3xl border border-gray-300 bg-white",
+          "analysis-agent-container relative grow outline-none focus:outline-none rounded-3xl border border-gray-300 bg-white",
           independentAnalysisSearchRef ? "" : "max-w-full min-h-96",
           rootClassNames
         )}

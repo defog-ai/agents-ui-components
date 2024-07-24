@@ -5,7 +5,7 @@ import {
   createScaleBasedOnColumnType,
   mplColorsToD3,
   parseChartDim,
-} from "./utils";
+} from "./chartUtils";
 import { interpolateRgbBasis } from "d3";
 import { ChartLayout } from "./chart-layout/ChartLayout";
 
