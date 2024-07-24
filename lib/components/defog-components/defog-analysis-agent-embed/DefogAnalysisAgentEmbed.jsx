@@ -28,6 +28,8 @@ export function EmbedInner({
   uploadedCsvPredefinedQuestions = ["Show me any 5 rows"],
   dbs,
   searchBarDraggable = true,
+  limitCsvUploadSize = true,
+  maxCsvUploadSize = 10,
 }) {
   const ctr = useRef(null);
   const messageManager = useContext(MessageManagerContext);
@@ -66,6 +68,10 @@ export function EmbedInner({
   const addCsvToDbListAndSqlite = async ({ file, columns, rows }) => {
     try {
       setFileUploading(true);
+      // if file size is >10mb, raise error
+      if (limitCsvUploadSize && file.size > maxCsvUploadSize * 1024 * 1024) {
+        throw new Error("File size is too large. Max size allowed is 10MB.");
+      }
       const newDbName = file.name.split(".")[0];
       const sqliteTableName = validateTableName("csv_" + newDbName);
 
@@ -159,7 +165,7 @@ export function EmbedInner({
           keyName: csvFileKeyName,
           isTemp: true,
           metadata: metadata || null,
-          data: tableData,
+          data: Object.assign({}, tableData),
           columns: columns,
           sqliteTableName,
           metadataFetchingError: false,
@@ -198,6 +204,8 @@ export function EmbedInner({
     ),
     [availableDbs, fileUploading]
   );
+
+  console.log(availableDbs);
 
   const tabs = useMemo(() => {
     return [
@@ -354,6 +362,8 @@ export function EmbedInner({
  * @param {Array<{keyName: string, predefinedQuestions?: [string], name?: string}>} props.dbs - The list of databases to show in the dropdown. Each object should have a keyName and predefinedQuestions array.
  * @param {Array<string>} props.uploadedCsvPredefinedQuestions - The predefined questions for the uploaded CSVs
  * @param {Boolean} props.searchBarDraggable -  If the main search bad should be draggable.
+ * @param {Boolean} props.limitCsvUploadSize -  If the file size should be limited to maxCsvUploadSize.
+ * @param {Number} props.maxCsvUploadSize -  The max file size allowed, in mbs. Default is 10.
  *
  */
 export function DefogAnalysisAgentEmbed({
@@ -363,6 +373,8 @@ export function DefogAnalysisAgentEmbed({
   dbs = [],
   uploadedCsvPredefinedQuestions = ["Show me any 5 rows"],
   searchBarDraggable = true,
+  limitCsvUploadSize = true,
+  maxCsvUploadSize = 10,
 }) {
   // use the simple db list
   // and add some extra props to them
@@ -392,6 +404,8 @@ export function DefogAnalysisAgentEmbed({
             dbs={dbsWithManagers}
             uploadedCsvPredefinedQuestions={uploadedCsvPredefinedQuestions}
             searchBarDraggable={searchBarDraggable}
+            limitCsvUploadSize={limitCsvUploadSize}
+            maxCsvUploadSize={maxCsvUploadSize}
           />
         </MessageManagerContext.Provider>
       </div>

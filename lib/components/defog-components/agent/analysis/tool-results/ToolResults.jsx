@@ -23,7 +23,7 @@ import { GlobalAgentContext } from "../../../../context/GlobalAgentContext";
 function parseOutputs(data, analysisData) {
   let parsedOutputs = {};
   // go through data and parse all tables
-  Object.keys(data.outputs).forEach((k, i) => {
+  Object.keys(data?.outputs || {}).forEach((k, i) => {
     parsedOutputs[k] = {};
     // check if this has data, reactive_vars and chart_images
     if (data.outputs[k].data) {
@@ -187,9 +187,9 @@ export function ToolResults({
         });
 
         // make life easier
-        newData = res?.tool_run_data;
+        newData = res?.tool_run_data || {};
 
-        newData.parsedOutputs = parseOutputs(newData, analysisData);
+        newData.parsedOutputs = parseOutputs(newData || {}, analysisData);
         // in case any of the inputs is a pd dataframe, we will also fetch those tool run's data
 
         const inputs = newData?.step?.inputs || [];

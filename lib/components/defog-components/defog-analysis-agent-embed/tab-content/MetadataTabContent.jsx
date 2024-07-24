@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import {
   MessageManagerContext,
   MultiSelect,
@@ -59,10 +59,12 @@ export function MetadataTabContent({
     }
   }, [db]);
 
-  const tables =
-    Array.isArray(metadata) && !db.metadataFetchingError
+  // get unique table names
+  const tables = useMemo(() => {
+    return Array.isArray(metadata) && !db.metadataFetchingError
       ? Array.from(new Set(metadata.map((col) => col.table_name)))
       : [];
+  }, [metadata, db]);
 
   const columns =
     Array.isArray(metadata) && !db.metadataFetchingError
@@ -83,6 +85,10 @@ export function MetadataTabContent({
       : [];
 
   const [selectedTables, setSelectedTables] = useState(tables);
+
+  useEffect(() => {
+    setSelectedTables(tables);
+  }, [keyName + tables.join(",")]);
 
   const tableRows =
     Array.isArray(metadata) && !db.metadataFetchingError
