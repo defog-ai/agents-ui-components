@@ -44,11 +44,11 @@ export function QueryDataScaffolding({
         typeof rootClassNames === "function" ? rootClassNames(selectedDb) : ""
       )}
     >
-      <div className="w-full relative mb-4 text-gray-500 text-xs">
-        <div className="w-16 font-bold sm:absolute z-10 left-0 whitespace-nowrap py-2">
+      <div className="w-full relative mb-4 text-gray-500 text-xs flex flex-row">
+        <div className="h-full mr-2 font-bold z-10 whitespace-nowrap py-2">
           Dataset:
         </div>
-        <div className="sm:pl-16 overflow-scroll flex flex-row gap-2 items-center rounded-md">
+        <div className="overflow-scroll flex flex-row gap-2 px-2 items-center rounded-md">
           {availableDbs.map((db, i) => {
             return (
               <span
@@ -60,7 +60,7 @@ export function QueryDataScaffolding({
                   onDbChange(db);
                 }}
                 className={twMerge(
-                  "p-2 bg-gray-200 border border-gray-300 rounded-full cursor-pointer",
+                  "p-2 bg-gray-200 border border-gray-300 rounded-full cursor-pointer whitespace-nowrap",
                   selectedDb === db
                     ? "bg-gray-600 border-transparent text-white"
                     : "hover:bg-gray-300",
@@ -73,7 +73,8 @@ export function QueryDataScaffolding({
               </span>
             );
           })}
-
+        </div>
+        <div className="self-end ml-auto pl-3">
           {allowUploadFile && (
             <DropFilesHeadless
               rootClassNames="flex items-center cursor-pointer group ml-auto self-end"
@@ -93,23 +94,30 @@ export function QueryDataScaffolding({
                 setDropping(false);
               }}
               onFileSelect={(ev) => {
+                console.log("here");
                 // this is when the user selects a file from the file dialog
                 try {
                   let file = ev.target.files[0];
-                  if (!file || file.type !== "text/csv") {
+                  if (!file) return;
+                  if (file.type !== "text/csv") {
                     throw new Error("Only CSV files are accepted");
                   }
                   parseCsvFile(file, onParseCsv);
                 } catch (e) {
-                  messageManager.error(e || "Failed to parse the file");
+                  messageManager.error(
+                    e.message || "Only CSV files are accepted."
+                  );
+                  setDropping(false);
                 }
               }}
               onDrop={(ev) => {
+                console.log("here");
                 ev.preventDefault();
                 try {
                   let file = ev?.dataTransfer?.items?.[0];
+                  console.log(file);
+                  if (!file) return;
                   if (
-                    !file ||
                     !file.kind ||
                     file.kind !== "file" ||
                     file.type !== "text/csv"
@@ -121,8 +129,9 @@ export function QueryDataScaffolding({
 
                   parseCsvFile(file, onParseCsv);
                 } catch (e) {
-                  messageManager.error("Failed to parse the file");
+                  messageManager.error(e.message || "Failed to parse the file");
                   console.log(e.stack);
+                  setDropping(false);
                 }
               }}
             >

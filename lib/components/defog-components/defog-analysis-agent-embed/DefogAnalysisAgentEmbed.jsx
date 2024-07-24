@@ -72,7 +72,12 @@ export function EmbedInner({
       if (limitCsvUploadSize && file.size > maxCsvUploadSize * 1024 * 1024) {
         throw new Error("File size is too large. Max size allowed is 10MB.");
       }
-      const newDbName = file.name.split(".")[0];
+
+      let newDbName = file.name.split(".")[0];
+      // if this already exists, add a random number to the end
+      if (availableDbs.find((d) => d.name === newDbName)) {
+        newDbName = newDbName + "_" + Math.floor(Math.random() * 1000);
+      }
       const sqliteTableName = validateTableName("csv_" + newDbName);
 
       let tableData, metadata;
@@ -205,7 +210,7 @@ export function EmbedInner({
     [availableDbs, fileUploading]
   );
 
-  console.log(availableDbs);
+  console.log(selectedDb);
 
   const tabs = useMemo(() => {
     return [
@@ -316,12 +321,22 @@ export function EmbedInner({
 
   useEffect(() => {
     (async () => {
+      if (conn.current) return;
+
       const _conn = await initializeSQLite();
       conn.current = _conn;
 
       window.sqlite = _conn;
     })();
   }, []);
+
+  useEffect(() => {
+    // if the new selected db is temp, empty its tree
+    // becuase currently the tool runs are not saved on servers. so can't be fetched again.
+    if (selectedDb && selectedDb.isTemp) {
+      selectedDbManager.reset();
+    }
+  }, [selectedDb]);
 
   return (
     <QueryDataScaffolding
