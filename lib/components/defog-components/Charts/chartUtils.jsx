@@ -63,7 +63,15 @@ import {
 } from "d3-array";
 import { useLayoutEffect, useState } from "react";
 import { useEffect } from "react";
-import { chartColors } from "lib/components/context/ThemeContext";
+
+export const chartColors = [
+  "#D52D68",
+  "#540CC9",
+  "#2B59FF",
+  "#FFB536",
+  "#3EE0D5",
+  "#561981",
+];
 
 // Helper function to get the appropriate D3 aggregation function
 function getAggregateFunction(type) {

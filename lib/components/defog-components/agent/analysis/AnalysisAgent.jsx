@@ -8,7 +8,6 @@ import React, {
   useMemo,
   useSyncExternalStore,
 } from "react";
-import { ThemeContext, lightThemeColor } from "../../../context/ThemeContext";
 import AgentLoader from "../../common/AgentLoader";
 import LoadingLottie from "../../svg/loader.json";
 import StepsDag from "./StepsDag";
@@ -264,6 +263,8 @@ export const AnalysisAgent = ({
   }
 
   useEffect(() => {
+    if (analysisManager.didInit) return;
+
     async function initialiseAnalysis() {
       try {
         const { analysisData = {}, toolRunDataCacheUpdates = {} } =
@@ -318,6 +319,7 @@ export const AnalysisAgent = ({
         analysisManager.destroy();
       }
     }
+
     initialiseAnalysis();
   }, []);
 
@@ -451,190 +453,185 @@ export const AnalysisAgent = ({
           rootClassNames
         )}
       >
-        <ThemeContext.Provider
-          value={{ theme: { type: "light", config: lightThemeColor } }}
-          key="1"
-        >
-          {/* if we don't have anlaysis data, and current stage is null, and we DO have a search ref */}
-          {/* means tis is being externally initialised using analysis viewer and initateautosubmit is true */}
-          {!analysisData ||
-          (!analysisData.currentStage && hasExternalSearchBar) ? (
-            <div className="transition-all w-full bg-gray-50 rounded-3xl">
-              {titleDiv}
-              <AgentLoader
-                message={!analysisData ? "Setting up..." : "Thinking..."}
-                lottieData={LoadingLottie}
-                classNames={"m-0 h-full bg-transparent"}
-              />
-            </div>
-          ) : (
-            <>
-              {!hasExternalSearchBar && !analysisData.currentStage ? (
-                <div className="w-10/12">
-                  <Input
-                    ref={independentAnalysisSearchRef}
-                    onPressEnter={(ev) => {
-                      handleSubmit(ev.target.value);
-                    }}
-                    placeholder="Ask a question"
-                    disabled={analysisBusy}
-                    inputClassNames="w-full mx-auto shadow-custom hover:border-blue-500 focus:border-blue-500"
-                  />
-                </div>
-              ) : (
-                <></>
-              )}
-              {analysisData.currentStage === "clarify" ? (
-                <div className="transition-all w-full bg-gray-50 rounded-3xl">
-                  {titleDiv}
-                  <Clarify
-                    data={analysisData.clarify}
-                    handleSubmit={(stageInput, submitStage) => {
-                      debugger;
-                      handleSubmit(
-                        analysisData?.user_question,
-                        stageInput,
-                        submitStage
-                      );
-                    }}
-                    globalLoading={analysisBusy}
-                    stageDone={
-                      analysisData.currentStage === "clarify"
-                        ? !analysisBusy
-                        : true
-                    }
-                    isCurrentStage={analysisData.currentStage === "clarify"}
-                  />
-                </div>
-              ) : (
-                <></>
-              )}
+        {/* if we don't have anlaysis data, and current stage is null, and we DO have a search ref */}
+        {/* means tis is being externally initialised using analysis viewer and initateautosubmit is true */}
+        {!analysisData ||
+        (!analysisData.currentStage && hasExternalSearchBar) ? (
+          <div className="transition-all w-full bg-gray-50 rounded-3xl">
+            {titleDiv}
+            <AgentLoader
+              message={!analysisData ? "Setting up..." : "Thinking..."}
+              lottieData={LoadingLottie}
+              classNames={"m-0 h-full bg-transparent"}
+            />
+          </div>
+        ) : (
+          <>
+            {!hasExternalSearchBar && !analysisData.currentStage ? (
+              <div className="w-10/12">
+                <Input
+                  ref={independentAnalysisSearchRef}
+                  onPressEnter={(ev) => {
+                    handleSubmit(ev.target.value);
+                  }}
+                  placeholder="Ask a question"
+                  disabled={analysisBusy}
+                  inputClassNames="w-full mx-auto shadow-custom hover:border-blue-500 focus:border-blue-500"
+                />
+              </div>
+            ) : (
+              <></>
+            )}
+            {analysisData.currentStage === "clarify" ? (
+              <div className="transition-all w-full bg-gray-50 rounded-3xl">
+                {titleDiv}
+                <Clarify
+                  data={analysisData.clarify}
+                  handleSubmit={(stageInput, submitStage) => {
+                    debugger;
+                    handleSubmit(
+                      analysisData?.user_question,
+                      stageInput,
+                      submitStage
+                    );
+                  }}
+                  globalLoading={analysisBusy}
+                  stageDone={
+                    analysisData.currentStage === "clarify"
+                      ? !analysisBusy
+                      : true
+                  }
+                  isCurrentStage={analysisData.currentStage === "clarify"}
+                />
+              </div>
+            ) : (
+              <></>
+            )}
 
-              {analysisData.currentStage === "gen_steps" ? (
-                <div className="analysis-content w-full flex flex-col-reverse lg:flex-row h-full">
-                  <div className="analysis-results min-w-0 grow flex flex-col relative border-r">
-                    {titleDiv}
-                    <ErrorBoundary>
-                      {analysisData?.gen_steps?.steps.length ? (
-                        <>
-                          <div className="grow px-6 rounded-b-3xl lg:rounded-br-none w-full bg-gray-50">
-                            {activeToolRunId &&
-                              // if this is sqlonly, we will wait for tool run data to be updated before showing anything
-                              // because in the normal case, the tool run data can be fetched from the servers
-                              // but in sql only case, we only have a local copy
-                              (!isTemp ||
-                                (isTemp &&
-                                  toolRunDataCache[activeToolRunId])) && (
-                                <ToolResults
-                                  analysisId={analysisId}
-                                  activeNode={activeNode}
-                                  analysisData={analysisData}
-                                  toolSocketManager={toolSocketManager}
-                                  apiEndpoint={apiEndpoint}
-                                  dag={dag}
-                                  setActiveNode={setActiveNode}
-                                  handleReRun={handleReRun}
-                                  reRunningSteps={reRunningSteps}
-                                  setPendingToolRunUpdates={
-                                    setPendingToolRunUpdates
+            {analysisData.currentStage === "gen_steps" ? (
+              <div className="analysis-content w-full flex flex-col-reverse lg:flex-row h-full">
+                <div className="analysis-results min-w-0 grow flex flex-col relative border-r">
+                  {titleDiv}
+                  <ErrorBoundary>
+                    {analysisData?.gen_steps?.steps.length ? (
+                      <>
+                        <div className="grow px-6 rounded-b-3xl lg:rounded-br-none w-full bg-gray-50">
+                          {activeToolRunId &&
+                            // if this is sqlonly, we will wait for tool run data to be updated before showing anything
+                            // because in the normal case, the tool run data can be fetched from the servers
+                            // but in sql only case, we only have a local copy
+                            (!isTemp ||
+                              (isTemp &&
+                                toolRunDataCache[activeToolRunId])) && (
+                              <ToolResults
+                                analysisId={analysisId}
+                                activeNode={activeNode}
+                                analysisData={analysisData}
+                                toolSocketManager={toolSocketManager}
+                                apiEndpoint={apiEndpoint}
+                                dag={dag}
+                                setActiveNode={setActiveNode}
+                                handleReRun={handleReRun}
+                                reRunningSteps={reRunningSteps}
+                                setPendingToolRunUpdates={
+                                  setPendingToolRunUpdates
+                                }
+                                toolRunDataCache={toolRunDataCache}
+                                setToolRunDataCache={setToolRunDataCache}
+                                tools={tools}
+                                analysisBusy={analysisBusy}
+                                handleDeleteSteps={async (toolRunIds) => {
+                                  try {
+                                    await analysisManager.deleteSteps(
+                                      toolRunIds
+                                    );
+                                  } catch (e) {
+                                    messageManager.error(e);
+                                    console.log(e.stack);
                                   }
-                                  toolRunDataCache={toolRunDataCache}
-                                  setToolRunDataCache={setToolRunDataCache}
-                                  tools={tools}
-                                  analysisBusy={analysisBusy}
-                                  handleDeleteSteps={async (toolRunIds) => {
-                                    try {
-                                      await analysisManager.deleteSteps(
-                                        toolRunIds
-                                      );
-                                    } catch (e) {
-                                      messageManager.error(e);
-                                      console.log(e.stack);
-                                    }
-                                  }}
-                                ></ToolResults>
-                              )}
-                          </div>
-                        </>
-                      ) : (
-                        analysisBusy && (
-                          <div className="bg-gray-50 h-full w-full rounded-3xl">
-                            <AgentLoader
-                              message={"Fetching data..."}
-                              lottieData={LoadingLottie}
-                              classNames={"m-0 h-full bg-transparent"}
-                            />
-                          </div>
-                        )
-                      )}
-                    </ErrorBoundary>
-                  </div>
-                  {analysisData?.gen_steps?.steps && (
-                    <div className="border-b border-b-gray-300 sm:border-b-0 lg:border-b-none  analysis-steps flex-initial rounded-t-3xl lg:rounded-r-3xl lg:rounded-tl-none bg-gray-50">
-                      <Collapse
-                        rootClassNames="mb-0 bg-gray-50 w-full rounded-t-3xl lg:rounded-r-3xl lg:rounded-tl-none lg:h-full"
-                        title={
-                          <div className="">
-                            <span className="font-light lg:font-bold text-sm">
-                              Steps
-                            </span>
-                            {analysisData.currentStage === "gen_steps" &&
-                            analysisBusy ? (
-                              <SpinningLoader classNames="ml-2 w-3 h-3 text-gray-400"></SpinningLoader>
-                            ) : (
-                              ""
+                                }}
+                              ></ToolResults>
                             )}
-                          </div>
-                        }
-                        headerClassNames="lg:hidden flex flex-row items-center pl-5 lg:pointer-events-none lg:cursor-default"
-                        iconClassNames="lg:hidden"
-                        collapsed={windowSize[0] < breakpoints.lg}
-                        alwaysOpen={windowSize[0] >= breakpoints.lg}
-                      >
-                        <StepsDag
-                          steps={analysisData?.gen_steps?.steps || []}
-                          nodeSize={[40, 10]}
-                          nodeGap={[30, 50]}
-                          setActiveNode={setActiveNode}
-                          reRunningSteps={reRunningSteps}
-                          activeNode={activeNode}
-                          stageDone={
-                            analysisData.currentStage === "gen_steps"
-                              ? !analysisBusy
-                              : true
-                          }
-                          dag={dag}
-                          setDag={setDag}
-                          dagLinks={dagLinks}
-                          setDagLinks={setDagLinks}
-                          extraNodeClasses={(node) => {
-                            return node.data.isTool
-                              ? `rounded-md px-1 text-center`
-                              : "";
-                          }}
-                          toolIcon={(node) => (
-                            <p className="text-sm truncate m-0">
-                              {trimStringToLength(
-                                toolShortNames[node?.data?.step?.tool_name] ||
-                                  tools[node?.data?.step?.tool_name][
-                                    "tool_name"
-                                  ] ||
-                                  node?.data?.step?.tool_name,
-                                15
-                              )}
-                            </p>
-                          )}
-                        />
-                      </Collapse>
-                    </div>
-                  )}
+                        </div>
+                      </>
+                    ) : (
+                      analysisBusy && (
+                        <div className="bg-gray-50 h-full w-full rounded-3xl">
+                          <AgentLoader
+                            message={"Fetching data..."}
+                            lottieData={LoadingLottie}
+                            classNames={"m-0 h-full bg-transparent"}
+                          />
+                        </div>
+                      )
+                    )}
+                  </ErrorBoundary>
                 </div>
-              ) : (
-                <></>
-              )}
-            </>
-          )}
-        </ThemeContext.Provider>
+                {analysisData?.gen_steps?.steps && (
+                  <div className="border-b border-b-gray-300 sm:border-b-0 lg:border-b-none  analysis-steps flex-initial rounded-t-3xl lg:rounded-r-3xl lg:rounded-tl-none bg-gray-50">
+                    <Collapse
+                      rootClassNames="mb-0 bg-gray-50 w-full rounded-t-3xl lg:rounded-r-3xl lg:rounded-tl-none lg:h-full"
+                      title={
+                        <div className="">
+                          <span className="font-light lg:font-bold text-sm">
+                            Steps
+                          </span>
+                          {analysisData.currentStage === "gen_steps" &&
+                          analysisBusy ? (
+                            <SpinningLoader classNames="ml-2 w-3 h-3 text-gray-400"></SpinningLoader>
+                          ) : (
+                            ""
+                          )}
+                        </div>
+                      }
+                      headerClassNames="lg:hidden flex flex-row items-center pl-5 lg:pointer-events-none lg:cursor-default"
+                      iconClassNames="lg:hidden"
+                      collapsed={windowSize[0] < breakpoints.lg}
+                      alwaysOpen={windowSize[0] >= breakpoints.lg}
+                    >
+                      <StepsDag
+                        steps={analysisData?.gen_steps?.steps || []}
+                        nodeSize={[40, 10]}
+                        nodeGap={[30, 50]}
+                        setActiveNode={setActiveNode}
+                        reRunningSteps={reRunningSteps}
+                        activeNode={activeNode}
+                        stageDone={
+                          analysisData.currentStage === "gen_steps"
+                            ? !analysisBusy
+                            : true
+                        }
+                        dag={dag}
+                        setDag={setDag}
+                        dagLinks={dagLinks}
+                        setDagLinks={setDagLinks}
+                        extraNodeClasses={(node) => {
+                          return node.data.isTool
+                            ? `rounded-md px-1 text-center`
+                            : "";
+                        }}
+                        toolIcon={(node) => (
+                          <p className="text-sm truncate m-0">
+                            {trimStringToLength(
+                              toolShortNames[node?.data?.step?.tool_name] ||
+                                tools[node?.data?.step?.tool_name][
+                                  "tool_name"
+                                ] ||
+                                node?.data?.step?.tool_name,
+                              15
+                            )}
+                          </p>
+                        )}
+                      />
+                    </Collapse>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <></>
+            )}
+          </>
+        )}
       </div>
     </ErrorBoundary>
   );

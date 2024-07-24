@@ -298,54 +298,55 @@ export function AnalysisTreeViewer({
               analysisTree?.[activeRootAnalysisId]?.childList &&
               analysisTree[activeRootAnalysisId].childList.map((analysis) => {
                 return (
-                  <div key={analysis.analysisId}>
-                    <AnalysisAgent
-                      rootClassNames={
-                        "w-full mb-4 min-h-96 [&_.analysis-content]:min-h-96 shadow-md analysis-" +
-                        analysis.analysisId
+                  <AnalysisAgent
+                    key={analysis.analysisId}
+                    rootClassNames={
+                      "w-full mb-4 [&_.analysis-content]:min-h-96 shadow-md analysis-" +
+                      analysis.analysisId
+                    }
+                    analysisId={analysis.analysisId}
+                    createAnalysisRequestBody={
+                      analysis.createAnalysisRequestBody
+                    }
+                    token={token}
+                    apiEndpoint={apiEndpoint}
+                    keyName={keyName}
+                    initiateAutoSubmit={true}
+                    hasExternalSearchBar={true}
+                    setGlobalLoading={setLoading}
+                    devMode={devMode}
+                    isTemp={isTemp}
+                    metadata={metadata}
+                    // we store this at the time of creation of the analysis
+                    // and don't change it for this specific analysis afterwards.
+                    sqlOnly={analysis.createAnalysisRequestBody.sql_only}
+                    onManagerCreated={(mgr, id, ctr) => {
+                      analysisDomRefs.current[id] = {
+                        ctr,
+                        mgr,
+                        id,
+                      };
+                      if (autoScroll) {
+                        // scroll to ctr
+                        scrollTo(id);
                       }
-                      analysisId={analysis.analysisId}
-                      createAnalysisRequestBody={
-                        analysis.createAnalysisRequestBody
-                      }
-                      token={token}
-                      apiEndpoint={apiEndpoint}
-                      keyName={keyName}
-                      initiateAutoSubmit={true}
-                      hasExternalSearchBar={true}
-                      setGlobalLoading={setLoading}
-                      devMode={devMode}
-                      isTemp={isTemp}
-                      metadata={metadata}
-                      // we store this at the time of creation of the analysis
-                      // and don't change it for this specific analysis afterwards.
-                      sqlOnly={analysis.createAnalysisRequestBody.sql_only}
-                      onManagerCreated={(mgr, id, ctr) => {
-                        analysisDomRefs.current[id] = {
-                          ctr,
-                          mgr,
-                          id,
-                        };
-                        if (autoScroll) {
-                          // scroll to ctr
-                          scrollTo(id);
-                        }
-                      }}
-                      onManagerDestroyed={(mgr, id) => {
-                        // remove the analysis from the analysisTree
-                        analysisTreeManager.removeAnalysis({
-                          analysisId: analysis.analysisId,
-                          isRoot: analysis.isRoot,
-                          rootAnalysisId: analysis.rootAnalysisId,
-                        });
+                    }}
+                    onManagerDestroyed={(mgr, id) => {
+                      // remove the analysis from the analysisTree
+                      analysisTreeManager.removeAnalysis({
+                        analysisId: analysis.analysisId,
+                        isRoot: analysis.isRoot,
+                        rootAnalysisId: analysis.rootAnalysisId,
+                      });
 
-                        analysisTreeManager.setActiveAnalysisId(null);
-                        if (activeRootAnalysisId === id) {
-                          analysisTreeManager.setActiveRootAnalysisId(null);
-                        }
-                      }}
-                    />
-                  </div>
+                      analysisTreeManager.setActiveAnalysisId(null);
+                      if (activeRootAnalysisId === id) {
+                        analysisTreeManager.setActiveRootAnalysisId(null);
+                      }
+
+                      setLoading(false);
+                    }}
+                  />
                 );
               })}
 

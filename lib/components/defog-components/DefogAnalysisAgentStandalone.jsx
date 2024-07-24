@@ -153,45 +153,45 @@ export function DefogAnalysisAgentStandalone({
           >
             <div className={twMerge("w-full h-full", rootClassNames)}>
               <div className="editor-container w-full h-full p-0">
-                <div className="defog-analysis-container w-full  h-full">
-                  <div
-                    data-content-type="analysis"
-                    className="m-0 h-full w-full"
-                    data-analysis-id={analysisId}
-                  >
-                    {mainSocketManager?.isConnected?.() &&
-                    toolSocketManager?.isConnected?.() &&
-                    reRunManager?.isConnected?.() ? (
-                      <AnalysisTreeViewer
-                        analysisTreeManager={analysisTreeManager}
-                        apiEndpoint={apiEndpoint}
-                        token={token}
-                        dashboards={dashboards}
-                        devMode={devMode}
-                        keyName={keyName}
-                        autoScroll={autoScroll}
-                        sideBarClasses={sideBarClasses}
-                        searchBarClasses={searchBarClasses}
-                        searchBarDraggable={searchBarDraggable}
-                        isTemp={isTemp}
-                        showToggle={showToggle}
-                        metadata={metadata}
-                        defaultSidebarOpen={() =>
-                          defaultSidebarOpen ||
-                          (window.innerWidth < 768 ? false : true)
-                        }
-                        predefinedQuestions={predefinedQuestions}
-                      />
-                    ) : (
-                      <div className="w-full h-full flex flex-col justify-center items-center ">
-                        <div className="mb-2 text-gray-400 text-sm">
-                          Setting up
-                        </div>
-                        <SpinningLoader classNames="w-5 h-5 text-gray-500" />
+                {/* <div className="defog-analysis-container w-full  h-full"> */}
+                <div
+                  data-content-type="analysis"
+                  className="m-0 h-full w-full"
+                  data-analysis-id={analysisId}
+                >
+                  {mainSocketManager?.isConnected?.() &&
+                  toolSocketManager?.isConnected?.() &&
+                  reRunManager?.isConnected?.() ? (
+                    <AnalysisTreeViewer
+                      analysisTreeManager={analysisTreeManager}
+                      apiEndpoint={apiEndpoint}
+                      token={token}
+                      dashboards={dashboards}
+                      devMode={devMode}
+                      keyName={keyName}
+                      autoScroll={autoScroll}
+                      sideBarClasses={sideBarClasses}
+                      searchBarClasses={searchBarClasses}
+                      searchBarDraggable={searchBarDraggable}
+                      isTemp={isTemp}
+                      showToggle={showToggle}
+                      metadata={metadata}
+                      defaultSidebarOpen={
+                        defaultSidebarOpen ||
+                        (window.innerWidth < 768 ? false : true)
+                      }
+                      predefinedQuestions={predefinedQuestions}
+                    />
+                  ) : (
+                    <div className="w-full h-full flex flex-col justify-center items-center ">
+                      <div className="mb-2 text-gray-400 text-sm">
+                        Setting up
                       </div>
-                    )}
-                  </div>
+                      <SpinningLoader classNames="w-5 h-5 text-gray-500" />
+                    </div>
+                  )}
                 </div>
+                {/* </div> */}
               </div>
             </div>
           </GlobalAgentContext.Provider>

@@ -1,20 +1,24 @@
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { ToolResultsTable } from "../ToolResultsTable";
+import { ToolResultsTable } from "./ToolResultsTable";
 import { ToolRunError } from "./ToolRunError";
 import { ToolRunInputList } from "./ToolRunInputList";
 import { ToolRunOutputList } from "./ToolRunOutputList";
 import { ToolReRun } from "./ToolReRun";
-import AgentLoader from "../common/AgentLoader";
-import LoadingLottie from "../svg/loader.json";
-import ErrorBoundary from "../../common/ErrorBoundary";
+import AgentLoader from "../../../common/AgentLoader";
+import LoadingLottie from "../../../svg/loader.json";
+import ErrorBoundary from "../../../../common/ErrorBoundary";
 import { csvParse } from "d3";
-import { getToolRunData, parseData, toolDisplayNames } from "../../utils/utils";
+import {
+  getToolRunData,
+  parseData,
+  toolDisplayNames,
+} from "../../../../utils/utils";
 import ToolRunAnalysis from "./ToolRunAnalysis";
-import { AddStepUI } from "./AddStepUI";
+import { AddStepUI } from "../../add-step/AddStepUI";
 import { Modal } from "antd";
-import setupBaseUrl from "../../utils/setupBaseUrl";
-import { ReactiveVariablesContext } from "../../context/ReactiveVariablesContext";
-import { GlobalAgentContext } from "../../context/GlobalAgentContext";
+import setupBaseUrl from "../../../../utils/setupBaseUrl";
+import { ReactiveVariablesContext } from "../../../../context/ReactiveVariablesContext";
+import { GlobalAgentContext } from "../../../../context/GlobalAgentContext";
 
 function parseOutputs(data, analysisData) {
   let parsedOutputs = {};

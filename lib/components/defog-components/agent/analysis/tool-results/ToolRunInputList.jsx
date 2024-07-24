@@ -6,7 +6,7 @@ import {
   TextArea,
 } from "../../../../../ui-components/lib/main";
 import { TrashIcon, PlusCircleIcon } from "@heroicons/react/20/solid";
-import { easyToolInputTypes } from "lib/components/utils/utils";
+import { easyToolInputTypes } from "../../../..//utils/utils";
 
 const inputTypeToUI = {
   list: (toolRunId, inputName, initialValue, onEdit) => {
