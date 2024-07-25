@@ -7,7 +7,7 @@ import { TrashIcon, PlusIcon } from "@heroicons/react/20/solid";
 
 const sidebarWidth = 170;
 
-export default function DocNav({ token, currentDocId }) {
+export default function DocNav({ token, currentDocId, keyName, apiEndpoint }) {
   const [sidebarsOpen, setSidebarsOpen] = useState({
     "analysis-list-sidebar": false,
     "db-creds-sidebar": false,
@@ -100,7 +100,12 @@ export default function DocNav({ token, currentDocId }) {
 
         {/* other docs */}
         <div id="nav-other-docs" title="List of other docs of this user">
-          <OtherDocs token={token} currentDocId={currentDocId}></OtherDocs>
+          <OtherDocs
+            token={token}
+            currentDocId={currentDocId}
+            keyName={keyName}
+            apiEndpoint={apiEndpoint}
+          ></OtherDocs>
         </div>
 
         {/* delete this doc */}

@@ -19,7 +19,10 @@ function DocPage() {
       <MessageMonitor />
       <div className="w-full">
         <Doc
+          devMode={false}
+          apiEndpoint={"https://demo.defog.ai"}
           user={"admin"}
+          keyName={"Manufacturing"}
           docId={docId}
           token={
             "bdbe4d376e6c8a53a791a86470b924c0715854bd353483523e3ab016eb55bcd0"
@@ -31,7 +34,7 @@ function DocPage() {
 }
 
 ReactDOM.createRoot(document.getElementById("root")).render(
-  <React.StrictMode>
-    <DocPage />
-  </React.StrictMode>
+  // <React.StrictMode>
+  <DocPage />
+  // </React.StrictMode>
 );

@@ -11,6 +11,7 @@ import YPartyKitProvider from "y-partykit/provider";
 import { CustomFormattingToolbar } from "./CustomFormattingToolbar";
 import DocNav from "./DocNav";
 import {
+  defaultAgentConfig,
   GlobalAgentContext,
   RelatedAnalysesContext,
 } from "../context/GlobalAgentContext";
@@ -25,13 +26,16 @@ import { customBlockSchema } from "./createCustomBlockSchema";
 import { filterSuggestionItems } from "@blocknote/core";
 import { getCustomSlashMenuItems } from "./createCustomSlashMenuItems";
 import { BlockNoteView } from "@blocknote/mantine";
+import { SpinningLoader } from "../../ui-components/lib/main";
 
-// remove the last slash from the url
 export function Doc({
-  docId = null,
-  user = null,
-  token = null,
-  apiEndpoint = null,
+  docId,
+  user,
+  token,
+  apiEndpoint,
+  keyName,
+  devMode,
+  config = {},
 }) {
   const partyEndpoint = apiEndpoint;
   const recentlyViewedEndpoint = setupBaseUrl({
@@ -40,9 +44,17 @@ export function Doc({
     apiEndpoint: apiEndpoint,
   });
 
-  const [loading, setLoading] = useState(true);
-  const [globalAgentContext, setGlobalAgentContext] = useState(
-    useContext(GlobalAgentContext)
+  const [yjsSynced, setYjsSynced] = useState(false);
+
+  const [socketsConnected, setSocketsConnected] = useState(false);
+
+  const [agentConfig, setAgentConfig] = useState(
+    Object.assign({}, defaultAgentConfig, {
+      config: {
+        ...defaultAgentConfig.config,
+        ...config,
+      },
+    })
   );
 
   const [reactiveContext, setReactiveContext] = useState(
@@ -54,7 +66,7 @@ export function Doc({
   );
 
   // this is the main socket manager for the agent
-  const [socketManager, setSocketManager] = useState(null);
+  const [mainSocketManager, setMainSockerManager] = useState(null);
   // this is for editing tool inputs/outputs
   const [toolSocketManager, setToolSocketManager] = useState(null);
   // this is for handling re runs of tools
@@ -63,13 +75,13 @@ export function Doc({
   useEffect(() => {
     async function setup() {
       // setup user items
-      const items = globalAgentContext.userItems;
-      const analyses = await getAllAnalyses();
+      const items = agentConfig.userItems;
+      const analyses = await getAllAnalyses(keyName, apiEndpoint);
 
       if (analyses && analyses.success) {
         items.analyses = analyses.analyses;
       }
-      const toolboxes = await getToolboxes(token);
+      const toolboxes = await getToolboxes(token, apiEndpoint);
       if (toolboxes && toolboxes.success) {
         items.toolboxes = toolboxes.toolboxes;
       }
@@ -79,8 +91,8 @@ export function Doc({
         path: "ws",
         apiEndpoint: apiEndpoint,
       });
-      const mgr = await setupWebsocketManager(urlToConnect);
-      setSocketManager(mgr);
+      const mainMgr = await setupWebsocketManager(urlToConnect);
+      setMainSockerManager(mainMgr);
 
       const rerunMgr = await setupWebsocketManager(
         urlToConnect.replace("/ws", "/step_rerun")
@@ -92,13 +104,16 @@ export function Doc({
         urlToConnect.replace("/ws", "/edit_tool_run"),
         (d) => console.log(d)
       );
+
       setToolSocketManager(toolSocketManager);
 
-      setGlobalAgentContext({
-        ...globalAgentContext,
+      setSocketsConnected(true);
+
+      setAgentConfig({
+        ...agentConfig,
         userItems: items,
         socketManagers: {
-          mainManager: mgr,
+          mainManager: mainMgr,
           reRunManager: rerunMgr,
           toolSocketManager: toolSocketManager,
         },
@@ -117,10 +132,10 @@ export function Doc({
     setup();
 
     return () => {
-      if (socketManager && socketManager.close) {
-        socketManager.close();
+      if (mainSocketManager && mainSocketManager.close) {
+        mainSocketManager.close();
         // also stop the timeout
-        socketManager.clearSocketTimeout();
+        mainSocketManager.clearSocketTimeout();
       }
       if (reRunManager && reRunManager.close) {
         reRunManager.close();
@@ -154,10 +169,11 @@ export function Doc({
     },
   });
 
-  window.editor = editor;
   editor.token = token;
   editor.user = user;
-  window.reactiveContext = reactiveContext;
+  editor.devMode = devMode;
+  editor.apiEndpoint = apiEndpoint;
+  editor.keyName = keyName;
 
   editor.onEditorContentChange(() => {
     try {
@@ -180,10 +196,10 @@ export function Doc({
   });
 
   yjsProvider.on("sync", () => {
-    setLoading(false);
+    setYjsSynced(true);
   });
 
-  return !loading ? (
+  return yjsSynced && socketsConnected ? (
     <RelatedAnalysesContext.Provider
       value={{
         val: relatedAnalysesContext,
@@ -194,9 +210,14 @@ export function Doc({
         value={{ val: reactiveContext, update: setReactiveContext }}
       >
         <GlobalAgentContext.Provider
-          value={{ val: globalAgentContext, update: setGlobalAgentContext }}
+          value={{ val: agentConfig, update: setAgentConfig }}
         >
-          <DocNav token={token} currentDocId={docId}></DocNav>
+          <DocNav
+            token={token}
+            currentDocId={docId}
+            keyName={keyName}
+            apiEndpoint={apiEndpoint}
+          ></DocNav>
           <div className="content">
             <div className="editor-container max-w-full">
               <BlockNoteView
@@ -206,11 +227,9 @@ export function Doc({
                 slashMenu={false}
               >
                 <FormattingToolbarController
-                  editor={editor}
                   formattingToolbar={CustomFormattingToolbar}
                 />
                 <SuggestionMenuController
-                  editor={editor}
                   triggerCharacter="/"
                   getItems={async (query) =>
                     filterSuggestionItems(
@@ -227,7 +246,12 @@ export function Doc({
       </ReactiveVariablesContext.Provider>
     </RelatedAnalysesContext.Provider>
   ) : (
-    <h5>Loading your document...</h5>
+    <div className="w-full h-screen flex flex-col justify-center items-center ">
+      <div className="mb-2 text-gray-400 text-sm">
+        {yjsSynced ? "Connecting to servers" : "Syncing document"}
+      </div>
+      <SpinningLoader classNames="w-5 h-5 text-gray-500" />
+    </div>
   );
 }
 

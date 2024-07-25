@@ -1,7 +1,7 @@
 import { createReactBlockSpec } from "@blocknote/react";
 import { createGlobalStyle } from "styled-components";
-import { AnalysisAgent } from "../../defog-components/agent/AnalysisAgent";
 import ErrorBoundary from "../../common/ErrorBoundary";
+import { AnalysisAgent } from "../../defog-components/agent/analysis/AnalysisAgent";
 
 function createAnalysisBlockCss(blockId) {
   return createGlobalStyle`div [data-id="${blockId}"] {
@@ -28,10 +28,20 @@ const AnalysisBlock = createReactBlockSpec(
           <GlobalStyle />
           <AnalysisAgent
             analysisId={block.props.analysisId}
-            user={editor.user}
             token={editor.token}
             editor={editor}
             block={block}
+            rootClassNames={
+              "w-full mb-4 [&_.analysis-content]:min-h-96 shadow-md analysis-" +
+              block.props.analysisId
+            }
+            apiEndpoint={editor.apiEndpoint}
+            keyName={editor.keyName}
+            devMode={editor.devMode}
+            onManagerDestroyed={(mgr, id) => {
+              // delete thsi block
+              editor.removeBlocks([block.id]);
+            }}
           />
         </ErrorBoundary>
       );

@@ -30,6 +30,7 @@ export function EmbedInner({
   searchBarDraggable = true,
   limitCsvUploadSize = true,
   maxCsvUploadSize = 10,
+  devMode = false,
 }) {
   const ctr = useRef(null);
   const messageManager = useContext(MessageManagerContext);
@@ -244,6 +245,7 @@ export function EmbedInner({
               isTemp={selectedDb.isTemp}
               sqliteConn={conn.current}
               searchBarDraggable={searchBarDraggable}
+              devMode={devMode}
             />
           ),
       },
@@ -379,6 +381,7 @@ export function EmbedInner({
  * @param {Boolean} props.searchBarDraggable -  If the main search bad should be draggable.
  * @param {Boolean} props.limitCsvUploadSize -  If the file size should be limited to maxCsvUploadSize.
  * @param {Number} props.maxCsvUploadSize -  The max file size allowed, in mbs. Default is 10.
+ * @param {Boolean} props.devMode -  If the component should be in dev mode.
  *
  */
 export function DefogAnalysisAgentEmbed({
@@ -390,6 +393,7 @@ export function DefogAnalysisAgentEmbed({
   searchBarDraggable = true,
   limitCsvUploadSize = true,
   maxCsvUploadSize = 10,
+  devMode = false,
 }) {
   // use the simple db list
   // and add some extra props to them
@@ -421,6 +425,7 @@ export function DefogAnalysisAgentEmbed({
             searchBarDraggable={searchBarDraggable}
             limitCsvUploadSize={limitCsvUploadSize}
             maxCsvUploadSize={maxCsvUploadSize}
+            devMode={devMode}
           />
         </MessageManagerContext.Provider>
       </div>

@@ -7,7 +7,6 @@ This uses our [ui-components](https://github.com/defog-ai/ui-components) repo as
 For the following docs, you may want to keep this figure in mind (The text labels are component names)
 <img width="974" alt="image" src="https://github.com/user-attachments/assets/0b361c8c-2b42-4f5e-8075-5fbc945a958b">
 
-
 ## Main components
 
 The two main components you will use are:
@@ -180,10 +179,6 @@ Test locally using the following commands in project root:
 
 We have two pages so far: query-data and doc. Mimicing, as far as possible, the main front end experience.
 
-Now you can go into `test/Doc.jsx` or `test/QueryDataPage.jsx` to see your components! Any changes you make to your code inside `lib/` will be reflected immediately.
+Now you can go into `test/test-doc.jsx` or `test/test-query.jsx` to see your components! Any changes you make to your code inside `lib/` will be reflected immediately.
 
 When done with improvements/edits, push to this repo and (maybe) notify others that they would need to run `git pull` in their repos in case they're using this code.
-
-```
-
-```

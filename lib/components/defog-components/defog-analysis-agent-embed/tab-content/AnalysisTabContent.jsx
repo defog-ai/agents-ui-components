@@ -13,13 +13,14 @@ export function AnalysisTabContent({
   searchBarDraggable = true,
   isTemp = false,
   sqliteConn = null,
+  devMode = false,
 }) {
   return (
     <ErrorBoundary>
       <DefogAnalysisAgentStandalone
         analysisTreeManager={selectedDbManager}
         metadata={selectedDbMetadata}
-        devMode={false}
+        devMode={devMode}
         token={token}
         keyName={selectedDbKeyName}
         apiEndpoint={apiEndpoint}

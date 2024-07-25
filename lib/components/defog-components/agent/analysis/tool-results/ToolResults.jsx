@@ -191,6 +191,7 @@ export function ToolResults({
 
         newData.parsedOutputs = parseOutputs(newData || {}, analysisData);
         // in case any of the inputs is a pd dataframe, we will also fetch those tool run's data
+        console.log(newData);
 
         const inputs = newData?.step?.inputs || [];
 

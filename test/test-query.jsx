@@ -7,7 +7,7 @@ function QueryDataPage() {
   return (
     <DefogAnalysisAgentEmbed
       searchBarDraggable={false}
-      apiEndpoint={"https://demo.defog.ai"}
+      apiEndpoint={"https://localhost:80/"}
       token={"23ee021b82afa024bee3b52be4d5a2603a4d0056780dd99c93b0caf0c875ea77"}
       // these are the ones that will be shown for new csvs uploaded
       uploadedCsvPredefinedQuestions={["Show me any 5 rows from the dataset"]}

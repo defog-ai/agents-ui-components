@@ -120,6 +120,8 @@ export const AnalysisAgent = ({
       setAnalysisBusy(false);
       setGlobalLoading(false);
 
+      console.log("here");
+
       // if the current stage is null, just destroy this analysis
       if (!newAnalysisData.currentStage) {
         analysisManager.removeEventListeners();
@@ -269,11 +271,11 @@ export const AnalysisAgent = ({
       try {
         const { analysisData = {}, toolRunDataCacheUpdates = {} } =
           await analysisManager.init({
-            question: createAnalysisRequestBody.other_data.user_question,
+            question: createAnalysisRequestBody?.other_data?.user_question,
             existingData:
               globalAgentContext?.val?.userItems?.analysisData?.[analysisId] ||
               null,
-            sqliteConn: globalAgentContext.val.sqliteConn,
+            sqliteConn: globalAgentContext?.val?.sqliteConn,
           });
 
         const response = await fetch(getToolsEndpoint, {
@@ -488,7 +490,6 @@ export const AnalysisAgent = ({
                 <Clarify
                   data={analysisData.clarify}
                   handleSubmit={(stageInput, submitStage) => {
-                    debugger;
                     handleSubmit(
                       analysisData?.user_question,
                       stageInput,

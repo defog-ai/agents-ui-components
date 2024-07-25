@@ -1,11 +1,26 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="./basic-tailwind-imports-for-html-files.css" rel="stylesheet" />
   </head>
   <body>
-    <div><a href="/doc">Doc</a></div>
-    <div><a href="/query-data">Query data</a></div>
+    <div class="flex flex-row">
+      <a href="/doc">
+        <div
+          class="p-2 m-2 cursor-pointer border rounded-md hover:bg-gray-50 flex items-center justify-center w-40 h-40"
+        >
+          Doc
+        </div>
+      </a>
+      <a href="/query-data">
+        <div
+          class="p-2 m-2 cursor-pointer border rounded-md hover:bg-gray-50 flex items-center justify-center w-40 h-40"
+        >
+          Query data
+        </div>
+      </a>
+    </div>
   </body>
 </html>
