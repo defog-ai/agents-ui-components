@@ -35,21 +35,24 @@ import {
 import { ReactiveVariablesContext } from "../context/AgentContext";
 
 /**
+ * @typedef {Object} DocProps
+ * @property {string} docId - Document ID.
+ * @property {string} user - User email/name.
+ * @property {string} token - Token aka hashed password. NOT api key.
+ * @property {string} apiEndpoint - API endpoint.
+ * @property {string} keyName - Api key name.
+ * @property {boolean} devMode - Whether it is in development mode.
+ * @property {boolean} isTemp - Whether it is a temporary DB aka CSV upload
+ * @property {Object} metadata - Database's metadata information. Only used in case of CSV uploads.
+ * @property {boolean} showAnalysisUnderstanding - Poorly named. Whether to show "analysis understanding" aka description of the results created by a model under the table.
+ * @property {boolean} showCode - Whether to show tool code.
+ * @property {boolean} allowDashboardAdd - Whether to allow addition to dashboards.
+ * @property {boolean} sqlOnly - Whether the analysis is SQL only.
+ * */
+
+/**
  * Main document component.
- * @param {Object} props - Component props.
- * @param {string} props.docId - Document ID.
- * @param {string} props.user - User email/name.
- * @param {string} props.token - Token aka hashed password. NOT api key.
- * @param {string} props.apiEndpoint - API endpoint.
- * @param {string} props.keyName - Api key name.
- * @param {boolean} props.devMode - Whether it is in development mode.
- * @param {boolean} props.isTemp - Whether it is a temporary DB aka CSV upload
- * @param {Object} props.metadata - Database's metadata information. Only used in case of CSV uploads.
- * @param {boolean} props.showAnalysisUnderstanding - Poorly named. Whether to show "analysis understanding" aka description of the results created by a model under the table.
- * @param {boolean} props.showCode - Whether to show tool code.
- * @param {boolean} props.allowDashboardAdd - Whether to allow addition to dashboards.
- * @param {boolean} props.sqlOnly - Whether the analysis is SQL only.
- *
+ * @param {DocProps} props - Component 
  * @returns {JSX.Element} - JSX element.
  *
  * @example
@@ -193,7 +196,7 @@ export function Doc({
   const yjsDoc = new Y.Doc();
 
   const yjsProvider = new YPartyKitProvider(partyEndpoint, docId, yjsDoc, {
-    params: {
+    propertys: {
       doc_id: docId,
       token: token,
     },

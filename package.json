@@ -27,7 +27,7 @@
     "@blocknote/react": "^0.14.6",
     "@codemirror/lang-python": "^6.1.6",
     "@codemirror/lang-sql": "^6.7.0",
-    "@defogdotai/ui-components": "file:../ui-components",
+    "@defogdotai/ui-components": "^0.0.0-beta.7",
     "@headlessui/react": "^2.1.2",
     "@heroicons/react": "^2.1.5",
     "@sqlite.org/sqlite-wasm": "^3.46.0-build2",

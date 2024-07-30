@@ -27,10 +27,10 @@ The two main components you will use are:
 />
 ```
 
-2. `QueryDataScaffolding`: This is purely a scaffolding component. Think of it as a "layout" component. This provides selectors of databases, and csv upload button. It renders the top bar you see above, and everything inside the tag (`children`) is rendered underneath the bar.
+2. `EmbedScaffolding`: This is purely a scaffolding component. Think of it as a "layout" component. This provides selectors of databases, and csv upload button. It renders the top bar you see above, and everything inside the tag (`children`) is rendered underneath the bar.
 
 ```jsx
-<QueryDataScaffolding
+<EmbedScaffolding
     defaultSelectedDb={selectedDbName}
     availableDbs={availableDbs.map((d) => d.name)}
     onDbChange={(selectedDbName) => ...}
@@ -38,13 +38,13 @@ The two main components you will use are:
 >
     // may be DefogAnalysisAgentStandalone or any other custom component
     <Content>
-</QueryDataScaffolding>
+</EmbedScaffolding>
 ```
 
 The usual use case for the above is:
 
 ```jsx
-<QueryDataScaffolding
+<EmbedScaffolding
     defaultSelectedDb={selectedDbName}
     availableDbs={availableDbs.map((d) => d.name)}
     onDbChange={(selectedDbName) => ...}
@@ -53,7 +53,7 @@ The usual use case for the above is:
     <DefogAnalysisAgentStandalone
        ...
     />
-</QueryDataScaffolding>
+</EmbedScaffolding>
 ```
 
 ## Managers
@@ -111,7 +111,7 @@ const tabs = [
 ]
 ```
 
-2. To change the `selectedDb` state variable above, we can use QueryDataScaffolding which gives us db selection UI and onChange methods.
+2. To change the `selectedDb` state variable above, we can use EmbedScaffolding which gives us db selection UI and onChange methods.
 
 ```jsx
 const availableDbs = [
@@ -137,14 +137,14 @@ const availableDbs = [
     }
 ]
 
-<QueryDataScaffolding
+<EmbedScaffolding
     defaultSelectedDb={selectedDbName}
     availableDbs={availableDbs.map((d) => d.name)}
     onDbChange={(selectedDbName) => setSelectedDbName(selectedDbName)}
     ...
 >
     <Tabs tabs={tabs} />
-</QueryDataScaffolding>
+</EmbedScaffolding>
 ```
 
 ## Repo Usage
