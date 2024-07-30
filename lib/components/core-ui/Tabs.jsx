@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { twMerge } from "tailwind-merge";
-import { SingleSelect } from "@ui-components";
 import { breakpoints } from "../hooks/useBreakPoint";
 import { useWindowSize } from "../hooks/useWindowSize";
+import { SingleSelect } from "./SingleSelect";
 
 /**
  * @typedef {{name: string, content?: [string], classNames?: string, headerClassNames?: string}} Tab

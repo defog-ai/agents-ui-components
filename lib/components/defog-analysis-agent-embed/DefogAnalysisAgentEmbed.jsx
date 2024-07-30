@@ -333,8 +333,14 @@ export function EmbedInner({
     (async () => {
       if (conn.current) return;
 
+      console.log("Creating");
       const _conn = await initializeSQLite();
       conn.current = _conn;
+
+      agentConfigContext.update({
+        ...agentConfigContext.val,
+        sqliteConn: _conn,
+      });
 
       window.sqlite = _conn;
     })();
@@ -354,6 +360,7 @@ export function EmbedInner({
           isTemp: true,
           sqlOnly: true,
           keyName: selectedDb.keyName,
+          metadata: selectedDb.metadata,
         });
       } else {
         agentConfigContext.update({
@@ -361,6 +368,7 @@ export function EmbedInner({
           isTemp: false,
           sqlOnly: false,
           keyName: selectedDb.keyName,
+          metadata: selectedDb.metadata,
         });
       }
     }

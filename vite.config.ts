@@ -18,14 +18,18 @@ export default ({ mode }) => {
     plugins: [react(), dts({ include: ["lib"] })],
     resolve: {
       alias: {
-        "@ui-components": resolve(__dirname, "./lib/main.ts"),
+        "@ui-components": resolve(__dirname, "./lib/core-ui.ts"),
       },
     },
     build: {
       lib: {
         // Could also be a dictionary or array of multiple entry points
         entry: {
-          main: resolve(__dirname, "lib/main.ts"),
+          agent: resolve(__dirname, "lib/agent.ts"),
+          doc: resolve(__dirname, "lib/doc.ts"),
+          "core-ui": resolve(__dirname, "lib/core-ui.ts"),
+          "tool-editor": resolve(__dirname, "lib/tool-editor.ts"),
+          styles: resolve(__dirname, "lib/styles.ts"),
         },
         formats: ["es"],
       },
@@ -36,12 +40,12 @@ export default ({ mode }) => {
         external: [...Object.keys(peerDependencies)],
         target: "esnext",
         sourcemap: true,
-        output: {
-          globals: {
-            react: "React",
-            "react-dom": "ReactDOM",
-          },
-        },
+        // output: {
+        //   globals: {
+        //     react: "React",
+        //     "react-dom": "ReactDOM",
+        //   },
+        // },
       },
     },
   });

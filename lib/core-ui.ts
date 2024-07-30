@@ -1,14 +1,3 @@
-"use client";
-
-import "./styles/index.scss";
-export { DefogAnalysisAgentEmbed } from "./components/defog-analysis-agent-embed/DefogAnalysisAgentEmbed";
-
-export { EmbedScaffolding } from "./components/defog-analysis-agent-embed/EmbedScaffolding";
-
-export { DocIcon } from "./components/docs/DocIcon";
-
-export { Doc } from "./components/docs/Doc";
-
 export {
   useBreakPoint,
   breakpoints,
@@ -41,6 +30,3 @@ export { Toggle } from "./components/core-ui/Toggle.jsx";
 export { DropFiles } from "./components/core-ui/DropFiles.jsx";
 export { DropFilesHeadless } from "./components/core-ui/DropFilesHeadless.jsx";
 export { NavBar } from "./components/core-ui/NavBar.jsx";
-
-export { AddTool } from "./components/tool-editor/AddTool";
-export { DefineTool } from "./components/tool-editor/DefineTool";

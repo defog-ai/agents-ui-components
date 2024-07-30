@@ -5,9 +5,8 @@ import { ToolRunInputList } from "./ToolRunInputList";
 import { ToolRunOutputList } from "./ToolRunOutputList";
 import { ToolReRun } from "./ToolReRun";
 import AgentLoader from "../../../common/AgentLoader";
-import LoadingLottie from "../../../svg/loader.json";
+// import LoadingLottie from "../../../svg/loader.json";
 import ErrorBoundary from "../../../common/ErrorBoundary";
-import { csvParse } from "d3";
 import {
   getToolRunData,
   parseData,
@@ -193,7 +192,6 @@ export function ToolResults({
 
         newData.parsedOutputs = parseOutputs(newData || {}, analysisData);
         // in case any of the inputs is a pd dataframe, we will also fetch those tool run's data
-        console.log(newData);
 
         const inputs = newData?.step?.inputs || [];
 
@@ -462,7 +460,6 @@ export function ToolResults({
             message={
               toolRunDataLoading ? "Loading data..." : "Running analysis..."
             }
-            lottieData={LoadingLottie}
           />
         </div>
       ) : activeNode && toolRunData && activeNode.data.isAddStepNode ? (

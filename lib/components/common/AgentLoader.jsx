@@ -1,4 +1,4 @@
-import React, { Suspense, lazy } from "react";
+import React, { Suspense } from "react";
 import { twMerge } from "tailwind-merge";
 import { SpinningLoader } from "@ui-components";
 
@@ -15,21 +15,10 @@ const AgentLoader = ({
   return (
     <div className={twMerge("agent-loader", classNames)}>
       {svg && svg}
-      {lottieData ? (
-        <Suspense
-          fallback={
-            <div className="w-full h-full flex items-center justify-center h-40">
-              Loading
-              <SpinningLoader classNames="text-gray-400 ml-3" />
-            </div>
-          }
-        >
-          {/* <Lottie animationData={lottieData} loop={true} /> */}
-          {message && <h3>{message}</h3>}
-        </Suspense>
-      ) : (
-        message && <h3>{message}</h3>
-      )}
+      <div className="w-full h-40 flex text-sm flex-col items-center justify-center">
+        {message}
+        <SpinningLoader classNames="text-gray-400 mt-3" />
+      </div>
       {type === "error" && <h2>ERROR</h2>}
       {children && <div className="searchState-child">{children}</div>}
     </div>

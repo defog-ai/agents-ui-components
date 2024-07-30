@@ -9,7 +9,7 @@ import React, {
   useSyncExternalStore,
 } from "react";
 import AgentLoader from "../../common/AgentLoader";
-import LoadingLottie from "../../svg/loader.json";
+// import LoadingLottie from "../../svg/loader.json";
 import StepsDag from "./StepsDag";
 import {
   sentenceCase,
@@ -48,7 +48,6 @@ import { ToolResults } from "./tool-results/ToolResults";
  * @property {Function} setGlobalLoading - Global loading. Useful if you are handling multiple analysis..
  * @property {Function} onManagerCreated - Callback when analysis manager is created.
  * @property {Function} onManagerDestroyed - Callback when analysis manager is destroyed.
- * @property {boolean} forceSqlOnly - Whether to force SQL only. If not, it will use the value from the context. Note that sending false here will make it an advanced analysis. If you want to use the global sqlOnly stored in AgentConfigContext, don't pass the prop
  */
 
 /**
@@ -64,7 +63,6 @@ export const AnalysisAgent = ({
   setGlobalLoading = (...args) => {},
   onManagerCreated = (...args) => {},
   onManagerDestroyed = (...args) => {},
-  forceSqlOnly = false,
 }) => {
   const agentConfigContext = useContext(AgentConfigContext);
   const {
@@ -79,8 +77,6 @@ export const AnalysisAgent = ({
     reRunManager,
     toolSocketManager,
   } = agentConfigContext.val;
-
-  console.log(sqlOnly, apiEndpoint);
 
   const getToolsEndpoint = setupBaseUrl({
     protocol: "http",
@@ -217,7 +213,7 @@ export const AnalysisAgent = ({
       devMode,
       metadata,
       isTemp,
-      sqlOnly: forceSqlOnly === undefined ? sqlOnly : forceSqlOnly,
+      sqlOnly: sqlOnly,
       onNewData: onMainSocketMessage,
       onReRunData: onReRunMessage,
       onManagerDestroyed: onManagerDestroyed,
@@ -477,7 +473,7 @@ export const AnalysisAgent = ({
             {titleDiv}
             <AgentLoader
               message={!analysisData ? "Setting up..." : "Thinking..."}
-              lottieData={LoadingLottie}
+              // lottieData={LoadingLottie}
               classNames={"m-0 h-full bg-transparent"}
             />
           </div>
@@ -571,11 +567,11 @@ export const AnalysisAgent = ({
                       </>
                     ) : (
                       analysisBusy && (
-                        <div className="bg-gray-50 h-full w-full rounded-3xl">
+                        <div className="bg-gray-50 h-full flex items-center justify-center w-full rounded-3xl">
                           <AgentLoader
                             message={"Fetching data..."}
-                            lottieData={LoadingLottie}
-                            classNames={"m-0 h-full bg-transparent"}
+                            // lottieData={LoadingLottie}
+                            classNames={"m-0 h-40 bg-transparent"}
                           />
                         </div>
                       )

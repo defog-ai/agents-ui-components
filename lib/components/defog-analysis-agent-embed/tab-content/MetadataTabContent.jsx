@@ -72,8 +72,6 @@ export function MetadataTabContent({
       : [];
   }, [metadata, db]);
 
-  console.log(db)
-
   const columns =
     Array.isArray(metadata) && !db.metadataFetchingError
       ? [

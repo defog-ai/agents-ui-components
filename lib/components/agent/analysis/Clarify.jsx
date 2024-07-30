@@ -1,6 +1,6 @@
 import { Divider, Select, Slider, Space, Input as AntdInput } from "antd";
 import React, { useState, useRef } from "react";
-import LoadingLottie from "../../svg/loader.json";
+// import LoadingLottie from "../../svg/loader.json";
 import AgentLoader from "../../common/AgentLoader";
 import { Input } from "@ui-components";
 import Writer from "../../common/Writer";
@@ -228,7 +228,7 @@ export default function Clarify({
         ) : (
           <AgentLoader
             message={"Thinking about whether I need to clarify the question..."}
-            lottieData={LoadingLottie}
+            // lottieData={LoadingLottie}
           />
         )}
       </div>

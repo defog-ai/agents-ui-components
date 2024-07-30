@@ -45,7 +45,7 @@ export function AnalysisTreeViewer({
 }) {
   const agentConfigContext = useContext(AgentConfigContext);
 
-  const { keyName, isTemp, sqlOnly } = agentConfigContext.val;
+  const { keyName, isTemp, sqlOnly, metadata } = agentConfigContext.val;
 
   // console.log(
   //   "keyName:",
@@ -124,8 +124,7 @@ export function AnalysisTreeViewer({
           keyName,
           isRoot,
           directParentId,
-          // force sql only if showToggle is false (currently in temp dbs)
-          sqlOnly: showToggle ? sqlOnly : true,
+          sqlOnly,
           isTemp,
         });
 
@@ -148,7 +147,7 @@ export function AnalysisTreeViewer({
         setLoading(false);
       }
     },
-    [analysisTreeManager, sqlOnly, isTemp, keyName]
+    [analysisTreeManager, sqlOnly, isTemp, keyName, metadata]
   );
 
   useEffect(() => {
@@ -534,7 +533,6 @@ export function AnalysisTreeViewer({
         title="Select the dashboards to add this analysis to"
         open={addToDashboardSelection}
         onOk={() => {
-          console.log(selectedDashboards);
           return;
         }}
         onCancel={() => {
