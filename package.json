@@ -1,7 +1,6 @@
 {
   "name": "@defogdotai/agents-ui-components",
-  "private": true,
-  "version": "0.0.0.beta-1",
+  "version": "0.0.0-beta-6",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -9,24 +8,17 @@
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },
+  "main": "./dist/main.js",
+  "types": "./dist/main.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/agent.js",
-      "types": "./dist/agent.d.ts"
+      "import": "./dist/main.js"
     },
-    "./doc": {
-      "import": "./dist/doc.js",
-      "types": "./dist/doc.d.ts"
-    },
-    "./core-ui": {
-      "import": "./dist/core-ui.js",
-      "types": "./dist/core-ui.d.ts"
-    },
-    "./tool-editor": {
-      "import": "./dist/tool-editor.js",
-      "types": "./dist/tool-editor.d.ts"
-    }
+    "./css": "./dist/style.css"
   },
+  "files": [
+    "dist"
+  ],
   "peerDependencies": {
     "react": "^18.3.1",
     "react-dom": "^18.3.1"

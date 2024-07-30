@@ -1,6 +1,6 @@
 import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react-swc";
-import { peerDependencies, dependencies } from "./package.json";
+import { peerDependencies } from "./package.json";
 import { libInjectCss } from "vite-plugin-lib-inject-css";
 import { resolve } from "path";
 import tailwindcss from "tailwindcss";
@@ -15,20 +15,17 @@ export default ({ mode }) => {
         plugins: [tailwindcss],
       },
     },
-    plugins: [react(), libInjectCss(), dts({ include: ["lib"] })],
+    plugins: [react(), dts({ include: ["lib"] })],
     resolve: {
       alias: {
-        "@ui-components": resolve(__dirname, "./lib/core-ui.ts"),
-      }
+        "@ui-components": resolve(__dirname, "./lib/main.ts"),
+      },
     },
     build: {
       lib: {
         // Could also be a dictionary or array of multiple entry points
         entry: {
-          "agent": resolve(__dirname, "lib/agent.ts"),
-          "doc": resolve(__dirname, "lib/doc.ts"),
-          "tool-editor": resolve(__dirname, "lib/tool-editor.ts"),
-          "core-ui": resolve(__dirname, "lib/core-ui.ts"),
+          main: resolve(__dirname, "lib/main.ts"),
         },
         formats: ["es"],
       },
@@ -36,12 +33,15 @@ export default ({ mode }) => {
       rollupOptions: {
         // make sure to externalize deps that shouldn't be bundled
         // into your library
-        external: [
-          ...Object.keys(peerDependencies),
-          ...Object.keys(dependencies),
-        ],
+        external: [...Object.keys(peerDependencies)],
         target: "esnext",
         sourcemap: true,
+        output: {
+          globals: {
+            react: "React",
+            "react-dom": "ReactDOM",
+          },
+        },
       },
     },
   });

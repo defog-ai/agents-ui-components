@@ -2,7 +2,7 @@ import React, { Suspense, lazy } from "react";
 import { twMerge } from "tailwind-merge";
 import { SpinningLoader } from "@ui-components";
 
-const Lottie = lazy(() => import("lottie-react"));
+// const Lottie = lazy(() => import("lottie-react"));
 
 const AgentLoader = ({
   type = null,
@@ -24,7 +24,7 @@ const AgentLoader = ({
             </div>
           }
         >
-          <Lottie animationData={lottieData} loop={true} />
+          {/* <Lottie animationData={lottieData} loop={true} /> */}
           {message && <h3>{message}</h3>}
         </Suspense>
       ) : (

@@ -82,8 +82,10 @@ export function EmbedInner({
 
   const addCsvToDbListAndSqlite = async ({ file, columns, rows }) => {
     try {
-      if(!conn.current) {
-        throw new Error("SQLite connection not initialized. Please refresh the page and try again. If the error persists, please reach out to us.");
+      if (!conn.current) {
+        throw new Error(
+          "SQLite connection not initialized. Please refresh the page and try again. If the error persists, please reach out to us."
+        );
       }
       setFileUploading(true);
       // if file size is >10mb, raise error
@@ -146,8 +148,6 @@ export function EmbedInner({
             data_type: d.dataType,
           }));
 
-          console.log(metadata);
-
           // get column descriptions.
           // we do this at the end to have *some metadata* in case we error out here
           const res = await getColumnDescriptionsForCsv({
@@ -156,8 +156,6 @@ export function EmbedInner({
             metadata: metadata,
             tableName: sqliteTableName,
           });
-
-          console.log(res);
 
           if (!res.success || res.error_message || !res.descriptions) {
             throw new Error(
@@ -193,7 +191,7 @@ export function EmbedInner({
           name: newDbName,
           keyName: csvFileKeyName,
           isTemp: true,
-          metadata: Object.assign({}, metadata || {}),
+          metadata: metadata ? metadata : null,
           data: Object.assign({}, tableData || {}),
           columns: columns,
           sqliteTableName,
@@ -253,18 +251,7 @@ export function EmbedInner({
           ) : (
             <AnalysisTabContent
               selectedDbManager={selectedDbManager}
-              // selectedDbKeyName={selectedDbKeyName}
-              // selectedDbMetadata={selectedDbMetadata}
               predefinedQuestions={selectedDbPredefinedQuestions}
-              // token={token}
-              // apiEndpoint={apiEndpoint}
-              // config={{
-              //   showAnalysis: false,
-              //   showCode: false,
-              //   allowDashboardAdd: false,
-              // }}
-              // sqliteConn={conn.current}
-              // devMode={devMode}
               isTemp={selectedDb.isTemp}
               searchBarDraggable={searchBarDraggable}
             />
@@ -347,9 +334,9 @@ export function EmbedInner({
       if (conn.current) return;
 
       const _conn = await initializeSQLite();
-      // conn.current = _conn;
+      conn.current = _conn;
 
-      // window.sqlite = _conn;
+      window.sqlite = _conn;
     })();
   }, []);
 
@@ -422,7 +409,7 @@ export function EmbedInner({
  * @property {Boolean=} sqlOnly - Whether the analysis is SQL only.
  * @property {Object=} sqliteConn - The sqlite connection object
  * @property {Boolean=} disableMessages - Whether to disable messages
- * @property {Array<{keyName: string, predefinedQuestions?: [string], name?: string}>=} dbs - The list of databases to show in the dropdown. Each object should have a keyName and predefinedQuestions array.
+ * @property {Array<{keyName: string, predefinedQuestions?: string[], name?: string}>=} dbs - The list of databases to show in the dropdown. Each object should have a keyName and predefinedQuestions array.
  * @property {Array<string>=} uploadedCsvPredefinedQuestions - The predefined questions for the uploaded CSVs
  * @property {Boolean=} searchBarDraggable -  If the main search bad should be draggable.
  * @property {String=} csvFileKeyName -  The key name for the csv file.
