@@ -176,7 +176,7 @@ export function DefogAnalysisAgentStandalone({
                         isTemp={isTemp}
                         showToggle={showToggle}
                         metadata={metadata}
-                        defaultSidebarOpen={() =>
+                        defaultSidebarOpen={
                           defaultSidebarOpen ||
                           (window.innerWidth < 768 ? false : true)
                         }
