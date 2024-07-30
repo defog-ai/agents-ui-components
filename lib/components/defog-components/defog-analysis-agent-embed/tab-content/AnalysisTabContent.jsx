@@ -1,41 +1,38 @@
-import { DefogAnalysisAgentStandalone } from "../../DefogAnalysisAgentStandalone";
 import ErrorBoundary from "../../../common/ErrorBoundary";
 import { twMerge } from "tailwind-merge";
+import { AgentConfigContext } from "../../../context/AgentContext";
+import { useContext } from "react";
+import { AnalysisTreeViewer } from "../../agent/analysis-tree-viewer/AnalysisTreeViewer";
 
 export function AnalysisTabContent({
   selectedDbManager,
-  selectedDbKeyName,
-  selectedDbMetadata,
-  token,
-  apiEndpoint,
   predefinedQuestions,
-  config = {},
   searchBarDraggable = true,
   isTemp = false,
-  sqliteConn = null,
-  devMode = false,
+  sideBarClasses = "h-full",
+  searchBarClasses = "",
+  defaultSidebarOpen = null,
 }) {
+  const agentConfigContext = useContext(AgentConfigContext);
+
   return (
     <ErrorBoundary>
-      <DefogAnalysisAgentStandalone
+      <AnalysisTreeViewer
         analysisTreeManager={selectedDbManager}
-        metadata={selectedDbMetadata}
-        devMode={devMode}
-        token={token}
-        keyName={selectedDbKeyName}
-        apiEndpoint={apiEndpoint}
+        dashboards={agentConfigContext.val.dashboards}
         autoScroll={true}
-        sideBarClasses="h-full"
+        sideBarClasses={sideBarClasses}
         searchBarClasses={twMerge(
           searchBarDraggable ? "" : "sticky bottom-1",
-          "[&_textarea]:pl-2"
+          "[&_textarea]:pl-2",
+          searchBarClasses
         )}
         searchBarDraggable={searchBarDraggable}
-        predefinedQuestions={predefinedQuestions}
-        config={config}
-        isTemp={isTemp}
-        sqliteConn={sqliteConn}
         showToggle={!isTemp}
+        defaultSidebarOpen={
+          defaultSidebarOpen || (window.innerWidth < 768 ? false : true)
+        }
+        predefinedQuestions={predefinedQuestions}
       />
     </ErrorBoundary>
   );

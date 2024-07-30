@@ -4,7 +4,7 @@ import {
   SingleSelect,
   SpinningLoader,
   Table,
-} from "../../../..//ui-components/lib/main";
+} from "@defogdotai/ui-components";
 import ErrorBoundary from "../../../common/ErrorBoundary";
 import { twMerge } from "tailwind-merge";
 
@@ -70,7 +70,12 @@ export function PreviewDataTabContent({
         } catch (e) {
           console.log(e);
           error = e;
-          fetchedData = { error: "Failed to fetch data." };
+
+          messageManager.error(
+            "Error getting data: " + fetchedData.error || "Failed to fetch data"
+          );
+
+          fetchedData = { error: fetchedData.error || "Failed to fetch data." };
         } finally {
           data[tableName] = {
             ...data[tableName],

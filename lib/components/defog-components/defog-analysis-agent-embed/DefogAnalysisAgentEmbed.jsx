@@ -5,8 +5,9 @@ import {
   MessageManager,
   MessageManagerContext,
   MessageMonitor,
+  SpinningLoader,
   Tabs,
-} from "../../../ui-components/lib/main";
+} from "@defogdotai/ui-components";
 import { QueryDataScaffolding } from "../QueryDataScaffolding";
 import { twMerge } from "tailwind-merge";
 import { AnalysisTreeManager } from "../agent/analysis-tree-viewer/analysisTreeManager";
@@ -14,17 +15,29 @@ import { MetadataTabContent } from "./tab-content/MetadataTabContent";
 import { AnalysisTabContent } from "./tab-content/AnalysisTabContent";
 import { PreviewDataTabContent } from "./tab-content/PreviewDataTabContent";
 import { TabNullState } from "./tab-content/TabNullState";
-import { getColumnDescriptionsForCsv } from "../../utils/utils";
+import {
+  getAllAnalyses,
+  getColumnDescriptionsForCsv,
+  getToolboxes,
+} from "../../utils/utils";
 import {
   addParsedCsvToSqlite,
   initializeSQLite,
   validateTableName,
 } from "../../utils/sqlite";
+import {
+  AgentConfigContext,
+  createAgentConfig,
+  RelatedAnalysesContext,
+  ReactiveVariablesContext,
+} from "../../context/AgentContext";
+import setupBaseUrl from "../../utils/setupBaseUrl";
+import { setupWebsocketManager } from "../../utils/websocket-manager";
 
 export function EmbedInner({
   token = null,
   apiEndpoint = null,
-  csvFileKeyName = "Manufacturing",
+  csvFileKeyName = null,
   uploadedCsvPredefinedQuestions = ["Show me any 5 rows"],
   dbs,
   searchBarDraggable = true,
@@ -34,6 +47,7 @@ export function EmbedInner({
 }) {
   const ctr = useRef(null);
   const messageManager = useContext(MessageManagerContext);
+  const agentConfigContext = useContext(AgentConfigContext);
   const conn = useRef(null);
 
   const [availableDbs, setAvailableDbs] = useState(dbs);
@@ -81,7 +95,8 @@ export function EmbedInner({
       }
       const sqliteTableName = validateTableName("csv_" + newDbName);
 
-      let tableData, metadata;
+      let tableData = null;
+      let metadata = null;
 
       // also add to sqlite
       // once done uploading, also add it to sqlite db
@@ -128,6 +143,8 @@ export function EmbedInner({
             data_type: d.dataType,
           }));
 
+          console.log(metadata);
+
           // get column descriptions.
           // we do this at the end to have *some metadata* in case we error out here
           const res = await getColumnDescriptionsForCsv({
@@ -136,6 +153,8 @@ export function EmbedInner({
             metadata: metadata,
             tableName: sqliteTableName,
           });
+
+          console.log(res);
 
           if (!res.success || res.error_message || !res.descriptions) {
             throw new Error(
@@ -162,6 +181,7 @@ export function EmbedInner({
         }
       }
 
+      console.log(metadata, tableData);
       // now add it to our db list
       setAvailableDbs((prev) => {
         const newDbs = [...prev];
@@ -170,11 +190,11 @@ export function EmbedInner({
           name: newDbName,
           keyName: csvFileKeyName,
           isTemp: true,
-          metadata: metadata || null,
-          data: Object.assign({}, tableData),
+          metadata: Object.assign({}, metadata || {}),
+          data: Object.assign({}, tableData || {}),
           columns: columns,
           sqliteTableName,
-          metadataFetchingError: false,
+          metadataFetchingError: metadata || "Error fetching metadata",
           predefinedQuestions: uploadedCsvPredefinedQuestions,
           analysisTreeManager: AnalysisTreeManager({}),
         };
@@ -211,8 +231,6 @@ export function EmbedInner({
     [availableDbs, fileUploading]
   );
 
-  console.log(selectedDb);
-
   const tabs = useMemo(() => {
     return [
       {
@@ -232,20 +250,20 @@ export function EmbedInner({
           ) : (
             <AnalysisTabContent
               selectedDbManager={selectedDbManager}
-              selectedDbKeyName={selectedDbKeyName}
-              selectedDbMetadata={selectedDbMetadata}
+              // selectedDbKeyName={selectedDbKeyName}
+              // selectedDbMetadata={selectedDbMetadata}
               predefinedQuestions={selectedDbPredefinedQuestions}
-              token={token}
-              apiEndpoint={apiEndpoint}
-              config={{
-                showAnalysis: false,
-                showCode: false,
-                allowDashboardAdd: false,
-              }}
+              // token={token}
+              // apiEndpoint={apiEndpoint}
+              // config={{
+              //   showAnalysis: false,
+              //   showCode: false,
+              //   allowDashboardAdd: false,
+              // }}
+              // sqliteConn={conn.current}
+              // devMode={devMode}
               isTemp={selectedDb.isTemp}
-              sqliteConn={conn.current}
               searchBarDraggable={searchBarDraggable}
-              devMode={devMode}
             />
           ),
       },
@@ -324,6 +342,7 @@ export function EmbedInner({
   useEffect(() => {
     (async () => {
       if (conn.current) return;
+      console.log("foing", conn.current);
 
       const _conn = await initializeSQLite();
       conn.current = _conn;
@@ -335,8 +354,26 @@ export function EmbedInner({
   useEffect(() => {
     // if the new selected db is temp, empty its tree
     // becuase currently the tool runs are not saved on servers. so can't be fetched again.
-    if (selectedDb && selectedDb.isTemp) {
-      selectedDbManager.reset();
+    if (selectedDb) {
+      if (selectedDb.isTemp) {
+        selectedDbManager.reset();
+        // set some presets for the temp db
+        // set is temp to true in the context
+        // and also sqlOnly to true
+        agentConfigContext.update({
+          ...agentConfigContext.val,
+          isTemp: true,
+          sqlOnly: true,
+          keyName: selectedDb.keyName,
+        });
+      } else {
+        agentConfigContext.update({
+          ...agentConfigContext.val,
+          isTemp: false,
+          sqlOnly: false,
+          keyName: selectedDb.keyName,
+        });
+      }
     }
   }, [selectedDb]);
 
@@ -374,27 +411,145 @@ export function EmbedInner({
  *
  * @param {Object} props
  * @param {String} props.token - The hashed password.
- * @param {String} props.apiEndpoint - The API endpoint to use for the requests
- * @param {Boolean} props.disableMessages - Whether to disable messages or not
- * @param {Array<{keyName: string, predefinedQuestions?: [string], name?: string}>} props.dbs - The list of databases to show in the dropdown. Each object should have a keyName and predefinedQuestions array.
- * @param {Array<string>} props.uploadedCsvPredefinedQuestions - The predefined questions for the uploaded CSVs
- * @param {Boolean} props.searchBarDraggable -  If the main search bad should be draggable.
- * @param {Boolean} props.limitCsvUploadSize -  If the file size should be limited to maxCsvUploadSize.
- * @param {Number} props.maxCsvUploadSize -  The max file size allowed, in mbs. Default is 10.
- * @param {Boolean} props.devMode -  If the component should be in dev mode.
+ * @param {Object=} props.user - User email/name. Default is "admin".
+ * @param {String} props.apiEndpoint - The API endpoint to use for the requests. Default is https://demo.defog.ai.
+ * @param {Boolean=} props.devMode -  If the component should be in dev mode.
+ * @param {Boolean=} props.showAnalysisUnderstanding - Poorly named. Whether to show "analysis understanding" aka description of the results created by a model under the table.
+ * @param {Boolean=} props.showCode - Whether to show tool code.
+ * @param {Boolean=} props.allowDashboardAdd - Whether to allow addition to dashboards.
+ * @param {Boolean=} props.isTemp - Whether it is a temporary DB aka CSV upload
+ * @param {Object=} props.metadata - Database's metadata information. Only used in case of CSV uploads.
+ * @param {Boolean=} props.sqlOnly - Whether the analysis is SQL only.
+ * @param {Object=} props.sqliteConn - The sqlite connection object
+ * @param {Boolean=} props.disableMessages - Whether to disable messages
+ * @param {Array<{keyName: string, predefinedQuestions?: [string], name?: string}>=} props.dbs - The list of databases to show in the dropdown. Each object should have a keyName and predefinedQuestions array.
+ * @param {Array<string>=} props.uploadedCsvPredefinedQuestions - The predefined questions for the uploaded CSVs
+ * @param {Boolean=} props.searchBarDraggable -  If the main search bad should be draggable.
+ * @param {String=} props.csvFileKeyName -  The key name for the csv file.
+ * @param {Boolean=} props.limitCsvUploadSize -  If the file size should be limited to maxCsvUploadSize.
+ * @param {Number=} props.maxCsvUploadSize -  The max file size allowed, in mbs. Default is 10.
  *
  */
 export function DefogAnalysisAgentEmbed({
-  token = null,
-  apiEndpoint = null,
+  token,
+  user = "admin",
+  apiEndpoint = "https://demo.defog.ai",
+  devMode = false,
+  showAnalysisUnderstanding = true,
+  showCode = false,
+  allowDashboardAdd = true,
+  isTemp = false,
+  metadata = null,
+  sqlOnly = false,
+  sqliteConn = null,
   disableMessages = false,
   dbs = [],
   uploadedCsvPredefinedQuestions = ["Show me any 5 rows"],
   searchBarDraggable = true,
+  csvFileKeyName = null,
   limitCsvUploadSize = true,
   maxCsvUploadSize = 10,
-  devMode = false,
 }) {
+  const [socketsConnected, setSocketsConnected] = useState(false);
+
+  const [agentConfig, setAgentConfig] = useState(
+    createAgentConfig({
+      user,
+      token,
+      showAnalysisUnderstanding,
+      showCode,
+      allowDashboardAdd,
+      isTemp,
+      devMode,
+      apiEndpoint,
+      metadata,
+      sqlOnly,
+      sqliteConn,
+    })
+  );
+
+  const [reactiveContext, setReactiveContext] = useState(
+    useContext(ReactiveVariablesContext)
+  );
+
+  const [relatedAnalysesContext, setRelatedAnalysesContext] = useState(
+    useContext(RelatedAnalysesContext)
+  );
+
+  // this is the main socket manager for the agent
+  const [mainSocketManager, setMainSockerManager] = useState(null);
+  // this is for editing tool inputs/outputs
+  const [toolSocketManager, setToolSocketManager] = useState(null);
+  // this is for handling re runs of tools
+  const [reRunManager, setReRunManager] = useState(null);
+
+  useEffect(() => {
+    async function setup() {
+      // setup user items
+      const userItems = {};
+      const analyses = await getAllAnalyses(
+        dbs.length > 0 ? dbs[0].keyName : null,
+        apiEndpoint
+      );
+
+      if (analyses && analyses.success) {
+        userItems.analyses = analyses.analyses;
+      }
+      const toolboxes = await getToolboxes(token, apiEndpoint);
+      if (toolboxes && toolboxes.success) {
+        userItems.toolboxes = toolboxes.toolboxes;
+      }
+
+      const urlToConnect = setupBaseUrl({
+        protocol: "ws",
+        path: "ws",
+        apiEndpoint: apiEndpoint,
+      });
+      const mainMgr = await setupWebsocketManager(urlToConnect);
+
+      const rerunMgr = await setupWebsocketManager(
+        urlToConnect.replace("/ws", "/step_rerun")
+      );
+
+      const toolSocketManager = await setupWebsocketManager(
+        urlToConnect.replace("/ws", "/edit_tool_run"),
+        (d) => console.log(d)
+      );
+
+      setMainSockerManager(mainMgr);
+      setReRunManager(rerunMgr);
+      setToolSocketManager(toolSocketManager);
+
+      setSocketsConnected(true);
+
+      setAgentConfig({
+        ...agentConfig,
+        ...userItems,
+        mainManager: mainMgr,
+        reRunManager: rerunMgr,
+        toolSocketManager: toolSocketManager,
+      });
+    }
+
+    setup();
+
+    return () => {
+      if (mainSocketManager && mainSocketManager.close) {
+        mainSocketManager.close();
+        // also stop the timeout
+        mainSocketManager.clearSocketTimeout();
+      }
+      if (reRunManager && reRunManager.close) {
+        reRunManager.close();
+        reRunManager.clearSocketTimeout();
+      }
+      if (toolSocketManager && toolSocketManager.close) {
+        toolSocketManager.close();
+        toolSocketManager.clearSocketTimeout();
+      }
+    };
+  }, []);
+
   // use the simple db list
   // and add some extra props to them
   // including the analysis tree manager which helps us "remember" questions for each db
@@ -412,22 +567,53 @@ export function DefogAnalysisAgentEmbed({
   return (
     <div className="w-full bg-gradient-to-br from-[#6E00A2]/10 to-[#FFA20D]/10 px-2 lg:px-0 py-8 h-screen flex items-center shadow-inner relative">
       <div className="w-full lg:w-10/12 min-h-96 h-[95%] overflow-y-hidden mx-auto">
-        <MessageManagerContext.Provider value={MessageManager()}>
-          <MessageMonitor
-            rootClassNames={"absolute left-0 right-0"}
-            disabled={disableMessages}
-          />
-          <EmbedInner
-            token={token}
-            apiEndpoint={apiEndpoint}
-            dbs={dbsWithManagers}
-            uploadedCsvPredefinedQuestions={uploadedCsvPredefinedQuestions}
-            searchBarDraggable={searchBarDraggable}
-            limitCsvUploadSize={limitCsvUploadSize}
-            maxCsvUploadSize={maxCsvUploadSize}
-            devMode={devMode}
-          />
-        </MessageManagerContext.Provider>
+        <RelatedAnalysesContext.Provider
+          value={{
+            val: relatedAnalysesContext,
+            update: setRelatedAnalysesContext,
+          }}
+        >
+          <ReactiveVariablesContext.Provider
+            value={{ val: reactiveContext, update: setReactiveContext }}
+          >
+            <AgentConfigContext.Provider
+              value={{ val: agentConfig, update: setAgentConfig }}
+            >
+              <MessageManagerContext.Provider value={MessageManager()}>
+                <MessageMonitor
+                  rootClassNames={"absolute left-0 right-0"}
+                  disabled={disableMessages}
+                />
+                {socketsConnected ? (
+                  <EmbedInner
+                    token={token}
+                    apiEndpoint={apiEndpoint}
+                    dbs={dbsWithManagers}
+                    uploadedCsvPredefinedQuestions={
+                      uploadedCsvPredefinedQuestions
+                    }
+                    searchBarDraggable={searchBarDraggable}
+                    // if csvFileKeyName is defined, use that
+                    // otherwise use the first db's keyName if available
+                    csvFileKeyName={
+                      csvFileKeyName || (dbs.length > 0 ? dbs[0].keyName : null)
+                    }
+                    limitCsvUploadSize={limitCsvUploadSize}
+                    maxCsvUploadSize={maxCsvUploadSize}
+                    devMode={devMode}
+                  />
+                ) : (
+                  <div className="w-full h-screen flex flex-col justify-center items-center ">
+                    <div className="mb-2 text-gray-400 text-sm">
+                      Connecting to servers
+                    </div>
+                    <SpinningLoader classNames="w-5 h-5 text-gray-500" />
+                  </div>
+                )}
+              </MessageManagerContext.Provider>
+            </AgentConfigContext.Provider>
+          </ReactiveVariablesContext.Provider>
+        </RelatedAnalysesContext.Provider>
       </div>
     </div>
   );

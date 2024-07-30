@@ -12,12 +12,12 @@ import { CustomFormattingToolbar } from "./CustomFormattingToolbar";
 import DocNav from "./DocNav";
 import {
   defaultAgentConfig,
-  GlobalAgentContext,
+  AgentConfigContext,
   RelatedAnalysesContext,
-} from "../context/GlobalAgentContext";
+  createAgentConfig,
+} from "../context/AgentContext";
 import { getAllAnalyses, getToolboxes } from "../utils/utils";
 import { DocSidebars } from "./DocSidebars";
-import { ReactiveVariablesContext } from "./ReactiveVariablesContext";
 import { ReactiveVariableNode } from "./custom-tiptap/ReactiveVariableNode";
 import { ReactiveVariableMention } from "./custom-tiptap/ReactiveVariableMention";
 import setupBaseUrl from "../utils/setupBaseUrl";
@@ -26,16 +26,54 @@ import { customBlockSchema } from "./createCustomBlockSchema";
 import { filterSuggestionItems } from "@blocknote/core";
 import { getCustomSlashMenuItems } from "./createCustomSlashMenuItems";
 import { BlockNoteView } from "@blocknote/mantine";
-import { SpinningLoader } from "../../ui-components/lib/main";
+import {
+  MessageManager,
+  MessageManagerContext,
+  MessageMonitor,
+  SpinningLoader,
+} from "@defogdotai/ui-components";
+import { ReactiveVariablesContext } from "../context/AgentContext";
 
+/**
+ * Main document component.
+ * @param {Object} props - Component props.
+ * @param {string} props.docId - Document ID.
+ * @param {string} props.user - User email/name.
+ * @param {string} props.token - Token aka hashed password. NOT api key.
+ * @param {string} props.apiEndpoint - API endpoint.
+ * @param {string} props.keyName - Api key name.
+ * @param {boolean} props.devMode - Whether it is in development mode.
+ * @param {boolean} props.isTemp - Whether it is a temporary DB aka CSV upload
+ * @param {Object} props.metadata - Database's metadata information. Only used in case of CSV uploads.
+ * @param {boolean} props.showAnalysisUnderstanding - Poorly named. Whether to show "analysis understanding" aka description of the results created by a model under the table.
+ * @param {boolean} props.showCode - Whether to show tool code.
+ * @param {boolean} props.allowDashboardAdd - Whether to allow addition to dashboards.
+ * @param {boolean} props.sqlOnly - Whether the analysis is SQL only.
+ *
+ * @returns {JSX.Element} - JSX element.
+ *
+ * @example
+ * <Doc
+ *  devMode={false}
+ *  docId={docId}
+ *  user={"admin"}
+ *  token={...}
+ *  ...
+ * />
+ */
 export function Doc({
   docId,
   user,
   token,
-  apiEndpoint,
-  keyName,
-  devMode,
-  config = {},
+  showAnalysisUnderstanding = true,
+  showCode = true,
+  allowDashboardAdd = true,
+  keyName = "",
+  isTemp = false,
+  devMode = false,
+  apiEndpoint = "https://demo.defog.ai",
+  metadata = null,
+  sqlOnly = false,
 }) {
   const partyEndpoint = apiEndpoint;
   const recentlyViewedEndpoint = setupBaseUrl({
@@ -49,11 +87,18 @@ export function Doc({
   const [socketsConnected, setSocketsConnected] = useState(false);
 
   const [agentConfig, setAgentConfig] = useState(
-    Object.assign({}, defaultAgentConfig, {
-      config: {
-        ...defaultAgentConfig.config,
-        ...config,
-      },
+    createAgentConfig({
+      user,
+      token,
+      showAnalysisUnderstanding,
+      showCode,
+      allowDashboardAdd,
+      keyName,
+      isTemp,
+      devMode,
+      apiEndpoint,
+      metadata,
+      sqlOnly,
     })
   );
 
@@ -75,15 +120,15 @@ export function Doc({
   useEffect(() => {
     async function setup() {
       // setup user items
-      const items = agentConfig.userItems;
+      const userItems = {};
       const analyses = await getAllAnalyses(keyName, apiEndpoint);
 
       if (analyses && analyses.success) {
-        items.analyses = analyses.analyses;
+        userItems.analyses = analyses.analyses;
       }
       const toolboxes = await getToolboxes(token, apiEndpoint);
       if (toolboxes && toolboxes.success) {
-        items.toolboxes = toolboxes.toolboxes;
+        userItems.toolboxes = toolboxes.toolboxes;
       }
 
       const urlToConnect = setupBaseUrl({
@@ -92,31 +137,28 @@ export function Doc({
         apiEndpoint: apiEndpoint,
       });
       const mainMgr = await setupWebsocketManager(urlToConnect);
-      setMainSockerManager(mainMgr);
 
       const rerunMgr = await setupWebsocketManager(
         urlToConnect.replace("/ws", "/step_rerun")
       );
-
-      setReRunManager(rerunMgr);
 
       const toolSocketManager = await setupWebsocketManager(
         urlToConnect.replace("/ws", "/edit_tool_run"),
         (d) => console.log(d)
       );
 
+      setMainSockerManager(mainMgr);
+      setReRunManager(rerunMgr);
       setToolSocketManager(toolSocketManager);
 
       setSocketsConnected(true);
 
       setAgentConfig({
         ...agentConfig,
-        userItems: items,
-        socketManagers: {
-          mainManager: mainMgr,
-          reRunManager: rerunMgr,
-          toolSocketManager: toolSocketManager,
-        },
+        ...userItems,
+        mainManager: mainMgr,
+        reRunManager: rerunMgr,
+        toolSocketManager: toolSocketManager,
       });
 
       // add to recently viewed docs for this user
@@ -200,51 +242,54 @@ export function Doc({
   });
 
   return yjsSynced && socketsConnected ? (
-    <RelatedAnalysesContext.Provider
-      value={{
-        val: relatedAnalysesContext,
-        update: setRelatedAnalysesContext,
-      }}
-    >
-      <ReactiveVariablesContext.Provider
-        value={{ val: reactiveContext, update: setReactiveContext }}
+    <MessageManagerContext.Provider value={MessageManager()}>
+      <MessageMonitor />
+      <RelatedAnalysesContext.Provider
+        value={{
+          val: relatedAnalysesContext,
+          update: setRelatedAnalysesContext,
+        }}
       >
-        <GlobalAgentContext.Provider
-          value={{ val: agentConfig, update: setAgentConfig }}
+        <ReactiveVariablesContext.Provider
+          value={{ val: reactiveContext, update: setReactiveContext }}
         >
-          <DocNav
-            token={token}
-            currentDocId={docId}
-            keyName={keyName}
-            apiEndpoint={apiEndpoint}
-          ></DocNav>
-          <div className="content">
-            <div className="editor-container max-w-full">
-              <BlockNoteView
-                editor={editor}
-                theme={"light"}
-                formattingToolbar={false}
-                slashMenu={false}
-              >
-                <FormattingToolbarController
-                  formattingToolbar={CustomFormattingToolbar}
-                />
-                <SuggestionMenuController
-                  triggerCharacter="/"
-                  getItems={async (query) =>
-                    filterSuggestionItems(
-                      getCustomSlashMenuItems(editor),
-                      query
-                    )
-                  }
-                />
-              </BlockNoteView>
+          <AgentConfigContext.Provider
+            value={{ val: agentConfig, update: setAgentConfig }}
+          >
+            <DocNav
+              token={token}
+              currentDocId={docId}
+              keyName={keyName}
+              apiEndpoint={apiEndpoint}
+            ></DocNav>
+            <div className="content">
+              <div className="editor-container max-w-full">
+                <BlockNoteView
+                  editor={editor}
+                  theme={"light"}
+                  formattingToolbar={false}
+                  slashMenu={false}
+                >
+                  <FormattingToolbarController
+                    formattingToolbar={CustomFormattingToolbar}
+                  />
+                  <SuggestionMenuController
+                    triggerCharacter="/"
+                    getItems={async (query) =>
+                      filterSuggestionItems(
+                        getCustomSlashMenuItems(editor),
+                        query
+                      )
+                    }
+                  />
+                </BlockNoteView>
+              </div>
+              <DocSidebars />
             </div>
-            <DocSidebars />
-          </div>
-        </GlobalAgentContext.Provider>
-      </ReactiveVariablesContext.Provider>
-    </RelatedAnalysesContext.Provider>
+          </AgentConfigContext.Provider>
+        </ReactiveVariablesContext.Provider>
+      </RelatedAnalysesContext.Provider>
+    </MessageManagerContext.Provider>
   ) : (
     <div className="w-full h-screen flex flex-col justify-center items-center ">
       <div className="mb-2 text-gray-400 text-sm">

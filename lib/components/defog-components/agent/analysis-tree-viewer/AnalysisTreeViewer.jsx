@@ -22,19 +22,16 @@ import {
   Toggle,
   TextArea,
   MessageManagerContext,
-} from "../../../../ui-components/lib/main";
-import { useWindowSize } from "../../../../ui-components/lib/hooks/useWindowSize";
-import { breakpoints } from "../../../../ui-components/lib/hooks/useBreakPoint";
+  useWindowSize,
+  breakpoints,
+} from "@defogdotai/ui-components";
 import { AnalysisTreeManager } from "./analysisTreeManager";
 import ErrorBoundary from "../../../common/ErrorBoundary";
 import { AnalysisTreeViewerLinks } from "./AnalysisTreeViewerLinks";
+import { AgentConfigContext } from "../../../context/AgentContext";
 
 export function AnalysisTreeViewer({
   dashboards,
-  token,
-  devMode,
-  keyName,
-  apiEndpoint,
   analysisTreeManager = AnalysisTreeManager(),
   // array of strings
   // each string is a question
@@ -44,13 +41,27 @@ export function AnalysisTreeViewer({
   searchBarClasses = "",
   searchBarDraggable = true,
   defaultSidebarOpen = false,
-  isTemp = false,
-  metadata = null,
   showToggle = true,
 }) {
-  const messageManager = useContext(MessageManagerContext);
+  const agentConfigContext = useContext(AgentConfigContext);
 
-  const [sqlOnly, setSqlOnly] = useState(true);
+  const { keyName, isTemp, sqlOnly } = agentConfigContext.val;
+
+  console.log(
+    "keyName:",
+    keyName,
+    "\n",
+    "isTemp:",
+    isTemp,
+    "\n",
+    "sqlOnly:",
+    sqlOnly,
+    "\n",
+    "agentConfigContext:",
+    agentConfigContext.val
+  );
+
+  const messageManager = useContext(MessageManagerContext);
 
   const ghostImage = useGhostImage();
 
@@ -128,6 +139,7 @@ export function AnalysisTreeViewer({
         analysisTreeManager.setActiveAnalysisId(newAnalysis.analysisId);
         analysisTreeManager.setActiveRootAnalysisId(newAnalysis.rootAnalysisId);
 
+        if (!searchRef.current) debugger;
         searchRef.current.value = "";
       } catch (e) {
         messageManager.error("Failed to create analysis");
@@ -169,6 +181,7 @@ export function AnalysisTreeViewer({
     });
   }
 
+  window.ref = searchRef;
   // w-0
   return (
     <ErrorBoundary>
@@ -177,10 +190,7 @@ export function AnalysisTreeViewer({
         {activeAnalysisId && activeRootAnalysisId && (
           <div className="lg:hidden absolute bottom-0 left-0 w-full h-[10%] pointer-events-none bg-gradient-to-b from-transparent to-gray-300 z-10"></div>
         )}
-        <div
-          className="max-w-full h-full flex flex-row bg-white text-gray-600 w-full"
-          id="analysis-tree-viewer"
-        >
+        <div className="analysis-tree-viewer max-w-full h-full flex flex-row bg-white text-gray-600 w-full">
           <div className="absolute h-full left-0 top-0 z-[20] lg:sticky lg:h-full">
             <Sidebar
               location="left"
@@ -308,15 +318,9 @@ export function AnalysisTreeViewer({
                     createAnalysisRequestBody={
                       analysis.createAnalysisRequestBody
                     }
-                    token={token}
-                    apiEndpoint={apiEndpoint}
-                    keyName={keyName}
                     initiateAutoSubmit={true}
                     hasExternalSearchBar={true}
                     setGlobalLoading={setLoading}
-                    devMode={devMode}
-                    isTemp={isTemp}
-                    metadata={metadata}
                     // we store this at the time of creation of the analysis
                     // and don't change it for this specific analysis afterwards.
                     sqlOnly={analysis.createAnalysisRequestBody.sql_only}
@@ -488,8 +492,13 @@ export function AnalysisTreeViewer({
                       <Toggle
                         disabled={loading}
                         titleClassNames="font-bold text-gray-400"
-                        // if true, means advanced, means sql only off
-                        onToggle={(v) => setSqlOnly(!v)}
+                        // if true, means advance = sql only off
+                        onToggle={(v) => {
+                          agentConfigContext.update({
+                            ...agentConfigContext.val,
+                            sqlOnly: !v,
+                          });
+                        }}
                         defaultOn={!sqlOnly}
                         offLabel="Advanced"
                         onLabel={"Advanced"}

@@ -5,10 +5,7 @@ import { AddStepInputList } from "./AddStepInputList";
 import setupBaseUrl from "../../../utils/setupBaseUrl";
 import { v4 } from "uuid";
 import { createInitialToolInputs } from "../../../utils/utils";
-import {
-  MessageManagerContext,
-  SingleSelect,
-} from "../../../../ui-components/lib/main";
+import { MessageManagerContext, SingleSelect } from "@defogdotai/ui-components";
 import { ToolReRun } from "../analysis/tool-results/ToolReRun";
 
 export function AddStepUI({

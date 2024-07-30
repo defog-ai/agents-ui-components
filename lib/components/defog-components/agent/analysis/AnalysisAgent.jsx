@@ -21,28 +21,37 @@ import AnalysisManager from "./analysisManager";
 import setupBaseUrl from "../../../utils/setupBaseUrl";
 import { AnalysisFeedback } from "../feedback/AnalysisFeedback";
 import {
+  breakpoints,
   Collapse,
   Input,
   MessageManagerContext,
   SpinningLoader,
-} from "../../../../ui-components/lib/main";
+  useWindowSize,
+} from "@defogdotai/ui-components";
 import { twMerge } from "tailwind-merge";
-import { ReactiveVariablesContext } from "../../../context/ReactiveVariablesContext";
-import { GlobalAgentContext } from "../../../context/GlobalAgentContext";
+import {
+  AgentConfigContext,
+  ReactiveVariablesContext,
+} from "../../../context/AgentContext";
 import ErrorBoundary from "../../../common/ErrorBoundary";
-import { breakpoints } from "../../../../ui-components/lib/hooks/useBreakPoint";
-import { useWindowSize } from "../../../../ui-components/lib/hooks/useWindowSize";
 import { StopCircleIcon } from "@heroicons/react/20/solid";
 import { ToolResults } from "./tool-results/ToolResults";
 
+/**
+ *
+ * @param {Object} props
+ * @param {string} props.analysisId - Analysis ID.
+ * @param {string} props.rootClassNames - Root class names.
+ * @param {Object} props.createAnalysisRequestBody - Object that will be sent as the body of the fetch request to create_analysis.
+ * @param {boolean} props.initiateAutoSubmit - Whether to initiate auto submit.
+ * @param {boolean} props.hasExternalSearchBar - Whether this is being controlled by an external search bar.
+ * @param {Function} props.setGlobalLoading - Global loading. Useful if you are handling multiple analysis..
+ * @param {Function} props.onManagerCreated - Callback when analysis manager is created.
+ * @param {Function} props.onManagerDestroyed - Callback when analysis manager is destroyed.
+ * @param {boolean} props.forceSqlOnly - Whether to force SQL only. If not, it will use the value from the context. Note that sending false here will make it an advanced analysis. If you want to use the global sqlOnly stored in AgentConfigContext, don't pass the prop
+ */
 export const AnalysisAgent = ({
   analysisId,
-  token,
-  keyName,
-  devMode,
-  apiEndpoint,
-  editor,
-  block,
   rootClassNames = "",
   createAnalysisRequestBody = {},
   initiateAutoSubmit = false,
@@ -50,15 +59,30 @@ export const AnalysisAgent = ({
   setGlobalLoading = (...args) => {},
   onManagerCreated = (...args) => {},
   onManagerDestroyed = (...args) => {},
-  isTemp = false,
-  sqlOnly = false,
-  metadata = null,
+  forceSqlOnly = false,
 }) => {
+  const agentConfigContext = useContext(AgentConfigContext);
+  const {
+    keyName,
+    isTemp,
+    devMode,
+    apiEndpoint,
+    metadata,
+    token,
+    sqlOnly,
+    mainManager,
+    reRunManager,
+    toolSocketManager,
+  } = agentConfigContext.val;
+
+  console.log(sqlOnly, apiEndpoint);
+
   const getToolsEndpoint = setupBaseUrl({
     protocol: "http",
     path: "get_user_tools",
     apiEndpoint: apiEndpoint,
   });
+
   // console.log("Key name", keyName);
   // console.log("Did upload file", isTemp);
   const [pendingToolRunUpdates, setPendingToolRunUpdates] = useState({});
@@ -78,12 +102,7 @@ export const AnalysisAgent = ({
 
   const ctr = useRef(null);
 
-  const globalAgentContext = useContext(GlobalAgentContext);
-
   const messageManager = useContext(MessageManagerContext);
-
-  const { mainManager, reRunManager, toolSocketManager } =
-    globalAgentContext.val.socketManagers;
 
   function onMainSocketMessage(response, newAnalysisData) {
     try {
@@ -193,7 +212,7 @@ export const AnalysisAgent = ({
       devMode,
       metadata,
       isTemp,
-      sqlOnly,
+      sqlOnly: forceSqlOnly === undefined ? sqlOnly : forceSqlOnly,
       onNewData: onMainSocketMessage,
       onReRunData: onReRunMessage,
       onManagerDestroyed: onManagerDestroyed,
@@ -214,14 +233,11 @@ export const AnalysisAgent = ({
 
   useEffect(() => {
     // update context
-    globalAgentContext.update({
-      ...globalAgentContext.val,
-      userItems: {
-        ...globalAgentContext.val.userItems,
-        analysisData: {
-          ...globalAgentContext.val.userItems.analysisData,
-          [analysisId]: analysisData,
-        },
+    agentConfigContext.update({
+      ...agentConfigContext.val,
+      analysisDataCache: {
+        ...agentConfigContext.val.analysisDataCache,
+        [analysisId]: analysisData,
       },
     });
   }, [analysisData]);
@@ -273,9 +289,8 @@ export const AnalysisAgent = ({
           await analysisManager.init({
             question: createAnalysisRequestBody?.other_data?.user_question,
             existingData:
-              globalAgentContext?.val?.userItems?.analysisData?.[analysisId] ||
-              null,
-            sqliteConn: globalAgentContext?.val?.sqliteConn,
+              agentConfigContext?.val?.analysisDataCache?.[analysisId] || null,
+            sqliteConn: agentConfigContext?.val?.sqliteConn,
           });
 
         const response = await fetch(getToolsEndpoint, {
@@ -298,19 +313,13 @@ export const AnalysisAgent = ({
         }
 
         if (analysisManager.wasNewAnalysisCreated) {
-          // also have to set globalAgentContext in this case
-          globalAgentContext.update({
-            ...globalAgentContext.val,
-            userItems: {
-              ...globalAgentContext.val.userItems,
-              analyses: [
-                ...globalAgentContext.val.userItems.analyses,
-                analysisId,
-              ],
-              analysisData: {
-                ...globalAgentContext.val.userItems.analysisData,
-                [analysisId]: analysisData,
-              },
+          // also have to set agentConfigContext in this case
+          agentConfigContext.update({
+            ...agentConfigContext.val,
+            analyses: [...agentConfigContext.val.analyses, analysisId],
+            analysisDataCache: {
+              ...agentConfigContext.val.analysisDataCache,
+              [analysisId]: analysisData,
             },
           });
         }

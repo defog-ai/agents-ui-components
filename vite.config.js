@@ -25,21 +25,21 @@ export default ({ mode }) => {
         formats: ["es", "cjs"],
       },
       manifest: true,
-    },
-    rollupOptions: {
-      // make sure to externalize deps that shouldn't be bundled
-      // into your library
-      external: [
-        ...Object.keys(peerDependencies),
-        ...Object.keys(dependencies),
-      ],
-      target: "esnext",
-      sourcemap: true,
-      output: {
-        // Provide global variables to use in the UMD build
-        // for externalized deps
-        globals: {
-          react: "react",
+      rollupOptions: {
+        // make sure to externalize deps that shouldn't be bundled
+        // into your library
+        external: [
+          ...Object.keys(peerDependencies),
+          ...Object.keys(dependencies),
+        ],
+        target: "esnext",
+        sourcemap: true,
+        output: {
+          // Provide global variables to use in the UMD build
+          // for externalized deps
+          globals: {
+            react: "react",
+          },
         },
       },
     },

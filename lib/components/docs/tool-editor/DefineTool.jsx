@@ -1,4 +1,4 @@
-import { Input, TextArea } from "../../../ui-components/lib/main";
+import { Input, TextArea } from "@defogdotai/ui-components";
 import NewToolCodeEditor from "./NewToolCodeEditor";
 
 export function DefineTool({

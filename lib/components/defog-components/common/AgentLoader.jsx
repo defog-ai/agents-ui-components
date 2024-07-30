@@ -1,6 +1,6 @@
 import React, { Suspense, lazy } from "react";
 import { twMerge } from "tailwind-merge";
-import { SpinningLoader } from "../../../ui-components/lib/main";
+import { SpinningLoader } from "@defogdotai/ui-components";
 
 const Lottie = lazy(() => import("lottie-react"));
 

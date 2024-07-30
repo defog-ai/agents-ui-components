@@ -19,7 +19,7 @@ import {
   Input,
   Button,
   SpinningLoader,
-} from "../../../ui-components/lib/main";
+} from "@defogdotai/ui-components";
 import NewToolCodeEditor from "./NewToolCodeEditor";
 
 export function AddTool({ toolbox, apiEndpoint, onAddTool = (...args) => {} }) {

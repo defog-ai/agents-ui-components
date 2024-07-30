@@ -17,8 +17,10 @@ import ToolRunAnalysis from "./ToolRunAnalysis";
 import { AddStepUI } from "../../add-step/AddStepUI";
 import { Modal } from "antd";
 import setupBaseUrl from "../../../../utils/setupBaseUrl";
-import { ReactiveVariablesContext } from "../../../../context/ReactiveVariablesContext";
-import { GlobalAgentContext } from "../../../../context/GlobalAgentContext";
+import {
+  AgentConfigContext,
+  ReactiveVariablesContext,
+} from "../../../../context/AgentContext";
 
 function parseOutputs(data, analysisData) {
   let parsedOutputs = {};
@@ -58,8 +60,8 @@ export function ToolResults({
   toolSocketManager = null,
   dag = null,
   apiEndpoint,
-  setActiveNode = () => {},
-  handleReRun = () => {},
+  setActiveNode = (...args) => {},
+  handleReRun = (...args) => {},
   reRunningSteps = [],
   setPendingToolRunUpdates = (...args) => {},
   toolRunDataCache = {},
@@ -77,7 +79,7 @@ export function ToolResults({
   const [toolRunData, setToolRunData] = useState(null);
   const [toolRunDataLoading, setToolRunDataLoading] = useState(false);
   const reactiveContext = useContext(ReactiveVariablesContext);
-  const globalAgentContext = useContext(GlobalAgentContext);
+  const agentConfigContext = useContext(AgentConfigContext);
   const [edited, setEdited] = useState(false);
 
   const [parentNodeData, setParentNodeData] = useState({});
@@ -528,7 +530,7 @@ export function ToolResults({
             <div className="my-4">
               <h1 className="text-gray-400 mb-4">OUTPUTS</h1>
               <ToolRunOutputList
-                showCode={globalAgentContext.val.config.showCode}
+                showCode={agentConfigContext.val.showCode}
                 analysisId={analysisId}
                 toolRunId={toolRunId}
                 step={toolRunData.step}
@@ -557,7 +559,7 @@ export function ToolResults({
             nodeId={activeNode.data.id}
             analysisId={analysisId}
           />
-          {globalAgentContext.val.config.showAnalysis && (
+          {agentConfigContext.val.showAnalysisUnderstanding && (
             <div className="h-60 mt-2 rounded-md text-sm border overflow-scroll w-full mb-2">
               <div className="relative">
                 <p className="font-bold m-0 sticky top-0 w-full p-2 bg-white shadow-sm border-b">

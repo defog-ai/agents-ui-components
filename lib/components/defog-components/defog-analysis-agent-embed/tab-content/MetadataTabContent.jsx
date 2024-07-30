@@ -4,7 +4,7 @@ import {
   MultiSelect,
   SpinningLoader,
   Table,
-} from "../../../../ui-components/lib/main";
+} from "@defogdotai/ui-components";
 import { twMerge } from "tailwind-merge";
 import ErrorBoundary from "../../../common/ErrorBoundary";
 
@@ -48,7 +48,13 @@ export function MetadataTabContent({
         }
       } catch (e) {
         console.log(e);
-        fetchedMetadata = { error: "Error fetching metadata." };
+        messageManager.error(
+          "Error getting metadata: " + fetchedMetadata.error ||
+            "Failed to get metadata"
+        );
+        fetchedMetadata = {
+          error: fetchedMetadata.error || "Error fetching metadata.",
+        };
       } finally {
         onGetMetadata(fetchedMetadata);
       }

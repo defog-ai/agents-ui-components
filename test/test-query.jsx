@@ -6,20 +6,19 @@ import { DefogAnalysisAgentEmbed } from "../lib/main";
 function QueryDataPage() {
   return (
     <DefogAnalysisAgentEmbed
-      searchBarDraggable={false}
-      apiEndpoint={"https://localhost:80/"}
-      token={"23ee021b82afa024bee3b52be4d5a2603a4d0056780dd99c93b0caf0c875ea77"}
+      token={"bdbe4d376e6c8a53a791a86470b924c0715854bd353483523e3ab016eb55bcd0"}
+      apiEndpoint={"http://localhost:80"}
       // these are the ones that will be shown for new csvs uploaded
       uploadedCsvPredefinedQuestions={["Show me any 5 rows from the dataset"]}
       dbs={[
         {
-          keyName: "Manufacturing",
-          name: "Manufacturing",
+          keyName: "Yelp",
+          name: "Yelp",
           predefinedQuestions: ["Show me any 5 rows from the dataset"],
         },
         {
-          keyName: "Sales",
-          name: "Sales",
+          keyName: "Restaurants",
+          name: "Restaurants",
           predefinedQuestions: ["Show me any 5 rows from the dataset"],
         },
       ]}

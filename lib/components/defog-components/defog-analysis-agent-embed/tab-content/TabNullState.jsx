@@ -1,10 +1,10 @@
-import { useContext, useState } from "react";
+import React, { useContext, useState } from "react";
 import {
   DropFiles,
   MessageManagerContext,
   SingleSelect,
   SpinningLoader,
-} from "../../../../ui-components/lib/main";
+} from "@defogdotai/ui-components";
 import { ArrowDownTrayIcon } from "@heroicons/react/20/solid";
 import { parseCsvFile } from "../../../utils/utils";
 

@@ -7,29 +7,27 @@ import "../lib/styles/index.scss";
 const docId = v4();
 
 import "@blocknote/mantine/style.css";
-import {
-  MessageMonitor,
-  MessageManager,
-  MessageManagerContext,
-} from "../lib/ui-components/lib/main";
 
 function DocPage() {
   return (
-    <MessageManagerContext.Provider value={MessageManager()}>
-      <MessageMonitor />
-      <div className="w-full">
-        <Doc
-          devMode={false}
-          apiEndpoint={"https://demo.defog.ai"}
-          user={"admin"}
-          keyName={"Manufacturing"}
-          docId={docId}
-          token={
-            "bdbe4d376e6c8a53a791a86470b924c0715854bd353483523e3ab016eb55bcd0"
-          }
-        />
-      </div>
-    </MessageManagerContext.Provider>
+    <div className="w-full">
+      <Doc
+        devMode={false}
+        user={"admin"}
+        token={
+          "bdbe4d376e6c8a53a791a86470b924c0715854bd353483523e3ab016eb55bcd0"
+        }
+        keyName={"Manufacturing"}
+        docId={docId}
+        showAnalysisUnderstanding={true}
+        showCode={true}
+        allowDashboardAdd={true}
+        isTemp={false}
+        apiEndpoint={"http://localhost"}
+        metadata={null}
+        sqlOnly={false}
+      />
+    </div>
   );
 }
 

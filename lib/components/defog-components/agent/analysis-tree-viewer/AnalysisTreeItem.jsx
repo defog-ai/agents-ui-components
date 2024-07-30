@@ -1,7 +1,7 @@
 import { PlusIcon } from "@heroicons/react/20/solid";
 import { useContext } from "react";
 import { twMerge } from "tailwind-merge";
-import { GlobalAgentContext } from "../../../context/GlobalAgentContext";
+import { AgentConfigContext } from "../../../context/AgentContext";
 import { sentenceCase } from "../../../utils/utils";
 
 export function AnalysisTreeItem({
@@ -14,7 +14,7 @@ export function AnalysisTreeItem({
   isDummy = false,
   onClick = () => {},
 }) {
-  const agentContext = useContext(GlobalAgentContext);
+  const agentContext = useContext(AgentConfigContext);
 
   return (
     <div
@@ -33,7 +33,7 @@ export function AnalysisTreeItem({
       <div className="grow">
         {isDummy ? "New analysis" : sentenceCase(analysis?.user_question)}
       </div>
-      {!isDummy && agentContext.val.config.allowDashboardAdd && (
+      {!isDummy && agentContext.val.allowDashboardAdd && (
         <div
           className="rounded-sm hover:bg-blue-500 p-1 flex justify-center group "
           onClick={() => {

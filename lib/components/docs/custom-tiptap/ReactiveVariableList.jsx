@@ -1,7 +1,7 @@
 import { Tree } from "antd";
 import React, { useContext, useEffect, useMemo } from "react";
-import { ReactiveVariablesContext } from "../ReactiveVariablesContext";
 import { roundNumber } from "../../utils/utils";
+import { ReactiveVariablesContext } from "../../context/AgentContext";
 
 export default function ReactiveVariableList({ query, editor, range }) {
   const reactiveContext = useContext(ReactiveVariablesContext);

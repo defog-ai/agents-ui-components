@@ -3,7 +3,7 @@ import {
   SpinningLoader,
   MessageManagerContext,
   DropFilesHeadless,
-} from "../../ui-components/lib/main";
+} from "@defogdotai/ui-components";
 import { parseCsvFile } from "../utils/utils";
 import { twMerge } from "tailwind-merge";
 import { ArrowDownTrayIcon } from "@heroicons/react/20/solid";
@@ -94,7 +94,6 @@ export function QueryDataScaffolding({
                 setDropping(false);
               }}
               onFileSelect={(ev) => {
-                console.log("here");
                 // this is when the user selects a file from the file dialog
                 try {
                   let file = ev.target.files[0];

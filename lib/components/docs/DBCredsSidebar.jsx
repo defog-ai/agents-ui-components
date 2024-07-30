@@ -1,9 +1,9 @@
 import { AutoComplete, Button, Input, Select } from "antd";
 import React, { useContext, useEffect, useRef, useState } from "react";
-import { GlobalAgentContext } from "../context/GlobalAgentContext";
+import { AgentConfigContext } from "../context/AgentContext";
 
 export function DBCredsSidebar() {
-  const globalAgentContext = useContext(GlobalAgentContext);
+  const agentConfigContext = useContext(AgentConfigContext);
   const [disabled, setDisabled] = useState(true);
   const ctr = useRef(null);
 
@@ -14,14 +14,14 @@ export function DBCredsSidebar() {
 
     for (let i = 0; i < inputs.length; i++) {
       if (inputs[i].name === "dbType" && typeof newDbType === "string") {
-        if (globalAgentContext.val.dbCreds[inputs[i].name] !== newDbType) {
+        if (agentConfigContext.val.dbCreds[inputs[i].name] !== newDbType) {
           setDisabled(false);
           return;
         }
         continue;
       }
 
-      if (globalAgentContext.val.dbCreds[inputs[i].name] !== inputs[i].value) {
+      if (agentConfigContext.val.dbCreds[inputs[i].name] !== inputs[i].value) {
         setDisabled(false);
         return;
       }
@@ -40,8 +40,8 @@ export function DBCredsSidebar() {
       checkChanged({ target: input });
     });
 
-    globalAgentContext.update({
-      ...globalAgentContext.val,
+    agentConfigContext.update({
+      ...agentConfigContext.val,
       dbCreds: newCreds,
     });
 
@@ -55,14 +55,14 @@ export function DBCredsSidebar() {
 
         <Input
           addonBefore="Database name"
-          defaultValue={globalAgentContext.val.dbCreds.database}
+          defaultValue={agentConfigContext.val.dbCreds.database}
           placeholder="Enter database name"
           onChange={checkChanged}
           name="database"
         ></Input>
         <Input
           addonBefore="Host"
-          defaultValue={globalAgentContext.val.dbCreds.host}
+          defaultValue={agentConfigContext.val.dbCreds.host}
           placeholder="Enter host"
           onChange={checkChanged}
           name="host"
@@ -78,7 +78,7 @@ export function DBCredsSidebar() {
         >
           <Input
             addonBefore="DB type"
-            defaultValue={globalAgentContext.val.dbCreds.host}
+            defaultValue={agentConfigContext.val.dbCreds.host}
             placeholder="Enter database type"
             name="dbType"
             onChange={checkChanged}
@@ -87,7 +87,7 @@ export function DBCredsSidebar() {
 
         <Input
           addonBefore="Port"
-          defaultValue={globalAgentContext.val.dbCreds.port}
+          defaultValue={agentConfigContext.val.dbCreds.port}
           placeholder="Enter port"
           onChange={checkChanged}
           name="port"
@@ -95,14 +95,14 @@ export function DBCredsSidebar() {
 
         <Input
           addonBefore="User"
-          defaultValue={globalAgentContext.val.dbCreds.user}
+          defaultValue={agentConfigContext.val.dbCreds.user}
           placeholder="Enter user"
           onChange={checkChanged}
           name="user"
         ></Input>
         <Input
           addonBefore="Password"
-          defaultValue={globalAgentContext.val.dbCreds.password}
+          defaultValue={agentConfigContext.val.dbCreds.password}
           placeholder="Enter password"
           onChange={checkChanged}
           name="password"
