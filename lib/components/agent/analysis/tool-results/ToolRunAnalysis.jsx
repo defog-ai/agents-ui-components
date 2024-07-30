@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { setupWebsocketManager } from "../../../utils/websocket-manager";
 import { message } from "antd";
 import setupBaseUrl from "../../../utils/setupBaseUrl";
-import { SpinningLoader } from "@defogdotai/ui-components";
+import { SpinningLoader } from "@ui-components";
 
 export default function ToolRunAnalysis({
   question,

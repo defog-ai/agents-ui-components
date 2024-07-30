@@ -27,7 +27,7 @@ import {
   MessageManagerContext,
   SpinningLoader,
   useWindowSize,
-} from "@defogdotai/ui-components";
+} from "@ui-components";
 import { twMerge } from "tailwind-merge";
 import {
   AgentConfigContext,

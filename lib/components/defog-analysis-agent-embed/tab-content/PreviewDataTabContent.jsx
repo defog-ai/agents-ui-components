@@ -4,7 +4,7 @@ import {
   SingleSelect,
   SpinningLoader,
   Table,
-} from "@defogdotai/ui-components";
+} from "@ui-components";
 import ErrorBoundary from "../../common/ErrorBoundary";
 import { twMerge } from "tailwind-merge";
 
@@ -187,7 +187,7 @@ export function PreviewDataTabContent({
           </>
         ) : (
           <div className="text-center">
-            {db.dataFetchingError || db.metadataFetchingError}
+            {db.dataFetchingError || db.metadataFetchingError }
           </div>
         )}
       </div>

@@ -3,7 +3,7 @@ import {
   SpinningLoader,
   MessageManagerContext,
   DropFilesHeadless,
-} from "@defogdotai/ui-components";
+} from "@ui-components";
 import { parseCsvFile } from "../utils/utils";
 import { twMerge } from "tailwind-merge";
 import { ArrowDownTrayIcon } from "@heroicons/react/20/solid";

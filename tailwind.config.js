@@ -5,7 +5,6 @@ module.exports = {
     "./index.html",
     "./lib/**/*.{js,ts,jsx,tsx,mdx}",
     "./test/**/*.{js,ts,jsx,tsx,mdx}",
-    "./node_modules/@defogdotai/ui-components/dist/ui-components.js",
   ],
   theme: {
     extend: {

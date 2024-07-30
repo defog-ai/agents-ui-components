@@ -3,14 +3,14 @@ import {
   arrayOfObjectsToObject,
   parseData,
   toolboxDisplayNames,
-} from "../../utils/utils";
+} from "../utils/utils";
 import { useCallback, useContext, useState } from "react";
 import ToolCreatorAssistant from "./ToolCreatorAssistant";
 import { SparklesIcon } from "@heroicons/react/20/solid";
 import { DefineTool } from "./DefineTool";
 
 import { twMerge } from "tailwind-merge";
-import setupBaseUrl from "../../utils/setupBaseUrl";
+import setupBaseUrl from "../utils/setupBaseUrl";
 import {
   MessageManagerContext,
   Modal,
@@ -19,7 +19,7 @@ import {
   Input,
   Button,
   SpinningLoader,
-} from "@defogdotai/ui-components";
+} from "@ui-components";
 import NewToolCodeEditor from "./NewToolCodeEditor";
 
 export function AddTool({ toolbox, apiEndpoint, onAddTool = (...args) => {} }) {

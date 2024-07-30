@@ -3,7 +3,7 @@
 
 import { useMemo } from "react";
 import { createChartData } from "./chartUtils";
-import { MultiSelect, SingleSelect } from "@defogdotai/ui-components";
+import { MultiSelect, SingleSelect } from "@ui-components";
 
 /**
  * @typedef {object} ChartContainerProps - The props of the component

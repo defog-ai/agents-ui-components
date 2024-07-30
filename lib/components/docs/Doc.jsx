@@ -31,7 +31,7 @@ import {
   MessageManagerContext,
   MessageMonitor,
   SpinningLoader,
-} from "@defogdotai/ui-components";
+} from "@ui-components";
 import { ReactiveVariablesContext } from "../context/AgentContext";
 
 /**

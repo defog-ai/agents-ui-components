@@ -1,4 +1,4 @@
-import { Button } from "@defogdotai/ui-components";
+import { Button } from "@ui-components";
 import { twMerge } from "tailwind-merge";
 
 export function ToolReRun({

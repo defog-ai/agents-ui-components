@@ -7,7 +7,7 @@ import {
   MessageMonitor,
   SpinningLoader,
   Tabs,
-} from "@defogdotai/ui-components";
+} from "@ui-components";
 import { EmbedScaffolding } from "./EmbedScaffolding";
 import { twMerge } from "tailwind-merge";
 import { AnalysisTreeManager } from "../agent/analysis-tree-viewer/analysisTreeManager";
@@ -82,6 +82,9 @@ export function EmbedInner({
 
   const addCsvToDbListAndSqlite = async ({ file, columns, rows }) => {
     try {
+      if(!conn.current) {
+        throw new Error("SQLite connection not initialized. Please refresh the page and try again. If the error persists, please reach out to us.");
+      }
       setFileUploading(true);
       // if file size is >10mb, raise error
       if (limitCsvUploadSize && file.size > maxCsvUploadSize * 1024 * 1024) {
@@ -194,7 +197,7 @@ export function EmbedInner({
           data: Object.assign({}, tableData || {}),
           columns: columns,
           sqliteTableName,
-          metadataFetchingError: metadata || "Error fetching metadata",
+          metadataFetchingError: metadata ? false : "Error fetching metadata",
           predefinedQuestions: uploadedCsvPredefinedQuestions,
           analysisTreeManager: AnalysisTreeManager({}),
         };
@@ -342,12 +345,11 @@ export function EmbedInner({
   useEffect(() => {
     (async () => {
       if (conn.current) return;
-      console.log("foing", conn.current);
 
       const _conn = await initializeSQLite();
-      conn.current = _conn;
+      // conn.current = _conn;
 
-      window.sqlite = _conn;
+      // window.sqlite = _conn;
     })();
   }, []);
 

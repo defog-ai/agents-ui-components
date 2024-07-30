@@ -24,7 +24,7 @@ import {
   MessageManagerContext,
   useWindowSize,
   breakpoints,
-} from "@defogdotai/ui-components";
+} from "@ui-components";
 import { AnalysisTreeManager } from "./analysisTreeManager";
 import ErrorBoundary from "../../common/ErrorBoundary";
 import { AnalysisTreeViewerLinks } from "./AnalysisTreeViewerLinks";
@@ -47,19 +47,19 @@ export function AnalysisTreeViewer({
 
   const { keyName, isTemp, sqlOnly } = agentConfigContext.val;
 
-  console.log(
-    "keyName:",
-    keyName,
-    "\n",
-    "isTemp:",
-    isTemp,
-    "\n",
-    "sqlOnly:",
-    sqlOnly,
-    "\n",
-    "agentConfigContext:",
-    agentConfigContext.val
-  );
+  // console.log(
+  //   "keyName:",
+  //   keyName,
+  //   "\n",
+  //   "isTemp:",
+  //   isTemp,
+  //   "\n",
+  //   "sqlOnly:",
+  //   sqlOnly,
+  //   "\n",
+  //   "agentConfigContext:",
+  //   agentConfigContext.val
+  // );
 
   const messageManager = useContext(MessageManagerContext);
 

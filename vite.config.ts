@@ -4,6 +4,7 @@ import { peerDependencies, dependencies } from "./package.json";
 import { libInjectCss } from "vite-plugin-lib-inject-css";
 import { resolve } from "path";
 import tailwindcss from "tailwindcss";
+import dts from "vite-plugin-dts";
 
 export default ({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
@@ -11,18 +12,25 @@ export default ({ mode }) => {
   return defineConfig({
     css: {
       postcss: {
-        plugins: [tailwindcss()],
+        plugins: [tailwindcss],
       },
     },
-    plugins: [react(), libInjectCss()],
+    plugins: [react(), libInjectCss(), dts({ include: ["lib"] })],
+    resolve: {
+      alias: {
+        "@ui-components": resolve(__dirname, "./lib/core-ui.ts"),
+      }
+    },
     build: {
       lib: {
         // Could also be a dictionary or array of multiple entry points
-        entry: resolve(__dirname, "lib/main.js"),
-        name: "AgentsUIComponents",
-        // the proper extensions will be added
-        fileName: "agents-ui-components",
-        formats: ["es", "cjs"],
+        entry: {
+          "agent": resolve(__dirname, "lib/agent.ts"),
+          "doc": resolve(__dirname, "lib/doc.ts"),
+          "tool-editor": resolve(__dirname, "lib/tool-editor.ts"),
+          "core-ui": resolve(__dirname, "lib/core-ui.ts"),
+        },
+        formats: ["es"],
       },
       manifest: true,
       rollupOptions: {
@@ -34,13 +42,6 @@ export default ({ mode }) => {
         ],
         target: "esnext",
         sourcemap: true,
-        output: {
-          // Provide global variables to use in the UMD build
-          // for externalized deps
-          globals: {
-            react: "react",
-          },
-        },
       },
     },
   });

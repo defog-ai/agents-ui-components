@@ -1,6 +1,6 @@
 import { message } from "antd";
 import React, { useCallback, useEffect, useState } from "react";
-import { Input, SingleSelect, TextArea } from "@defogdotai/ui-components";
+import { Input, SingleSelect, TextArea } from "@ui-components";
 import { TrashIcon, PlusCircleIcon } from "@heroicons/react/20/solid";
 import { easyToolInputTypes } from "../../../utils/utils";
 

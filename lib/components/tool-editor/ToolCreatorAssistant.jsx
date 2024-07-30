@@ -1,4 +1,4 @@
-import { SpinningLoader } from "@defogdotai/ui-components";
+import { SpinningLoader } from "@ui-components";
 import { ToolFlow } from "./ToolFlow";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 

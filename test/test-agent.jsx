@@ -1,7 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import "../lib/styles/index.scss";
-import { DefogAnalysisAgentEmbed } from "../lib/main";
+import { DefogAnalysisAgentEmbed } from "../lib/agent";
 
 function QueryDataPage() {
   return (

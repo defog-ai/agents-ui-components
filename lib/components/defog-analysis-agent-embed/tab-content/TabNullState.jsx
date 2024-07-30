@@ -4,7 +4,7 @@ import {
   MessageManagerContext,
   SingleSelect,
   SpinningLoader,
-} from "@defogdotai/ui-components";
+} from "@ui-components";
 import { ArrowDownTrayIcon } from "@heroicons/react/20/solid";
 import { parseCsvFile } from "../../utils/utils";
 

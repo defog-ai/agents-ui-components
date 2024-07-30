@@ -1,4 +1,4 @@
-import { Input, TextArea } from "@defogdotai/ui-components";
+import { Input, TextArea } from "@ui-components";
 import NewToolCodeEditor from "./NewToolCodeEditor";
 
 export function DefineTool({
@@ -41,7 +41,7 @@ export function DefineTool({
           <div className="block text-gray-600 text-xs mb-2 font-light">
             Code
           </div>
-          <NewNewToolCodeEditor
+          <NewToolCodeEditor
             editable={!disabled && true}
             toolCode={toolCode}
             onChange={(v) => handleChange("code", v)}
