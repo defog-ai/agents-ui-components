@@ -143,8 +143,12 @@ export function Tabs({
                     !(disableSingleSelect && windowSize[0] < breakpoints.sm)
                     ? "px-2 py-4 min-h-28 max-h-32"
                     : "py-4 px-4",
-                  tab?.headerClassNames?.(selectedTab.name === tab.name, tab) ||
-                    tab?.headerClassNames
+                  typeof tab?.headerClassNames === "function"
+                    ? tab?.headerClassNames?.(
+                        selectedTab.name === tab.name,
+                        tab
+                      )
+                    : tab?.headerClassNames
                 )}
                 onClick={() => {
                   setSelectedTab(tab);

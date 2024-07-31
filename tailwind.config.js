@@ -5,6 +5,7 @@ module.exports = {
     "./index.html",
     "./lib/**/*.{js,ts,jsx,tsx,mdx}",
     "./test/**/*.{js,ts,jsx,tsx,mdx}",
+    "./stories/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
     extend: {

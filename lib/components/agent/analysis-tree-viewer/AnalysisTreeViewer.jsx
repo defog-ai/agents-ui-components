@@ -31,7 +31,7 @@ import { AnalysisTreeViewerLinks } from "./AnalysisTreeViewerLinks";
 import { AgentConfigContext } from "../../context/AgentContext";
 
 export function AnalysisTreeViewer({
-  dashboards,
+  dashboards = [],
   analysisTreeManager = AnalysisTreeManager(),
   // array of strings
   // each string is a question

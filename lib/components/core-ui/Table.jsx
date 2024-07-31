@@ -114,8 +114,8 @@ const defaultSorter = (a, b) => {
  * @returns {JSX.Element}
  */
 export function Table({
-  columns,
-  rows,
+  columns = [],
+  rows = [],
   rootClassNames = "",
   pagerClassNames = "",
   paginationPosition = "bottom",
@@ -127,15 +127,14 @@ export function Table({
   const messageManager = useContext(MessageManagerContext);
   // name of the property in the rows objects where each column's data is stored
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(pagination.defaultPageSize);
+  const [pageSize, setPageSize] = useState(pagination.defaultPageSize || 10);
   const columnsToDisplay = useMemo(
     () =>
       columns
         .filter((column) => !skipColumns.includes(column.dataIndex))
         .map((d) => ({
           ...d,
-          columnHeaderCellRender:
-            d.columnHeaderCellRender || defaultColumnHeaderRender,
+          columnHeaderCellRender: d.columnHeaderCellRender || (() => false),
         })),
     [columns, skipColumns]
   );
@@ -235,14 +234,18 @@ export function Table({
               }}
             />
           </div>
-          <div className="w-full flex">
-            <SingleSelect
-              rootClassNames="w-24"
-              options={allowedPageSizes.map((d) => ({ value: d, label: d }))}
-              value={pageSize}
-              onChange={(val) => setPageSize(val || 10)}
-            />
-          </div>
+          {(pagination.showSizeChanger === undefined
+            ? true
+            : pagination.showSizeChanger) && (
+            <div className="w-full flex">
+              <SingleSelect
+                rootClassNames="w-24"
+                options={allowedPageSizes.map((d) => ({ value: d, label: d }))}
+                value={pageSize}
+                onChange={(val) => setPageSize(val || 10)}
+              />
+            </div>
+          )}
         </div>
       </div>
     ),
@@ -257,15 +260,26 @@ export function Table({
           <thead className="bg-gray-50">
             <tr>
               {columnsToDisplay.map((column, i) => {
-                return column.columnHeaderCellRender({
-                  column,
-                  i,
-                  allColumns: columnsToDisplay,
-                  toggleSort,
-                  sortOrder,
-                  sortColumn,
-                  columnHeaderClassNames,
-                });
+                return (
+                  column.columnHeaderCellRender({
+                    column,
+                    i,
+                    allColumns: columnsToDisplay,
+                    toggleSort,
+                    sortOrder,
+                    sortColumn,
+                    columnHeaderClassNames,
+                  }) ||
+                  defaultColumnHeaderRender({
+                    column,
+                    i,
+                    allColumns: columnsToDisplay,
+                    toggleSort,
+                    sortOrder,
+                    sortColumn,
+                    columnHeaderClassNames,
+                  })
+                );
               })}
             </tr>
           </thead>
