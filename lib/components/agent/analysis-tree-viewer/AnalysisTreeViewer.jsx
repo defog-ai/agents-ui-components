@@ -47,20 +47,6 @@ export function AnalysisTreeViewer({
 
   const { keyName, isTemp, sqlOnly, metadata } = agentConfigContext.val;
 
-  // console.log(
-  //   "keyName:",
-  //   keyName,
-  //   "\n",
-  //   "isTemp:",
-  //   isTemp,
-  //   "\n",
-  //   "sqlOnly:",
-  //   sqlOnly,
-  //   "\n",
-  //   "agentConfigContext:",
-  //   agentConfigContext.val
-  // );
-
   const messageManager = useContext(MessageManagerContext);
 
   const ghostImage = useGhostImage();
@@ -220,7 +206,7 @@ export function AnalysisTreeViewer({
                 {Object.keys(analysisTree).map((rootAnalysisId, i) => {
                   const root = analysisTree[rootAnalysisId].root;
                   const analysisChildList =
-                    analysisTree?.[rootAnalysisId]?.childList || [];
+                    analysisTree?.[rootAnalysisId]?.analysisList || [];
 
                   return (
                     <div key={root.analysisId} className="">
@@ -304,54 +290,68 @@ export function AnalysisTreeViewer({
           ></div>
           <div className="grid grid-cols-1 pt-10 sm:pt-0 auto-cols-max lg:grid-cols-1 grow rounded-tr-lg p-2 lg:p-4 relative min-w-0 h-full overflow-scroll">
             {activeRootAnalysisId &&
-              analysisTree?.[activeRootAnalysisId]?.childList &&
-              analysisTree[activeRootAnalysisId].childList.map((analysis) => {
-                return (
-                  <AnalysisAgent
-                    key={analysis.analysisId}
-                    rootClassNames={
-                      "w-full mb-4 [&_.analysis-content]:min-h-96 shadow-md analysis-" +
-                      analysis.analysisId
-                    }
-                    analysisId={analysis.analysisId}
-                    createAnalysisRequestBody={
-                      analysis.createAnalysisRequestBody
-                    }
-                    initiateAutoSubmit={true}
-                    hasExternalSearchBar={true}
-                    setGlobalLoading={setLoading}
-                    // we store this at the time of creation of the analysis
-                    // and don't change it for this specific analysis afterwards.
-                    sqlOnly={analysis.createAnalysisRequestBody.sql_only}
-                    onManagerCreated={(mgr, id, ctr) => {
-                      analysisDomRefs.current[id] = {
-                        ctr,
-                        mgr,
-                        id,
-                      };
-                      if (autoScroll) {
-                        // scroll to ctr
-                        scrollTo(id);
+              analysisTree?.[activeRootAnalysisId]?.analysisList &&
+              analysisTree[activeRootAnalysisId].analysisList.map(
+                (analysis) => {
+                  return (
+                    <AnalysisAgent
+                      key={analysis.analysisId}
+                      rootClassNames={
+                        "w-full mb-4 [&_.analysis-content]:min-h-96 shadow-md analysis-" +
+                        analysis.analysisId
                       }
-                    }}
-                    onManagerDestroyed={(mgr, id) => {
-                      // remove the analysis from the analysisTree
-                      analysisTreeManager.removeAnalysis({
-                        analysisId: analysis.analysisId,
-                        isRoot: analysis.isRoot,
-                        rootAnalysisId: analysis.rootAnalysisId,
-                      });
-
-                      analysisTreeManager.setActiveAnalysisId(null);
-                      if (activeRootAnalysisId === id) {
-                        analysisTreeManager.setActiveRootAnalysisId(null);
+                      analysisId={analysis.analysisId}
+                      createAnalysisRequestBody={
+                        analysis.createAnalysisRequestBody
                       }
+                      initiateAutoSubmit={true}
+                      hasExternalSearchBar={true}
+                      setGlobalLoading={setLoading}
+                      // we store this at the time of creation of the analysis
+                      // and don't change it for this specific analysis afterwards.
+                      sqlOnly={analysis.createAnalysisRequestBody.sql_only}
+                      onManagerCreated={(analysisManager, id, ctr) => {
+                        analysisDomRefs.current[id] = {
+                          ctr,
+                          analysisManager,
+                          id,
+                        };
+                        if (autoScroll) {
+                          // scroll to ctr
+                          scrollTo(id);
+                        }
 
-                      setLoading(false);
-                    }}
-                  />
-                );
-              })}
+                        analysisTreeManager.updateAnalysis({
+                          analysisId: analysis.analysisId,
+                          isRoot: analysis.isRoot,
+                          updateObj: {
+                            analysisManager: analysisManager,
+                          },
+                        });
+                      }}
+                      onManagerDestroyed={(analysisManager, id) => {
+                        console.log("destroying", analysis.analysisId);
+                        // remove the analysis from the analysisTree
+                        analysisTreeManager.removeAnalysis({
+                          analysisId: analysis.analysisId,
+                          isRoot: analysis.isRoot,
+                          rootAnalysisId: analysis.rootAnalysisId,
+                        });
+
+                        analysisTreeManager.setActiveAnalysisId(null);
+                        if (activeRootAnalysisId === id) {
+                          analysisTreeManager.setActiveRootAnalysisId(null);
+                        }
+
+                        setLoading(false);
+                      }}
+                      initialConfig={{
+                        analysisManager: analysis.analysisManager || null,
+                      }}
+                    />
+                  );
+                }
+              )}
 
             {!activeAnalysisId && (
               <div className=" grow flex flex-col place-content-center m-auto max-w-full relative z-[1]">

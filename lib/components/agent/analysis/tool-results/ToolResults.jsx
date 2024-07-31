@@ -8,7 +8,7 @@ import AgentLoader from "../../../common/AgentLoader";
 // import LoadingLottie from "../../../svg/loader.json";
 import ErrorBoundary from "../../../common/ErrorBoundary";
 import {
-  getToolRunData,
+  fetchToolRunDataFromServer,
   parseData,
   toolDisplayNames,
 } from "../../../utils/utils";
@@ -162,7 +162,7 @@ export function ToolResults({
         res = toolRunDataCache[newId];
         hasCache = true;
       } else {
-        res = await getToolRunData(newId, apiEndpoint);
+        res = await fetchToolRunDataFromServer(newId, apiEndpoint);
       }
 
       const newToolRunDataCache = { ...toolRunDataCache };
@@ -231,7 +231,7 @@ export function ToolResults({
             if (toolRunDataCache[id]) {
               return toolRunDataCache[id];
             }
-            return getToolRunData(id, apiEndpoint);
+            return fetchToolRunDataFromServer(id, apiEndpoint);
           })
         );
 
@@ -370,7 +370,7 @@ export function ToolResults({
             if (toolRunDataCache[id]) {
               return toolRunDataCache[id];
             }
-            return getToolRunData(id, apiEndpoint);
+            return fetchToolRunDataFromServer(id, apiEndpoint);
           })
         );
 

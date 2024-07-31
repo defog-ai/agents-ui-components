@@ -182,7 +182,6 @@ export function EmbedInner({
         }
       }
 
-      console.log(metadata, tableData);
       // now add it to our db list
       setAvailableDbs((prev) => {
         const newDbs = [...prev];
@@ -197,7 +196,10 @@ export function EmbedInner({
           sqliteTableName,
           metadataFetchingError: metadata ? false : "Error fetching metadata",
           predefinedQuestions: uploadedCsvPredefinedQuestions,
-          analysisTreeManager: AnalysisTreeManager({}),
+          analysisTreeManager: AnalysisTreeManager(
+            {},
+            "csv_" + Math.floor(Math.random() * 1000)
+          ),
         };
 
         // const existingTempIdx = prev.findIndex((d) => d.isTemp);
@@ -333,7 +335,6 @@ export function EmbedInner({
     (async () => {
       if (conn.current) return;
 
-      console.log("Creating");
       const _conn = await initializeSQLite();
       conn.current = _conn;
 
@@ -351,7 +352,6 @@ export function EmbedInner({
     // becuase currently the tool runs are not saved on servers. so can't be fetched again.
     if (selectedDb) {
       if (selectedDb.isTemp) {
-        selectedDbManager.reset();
         // set some presets for the temp db
         // set is temp to true in the context
         // and also sqlOnly to true
@@ -561,7 +561,10 @@ export function DefogAnalysisAgentEmbed({
       metadata: null,
       data: {},
       metadataFetchingError: false,
-      analysisTreeManager: AnalysisTreeManager({}, d.keyName),
+      analysisTreeManager: AnalysisTreeManager(
+        {},
+        d.keyName + "_" + Math.floor(Math.random() * 1000)
+      ),
     }));
   }, [dbs]);
 

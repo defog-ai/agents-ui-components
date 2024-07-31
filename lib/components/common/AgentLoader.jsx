@@ -17,7 +17,7 @@ const AgentLoader = ({
       {svg && svg}
       <div className="w-full h-40 flex text-sm flex-col items-center justify-center">
         {message}
-        <SpinningLoader classNames="text-gray-400 mt-3" />
+        <SpinningLoader classNames="text-gray-400 mt-3 mx-0" />
       </div>
       {type === "error" && <h2>ERROR</h2>}
       {children && <div className="searchState-child">{children}</div>}

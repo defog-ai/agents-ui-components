@@ -48,6 +48,7 @@ import { ToolResults } from "./tool-results/ToolResults";
  * @property {Function} setGlobalLoading - Global loading. Useful if you are handling multiple analysis..
  * @property {Function} onManagerCreated - Callback when analysis manager is created.
  * @property {Function} onManagerDestroyed - Callback when analysis manager is destroyed.
+ * @property {{analysisManager?: Object}} initialConfig - Initial config if any.
  */
 
 /**
@@ -63,6 +64,9 @@ export const AnalysisAgent = ({
   setGlobalLoading = (...args) => {},
   onManagerCreated = (...args) => {},
   onManagerDestroyed = (...args) => {},
+  initialConfig = {
+    analysisManager: null,
+  },
 }) => {
   const agentConfigContext = useContext(AgentConfigContext);
   const {
@@ -98,7 +102,7 @@ export const AnalysisAgent = ({
   // in case this isn't called from analysis tree viewer (which has a central singular search bar)
   // we will have an independent search bar for each analysis as well
   const independentAnalysisSearchRef = useRef();
-  const [toolRunDataCache, setToolRunDataCache] = useState({});
+
   const [tools, setTools] = useState({});
 
   const ctr = useRef(null);
@@ -111,7 +115,6 @@ export const AnalysisAgent = ({
         // messageManager.error(response.error_message);
         throw new Error(response.error_message);
       }
-      setToolRunDataCache(analysisManager.toolRunDataCache);
 
       if (response && response?.done) {
         setAnalysisBusy(false);
@@ -140,8 +143,6 @@ export const AnalysisAgent = ({
       setAnalysisBusy(false);
       setGlobalLoading(false);
 
-      console.log("here");
-
       // if the current stage is null, just destroy this analysis
       if (!newAnalysisData.currentStage) {
         analysisManager.removeEventListeners();
@@ -161,8 +162,6 @@ export const AnalysisAgent = ({
           delete newUpdates[response.tool_run_id];
           return newUpdates;
         });
-
-        setToolRunDataCache(analysisManager.toolRunDataCache);
 
         // and set active node to this one
         const parentNodes = [...dag.nodes()].filter(
@@ -205,22 +204,25 @@ export const AnalysisAgent = ({
   );
 
   const analysisManager = useMemo(() => {
-    return AnalysisManager({
-      analysisId,
-      apiEndpoint,
-      token,
-      keyName,
-      devMode,
-      metadata,
-      isTemp,
-      sqlOnly: sqlOnly,
-      onNewData: onMainSocketMessage,
-      onReRunData: onReRunMessage,
-      onManagerDestroyed: onManagerDestroyed,
-      createAnalysisRequestBody,
-      mainSocket: null, // Add mainSocket property
-      rerunSocket: null, // Add rerunSocket property
-    });
+    return (
+      initialConfig.analysisManager ||
+      AnalysisManager({
+        analysisId,
+        apiEndpoint,
+        token,
+        keyName,
+        devMode,
+        metadata,
+        isTemp,
+        sqlOnly: sqlOnly,
+        onNewData: onMainSocketMessage,
+        onReRunData: onReRunMessage,
+        onManagerDestroyed: onManagerDestroyed,
+        createAnalysisRequestBody,
+        mainSocket: null, // Add mainSocket property
+        rerunSocket: null, // Add rerunSocket property
+      })
+    );
   }, [analysisId]);
 
   analysisManager.setOnReRunDataCallback(onReRunMessage);
@@ -230,6 +232,11 @@ export const AnalysisAgent = ({
   const analysisData = useSyncExternalStore(
     analysisManager.subscribeToDataChanges,
     analysisManager.getAnalysisData
+  );
+
+  const toolRunDataCache = useSyncExternalStore(
+    analysisManager.subscribeToToolRunDataCacheChanges,
+    analysisManager.getToolRunDataCache
   );
 
   useEffect(() => {
@@ -267,7 +274,7 @@ export const AnalysisAgent = ({
       toolRunData.edited = true;
 
       // update the cache
-      setToolRunDataCache((prev) => {
+      analysisManager.setToolRunDataCache((prev) => {
         return {
           ...prev,
           [toolRunId]: {
@@ -301,8 +308,6 @@ export const AnalysisAgent = ({
 
         const tools = (await response.json())["tools"];
         setTools(tools);
-
-        setToolRunDataCache(analysisManager.toolRunDataCache);
 
         if (
           initiateAutoSubmit &&
@@ -446,15 +451,6 @@ export const AnalysisAgent = ({
     return toolRun?.data?.step?.tool_run_id;
   }, [activeNode]);
 
-  // console.log(
-  //   toolRunDataCache,
-  //   isTemp,
-  //   sqlOnly,
-  //   activeNode,
-  //   activeToolRunId,
-  //   analysisManager.toolRunDataCache
-  // );
-
   return (
     <ErrorBoundary>
       <div
@@ -472,7 +468,13 @@ export const AnalysisAgent = ({
           <div className="transition-all w-full bg-gray-50 rounded-3xl">
             {titleDiv}
             <AgentLoader
-              message={!analysisData ? "Setting up..." : "Thinking..."}
+              message={
+                !analysisData
+                  ? sqlOnly
+                    ? "Fetching data..."
+                    : "Setting up..."
+                  : "Thinking..."
+              }
               // lottieData={LoadingLottie}
               classNames={"m-0 h-full bg-transparent"}
             />
@@ -548,7 +550,9 @@ export const AnalysisAgent = ({
                                   setPendingToolRunUpdates
                                 }
                                 toolRunDataCache={toolRunDataCache}
-                                setToolRunDataCache={setToolRunDataCache}
+                                setToolRunDataCache={
+                                  analysisManager.setToolRunDataCache
+                                }
                                 tools={tools}
                                 analysisBusy={analysisBusy}
                                 handleDeleteSteps={async (toolRunIds) => {

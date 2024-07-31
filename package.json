@@ -1,12 +1,13 @@
 {
   "name": "@defogdotai/agents-ui-components",
-  "version": "0.0.0-beta-15",
+  "version": "0.0.0-beta-17",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "pack": "npm run build && npm pack"
   },
   "main": "dist/agent.js",
   "types": "dist/agent.d.ts",
@@ -52,7 +53,7 @@
     "prismjs": "^1.29.0",
     "react-chartjs-2": "^5.2.0",
     "react-simple-code-editor": "^0.14.1",
-    "sql.js": "^1.10.3",
+    "sql.js": "^1.8.0",
     "styled-components": "^6.1.11",
     "tailwind-merge": "^2.4.0",
     "uuid": "^10.0.0",
