@@ -453,8 +453,8 @@ export function DefogAnalysisAgentEmbed({
 }) {
   const [socketsConnected, setSocketsConnected] = useState(false);
 
-  const [agentConfig, setAgentConfig] = useState(
-    createAgentConfig({
+  const initialConfig = useMemo(() => {
+    return createAgentConfig({
       user,
       token,
       showAnalysisUnderstanding,
@@ -466,8 +466,30 @@ export function DefogAnalysisAgentEmbed({
       metadata,
       sqlOnly,
       sqliteConn,
-    })
-  );
+    });
+  }, [
+    user,
+    token,
+    showAnalysisUnderstanding,
+    showCode,
+    allowDashboardAdd,
+    isTemp,
+    devMode,
+    apiEndpoint,
+    metadata,
+    sqlOnly,
+    sqliteConn,
+  ]);
+
+  const [agentConfig, setAgentConfig] = useState(initialConfig);
+
+  // update on props change
+  useEffect(() => {
+    setAgentConfig({
+      ...agentConfig,
+      ...initialConfig,
+    });
+  }, [initialConfig]);
 
   const [reactiveContext, setReactiveContext] = useState(
     useContext(ReactiveVariablesContext)

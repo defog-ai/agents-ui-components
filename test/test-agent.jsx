@@ -10,6 +10,7 @@ function QueryDataPage() {
       apiEndpoint={"http://localhost:80"}
       // these are the ones that will be shown for new csvs uploaded
       uploadedCsvPredefinedQuestions={["Show me any 5 rows from the dataset"]}
+      showAnalysisUnderstanding={true}
       dbs={[
         {
           keyName: "Yelp",
