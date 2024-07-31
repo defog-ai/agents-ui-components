@@ -1,6 +1,6 @@
 {
   "name": "@defogdotai/agents-ui-components",
-  "version": "0.0.0-beta-20",
+  "version": "0.0.0-beta-21",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -12,9 +12,21 @@
   "main": "dist/agent.js",
   "types": "dist/agent.d.ts",
   "exports": {
-    "./*": {
-      "types": "./dist/*.d.ts",
-      "import": "./dist/*.js"
+    "./agent": {
+      "types": "./dist/agent.d.ts",
+      "import": "./dist/agent.js"
+    },
+    "./core-ui": {
+      "types": "./dist/core-ui.d.ts",
+      "import": "./dist/core-ui.js"
+    },
+    "./tool-editor": {
+      "types": "./dist/tool-editor.d.ts",
+      "import": "./dist/tool-editor.js"
+    },
+    "./doc": {
+      "types": "./dist/doc.d.ts",
+      "import": "./dist/doc.js"
     },
     "./css": "./dist/style.css"
   },
