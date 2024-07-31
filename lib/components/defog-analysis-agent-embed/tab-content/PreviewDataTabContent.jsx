@@ -187,7 +187,7 @@ export function PreviewDataTabContent({
           </>
         ) : (
           <div className="text-center">
-            {db.dataFetchingError || db.metadataFetchingError }
+            {db.dataFetchingError || db.metadataFetchingError}
           </div>
         )}
       </div>

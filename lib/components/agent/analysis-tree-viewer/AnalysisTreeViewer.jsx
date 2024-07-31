@@ -124,7 +124,6 @@ export function AnalysisTreeViewer({
         analysisTreeManager.setActiveAnalysisId(newAnalysis.analysisId);
         analysisTreeManager.setActiveRootAnalysisId(newAnalysis.rootAnalysisId);
 
-        if (!searchRef.current) debugger;
         searchRef.current.value = "";
       } catch (e) {
         messageManager.error("Failed to create analysis");
@@ -330,7 +329,6 @@ export function AnalysisTreeViewer({
                         });
                       }}
                       onManagerDestroyed={(analysisManager, id) => {
-                        console.log("destroying", analysis.analysisId);
                         // remove the analysis from the analysisTree
                         analysisTreeManager.removeAnalysis({
                           analysisId: analysis.analysisId,
@@ -365,7 +363,7 @@ export function AnalysisTreeViewer({
                       <li className="" key={i}>
                         <button
                           className={twMerge(
-                            "cursor-pointer text-sm p-2 border border-gray-200 rounded-md shadow-sm",
+                            "cursor-pointer text-sm p-2 m-1 border border-gray-200 rounded-md shadow-sm",
                             loading
                               ? "bg-gray-100 text-gray-300 cursor-not-allowed"
                               : "hover:bg-gray-50 hover:border"

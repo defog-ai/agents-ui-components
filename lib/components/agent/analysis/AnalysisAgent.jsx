@@ -625,18 +625,20 @@ export const AnalysisAgent = ({
                             ? `rounded-md px-1 text-center`
                             : "";
                         }}
-                        toolIcon={(node) => (
-                          <p className="text-sm truncate m-0">
-                            {trimStringToLength(
-                              toolShortNames[node?.data?.step?.tool_name] ||
-                                tools[node?.data?.step?.tool_name][
-                                  "tool_name"
-                                ] ||
-                                node?.data?.step?.tool_name,
-                              15
-                            )}
-                          </p>
-                        )}
+                        toolIcon={(node) => {
+                          return (
+                            <p className="text-sm truncate m-0">
+                              {trimStringToLength(
+                                toolShortNames[node?.data?.step?.tool_name] ||
+                                  tools[node?.data?.step?.tool_name][
+                                    "tool_name"
+                                  ] ||
+                                  node?.data?.step?.tool_name,
+                                15
+                              )}
+                            </p>
+                          );
+                        }}
                       />
                     </Collapse>
                   </div>

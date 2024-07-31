@@ -193,25 +193,20 @@ export default function Clarify({
         {success &&
           (clarification_questions.length ? (
             <>
-              {/* <p className="font-bold text-left mb-2">
-                Please answer these questions to proceed
-              </p> */}
               {clarification_questions.map((q, i) => (
-                <>
-                  <div
-                    key={q.question}
-                    className="w-full flex place-content-start"
-                  >
-                    <Writer s={q.question} animate={!stageDone}>
-                      <div className="w-full mb-4">
-                        <p className="q-desc writer-target m-0 mb-2 text-primary-text"></p>
-                        <div className="writer-children">
-                          {UIs[q.ui_tool](q, i, q.ui_tool_options)}
-                        </div>
+                <div
+                  key={q.question}
+                  className="w-full flex place-content-start"
+                >
+                  <Writer s={q.question} animate={!stageDone}>
+                    <div className="w-full mb-4">
+                      <p className="q-desc writer-target m-0 mb-2 text-primary-text"></p>
+                      <div className="writer-children">
+                        {UIs[q.ui_tool](q, i, q.ui_tool_options)}
                       </div>
-                    </Writer>
-                  </div>
-                </>
+                    </div>
+                  </Writer>
+                </div>
               ))}
             </>
           ) : (

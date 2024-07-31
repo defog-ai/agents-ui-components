@@ -15,7 +15,10 @@ function QueryDataPage() {
         {
           keyName: "Yelp",
           name: "Yelp",
-          predefinedQuestions: ["Show me any 5 rows from the dataset"],
+          predefinedQuestions: [
+            "Show me any 5 rows from the dataset",
+            "Show me any 40 rows from the dataset",
+          ],
         },
         {
           keyName: "Restaurants",

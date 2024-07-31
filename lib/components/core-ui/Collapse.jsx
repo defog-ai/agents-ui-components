@@ -44,6 +44,12 @@ export function Collapse({
     setInternalCollapsed(!alwaysOpen && collapsed);
   }, [collapsed]);
 
+  useEffect(() => {
+    if (alwaysOpen) {
+      setInternalCollapsed(false);
+    }
+  }, [alwaysOpen]);
+
   function setHeight() {
     if (count > 10) return;
 
