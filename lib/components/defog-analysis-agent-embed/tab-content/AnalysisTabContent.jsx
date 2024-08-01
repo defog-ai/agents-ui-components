@@ -5,10 +5,13 @@ import { useContext } from "react";
 import { AnalysisTreeViewer } from "../../agent/analysis-tree-viewer/AnalysisTreeViewer";
 
 export function AnalysisTabContent({
-  selectedDbManager,
+  keyName,
+  treeManager,
   predefinedQuestions,
   searchBarDraggable = true,
   isTemp = false,
+  forceSqlOnly = false,
+  metadata = null,
   sideBarClasses = "h-full",
   searchBarClasses = "",
   defaultSidebarOpen = null,
@@ -18,7 +21,11 @@ export function AnalysisTabContent({
   return (
     <ErrorBoundary>
       <AnalysisTreeViewer
-        analysisTreeManager={selectedDbManager}
+        keyName={keyName}
+        metadata={metadata}
+        isTemp={isTemp}
+        forceSqlOnly={forceSqlOnly}
+        analysisTreeManager={treeManager}
         dashboards={agentConfigContext.val.dashboards}
         autoScroll={true}
         sideBarClasses={sideBarClasses}
@@ -28,7 +35,7 @@ export function AnalysisTabContent({
           searchBarClasses
         )}
         searchBarDraggable={searchBarDraggable}
-        showToggle={!isTemp}
+        showToggle={!forceSqlOnly}
         defaultSidebarOpen={
           defaultSidebarOpen || (window.innerWidth < 768 ? false : true)
         }

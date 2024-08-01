@@ -2,11 +2,8 @@ import { createContext } from "react";
 
 /**
  * @typedef {Object} AgentConfig
- * @property {string|null} keyName - Api key name.
- * @property {boolean|null} isTemp - Whether it is a temporary DB aka CSV upload
  * @property {boolean|null} devMode - Whether it is in development mode.
  * @property {string|null} apiEndpoint - API endpoint.
- * @property {Object|null} metadata - Database's metadata information. Only used in case of CSV uploads.
  * @property {Object|null} sqliteConn - SQLite connection. Used when querying CSVs.
  * @property {Array} analyses - List of analyses for this user.
  * @property {Array} toolboxes - List of toolboxes for this user.
@@ -15,15 +12,12 @@ import { createContext } from "react";
  * @property {Object} toolRunDataCache - Cache for tool run data. (Only those that have been opened/created in this "Session")
  * @property {string|null} user - User email/name.
  * @property {string|null} token - Token aka hashed password. NOT api key.
- *
  * @property {Object|null} mainManager - Main websocket manager.
  * @property {Object|null} reRunManager - Re-run websocket manager.
  * @property {Object|null} toolSocketManager - Tool websocket manager.
- *
  * @property {boolean} showAnalysisUnderstanding - Poorly named. Whether to show "analysis understanding" aka description of the results of a step under the table of that step.
  * @property {boolean} showCode - Whether to show tool code.
  * @property {boolean} allowDashboardAdd - Whether to allow addition to dashboards.
- * @property {boolean} sqlOnly - Whether the analysis is SQL only.
  */
 
 /**
@@ -31,11 +25,8 @@ import { createContext } from "react";
  * @type {AgentConfig}
  */
 export const defaultAgentConfig = {
-  isTemp: null,
-  keyName: null,
   devMode: null,
   apiEndpoint: null,
-  metadata: null,
   sqliteConn: null,
   user: null,
   token: null,
@@ -50,7 +41,6 @@ export const defaultAgentConfig = {
   showAnalysisUnderstanding: true,
   showCode: true,
   allowDashboardAdd: true,
-  sqlOnly: false,
 };
 
 /**

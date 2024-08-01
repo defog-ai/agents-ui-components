@@ -43,7 +43,7 @@ export function EmbedInner({
   searchBarDraggable = true,
   limitCsvUploadSize = true,
   maxCsvUploadSize = 10,
-  devMode = false,
+  csvUploadIsSqlOnly = true,
 }) {
   const ctr = useRef(null);
   const messageManager = useContext(MessageManagerContext);
@@ -63,7 +63,19 @@ export function EmbedInner({
   }, [selectedDbName, availableDbs]);
 
   const selectedDbMetadata = useMemo(() => {
-    return availableDbs.find((d) => d.name === selectedDbName)?.metadata;
+    return (
+      availableDbs.find((d) => d.name === selectedDbName)?.metadata || null
+    );
+  }, [selectedDbName, availableDbs]);
+
+  const selectedDbIsSqlOnly = useMemo(() => {
+    return (
+      availableDbs.find((d) => d.name === selectedDbName)?.sqlOnly || false
+    );
+  }, [selectedDbName, availableDbs]);
+
+  const selectedDbIsTemp = useMemo(() => {
+    return availableDbs.find((d) => d.name === selectedDbName)?.isTemp || false;
   }, [selectedDbName, availableDbs]);
 
   const selectedDbManager = useMemo(() => {
@@ -190,6 +202,7 @@ export function EmbedInner({
           name: newDbName,
           keyName: csvFileKeyName,
           isTemp: true,
+          sqlOnly: csvUploadIsSqlOnly && true,
           metadata: metadata ? metadata : null,
           data: Object.assign({}, tableData || {}),
           columns: columns,
@@ -252,9 +265,12 @@ export function EmbedInner({
             nullTab
           ) : (
             <AnalysisTabContent
-              selectedDbManager={selectedDbManager}
               predefinedQuestions={selectedDbPredefinedQuestions}
-              isTemp={selectedDb.isTemp}
+              isTemp={selectedDbIsTemp}
+              keyName={selectedDbKeyName}
+              treeManager={selectedDbManager}
+              forceSqlOnly={selectedDbIsSqlOnly}
+              metadata={selectedDbMetadata}
               searchBarDraggable={searchBarDraggable}
             />
           ),
@@ -323,13 +339,7 @@ export function EmbedInner({
         ),
       },
     ];
-  }, [
-    selectedDbManager,
-    selectedDbKeyName,
-    selectedDbName,
-    selectedDb,
-    nullTab,
-  ]);
+  }, [selectedDb, apiEndpoint, searchBarDraggable, token, nullTab]);
 
   useEffect(() => {
     (async () => {
@@ -412,12 +422,10 @@ export function EmbedInner({
  * @property {Boolean=} showAnalysisUnderstanding - Poorly named. Whether to show "analysis understanding" aka description of the results created by a model under the table.
  * @property {Boolean=} showCode - Whether to show tool code.
  * @property {Boolean=} allowDashboardAdd - Whether to allow addition to dashboards.
- * @property {Boolean=} isTemp - Whether it is a temporary DB aka CSV upload
- * @property {Object=} metadata - Database's metadata information. Only used in case of CSV uploads.
- * @property {Boolean=} sqlOnly - Whether the analysis is SQL only.
  * @property {Object=} sqliteConn - The sqlite connection object
  * @property {Boolean=} disableMessages - Whether to disable messages
- * @property {Array<{keyName: string, predefinedQuestions?: string[], name?: string}>=} dbs - The list of databases to show in the dropdown. Each object should have a keyName and predefinedQuestions array.
+ * @property {Array<{name: string, keyName: string, predefinedQuestions?: string[], isTemp?: false, sqlOnly?: false}>=} dbs - The list of databases to show in the dropdown. Each object should have a keyName and predefinedQuestions array.
+ * @property {Boolean=false} csvUploadIsSqlOnly - Whether all uploaded csvs should be sql only.
  * @property {Array<string>=} uploadedCsvPredefinedQuestions - The predefined questions for the uploaded CSVs
  * @property {Boolean=} searchBarDraggable -  If the main search bad should be draggable.
  * @property {String=} csvFileKeyName -  The key name for the csv file.
@@ -439,12 +447,10 @@ export function DefogAnalysisAgentEmbed({
   showAnalysisUnderstanding = true,
   showCode = false,
   allowDashboardAdd = true,
-  isTemp = false,
-  metadata = null,
-  sqlOnly = false,
   sqliteConn = null,
   disableMessages = false,
   dbs = [],
+  csvUploadIsSqlOnly = true,
   uploadedCsvPredefinedQuestions = ["Show me any 5 rows"],
   searchBarDraggable = true,
   csvFileKeyName = null,
@@ -460,11 +466,8 @@ export function DefogAnalysisAgentEmbed({
       showAnalysisUnderstanding,
       showCode,
       allowDashboardAdd,
-      isTemp,
       devMode,
       apiEndpoint,
-      metadata,
-      sqlOnly,
       sqliteConn,
     });
   }, [
@@ -473,11 +476,8 @@ export function DefogAnalysisAgentEmbed({
     showAnalysisUnderstanding,
     showCode,
     allowDashboardAdd,
-    isTemp,
     devMode,
     apiEndpoint,
-    metadata,
-    sqlOnly,
     sqliteConn,
   ]);
 
@@ -571,15 +571,15 @@ export function DefogAnalysisAgentEmbed({
         toolSocketManager.clearSocketTimeout();
       }
     };
-  }, []);
+  }, [apiEndpoint, token]);
 
   // use the simple db list
   // and add some extra props to them
   // including the analysis tree manager which helps us "remember" questions for each db
   const dbsWithManagers = useMemo(() => {
     return dbs.map((d) => ({
-      ...d,
       isTemp: false,
+      sqlOnly: false,
       metadata: null,
       data: {},
       metadataFetchingError: false,
@@ -587,6 +587,8 @@ export function DefogAnalysisAgentEmbed({
         {},
         d.keyName + "_" + Math.floor(Math.random() * 1000)
       ),
+      // do this after so that sqlOnly, and isTemp can be overwritten if defined by the user
+      ...d,
     }));
   }, [dbs]);
 
@@ -626,7 +628,6 @@ export function DefogAnalysisAgentEmbed({
                     }
                     limitCsvUploadSize={limitCsvUploadSize}
                     maxCsvUploadSize={maxCsvUploadSize}
-                    devMode={devMode}
                   />
                 ) : (
                   <div className="w-full h-screen flex flex-col justify-center items-center ">

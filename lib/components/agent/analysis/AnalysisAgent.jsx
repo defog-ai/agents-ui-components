@@ -41,6 +41,10 @@ import { ToolResults } from "./tool-results/ToolResults";
  *
  * @typedef {Object} AnalysisAgentProps
  * @property {string} analysisId - Analysis ID.
+ * @property {string} keyName - Api Key name.
+ * @property {boolean} isTemp - Whether this is a temp analysis. Used in CSVs.
+ * @property {Object} metadata - Metadata for this database.
+ * @property {boolean} sqlOnly - Whether this is a sql only analysis.
  * @property {string} rootClassNames - Root class names.
  * @property {Object} createAnalysisRequestBody - Object that will be sent as the body of the fetch request to create_analysis.
  * @property {boolean} initiateAutoSubmit - Whether to initiate auto submit.
@@ -57,6 +61,10 @@ import { ToolResults } from "./tool-results/ToolResults";
  * */
 export const AnalysisAgent = ({
   analysisId,
+  keyName,
+  isTemp = false,
+  metadata = null,
+  sqlOnly = false,
   rootClassNames = "",
   createAnalysisRequestBody = {},
   initiateAutoSubmit = false,
@@ -70,13 +78,9 @@ export const AnalysisAgent = ({
 }) => {
   const agentConfigContext = useContext(AgentConfigContext);
   const {
-    keyName,
-    isTemp,
     devMode,
     apiEndpoint,
-    metadata,
     token,
-    sqlOnly,
     mainManager,
     reRunManager,
     toolSocketManager,
@@ -214,7 +218,7 @@ export const AnalysisAgent = ({
         devMode,
         metadata,
         isTemp,
-        sqlOnly: sqlOnly,
+        sqlOnly,
         onNewData: onMainSocketMessage,
         onReRunData: onReRunMessage,
         onManagerDestroyed: onManagerDestroyed,

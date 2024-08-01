@@ -28,11 +28,14 @@ import {
 import { AnalysisTreeManager } from "./analysisTreeManager";
 import ErrorBoundary from "../../common/ErrorBoundary";
 import { AnalysisTreeViewerLinks } from "./AnalysisTreeViewerLinks";
-import { AgentConfigContext } from "../../context/AgentContext";
 
 export function AnalysisTreeViewer({
   dashboards = [],
   analysisTreeManager = AnalysisTreeManager(),
+  keyName,
+  isTemp,
+  forceSqlOnly,
+  metadata,
   // array of strings
   // each string is a question
   predefinedQuestions = [],
@@ -43,10 +46,6 @@ export function AnalysisTreeViewer({
   defaultSidebarOpen = false,
   showToggle = true,
 }) {
-  const agentConfigContext = useContext(AgentConfigContext);
-
-  const { keyName, isTemp, sqlOnly, metadata } = agentConfigContext.val;
-
   const messageManager = useContext(MessageManagerContext);
 
   const ghostImage = useGhostImage();
@@ -54,6 +53,7 @@ export function AnalysisTreeViewer({
   const analysisDomRefs = useRef({});
 
   const [loading, setLoading] = useState(false);
+  const [sqlOnly, setSqlOnly] = useState(forceSqlOnly);
 
   const searchCtr = useRef(null);
   const searchRef = useRef(null);
@@ -110,7 +110,7 @@ export function AnalysisTreeViewer({
           keyName,
           isRoot,
           directParentId,
-          sqlOnly,
+          sqlOnly: forceSqlOnly || sqlOnly,
           isTemp,
         });
 
@@ -132,7 +132,7 @@ export function AnalysisTreeViewer({
         setLoading(false);
       }
     },
-    [analysisTreeManager, sqlOnly, isTemp, keyName, metadata]
+    [analysisTreeManager, forceSqlOnly, sqlOnly, isTemp, keyName, metadata]
   );
 
   useEffect(() => {
@@ -295,6 +295,7 @@ export function AnalysisTreeViewer({
                   return (
                     <AnalysisAgent
                       key={analysis.analysisId}
+                      metadata={metadata}
                       rootClassNames={
                         "w-full mb-4 [&_.analysis-content]:min-h-96 shadow-md analysis-" +
                         analysis.analysisId
@@ -308,7 +309,9 @@ export function AnalysisTreeViewer({
                       setGlobalLoading={setLoading}
                       // we store this at the time of creation of the analysis
                       // and don't change it for this specific analysis afterwards.
-                      sqlOnly={analysis.createAnalysisRequestBody.sql_only}
+                      sqlOnly={analysis.sqlOnly}
+                      isTemp={analysis.isTemp}
+                      keyName={analysis.keyName}
                       onManagerCreated={(analysisManager, id, ctr) => {
                         analysisDomRefs.current[id] = {
                           ctr,
@@ -487,14 +490,12 @@ export function AnalysisTreeViewer({
                     />
                     {showToggle && (
                       <Toggle
-                        disabled={loading}
+                        disabled={forceSqlOnly || loading}
                         titleClassNames="font-bold text-gray-400"
                         // if true, means advance = sql only off
                         onToggle={(v) => {
-                          agentConfigContext.update({
-                            ...agentConfigContext.val,
-                            sqlOnly: !v,
-                          });
+                          if (forceSqlOnly) return;
+                          setSqlOnly(!v);
                         }}
                         defaultOn={!sqlOnly}
                         offLabel="Advanced"
