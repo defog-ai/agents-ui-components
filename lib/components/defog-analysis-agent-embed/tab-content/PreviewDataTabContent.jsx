@@ -125,7 +125,7 @@ export function PreviewDataTabContent({
       key: d,
       title: d,
     }));
-  }, [selectedTableIdx, db]);
+  }, [selectedTableIdx, db, tables]);
 
   const selectedTableData = useMemo(() => {
     const rows = db?.data?.[tables?.[selectedTableIdx]]?.data || [];
@@ -137,7 +137,7 @@ export function PreviewDataTabContent({
 
       return rowObj;
     });
-  }, [selectedTableIdx, db]);
+  }, [selectedTableIdx, db, tables, selectedTableColumns]);
 
   return (
     <ErrorBoundary>

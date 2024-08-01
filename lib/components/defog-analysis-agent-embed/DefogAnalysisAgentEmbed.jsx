@@ -43,7 +43,7 @@ export function EmbedInner({
   searchBarDraggable = true,
   limitCsvUploadSize = true,
   maxCsvUploadSize = 10,
-  csvUploadIsSqlOnly = true,
+  uploadedCsvIsSqlOnly = true,
 }) {
   const ctr = useRef(null);
   const messageManager = useContext(MessageManagerContext);
@@ -202,7 +202,7 @@ export function EmbedInner({
           name: newDbName,
           keyName: csvFileKeyName,
           isTemp: true,
-          sqlOnly: csvUploadIsSqlOnly && true,
+          sqlOnly: uploadedCsvIsSqlOnly && true,
           metadata: metadata ? metadata : null,
           data: Object.assign({}, tableData || {}),
           columns: columns,
@@ -425,7 +425,7 @@ export function EmbedInner({
  * @property {Object=} sqliteConn - The sqlite connection object
  * @property {Boolean=} disableMessages - Whether to disable messages
  * @property {Array<{name: string, keyName: string, predefinedQuestions?: string[], isTemp?: false, sqlOnly?: false}>=} dbs - The list of databases to show in the dropdown. Each object should have a keyName and predefinedQuestions array.
- * @property {Boolean=false} csvUploadIsSqlOnly - Whether all uploaded csvs should be sql only.
+ * @property {Boolean=true} uploadedCsvIsSqlOnly - Whether all uploaded csvs should be sql only.
  * @property {Array<string>=} uploadedCsvPredefinedQuestions - The predefined questions for the uploaded CSVs
  * @property {Boolean=} searchBarDraggable -  If the main search bad should be draggable.
  * @property {String=} csvFileKeyName -  The key name for the csv file.
@@ -450,7 +450,7 @@ export function DefogAnalysisAgentEmbed({
   sqliteConn = null,
   disableMessages = false,
   dbs = [],
-  csvUploadIsSqlOnly = true,
+  uploadedCsvIsSqlOnly = true,
   uploadedCsvPredefinedQuestions = ["Show me any 5 rows"],
   searchBarDraggable = true,
   csvFileKeyName = null,
@@ -614,6 +614,7 @@ export function DefogAnalysisAgentEmbed({
                 />
                 {socketsConnected ? (
                   <EmbedInner
+                    uploadedCsvIsSqlOnly={uploadedCsvIsSqlOnly}
                     token={token}
                     apiEndpoint={apiEndpoint}
                     dbs={dbsWithManagers}
