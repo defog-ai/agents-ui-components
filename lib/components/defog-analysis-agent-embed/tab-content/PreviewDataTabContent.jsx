@@ -75,7 +75,11 @@ export function PreviewDataTabContent({
             "Error getting data: " + fetchedData.error || "Failed to fetch data"
           );
 
-          fetchedData = { error: fetchedData.error || "Failed to fetch data." };
+          fetchedData = {
+            error: fetchedData.error || "Failed to fetch data.",
+            data: [],
+            columns: [],
+          };
         } finally {
           data[tableName] = {
             ...data[tableName],
