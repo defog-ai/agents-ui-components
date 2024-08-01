@@ -331,7 +331,7 @@ export function EmbedInner({
 
                 newDbs[idx] = Object.assign({}, newDbs[idx]);
 
-                newDbs[idx].data = data;
+                newDbs[idx].data = Object.assign({}, data);
                 return newDbs;
               });
             }}
@@ -459,8 +459,15 @@ export function DefogAnalysisAgentEmbed({
 }) {
   const [socketsConnected, setSocketsConnected] = useState(false);
 
-  const initialConfig = useMemo(() => {
-    return createAgentConfig({
+  // this is the main socket manager for the agent
+  const [mainSocketManager, setMainSockerManager] = useState(null);
+  // this is for editing tool inputs/outputs
+  const [toolSocketManager, setToolSocketManager] = useState(null);
+  // this is for handling re runs of tools
+  const [reRunManager, setReRunManager] = useState(null);
+
+  const [agentConfig, setAgentConfig] = useState(
+    createAgentConfig({
       user,
       token,
       showAnalysisUnderstanding,
@@ -469,7 +476,22 @@ export function DefogAnalysisAgentEmbed({
       devMode,
       apiEndpoint,
       sqliteConn,
-    });
+    })
+  );
+
+  // update on props change
+  useEffect(() => {
+    setAgentConfig((prev) => ({
+      ...prev,
+      user,
+      token,
+      showAnalysisUnderstanding,
+      showCode,
+      allowDashboardAdd,
+      devMode,
+      apiEndpoint,
+      sqliteConn,
+    }));
   }, [
     user,
     token,
@@ -481,16 +503,6 @@ export function DefogAnalysisAgentEmbed({
     sqliteConn,
   ]);
 
-  const [agentConfig, setAgentConfig] = useState(initialConfig);
-
-  // update on props change
-  useEffect(() => {
-    setAgentConfig({
-      ...agentConfig,
-      ...initialConfig,
-    });
-  }, [initialConfig]);
-
   const [reactiveContext, setReactiveContext] = useState(
     useContext(ReactiveVariablesContext)
   );
@@ -498,13 +510,6 @@ export function DefogAnalysisAgentEmbed({
   const [relatedAnalysesContext, setRelatedAnalysesContext] = useState(
     useContext(RelatedAnalysesContext)
   );
-
-  // this is the main socket manager for the agent
-  const [mainSocketManager, setMainSockerManager] = useState(null);
-  // this is for editing tool inputs/outputs
-  const [toolSocketManager, setToolSocketManager] = useState(null);
-  // this is for handling re runs of tools
-  const [reRunManager, setReRunManager] = useState(null);
 
   useEffect(() => {
     async function setup() {

@@ -111,33 +111,30 @@ export function PreviewDataTabContent({
 
   const hasError = db.dataFetchingError || db.metadataFetchingError;
 
-  const tables = useMemo(() => {
-    return Array.isArray(db.metadata) && !db.metadataFetchingError
+  const tables =
+    Array.isArray(db.metadata) && !db.metadataFetchingError
       ? Array.from(new Set(db.metadata.map((col) => col.table_name)))
       : [];
-  }, [db]);
 
   const [selectedTableIdx, setSelectedTableIdx] = useState(0);
 
-  const selectedTableColumns = useMemo(() => {
-    return (db?.data?.[tables?.[selectedTableIdx]]?.columns || []).map((d) => ({
-      dataIndex: d,
-      key: d,
-      title: d,
-    }));
-  }, [selectedTableIdx, db, tables]);
+  const selectedTableColumns = (
+    db?.data?.[tables?.[selectedTableIdx]]?.columns || []
+  ).map((d) => ({
+    dataIndex: d,
+    key: d,
+    title: d,
+  }));
 
-  const selectedTableData = useMemo(() => {
-    const rows = db?.data?.[tables?.[selectedTableIdx]]?.data || [];
-    return rows.map((rowArr) => {
-      const rowObj = {};
-      selectedTableColumns.forEach((col, idx) => {
-        rowObj[col.dataIndex] = rowArr[idx];
-      });
-
-      return rowObj;
+  const rows = db?.data?.[tables?.[selectedTableIdx]]?.data || [];
+  const selectedTableData = rows.map((rowArr) => {
+    const rowObj = {};
+    selectedTableColumns.forEach((col, idx) => {
+      rowObj[col.dataIndex] = rowArr[idx];
     });
-  }, [selectedTableIdx, db, tables, selectedTableColumns]);
+
+    return rowObj;
+  });
 
   return (
     <ErrorBoundary>
