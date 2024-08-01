@@ -41,6 +41,7 @@ export function EmbedInner({
   uploadedCsvPredefinedQuestions = ["Show me any 5 rows"],
   dbs,
   searchBarDraggable = true,
+  searchBarClasses = "",
   limitCsvUploadSize = true,
   maxCsvUploadSize = 10,
   uploadedCsvIsSqlOnly = true,
@@ -272,6 +273,7 @@ export function EmbedInner({
               forceSqlOnly={selectedDbIsSqlOnly}
               metadata={selectedDbMetadata}
               searchBarDraggable={searchBarDraggable}
+              searchBarClasses={searchBarClasses}
             />
           ),
       },
@@ -428,6 +430,7 @@ export function EmbedInner({
  * @property {Boolean=true} uploadedCsvIsSqlOnly - Whether all uploaded csvs should be sql only.
  * @property {Array<string>=} uploadedCsvPredefinedQuestions - The predefined questions for the uploaded CSVs
  * @property {Boolean=} searchBarDraggable -  If the main search bad should be draggable.
+ * @property {String=} searchBarClasses -  The classes for the search bar.
  * @property {String=} csvFileKeyName -  The key name for the csv file.
  * @property {Boolean=} limitCsvUploadSize -  If the file size should be limited to maxCsvUploadSize.
  * @property {Number=} maxCsvUploadSize -  The max file size allowed, in mbs. Default is 10.
@@ -453,6 +456,7 @@ export function DefogAnalysisAgentEmbed({
   uploadedCsvIsSqlOnly = true,
   uploadedCsvPredefinedQuestions = ["Show me any 5 rows"],
   searchBarDraggable = true,
+  searchBarClasses = "",
   csvFileKeyName = null,
   limitCsvUploadSize = true,
   maxCsvUploadSize = 10,
@@ -626,6 +630,7 @@ export function DefogAnalysisAgentEmbed({
                     uploadedCsvPredefinedQuestions={
                       uploadedCsvPredefinedQuestions
                     }
+                    searchBarClasses={searchBarClasses}
                     searchBarDraggable={searchBarDraggable}
                     // if csvFileKeyName is defined, use that
                     // otherwise use the first db's keyName if available
