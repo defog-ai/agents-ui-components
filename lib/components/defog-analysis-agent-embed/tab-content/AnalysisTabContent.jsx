@@ -16,8 +16,6 @@ export function AnalysisTabContent({
   searchBarClasses = "",
   defaultSidebarOpen = null,
 }) {
-  const agentConfigContext = useContext(AgentConfigContext);
-
   return (
     <ErrorBoundary>
       <AnalysisTreeViewer
@@ -26,7 +24,6 @@ export function AnalysisTabContent({
         isTemp={isTemp}
         forceSqlOnly={forceSqlOnly}
         analysisTreeManager={treeManager}
-        dashboards={agentConfigContext.val.dashboards}
         autoScroll={true}
         sideBarClasses={sideBarClasses}
         searchBarClasses={twMerge(

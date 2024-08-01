@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import "../lib/styles/index.scss";
+import "../../lib/styles/index.scss";
 import { TextArea, useWindowSize } from "@ui-components";
 
 function TestWindowSizeHook() {
@@ -13,7 +13,6 @@ function TestWindowSizeHook() {
 }
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    
     <TestWindowSizeHook />
   </React.StrictMode>
 );

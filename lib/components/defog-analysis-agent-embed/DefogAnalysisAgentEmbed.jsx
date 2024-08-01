@@ -15,11 +15,7 @@ import { MetadataTabContent } from "./tab-content/MetadataTabContent";
 import { AnalysisTabContent } from "./tab-content/AnalysisTabContent";
 import { PreviewDataTabContent } from "./tab-content/PreviewDataTabContent";
 import { TabNullState } from "./tab-content/TabNullState";
-import {
-  getAllAnalyses,
-  getColumnDescriptionsForCsv,
-  getToolboxes,
-} from "../utils/utils";
+import { getColumnDescriptionsForCsv } from "../utils/utils";
 import {
   addParsedCsvToSqlite,
   initializeSQLite,
@@ -27,12 +23,10 @@ import {
 } from "../utils/sqlite";
 import {
   AgentConfigContext,
-  createAgentConfig,
   RelatedAnalysesContext,
   ReactiveVariablesContext,
 } from "../context/AgentContext";
-import setupBaseUrl from "../utils/setupBaseUrl";
-import { setupWebsocketManager } from "../utils/websocket-manager";
+import { ContextHelper } from "../context/ContextHelper";
 
 export function EmbedInner({
   token = null,
@@ -444,8 +438,8 @@ export function EmbedInner({
 
 export function DefogAnalysisAgentEmbed({
   token,
-  user = "admin",
   apiEndpoint = "https://demo.defog.ai",
+  user = "admin",
   devMode = false,
   showAnalysisUnderstanding = true,
   showCode = false,
@@ -461,127 +455,6 @@ export function DefogAnalysisAgentEmbed({
   limitCsvUploadSize = true,
   maxCsvUploadSize = 10,
 }) {
-  const [socketsConnected, setSocketsConnected] = useState(false);
-
-  // this is the main socket manager for the agent
-  const [mainSocketManager, setMainSockerManager] = useState(null);
-  // this is for editing tool inputs/outputs
-  const [toolSocketManager, setToolSocketManager] = useState(null);
-  // this is for handling re runs of tools
-  const [reRunManager, setReRunManager] = useState(null);
-
-  const [agentConfig, setAgentConfig] = useState(
-    createAgentConfig({
-      user,
-      token,
-      showAnalysisUnderstanding,
-      showCode,
-      allowDashboardAdd,
-      devMode,
-      apiEndpoint,
-      sqliteConn,
-    })
-  );
-
-  // update on props change
-  useEffect(() => {
-    setAgentConfig((prev) => ({
-      ...prev,
-      user,
-      token,
-      showAnalysisUnderstanding,
-      showCode,
-      allowDashboardAdd,
-      devMode,
-      apiEndpoint,
-      sqliteConn,
-    }));
-  }, [
-    user,
-    token,
-    showAnalysisUnderstanding,
-    showCode,
-    allowDashboardAdd,
-    devMode,
-    apiEndpoint,
-    sqliteConn,
-  ]);
-
-  const [reactiveContext, setReactiveContext] = useState(
-    useContext(ReactiveVariablesContext)
-  );
-
-  const [relatedAnalysesContext, setRelatedAnalysesContext] = useState(
-    useContext(RelatedAnalysesContext)
-  );
-
-  useEffect(() => {
-    async function setup() {
-      // setup user items
-      const userItems = {};
-      const analyses = await getAllAnalyses(
-        dbs.length > 0 ? dbs[0].keyName : null,
-        apiEndpoint
-      );
-
-      if (analyses && analyses.success) {
-        userItems.analyses = analyses.analyses;
-      }
-      const toolboxes = await getToolboxes(token, apiEndpoint);
-      if (toolboxes && toolboxes.success) {
-        userItems.toolboxes = toolboxes.toolboxes;
-      }
-
-      const urlToConnect = setupBaseUrl({
-        protocol: "ws",
-        path: "ws",
-        apiEndpoint: apiEndpoint,
-      });
-      const mainMgr = await setupWebsocketManager(urlToConnect);
-
-      const rerunMgr = await setupWebsocketManager(
-        urlToConnect.replace("/ws", "/step_rerun")
-      );
-
-      const toolSocketManager = await setupWebsocketManager(
-        urlToConnect.replace("/ws", "/edit_tool_run"),
-        (d) => console.log(d)
-      );
-
-      setMainSockerManager(mainMgr);
-      setReRunManager(rerunMgr);
-      setToolSocketManager(toolSocketManager);
-
-      setSocketsConnected(true);
-
-      setAgentConfig({
-        ...agentConfig,
-        ...userItems,
-        mainManager: mainMgr,
-        reRunManager: rerunMgr,
-        toolSocketManager: toolSocketManager,
-      });
-    }
-
-    setup();
-
-    return () => {
-      if (mainSocketManager && mainSocketManager.close) {
-        mainSocketManager.close();
-        // also stop the timeout
-        mainSocketManager.clearSocketTimeout();
-      }
-      if (reRunManager && reRunManager.close) {
-        reRunManager.close();
-        reRunManager.clearSocketTimeout();
-      }
-      if (toolSocketManager && toolSocketManager.close) {
-        toolSocketManager.close();
-        toolSocketManager.clearSocketTimeout();
-      }
-    };
-  }, [apiEndpoint, token]);
-
   // use the simple db list
   // and add some extra props to them
   // including the analysis tree manager which helps us "remember" questions for each db
@@ -604,54 +477,34 @@ export function DefogAnalysisAgentEmbed({
   return (
     <div className="w-full bg-gradient-to-br from-[#6E00A2]/10 to-[#FFA20D]/10 px-2 lg:px-0 py-8 h-screen flex items-center shadow-inner relative">
       <div className="w-full lg:w-10/12 min-h-96 h-[95%] overflow-y-hidden mx-auto">
-        <RelatedAnalysesContext.Provider
-          value={{
-            val: relatedAnalysesContext,
-            update: setRelatedAnalysesContext,
-          }}
+        <ContextHelper
+          token={token}
+          user={user}
+          apiEndpoint={apiEndpoint}
+          devMode={devMode}
+          showAnalysisUnderstanding={showAnalysisUnderstanding}
+          showCode={showCode}
+          allowDashboardAdd={allowDashboardAdd}
+          sqliteConn={sqliteConn}
+          disableMessages={disableMessages}
         >
-          <ReactiveVariablesContext.Provider
-            value={{ val: reactiveContext, update: setReactiveContext }}
-          >
-            <AgentConfigContext.Provider
-              value={{ val: agentConfig, update: setAgentConfig }}
-            >
-              <MessageManagerContext.Provider value={MessageManager()}>
-                <MessageMonitor
-                  rootClassNames={"absolute left-0 right-0"}
-                  disabled={disableMessages}
-                />
-                {socketsConnected ? (
-                  <EmbedInner
-                    uploadedCsvIsSqlOnly={uploadedCsvIsSqlOnly}
-                    token={token}
-                    apiEndpoint={apiEndpoint}
-                    dbs={dbsWithManagers}
-                    uploadedCsvPredefinedQuestions={
-                      uploadedCsvPredefinedQuestions
-                    }
-                    searchBarClasses={searchBarClasses}
-                    searchBarDraggable={searchBarDraggable}
-                    // if csvFileKeyName is defined, use that
-                    // otherwise use the first db's keyName if available
-                    csvFileKeyName={
-                      csvFileKeyName || (dbs.length > 0 ? dbs[0].keyName : null)
-                    }
-                    limitCsvUploadSize={limitCsvUploadSize}
-                    maxCsvUploadSize={maxCsvUploadSize}
-                  />
-                ) : (
-                  <div className="w-full h-screen flex flex-col justify-center items-center ">
-                    <div className="mb-2 text-gray-400 text-sm">
-                      Connecting to servers
-                    </div>
-                    <SpinningLoader classNames="w-5 h-5 text-gray-500" />
-                  </div>
-                )}
-              </MessageManagerContext.Provider>
-            </AgentConfigContext.Provider>
-          </ReactiveVariablesContext.Provider>
-        </RelatedAnalysesContext.Provider>
+          <EmbedInner
+            uploadedCsvIsSqlOnly={uploadedCsvIsSqlOnly}
+            token={token}
+            apiEndpoint={apiEndpoint}
+            dbs={dbsWithManagers}
+            uploadedCsvPredefinedQuestions={uploadedCsvPredefinedQuestions}
+            searchBarClasses={searchBarClasses}
+            searchBarDraggable={searchBarDraggable}
+            // if csvFileKeyName is defined, use that
+            // otherwise use the first db's keyName if available
+            csvFileKeyName={
+              csvFileKeyName || (dbs.length > 0 ? dbs[0].keyName : null)
+            }
+            limitCsvUploadSize={limitCsvUploadSize}
+            maxCsvUploadSize={maxCsvUploadSize}
+          />
+        </ContextHelper>
       </div>
     </div>
   );

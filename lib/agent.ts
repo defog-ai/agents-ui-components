@@ -3,6 +3,7 @@ export { AnalysisTreeViewer } from "./components/agent/analysis-tree-viewer/Anal
 export {
   AgentConfigContext,
   createAgentConfig,
+  defaultAgentConfig,
 } from "./components/context/AgentContext.jsx";
 
 export { AnalysisAgent } from "./components/agent/analysis/AnalysisAgent.jsx";

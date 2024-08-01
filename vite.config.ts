@@ -40,12 +40,6 @@ export default ({ mode }) => {
         external: [...Object.keys(peerDependencies)],
         target: "esnext",
         sourcemap: true,
-        // output: {
-        //   globals: {
-        //     react: "React",
-        //     "react-dom": "ReactDOM",
-        //   },
-        // },
       },
     },
   });

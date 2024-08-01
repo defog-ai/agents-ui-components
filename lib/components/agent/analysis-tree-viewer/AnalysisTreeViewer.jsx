@@ -3,7 +3,6 @@ import {
   useCallback,
   useContext,
   useEffect,
-  useMemo,
   useRef,
   useState,
   useSyncExternalStore,
@@ -25,17 +24,19 @@ import {
   useWindowSize,
   breakpoints,
 } from "@ui-components";
-import { AnalysisTreeManager } from "./analysisTreeManager";
 import ErrorBoundary from "../../common/ErrorBoundary";
 import { AnalysisTreeViewerLinks } from "./AnalysisTreeViewerLinks";
-
+import { AgentConfigContext } from "../../context/AgentContext";
+/**
+ * Analysis tree viewer component
+ * @param {Object} props
+ */
 export function AnalysisTreeViewer({
-  dashboards = [],
-  analysisTreeManager = AnalysisTreeManager(),
+  analysisTreeManager,
   keyName,
-  isTemp,
-  forceSqlOnly,
-  metadata,
+  isTemp = false,
+  forceSqlOnly = false,
+  metadata = null,
   // array of strings
   // each string is a question
   predefinedQuestions = [],
@@ -59,6 +60,8 @@ export function AnalysisTreeViewer({
   const searchRef = useRef(null);
   const [addToDashboardSelection, setAddToDashboardSelection] = useState(false);
   const [selectedDashboards, setSelectedDashboards] = useState([]);
+
+  const { dashboards } = useContext(AgentConfigContext).val;
 
   const [sidebarOpen, setSidebarOpen] = useState(defaultSidebarOpen);
 
@@ -372,7 +375,6 @@ export function AnalysisTreeViewer({
                               : "hover:bg-gray-50 hover:border"
                           )}
                           onClick={(ev) => {
-                            ev.preventDefault();
                             if (loading) return;
 
                             handleSubmit(

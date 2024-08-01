@@ -1,8 +1,8 @@
 import { v4 } from "uuid";
-import { Doc } from "../lib/doc";
+import { Doc } from "../../lib/doc";
 import React from "react";
 import ReactDOM from "react-dom/client";
-import "../lib/styles/index.scss";
+import "../../lib/styles/index.scss";
 
 const docId = v4();
 
@@ -19,7 +19,7 @@ function DocPage() {
         }
         keyName={"Manufacturing"}
         docId={docId}
-        showAnalysisUnderstanding={true}
+        showAnalysisUnderstanding={false}
         showCode={true}
         allowDashboardAdd={true}
         isTemp={false}

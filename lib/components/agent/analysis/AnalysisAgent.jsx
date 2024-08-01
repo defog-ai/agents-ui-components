@@ -460,8 +460,8 @@ export const AnalysisAgent = ({
       <div
         ref={ctr}
         className={twMerge(
-          "analysis-agent-container relative grow outline-none focus:outline-none rounded-3xl border border-gray-300 bg-white",
-          independentAnalysisSearchRef ? "" : "max-w-full min-h-96",
+          "analysis-agent-container min-h-20 relative grow outline-none focus:outline-none rounded-3xl border border-gray-300 bg-white",
+          independentAnalysisSearchRef ? "bg-gray-50" : "max-w-full",
           rootClassNames
         )}
       >
@@ -486,7 +486,7 @@ export const AnalysisAgent = ({
         ) : (
           <>
             {!hasExternalSearchBar && !analysisData.currentStage ? (
-              <div className="w-10/12">
+              <div className="w-10/12 mx-auto relative top-6">
                 <Input
                   ref={independentAnalysisSearchRef}
                   onPressEnter={(ev) => {

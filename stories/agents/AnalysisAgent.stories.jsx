@@ -12,8 +12,6 @@ const agentConfig = createAgentConfig({
   token: "23ee021b82afa024bee3b52be4d5a2603a4d0056780dd99c93b0caf0c875ea77",
 });
 
-console.log(agentConfig);
-
 export default {
   title: "Agents/AnalysisAgent",
   component: AnalysisAgent,

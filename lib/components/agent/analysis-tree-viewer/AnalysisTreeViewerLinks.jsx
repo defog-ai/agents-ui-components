@@ -8,7 +8,9 @@ export const AnalysisTreeViewerLinks = ({ analyses, activeAnalysisId }) => {
     if (!ctr.current) return;
 
     if (!activeAnalysisId) {
-      setPaths([]);
+      if (paths.length > 0) {
+        setPaths([]);
+      }
       return;
     }
 

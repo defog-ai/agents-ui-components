@@ -25,8 +25,8 @@ import { createContext } from "react";
  * @type {AgentConfig}
  */
 export const defaultAgentConfig = {
-  devMode: null,
-  apiEndpoint: null,
+  devMode: false,
+  apiEndpoint: "https://demo.defog.ai",
   sqliteConn: null,
   user: null,
   token: null,

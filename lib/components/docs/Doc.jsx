@@ -4,35 +4,22 @@ import {
   SuggestionMenuController,
   useCreateBlockNote,
 } from "@blocknote/react";
-import React, { useState, Fragment, useContext, useEffect } from "react";
+import React, { useState } from "react";
 import { createEditorConfig } from "./createEditorConfig";
 import * as Y from "yjs";
 import YPartyKitProvider from "y-partykit/provider";
 import { CustomFormattingToolbar } from "./CustomFormattingToolbar";
 import DocNav from "./DocNav";
-import {
-  defaultAgentConfig,
-  AgentConfigContext,
-  RelatedAnalysesContext,
-  createAgentConfig,
-} from "../context/AgentContext";
-import { getAllAnalyses, getToolboxes } from "../utils/utils";
 import { DocSidebars } from "./DocSidebars";
 import { ReactiveVariableNode } from "./custom-tiptap/ReactiveVariableNode";
 import { ReactiveVariableMention } from "./custom-tiptap/ReactiveVariableMention";
 import setupBaseUrl from "../utils/setupBaseUrl";
-import { setupWebsocketManager } from "../utils/websocket-manager";
 import { customBlockSchema } from "./createCustomBlockSchema";
 import { filterSuggestionItems } from "@blocknote/core";
 import { getCustomSlashMenuItems } from "./createCustomSlashMenuItems";
 import { BlockNoteView } from "@blocknote/mantine";
-import {
-  MessageManager,
-  MessageManagerContext,
-  MessageMonitor,
-  SpinningLoader,
-} from "@ui-components";
-import { ReactiveVariablesContext } from "../context/AgentContext";
+import { ContextHelper } from "../context/ContextHelper";
+import { SpinningLoader } from "@ui-components";
 
 /**
  * @typedef {Object} DocProps
@@ -52,7 +39,7 @@ import { ReactiveVariablesContext } from "../context/AgentContext";
 
 /**
  * Main document component.
- * @param {DocProps} props - Component 
+ * @param {DocProps} props - Component
  * @returns {JSX.Element} - JSX element.
  *
  * @example
@@ -77,6 +64,8 @@ export function Doc({
   apiEndpoint = "https://demo.defog.ai",
   metadata = null,
   sqlOnly = false,
+  sqliteConn = null,
+  disableMessages = false,
 }) {
   const partyEndpoint = apiEndpoint;
   const recentlyViewedEndpoint = setupBaseUrl({
@@ -87,118 +76,13 @@ export function Doc({
 
   const [yjsSynced, setYjsSynced] = useState(false);
 
-  const [socketsConnected, setSocketsConnected] = useState(false);
-
-  const [agentConfig, setAgentConfig] = useState(
-    createAgentConfig({
-      user,
-      token,
-      showAnalysisUnderstanding,
-      showCode,
-      allowDashboardAdd,
-      keyName,
-      isTemp,
-      devMode,
-      apiEndpoint,
-      metadata,
-      sqlOnly,
-    })
-  );
-
-  const [reactiveContext, setReactiveContext] = useState(
-    useContext(ReactiveVariablesContext)
-  );
-
-  const [relatedAnalysesContext, setRelatedAnalysesContext] = useState(
-    useContext(RelatedAnalysesContext)
-  );
-
-  // this is the main socket manager for the agent
-  const [mainSocketManager, setMainSockerManager] = useState(null);
-  // this is for editing tool inputs/outputs
-  const [toolSocketManager, setToolSocketManager] = useState(null);
-  // this is for handling re runs of tools
-  const [reRunManager, setReRunManager] = useState(null);
-
-  useEffect(() => {
-    async function setup() {
-      // setup user items
-      const userItems = {};
-      const analyses = await getAllAnalyses(keyName, apiEndpoint);
-
-      if (analyses && analyses.success) {
-        userItems.analyses = analyses.analyses;
-      }
-      const toolboxes = await getToolboxes(token, apiEndpoint);
-      if (toolboxes && toolboxes.success) {
-        userItems.toolboxes = toolboxes.toolboxes;
-      }
-
-      const urlToConnect = setupBaseUrl({
-        protocol: "ws",
-        path: "ws",
-        apiEndpoint: apiEndpoint,
-      });
-      const mainMgr = await setupWebsocketManager(urlToConnect);
-
-      const rerunMgr = await setupWebsocketManager(
-        urlToConnect.replace("/ws", "/step_rerun")
-      );
-
-      const toolSocketManager = await setupWebsocketManager(
-        urlToConnect.replace("/ws", "/edit_tool_run"),
-        (d) => console.log(d)
-      );
-
-      setMainSockerManager(mainMgr);
-      setReRunManager(rerunMgr);
-      setToolSocketManager(toolSocketManager);
-
-      setSocketsConnected(true);
-
-      setAgentConfig({
-        ...agentConfig,
-        ...userItems,
-        mainManager: mainMgr,
-        reRunManager: rerunMgr,
-        toolSocketManager: toolSocketManager,
-      });
-
-      // add to recently viewed docs for this user
-      await fetch(recentlyViewedEndpoint, {
-        method: "POST",
-        body: JSON.stringify({
-          doc_id: docId,
-          token: token,
-        }),
-      });
-    }
-
-    setup();
-
-    return () => {
-      if (mainSocketManager && mainSocketManager.close) {
-        mainSocketManager.close();
-        // also stop the timeout
-        mainSocketManager.clearSocketTimeout();
-      }
-      if (reRunManager && reRunManager.close) {
-        reRunManager.close();
-        reRunManager.clearSocketTimeout();
-      }
-      if (toolSocketManager && toolSocketManager.close) {
-        toolSocketManager.close();
-        toolSocketManager.clearSocketTimeout();
-      }
-    };
-  }, []);
-
   const yjsDoc = new Y.Doc();
 
   const yjsProvider = new YPartyKitProvider(partyEndpoint, docId, yjsDoc, {
-    propertys: {
-      doc_id: docId,
+    params: {
+      docId: docId,
       token: token,
+      keyName: keyName,
     },
     protocol: "ws",
   });
@@ -244,60 +128,60 @@ export function Doc({
     setYjsSynced(true);
   });
 
-  return yjsSynced && socketsConnected ? (
-    <MessageManagerContext.Provider value={MessageManager()}>
-      <MessageMonitor />
-      <RelatedAnalysesContext.Provider
-        value={{
-          val: relatedAnalysesContext,
-          update: setRelatedAnalysesContext,
-        }}
-      >
-        <ReactiveVariablesContext.Provider
-          value={{ val: reactiveContext, update: setReactiveContext }}
-        >
-          <AgentConfigContext.Provider
-            value={{ val: agentConfig, update: setAgentConfig }}
+  return yjsSynced ? (
+    <ContextHelper
+      token={token}
+      user={user}
+      apiEndpoint={apiEndpoint}
+      devMode={devMode}
+      showAnalysisUnderstanding={showAnalysisUnderstanding}
+      showCode={showCode}
+      allowDashboardAdd={allowDashboardAdd}
+      sqliteConn={sqliteConn}
+      disableMessages={disableMessages}
+      loaderRootClassNames="h-screen"
+      onSetupComplete={async () => {
+        // add to recently viewed docs for this user
+        await fetch(recentlyViewedEndpoint, {
+          method: "POST",
+          body: JSON.stringify({
+            doc_id: docId,
+            token: token,
+          }),
+        });
+      }}
+    >
+      <DocNav
+        token={token}
+        currentDocId={docId}
+        keyName={keyName}
+        apiEndpoint={apiEndpoint}
+      ></DocNav>
+      <div className="content">
+        <div className="editor-container max-w-full">
+          <BlockNoteView
+            editor={editor}
+            theme={"light"}
+            formattingToolbar={false}
+            slashMenu={false}
           >
-            <DocNav
-              token={token}
-              currentDocId={docId}
-              keyName={keyName}
-              apiEndpoint={apiEndpoint}
-            ></DocNav>
-            <div className="content">
-              <div className="editor-container max-w-full">
-                <BlockNoteView
-                  editor={editor}
-                  theme={"light"}
-                  formattingToolbar={false}
-                  slashMenu={false}
-                >
-                  <FormattingToolbarController
-                    formattingToolbar={CustomFormattingToolbar}
-                  />
-                  <SuggestionMenuController
-                    triggerCharacter="/"
-                    getItems={async (query) =>
-                      filterSuggestionItems(
-                        getCustomSlashMenuItems(editor),
-                        query
-                      )
-                    }
-                  />
-                </BlockNoteView>
-              </div>
-              <DocSidebars />
-            </div>
-          </AgentConfigContext.Provider>
-        </ReactiveVariablesContext.Provider>
-      </RelatedAnalysesContext.Provider>
-    </MessageManagerContext.Provider>
+            <FormattingToolbarController
+              formattingToolbar={CustomFormattingToolbar}
+            />
+            <SuggestionMenuController
+              triggerCharacter="/"
+              getItems={async (query) =>
+                filterSuggestionItems(getCustomSlashMenuItems(editor), query)
+              }
+            />
+          </BlockNoteView>
+        </div>
+        <DocSidebars />
+      </div>
+    </ContextHelper>
   ) : (
     <div className="w-full h-screen flex flex-col justify-center items-center ">
-      <div className="mb-2 text-gray-400 text-sm">
-        {yjsSynced ? "Connecting to servers" : "Syncing document"}
-      </div>
+      <div className="mb-2 text-gray-400 text-sm">Syncing document</div>
       <SpinningLoader classNames="w-5 h-5 text-gray-500" />
     </div>
   );
