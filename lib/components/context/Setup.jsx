@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import {
   AgentConfigContext,
   createAgentConfig,
@@ -17,7 +17,7 @@ import {
 import { twMerge } from "tailwind-merge";
 
 /**
- * @typedef {Object} ContextHelperProps
+ * @typedef {Object} SetupProps
  * @property {String} token - The hashed password.
  * @property {Object=} user - User email/name. Default is "admin".
  * @property {String} apiEndpoint - The API endpoint to use for the requests. Default is https://demo.defog.ai.
@@ -35,9 +35,9 @@ import { twMerge } from "tailwind-merge";
 /**
  * Helps with the context setup. Shows a loader till the sockets connection is established.
  * Sets up all the necessary context that will be used by either of AnalysisTreeViewer, AnalysisAgent, or DefogAnalysisAgentEmbed.
- * @param {ContextHelperProps} props - The props
+ * @param {SetupProps} props - The props
  */
-export function ContextHelper({
+export function Setup({
   token,
   user = "admin",
   apiEndpoint = "https://demo.defog.ai",
@@ -96,6 +96,8 @@ export function ContextHelper({
     apiEndpoint,
     sqliteConn,
   ]);
+
+  const messageManager = useRef(MessageManager());
 
   const [reactiveContext, setReactiveContext] = useState(
     useContext(ReactiveVariablesContext)
@@ -180,7 +182,7 @@ export function ContextHelper({
         <AgentConfigContext.Provider
           value={{ val: agentConfig, update: setAgentConfig }}
         >
-          <MessageManagerContext.Provider value={MessageManager()}>
+          <MessageManagerContext.Provider value={messageManager.current}>
             <MessageMonitor
               rootClassNames={"absolute left-0 right-0"}
               disabled={disableMessages}

@@ -18,7 +18,7 @@ import { customBlockSchema } from "./createCustomBlockSchema";
 import { filterSuggestionItems } from "@blocknote/core";
 import { getCustomSlashMenuItems } from "./createCustomSlashMenuItems";
 import { BlockNoteView } from "@blocknote/mantine";
-import { ContextHelper } from "../context/ContextHelper";
+import { Setup } from "../context/Setup";
 import { SpinningLoader } from "@ui-components";
 
 /**
@@ -129,7 +129,7 @@ export function Doc({
   });
 
   return yjsSynced ? (
-    <ContextHelper
+    <Setup
       token={token}
       user={user}
       apiEndpoint={apiEndpoint}
@@ -178,7 +178,7 @@ export function Doc({
         </div>
         <DocSidebars />
       </div>
-    </ContextHelper>
+    </Setup>
   ) : (
     <div className="w-full h-screen flex flex-col justify-center items-center ">
       <div className="mb-2 text-gray-400 text-sm">Syncing document</div>

@@ -31,6 +31,7 @@ export default {
 
 export const Primary = {
   args: {
+    token: "test",
     dbs: dbs,
   },
 };

@@ -1,13 +1,7 @@
 "use client";
 
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
-import {
-  MessageManager,
-  MessageManagerContext,
-  MessageMonitor,
-  SpinningLoader,
-  Tabs,
-} from "@ui-components";
+import { MessageManagerContext, Tabs } from "@ui-components";
 import { EmbedScaffolding } from "./EmbedScaffolding";
 import { twMerge } from "tailwind-merge";
 import { AnalysisTreeManager } from "../agent/analysis-tree-viewer/analysisTreeManager";
@@ -21,12 +15,8 @@ import {
   initializeSQLite,
   validateTableName,
 } from "../utils/sqlite";
-import {
-  AgentConfigContext,
-  RelatedAnalysesContext,
-  ReactiveVariablesContext,
-} from "../context/AgentContext";
-import { ContextHelper } from "../context/ContextHelper";
+import { AgentConfigContext } from "../context/AgentContext";
+import { Setup } from "../context/Setup";
 
 export function EmbedInner({
   token = null,
@@ -40,7 +30,6 @@ export function EmbedInner({
   maxCsvUploadSize = 10,
   uploadedCsvIsSqlOnly = true,
 }) {
-  const ctr = useRef(null);
   const messageManager = useContext(MessageManagerContext);
   const agentConfigContext = useContext(AgentConfigContext);
   const conn = useRef(null);
@@ -477,7 +466,7 @@ export function DefogAnalysisAgentEmbed({
   return (
     <div className="w-full bg-gradient-to-br from-[#6E00A2]/10 to-[#FFA20D]/10 px-2 lg:px-0 py-8 h-screen flex items-center shadow-inner relative">
       <div className="w-full lg:w-10/12 min-h-96 h-[95%] overflow-y-hidden mx-auto">
-        <ContextHelper
+        <Setup
           token={token}
           user={user}
           apiEndpoint={apiEndpoint}
@@ -504,7 +493,7 @@ export function DefogAnalysisAgentEmbed({
             limitCsvUploadSize={limitCsvUploadSize}
             maxCsvUploadSize={maxCsvUploadSize}
           />
-        </ContextHelper>
+        </Setup>
       </div>
     </div>
   );

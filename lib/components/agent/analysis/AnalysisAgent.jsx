@@ -334,8 +334,8 @@ export const AnalysisAgent = ({
           });
         }
       } catch (e) {
+        messageManager.error(e.message);
         console.log(e.stack);
-        messageManager.error(e);
         analysisManager.removeEventListeners();
         analysisManager.destroy();
       }

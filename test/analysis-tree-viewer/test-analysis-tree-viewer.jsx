@@ -1,7 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import "../../lib/styles/index.scss";
-import { ContextHelper } from "../../lib/components/context/ContextHelper";
+import { Setup } from "../../lib/components/context/Setup";
 import { AnalysisTreeViewer } from "../../lib/agent.ts";
 import { AnalysisTreeManager } from "../../lib/components/agent/analysis-tree-viewer/analysisTreeManager";
 
@@ -44,7 +44,7 @@ function QueryDataPage() {
     predefinedQuestions,
   } = dbs[0];
   return (
-    <ContextHelper
+    <Setup
       token={"bdbe4d376e6c8a53a791a86470b924c0715854bd353483523e3ab016eb55bcd0"}
       apiEndpoint={"http://localhost:80"}
       // these are the ones that will be shown for new csvs uploaded
@@ -65,7 +65,7 @@ function QueryDataPage() {
         defaultSidebarOpen={true || (window.innerWidth < 768 ? false : true)}
         predefinedQuestions={predefinedQuestions}
       />
-    </ContextHelper>
+    </Setup>
   );
 }
 
