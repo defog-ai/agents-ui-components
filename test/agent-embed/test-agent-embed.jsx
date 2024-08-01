@@ -6,8 +6,8 @@ import { DefogAnalysisAgentEmbed } from "../../lib/agent";
 function QueryDataPage() {
   return (
     <DefogAnalysisAgentEmbed
-      token={"bdbe4d376e6c8a53a791a86470b924c0715854bd353483523e3ab016eb55bcd0"}
-      apiEndpoint={"http://localhost:80"}
+      token={import.meta.env.VITE_TOKEN}
+      apiEndpoint={import.meta.env.VITE_API_ENDPOINT}
       // these are the ones that will be shown for new csvs uploaded
       uploadedCsvPredefinedQuestions={["Show me any 5 rows from the dataset"]}
       showAnalysisUnderstanding={true}

@@ -5,11 +5,13 @@ import {
   createAgentConfig,
 } from "../../lib/agent";
 
+import "../../lib/styles/index.scss";
+
 const agentConfig = createAgentConfig({
   apiEndpoint: "https://demo.defog.ai",
   isTemp: false,
   sqlOnly: false,
-  token: "23ee021b82afa024bee3b52be4d5a2603a4d0056780dd99c93b0caf0c875ea77",
+  token: "HASHED_PASSWORD",
 });
 
 export default {

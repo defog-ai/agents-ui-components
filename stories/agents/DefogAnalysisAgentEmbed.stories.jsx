@@ -1,4 +1,5 @@
 import { DefogAnalysisAgentEmbed } from "../../lib/agent";
+import "../../lib/styles/index.scss";
 
 const dbs = [
   {

@@ -14,6 +14,7 @@ export function PreviewDataTabContent({
   token = null,
   onGetData = (...args) => {},
 }) {
+  console.log(db);
   const messageManager = useContext(MessageManagerContext);
   let { keyName, isTemp } = db || {};
 

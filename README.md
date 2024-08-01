@@ -1,184 +1,67 @@
 # agents-ui-components
 
-Contains a bunch of reusable agent components.
+## Quickstart
 
-This uses our [ui-components](https://github.com/defog-ai/ui-components) repo as a submodule.
+### Usage
 
-For the following docs, you may want to keep this figure in mind (The text labels are component names)
-<img width="974" alt="image" src="https://github.com/user-attachments/assets/0b361c8c-2b42-4f5e-8075-5fbc945a958b">
-
-## Main components
-
-The two main components you will use are:
-
-1. `DefogAnalysisAgentStandalone`: This allows for you to ask questions/run analysis/toggle agent/sql-only with a _specific database_. This will not let you change db. The "Standalone" in the name means that this can work outside of a "doc", which is where agents were initially designed to be used. This is a standalone agent that can be used in any page.
+Use the `DefogAnalysisAgentEmbed` component like so:
 
 ```jsx
-// expects these to be specified
-<DefogAnalysisAgentStandalone
-  token
-  devMode
-  keyName
-  apiEndpoint
-  ...
-  // will be explained below
-  analysisTreeManager = ...
-  ...
-/>
-```
+import { DefogAnalysisAgentEmbed } from "@defogdotai/agents-ui-components/agent";
+import "@defogdotai/agents-ui-components/css";
 
-2. `EmbedScaffolding`: This is purely a scaffolding component. Think of it as a "layout" component. This provides selectors of databases, and csv upload button. It renders the top bar you see above, and everything inside the tag (`children`) is rendered underneath the bar.
-
-```jsx
-<EmbedScaffolding
-    defaultSelectedDb={selectedDbName}
-    availableDbs={availableDbs.map((d) => d.name)}
-    onDbChange={(selectedDbName) => ...}
-    ...
->
-    // may be DefogAnalysisAgentStandalone or any other custom component
-    <Content>
-</EmbedScaffolding>
-```
-
-The usual use case for the above is:
-
-```jsx
-<EmbedScaffolding
-    defaultSelectedDb={selectedDbName}
-    availableDbs={availableDbs.map((d) => d.name)}
-    onDbChange={(selectedDbName) => ...}
-    ...
->
-    <DefogAnalysisAgentStandalone
-       ...
-    />
-</EmbedScaffolding>
-```
-
-## Managers
-
-This repo uses a bunch of "managers", both to manage agent/layout related use cases (`analysisManager.js` and `analysisTreeManager.js`), and things like websockets via `websocket-manager.js`.
-
-`analysisManager.js`: manages a single analysis. It maintains the analysis data, and provides functions to send and receive the data from the server for each step in an analysis. This is used in `AnalysisAgent.jsx`
-
-`analysisTreeManager.js`: manages a tree of multiple analyses. It can create a new initial/dummy/blank analysis object, which can then be used to create an analysis. You can see this being done in `AnalysisTreeViewer.jsx`
-
-`websocket-manager.js`: Wrapper around a normal websocket providing convenience functions to send and receive messages. This is used in `analysisManager.js` to send and receive messages from the server.
-
-## A note about AnalysisTreeManager and DefogAnalysisAgentStandalone
-
-By default, `DefogAnalysisAgentStandalone` will start off with a fresh blank tree with no analyses. If you want to pass it an existing tree, then create your analysisTreeManager object separately, and pass it to `DefogAnalysisAgentStandalone` as a prop. That way, even when that component is unmounted/destroyed, your tree manager will remain intact.
-
-```jsx
-const analysisTreeManager = AnalysisTreeManager({}, "Manufacturing")
-<DefogAnalysisAgentStandalone
-  ...
-  analysisTreeManager={analysisTreeManager}
-  ...
-  />
-```
-
-## Code usage examples
-
-If you want to replicate the main front end experience you can find on self-hosted and the website, the basic process is as follows (for a full example, you can look at the [QueryData](https://github.com/defog-ai/defog-self-hosted/blob/main/frontend/components/agents/QueryData.jsx#L34C10-L34C24) component in defog-self-hosted):
-
-1. We first create three tabs using our `Tabs` component.
-
-```jsx
-
-const [selectedDbKeyName, setSelectedDbKeyName] = useState(null)
-
-const tabs = [
+<DefogAnalysisAgentEmbed
+  // The API endpoint to use for the requests. Default is https://demo.defog.ai.
+  apiEndpoint={"API_ENDPOINT"}
+  token={"HASHED_PASSWORD"}
+  // questions that will be shown for new csvs uploaded
+  uploadedCsvPredefinedQuestions={["Show me any 5 rows from the dataset"]}
+  showAnalysisUnderstanding={true}
+  dbs={[
     {
-        name: "Analysis",
-        content: <DefogAnalysisAgentStandalone
-            ...
-            analysisTreeManager={selectedDb.analysisTreeManager}
-            keyName={selectedDbKeyName}
-        />
+      keyName: "Yelp",
+      name: "Yelp",
+      predefinedQuestions: [
+        "Show me any 5 rows from the dataset",
+        "Show me any 40 rows from the dataset",
+      ],
+      isTemp: false,
+      sqlOnly: false,
     },
     {
-        name: "Metadata",
-        // this is usually a simple table component
-        content: <...>
+      keyName: "Restaurants",
+      name: "Restaurants",
+      predefinedQuestions: ["Show me any 5 rows from the dataset"],
+      isTemp: false,
+      sqlOnly: false,
     },
-    {
-        name: "Preview data",
-        // this is usually a simple table component
-        content: <...>
-    }
-]
+  ]}
+  ... // other props
+/>;
 ```
 
-2. To change the `selectedDb` state variable above, we can use EmbedScaffolding which gives us db selection UI and onChange methods.
+### Test things locally
 
-```jsx
-const availableDbs = [
-    {
-        name: "Manufacturing",
-        keyName: "Manufacturing",
-        isTemp: false,
-        metadata: null,
-        data: {},
-        metadataFetchingError: false,
-        // save managers because we don't want to lose all analyses
-        // when db changes
-        analysisTreeManager: AnalysisTreeManager({}, "Manufacturing"),
-    },
-    {
-        name: "db2",
-        tables: ["table3", "table4"]
-        isTemp: false,
-        metadata: null,
-        data: {},
-        metadataFetchingError: false,
-        analysisTreeManager: AnalysisTreeManager({}, "Manufacturing"),
-    }
-]
+First, do:
 
-<EmbedScaffolding
-    defaultSelectedDb={selectedDbName}
-    availableDbs={availableDbs.map((d) => d.name)}
-    onDbChange={(selectedDbName) => setSelectedDbName(selectedDbName)}
-    ...
->
-    <Tabs tabs={tabs} />
-</EmbedScaffolding>
+```
+npm i
+npm run dev
 ```
 
-## Repo Usage
+Now, create a `.env` file in your root directory with the following content:
 
-Because this isn't a published library, the intended usage currently is as a git submodule. To set that up in your repo, do:
+```
+VITE_TOKEN="HASHED_PASSWORD?"
+VITE_API_ENDPOINT="API_ENDPOINT"
+```
 
-1. `git submodule add https://github.com/defog-ai/agents-ui-components`
+To quickly see what the different form of our agents look like, run `npm run dev`.
 
-This will cause the folder to be added as a submodule and also your .gitmodules to be created/updated in your repo.
+Now open `http://localhost:5173/` in your browser
 
-To get the latest code from inside a submodule, run git pull inside the submodule folder.
+You will get several options. Pick and and play around. Corresponding code for all those pages is inside `test/` folder.
 
-Note: to get all the styles working, you will also have to do these imports in your code:
+### Viewing docs
 
-For docs:
-`import "@blocknote/mantine/style.css";`
-
-For all other stuff:
-`import agents-ui-components/lib/styles/index.scss`
-
-## Developing/Testing
-
-All component source files live inside `lib/`.
-
-To "Test" this folder aka actually see your components, the stuff is inside `test/`
-
-Test locally using the following commands in project root:
-
-1. `npm i`
-2. `npm run dev`
-3. Open `localhost:5173/` in your browser
-
-We have two pages so far: query-data and doc. Mimicing, as far as possible, the main front end experience.
-
-Now you can go into `test/test-doc.jsx` or `test/test-query.jsx` to see your components! Any changes you make to your code inside `lib/` will be reflected immediately.
-
-When done with improvements/edits, push to this repo and (maybe) notify others that they would need to run `git pull` in their repos in case they're using this code.
+Run `npm run storybook` to see detailed documentation.

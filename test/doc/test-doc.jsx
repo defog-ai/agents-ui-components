@@ -12,18 +12,16 @@ function DocPage() {
   return (
     <div className="w-full">
       <Doc
+        token={import.meta.env.VITE_TOKEN}
+        apiEndpoint={import.meta.env.VITE_API_ENDPOINT}
         devMode={false}
         user={"admin"}
-        token={
-          "bdbe4d376e6c8a53a791a86470b924c0715854bd353483523e3ab016eb55bcd0"
-        }
         keyName={"Manufacturing"}
         docId={docId}
         showAnalysisUnderstanding={false}
         showCode={true}
         allowDashboardAdd={true}
         isTemp={false}
-        apiEndpoint={"http://localhost"}
         metadata={null}
         sqlOnly={false}
       />

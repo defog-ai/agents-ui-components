@@ -25,3 +25,5 @@ dist-ssr
 
 *.tgz
 *storybook.log
+
+.env
