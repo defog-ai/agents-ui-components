@@ -460,7 +460,7 @@ export const AnalysisAgent = ({
       <div
         ref={ctr}
         className={twMerge(
-          "analysis-agent-container min-h-20 relative grow outline-none focus:outline-none rounded-3xl border border-gray-300 bg-white",
+          "analysis-agent-container h-max min-h-20 relative grow outline-none focus:outline-none rounded-3xl border border-gray-300 bg-white",
           independentAnalysisSearchRef ? "bg-gray-50" : "max-w-full",
           rootClassNames
         )}
