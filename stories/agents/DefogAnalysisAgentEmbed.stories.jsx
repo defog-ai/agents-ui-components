@@ -32,7 +32,8 @@ export default {
 
 export const Primary = {
   args: {
-    token: "test",
+    token: import.meta.env.VITE_TOKEN,
+    apiEndpoint: import.meta.env.VITE_API_ENDPOINT,
     dbs: dbs,
   },
 };

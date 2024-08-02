@@ -1,18 +1,7 @@
-import { useState } from "react";
-import {
-  AgentConfigContext,
-  AnalysisAgent,
-  createAgentConfig,
-} from "../../lib/agent";
+import { AnalysisAgent, Setup } from "../../lib/agent";
 
 import "../../lib/styles/index.scss";
-
-const agentConfig = createAgentConfig({
-  apiEndpoint: import.meta.env.VITE_API_ENDPOINT,
-  isTemp: false,
-  sqlOnly: false,
-  token: import.meta.env.VITE_TOKEN,
-});
+import { v4 } from "uuid";
 
 export default {
   title: "Agents/AnalysisAgent",
@@ -29,15 +18,22 @@ export default {
   tags: ["autodocs"],
   argTypes: {},
   render: (args) => {
-    const [config, setConfig] = useState(agentConfig);
     return (
-      <AgentConfigContext.Provider value={{ val: config, update: setConfig }}>
+      <Setup
+        token={import.meta.env.VITE_TOKEN}
+        apiEndpoint={import.meta.env.VITE_API_ENDPOINT}
+        // these are the ones that will be shown for new csvs uploaded
+        uploadedCsvPredefinedQuestions={["Show me any 5 rows from the dataset"]}
+        showAnalysisUnderstanding={true}
+        disableMessages={false}
+      >
         <AnalysisAgent {...args} />
-      </AgentConfigContext.Provider>
+      </Setup>
     );
   },
 };
 
+const id = v4();
 export const Primary = {
-  args: {},
+  args: { analysisId: id },
 };

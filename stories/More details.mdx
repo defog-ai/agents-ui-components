@@ -1,5 +1,3 @@
-This page will lise detailed description of how to setup agents in various forms.
-
 import { ConfigTable } from "./agents/Setup.stories.jsx";
 import { Canvas, Meta } from "@storybook/blocks";
 
@@ -29,13 +27,13 @@ There's three main components you can use as exports from this library. The thre
 - `AnalysisTreeViewer`: A "Tree" of analyses. This requires most of the similar props, but the analyses are now in a tree structure.
 - `DefogAnalysisAgentEmbed`: The most complex component, this is a full analysis viewer. It includes the tree, the analysis, and the ability to navigate between datasets. Also allows for CSV uploading and querying that using a sqlite database.
 
-For usage examples, you can follow along this doc, or you can look inside the `test/` folder of this repo.
+For usage examples, look in the Quickstart doc.
 
 A crucial component of getting analyses to work is the `Setup` component. You will need this when using the first two components, while `DefogAnalysisAgentEmbed` will handle it for you internally.
 
-The `Setup` component wraps around your content, and handles the setup of the socket connections for you, showing you a loader until the connections are established and everything else is ready.
+The `Setup` component wraps around your content, and handles the setup of the socket connections for you, showing you a loader until the connections are established and everything else is ready. It will also setup a sqlite db.
 
-You will also be able to pass it all the available options for the _agent's configuration_. This configuration has the following options, some of these are user auth related, others are related to the agent's UI look:
+You be able to pass it all the available options for the _agent's configuration_. This configuration has the following options, some of these are user auth related, others are related to the agent's UI look:
 
 <ConfigTable />
 
@@ -48,11 +46,3 @@ Before you get to running your analysis, you will have a database defined somewh
 The `isTemp` field is used to determine if the database is temporary or not. This is always true for CSV databases, otherwise false.
 
 The `sqlOnly` field is used to determine if the database is only for single step SQL analysis, and not "advanced" aka multi-step agent analysis.
-
-## AnalysisAgent
-
-This is the core analysis component. That renders a single analysis.
-
-For it to work, it needs the following defined:
-
-Here's how you can use it.

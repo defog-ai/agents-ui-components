@@ -2,6 +2,13 @@ import { Canvas, Meta } from "@storybook/blocks";
 
 ## Usage
 
+The following examples are also rendered live inside this page. To see them, you will need to setup a `.env` file:
+
+```
+VITE_TOKEN="HASHED_PASSWORD"
+VITE_API_ENDPOINT="API_ENDPOINT"
+```
+
 ### DefogAnalysisAgentEmbed
 
 Use the `DefogAnalysisAgentEmbed` component like so:
@@ -39,6 +46,10 @@ import "@defogdotai/agents-ui-components/css";
   // ... other props
 />;
 ```
+
+import * as Embed from "./agents/DefogAnalysisAgentEmbed.stories";
+
+<Canvas of={Embed.Primary} />
 
 ### AnalysisTreeViewer
 
@@ -113,7 +124,7 @@ const sqlOnly = false;
 // internally we use uuid's v4() method. You can use any unique id here.
 const id = "your-analysis-id";
 
-// <Setup/> sets up socket connections/other context and shows a loader until everything is ready + sockets are connected.
+// <Setup/> sets up socket connections/other context + sqlite db and shows a loader until everything is ready + sockets are connected.
 <Setup
   // The API endpoint to use for the requests. Default is https://demo.defog.ai.
   apiEndpoint={"API_ENDPOINT"}
@@ -149,12 +160,7 @@ npm i
 npm run dev
 ```
 
-Now, create a `.env` file in your root directory with the following content:
-
-```
-VITE_TOKEN="HASHED_PASSWORD?"
-VITE_API_ENDPOINT="API_ENDPOINT"
-```
+Remember to create the .env file. Look at .env.template for reference.
 
 Now open `http://localhost:5173/` in your browser
 

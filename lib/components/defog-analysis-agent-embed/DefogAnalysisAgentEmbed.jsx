@@ -1,6 +1,6 @@
 "use client";
 
-import { useContext, useEffect, useMemo, useRef, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { MessageManagerContext, Tabs } from "@ui-components";
 import { EmbedScaffolding } from "./EmbedScaffolding";
 import { twMerge } from "tailwind-merge";
@@ -10,17 +10,11 @@ import { AnalysisTabContent } from "./tab-content/AnalysisTabContent";
 import { PreviewDataTabContent } from "./tab-content/PreviewDataTabContent";
 import { TabNullState } from "./tab-content/TabNullState";
 import { getColumnDescriptionsForCsv } from "../utils/utils";
-import {
-  addParsedCsvToSqlite,
-  initializeSQLite,
-  validateTableName,
-} from "../utils/sqlite";
+import { addParsedCsvToSqlite, validateTableName } from "../utils/sqlite";
 import { AgentConfigContext } from "../context/AgentContext";
 import { Setup } from "../context/Setup";
 
 export function EmbedInner({
-  token = null,
-  apiEndpoint = null,
   csvFileKeyName = null,
   uploadedCsvPredefinedQuestions = ["Show me any 5 rows"],
   dbs,
@@ -32,7 +26,8 @@ export function EmbedInner({
 }) {
   const messageManager = useContext(MessageManagerContext);
   const agentConfigContext = useContext(AgentConfigContext);
-  const conn = useRef(null);
+
+  const { sqliteConn, token, apiEndpoint } = agentConfigContext.val;
 
   const [availableDbs, setAvailableDbs] = useState(dbs);
 
@@ -78,7 +73,7 @@ export function EmbedInner({
 
   const addCsvToDbListAndSqlite = async ({ file, columns, rows }) => {
     try {
-      if (!conn.current) {
+      if (!sqliteConn) {
         throw new Error(
           "SQLite connection not initialized. Please refresh the page and try again. If the error persists, please reach out to us."
         );
@@ -101,11 +96,11 @@ export function EmbedInner({
 
       // also add to sqlite
       // once done uploading, also add it to sqlite db
-      if (conn.current) {
+      if (sqliteConn.current) {
         try {
           const { columnMetadata, fiveRowsAsArraysOfValues } =
             addParsedCsvToSqlite({
-              conn: conn.current,
+              conn: sqliteConn.current,
               tableName: sqliteTableName,
               rows: rows,
               columns,
@@ -327,22 +322,6 @@ export function EmbedInner({
   }, [selectedDb, apiEndpoint, searchBarDraggable, token, nullTab]);
 
   useEffect(() => {
-    (async () => {
-      if (conn.current) return;
-
-      const _conn = await initializeSQLite();
-      conn.current = _conn;
-
-      agentConfigContext.update({
-        ...agentConfigContext.val,
-        sqliteConn: _conn,
-      });
-
-      window.sqlite = _conn;
-    })();
-  }, []);
-
-  useEffect(() => {
     // if the new selected db is temp, empty its tree
     // becuase currently the tool runs are not saved on servers. so can't be fetched again.
     if (selectedDb) {
@@ -407,7 +386,6 @@ export function EmbedInner({
  * @property {Boolean=} showAnalysisUnderstanding - Poorly named. Whether to show "analysis understanding" aka description of the results created by a model under the table.
  * @property {Boolean=} showCode - Whether to show tool code.
  * @property {Boolean=} allowDashboardAdd - Whether to allow addition to dashboards.
- * @property {Object=} sqliteConn - The sqlite connection object
  * @property {Boolean=} disableMessages - Whether to disable messages
  * @property {Array<{name: string, keyName: string, predefinedQuestions?: string[], isTemp?: false, sqlOnly?: false}>=} dbs - The list of databases to show in the dropdown. Each object should have a keyName and predefinedQuestions array.
  * @property {Boolean=true} uploadedCsvIsSqlOnly - Whether all uploaded csvs should be sql only.
@@ -433,7 +411,6 @@ export function DefogAnalysisAgentEmbed({
   showAnalysisUnderstanding = true,
   showCode = false,
   allowDashboardAdd = true,
-  sqliteConn = null,
   disableMessages = false,
   dbs = [],
   uploadedCsvIsSqlOnly = true,
@@ -474,13 +451,10 @@ export function DefogAnalysisAgentEmbed({
           showAnalysisUnderstanding={showAnalysisUnderstanding}
           showCode={showCode}
           allowDashboardAdd={allowDashboardAdd}
-          sqliteConn={sqliteConn}
           disableMessages={disableMessages}
         >
           <EmbedInner
             uploadedCsvIsSqlOnly={uploadedCsvIsSqlOnly}
-            token={token}
-            apiEndpoint={apiEndpoint}
             dbs={dbsWithManagers}
             uploadedCsvPredefinedQuestions={uploadedCsvPredefinedQuestions}
             searchBarClasses={searchBarClasses}
