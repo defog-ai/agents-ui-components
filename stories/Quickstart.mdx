@@ -9,6 +9,23 @@ VITE_TOKEN="HASHED_PASSWORD"
 VITE_API_ENDPOINT="API_ENDPOINT"
 ```
 
+You will also need a tailwind project for this to work as all styles are tailwind based. To your tailwind.config.json, add `./node_modules/@defogdotai/agents-ui-components/**/*.{js,ts,jsx,tsx,mdx}` inside the `content` property like so:
+
+```js
+// tailwind.config.js
+
+
+module.exports = {
+  ...
+  content: [
+    ...
+    "./node_modules/@defogdotai/agents-ui-components/**/*.{js,ts,jsx,tsx,mdx}",
+    ...
+  ],
+  ...
+}
+```
+
 ### DefogAnalysisAgentEmbed
 
 Use the `DefogAnalysisAgentEmbed` component like so:

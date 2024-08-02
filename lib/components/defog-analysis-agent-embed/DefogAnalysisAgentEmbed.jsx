@@ -96,11 +96,11 @@ export function EmbedInner({
 
       // also add to sqlite
       // once done uploading, also add it to sqlite db
-      if (sqliteConn.current) {
+      if (sqliteConn) {
         try {
           const { columnMetadata, fiveRowsAsArraysOfValues } =
             addParsedCsvToSqlite({
-              conn: sqliteConn.current,
+              conn: sqliteConn,
               tableName: sqliteTableName,
               rows: rows,
               columns,
