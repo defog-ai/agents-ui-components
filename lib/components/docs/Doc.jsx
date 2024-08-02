@@ -64,7 +64,6 @@ export function Doc({
   apiEndpoint = "https://demo.defog.ai",
   metadata = null,
   sqlOnly = false,
-  sqliteConn = null,
   disableMessages = false,
 }) {
   const partyEndpoint = apiEndpoint;
@@ -137,7 +136,6 @@ export function Doc({
       showAnalysisUnderstanding={showAnalysisUnderstanding}
       showCode={showCode}
       allowDashboardAdd={allowDashboardAdd}
-      sqliteConn={sqliteConn}
       disableMessages={disableMessages}
       loaderRootClassNames="h-screen"
       onSetupComplete={async () => {

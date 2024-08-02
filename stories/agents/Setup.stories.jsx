@@ -8,7 +8,6 @@ const config = {
     'Whether to show "analysis understanding" aka description of the results created by a model under the table.',
   showCode: "Whether to show tool code.",
   allowDashboardAdd: "Whether to allow addition to dashboards.",
-  sqliteConn: "The sqlite connection object",
   disableMessages: "Whether to disable messages",
   onSetupComplete: "The function to run after the setup is complete.",
   loaderRootClassNames: "The class names for the loader.",
