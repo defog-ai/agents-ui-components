@@ -1,4 +1,8 @@
+import { Canvas, Meta } from "@storybook/blocks";
+
 ## Usage
+
+### DefogAnalysisAgentEmbed
 
 Use the `DefogAnalysisAgentEmbed` component like so:
 
@@ -32,9 +36,109 @@ import "@defogdotai/agents-ui-components/css";
       sqlOnly: false,
     },
   ]}
-  ... // other props
+  // ... other props
 />;
 ```
+
+### AnalysisTreeViewer
+
+```jsx
+import {
+  Setup,
+  AnalysisTreeViewer,
+  AnalysisTreeManager,
+} from "@defogdotai/agents-ui-components/agent";
+import "@defogdotai/agents-ui-components/css";
+
+const analysisTreeManager = new AnalysisTreeManager();
+
+const keyName = "Yelp";
+const name = "Yelp";
+const predefinedQuestions = [
+  "Show me any 5 rows from the dataset",
+  "Show me any 40 rows from the dataset",
+];
+const isTemp = false;
+const sqlOnly = false;
+
+// <Setup/> sets up socket connections/other context + sqlite db and shows a loader until everything is ready + sockets are connected.
+<Setup
+  // The API endpoint to use for the requests. Default is https://demo.defog.ai.
+  apiEndpoint={"API_ENDPOINT"}
+  token={"HASHED_PASSWORD"}
+  // these are the ones that will be shown for new csvs uploaded
+  uploadedCsvPredefinedQuestions={["Show me any 5 rows from the dataset"]}
+  showAnalysisUnderstanding={true}
+  disableMessages={false}
+  // ... other props
+>
+  <AnalysisTreeViewer
+    keyName={keyName}
+    // metadata has to be passed only if you're querying a csv/temp db
+    metadata={metadata}
+    // for csv
+    isTemp={isTemp}
+    forceSqlOnly={false}
+    showToggle={true}
+    analysisTreeManager={analysisTreeManager}
+    autoScroll={true}
+    sideBarClasses={""}
+    searchBarDraggable={true}
+    defaultSidebarOpen={true || (window.innerWidth < 768 ? false : true)}
+    predefinedQuestions={predefinedQuestions}
+    // ... other props
+  />
+</Setup>;
+```
+
+import * as Tree from "./agents/AnalysisTreeViewer.stories";
+
+<Canvas of={Tree.Primary} />
+
+### AnalysisAgent
+
+```jsx
+import { Setup, AnalysisAgent } from "@defogdotai/agents-ui-components/agent";
+import "@defogdotai/agents-ui-components/css";
+
+const keyName = "Yelp";
+const name = "Yelp";
+const predefinedQuestions = [
+  "Show me any 5 rows from the dataset",
+  "Show me any 40 rows from the dataset",
+];
+const isTemp = false;
+const sqlOnly = false;
+
+// internally we use uuid's v4() method. You can use any unique id here.
+const id = "your-analysis-id";
+
+// <Setup/> sets up socket connections/other context and shows a loader until everything is ready + sockets are connected.
+<Setup
+  // The API endpoint to use for the requests. Default is https://demo.defog.ai.
+  apiEndpoint={"API_ENDPOINT"}
+  token={"HASHED_PASSWORD"}
+  // these are the ones that will be shown for new csvs uploaded
+  uploadedCsvPredefinedQuestions={["Show me any 5 rows from the dataset"]}
+  showAnalysisUnderstanding={true}
+  disableMessages={false}
+>
+  <AnalysisAgent
+    analysisId={id}
+    keyName={keyName}
+    // metadata has to be passed only if you're querying a csv/temp db
+    metadata={metadata}
+    isTemp={isTemp}
+    forceSqlOnly={false}
+  />
+</Setup>;
+```
+
+import * as Agent from "./agents/AnalysisAgent.stories";
+
+<Canvas of={Agent.Primary} />
+
+### Docs
 
 ## See things locally
 

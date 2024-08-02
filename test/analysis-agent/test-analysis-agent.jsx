@@ -14,28 +14,19 @@ const dbs = [
       "Show me any 5 rows from the dataset",
       "Show me any 40 rows from the dataset",
     ],
+    isTemp: false,
+    sqlOnly: false,
   },
   {
     keyName: "Restaurants",
     name: "Restaurants",
     predefinedQuestions: ["Show me any 5 rows from the dataset"],
+    isTemp: false,
+    sqlOnly: false,
   },
-].map((d) => ({
-  isTemp: false,
-  sqlOnly: false,
-  metadata: null,
-  data: {},
-  metadataFetchingError: false,
-  analysisTreeManager: AnalysisTreeManager(
-    {},
-    d.keyName + "_" + Math.floor(Math.random() * 1000)
-  ),
-  // do this after so that sqlOnly, and isTemp can be overwritten if defined by the user
-  ...d,
-}));
+];
 
 // a single analysis can only work with one db at a time
-
 function QueryDataPage() {
   const { keyName, metadata, isTemp } = dbs[0];
   const id = v4();

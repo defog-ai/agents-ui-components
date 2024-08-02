@@ -1,3 +1,5 @@
+export { Setup } from "./components/context/Setup.jsx";
+
 export { AnalysisTreeViewer } from "./components/agent/analysis-tree-viewer/AnalysisTreeViewer.jsx";
 
 export {

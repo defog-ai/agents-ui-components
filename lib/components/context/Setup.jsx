@@ -15,6 +15,7 @@ import {
   SpinningLoader,
 } from "@ui-components";
 import { twMerge } from "tailwind-merge";
+import { initializeSQLite } from "../utils/sqlite";
 
 /**
  * @typedef {Object} SetupProps
@@ -45,7 +46,6 @@ export function Setup({
   showAnalysisUnderstanding = true,
   showCode = false,
   allowDashboardAdd = true,
-  sqliteConn = null,
   disableMessages = false,
   onSetupComplete = () => {},
   loaderRootClassNames = "",
@@ -60,6 +60,8 @@ export function Setup({
   // this is for handling re runs of tools
   const [reRunManager, setReRunManager] = useState(null);
 
+  const [sqliteConn, setSqliteConn] = useState(null);
+
   const [agentConfig, setAgentConfig] = useState(
     createAgentConfig({
       user,
@@ -69,7 +71,6 @@ export function Setup({
       allowDashboardAdd,
       devMode,
       apiEndpoint,
-      sqliteConn,
     })
   );
 
@@ -84,7 +85,6 @@ export function Setup({
       allowDashboardAdd,
       devMode,
       apiEndpoint,
-      sqliteConn,
     }));
   }, [
     user,
@@ -94,7 +94,6 @@ export function Setup({
     allowDashboardAdd,
     devMode,
     apiEndpoint,
-    sqliteConn,
   ]);
 
   const messageManager = useRef(MessageManager());
@@ -133,11 +132,18 @@ export function Setup({
         (d) => console.log(d)
       );
 
+      let conn = null;
+      try {
+        conn = await initializeSQLite();
+      } catch (e) {
+        conn = null;
+        console.log(e);
+      }
+
       setMainSockerManager(mainMgr);
       setReRunManager(rerunMgr);
       setToolSocketManager(toolSocketManager);
-
-      setSocketsConnected(true);
+      setSqliteConn(conn);
 
       setAgentConfig({
         ...agentConfig,
@@ -145,7 +151,10 @@ export function Setup({
         mainManager: mainMgr,
         reRunManager: rerunMgr,
         toolSocketManager: toolSocketManager,
+        sqliteConn: conn,
       });
+
+      setSocketsConnected(true);
 
       await onSetupComplete();
     }

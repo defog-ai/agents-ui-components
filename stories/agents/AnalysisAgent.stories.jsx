@@ -8,10 +8,10 @@ import {
 import "../../lib/styles/index.scss";
 
 const agentConfig = createAgentConfig({
-  apiEndpoint: "https://demo.defog.ai",
+  apiEndpoint: import.meta.env.VITE_API_ENDPOINT,
   isTemp: false,
   sqlOnly: false,
-  token: "HASHED_PASSWORD",
+  token: import.meta.env.VITE_TOKEN,
 });
 
 export default {

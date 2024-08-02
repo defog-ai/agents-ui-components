@@ -31,19 +31,23 @@ There's three main components you can use as exports from this library. The thre
 
 For usage examples, you can follow along this doc, or you can look inside the `test/` folder of this repo.
 
-A crucial component of getting analyses to work is the `Setup` component. This component is a wrapper around your component that will handle the setup of the socket connections for you. You will also be able to pass it all the available options for the agent's configuration.
+A crucial component of getting analyses to work is the `Setup` component. You will need this when using the first two components, while `DefogAnalysisAgentEmbed` will handle it for you internally.
 
-The agent's configuration controls these options. Some of these are user auth related, others are related to the agent's UI look.
+The `Setup` component wraps around your content, and handles the setup of the socket connections for you, showing you a loader until the connections are established and everything else is ready.
+
+You will also be able to pass it all the available options for the _agent's configuration_. This configuration has the following options, some of these are user auth related, others are related to the agent's UI look:
 
 <ConfigTable />
 
 Before you get to running your analysis, you will have a database defined somewhere, and also what you can/cannot allow for that database. For the purpose of these docs, let's say these are our two dbs. This is also the general format all components use for the databases.
 
-The `isTemp` field is used to determine if the database is temporary or not. This is true for CSV databases. If `isTemp` is true, you _must_ pass the `sqliteConn` config option above, pointing to a loca sqlite db (search the docs for functions you can use for this). The `sqlOnly` field is used to determine if the database is only for single step SQL analysis, and not "advanced" aka multi-step agent analysis.
-
 <div className="text-gray-500 whitespace-pre !text-sm !font-mono !my-4 !p-2 bg-gray-50">
   {JSON.stringify(sampleDbs, null, 4)}
 </div>
+
+The `isTemp` field is used to determine if the database is temporary or not. This is always true for CSV databases, otherwise false.
+
+The `sqlOnly` field is used to determine if the database is only for single step SQL analysis, and not "advanced" aka multi-step agent analysis.
 
 ## AnalysisAgent
 
