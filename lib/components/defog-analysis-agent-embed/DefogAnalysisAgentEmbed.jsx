@@ -31,7 +31,9 @@ export function EmbedInner({
 
   const [availableDbs, setAvailableDbs] = useState(dbs);
 
-  const [selectedDbName, setSelectedDbName] = useState(null);
+  const [selectedDbName, setSelectedDbName] = useState(
+    dbs.length === 1 ? dbs[0].name : null
+  );
 
   const selectedDb = useMemo(() => {
     return availableDbs.find((d) => d.name === selectedDbName);

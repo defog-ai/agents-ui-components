@@ -37,3 +37,12 @@ export const Primary = {
     dbs: dbs,
   },
 };
+
+export const SingleDB = {
+  title: "Only one DB autoselect",
+  args: {
+    token: import.meta.env.VITE_TOKEN,
+    apiEndpoint: import.meta.env.VITE_API_ENDPOINT,
+    dbs: dbs.slice(1),
+  },
+};
