@@ -5,7 +5,6 @@ import { v4 } from "uuid";
 const analysisSlashMenuItem = (editor) => ({
   title: "Analysis",
   onItemClick: () => {
-    console.log("hreeere");
     // Block that the text cursor is currently in.
     const currentBlock = editor.getTextCursorPosition().block;
 

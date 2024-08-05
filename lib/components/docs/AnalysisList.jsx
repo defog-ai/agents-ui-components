@@ -4,16 +4,16 @@
 
 import React, { useContext, useEffect, useRef, useState } from "react";
 import { Input } from "antd";
-import { GlobalAgentContext } from "../context/GlobalAgentContext";
+import { AgentConfigContext } from "../context/AgentContext";
 import ErrorBoundary from "../common/ErrorBoundary";
 
 export function AnalysisList() {
-  const globalAgentContext = useContext(GlobalAgentContext);
+  const agentConfigContext = useContext(AgentConfigContext);
   const analysesRef = useRef(null);
   const [searchText, setSearchText] = useState("");
 
   useEffect(() => {
-    globalAgentContext.val.userItems.analyses
+    agentConfigContext.val.analyses
       .filter((d) => d && d.user_question)
       .map((analysis, i) => {
         let dom = analysesRef.current.querySelector(
@@ -32,7 +32,7 @@ export function AnalysisList() {
           );
         });
       });
-  }, [globalAgentContext]);
+  }, [agentConfigContext]);
 
   return (
     <ErrorBoundary>
@@ -42,7 +42,7 @@ export function AnalysisList() {
           placeholder="Filter your old analysis"
         />
         <div className="sidebar-content">
-          {(globalAgentContext?.val?.userItems?.analyses || [])
+          {(agentConfigContext?.val?.analyses || [])
             .filter((d) => d && d.user_question !== "")
             .filter((d) => d && d?.user_question?.includes(searchText))
             .map((analysis, i) => (

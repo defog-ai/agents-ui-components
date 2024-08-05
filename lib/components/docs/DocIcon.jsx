@@ -14,10 +14,7 @@ export function DocIcon({
     <div className="doc-icon-ctr">
       <a
         target="_blank"
-        href={{
-          pathname: "/doc",
-          query: { docId: addDocIcon ? "new" : doc && doc.doc_id },
-        }}
+        href={`/doc?docId=${addDocIcon ? "new" : doc && doc.doc_id}`}
       >
         <div className={"doc-icon " + (addDocIcon ? "add-doc" : "")}>
           {addDocIcon ? (

@@ -24,24 +24,24 @@ export const CustomFormattingToolbar = () => {
 
   return showToolBar ? (
     <FormattingToolbar>
-      {/* <BlockTypeDropdown editor={editor} /> */}
+      {/* <BlockTypeDropdown /> */}
       {/*Default button to toggle bold.*/}
-      <BasicTextStyleButton editor={editor} toggledStyle={"bold"} />
+      <BasicTextStyleButton basicTextStyle={"bold"} />
       {/*Default button to toggle italic.*/}
-      <BasicTextStyleButton editor={editor} toggledStyle={"italic"} />
+      <BasicTextStyleButton basicTextStyle={"italic"} />
       {/*Default button to toggle underline.*/}
-      <BasicTextStyleButton editor={editor} toggledStyle={"underline"} />
-      <BasicTextStyleButton editor={editor} toggledStyle={"strike"} />
+      <BasicTextStyleButton basicTextStyle={"underline"} />
+      <BasicTextStyleButton basicTextStyle={"strike"} />
 
-      <TextAlignButton editor={editor} textAlignment={"left"} />
-      <TextAlignButton editor={editor} textAlignment={"center"} />
-      <TextAlignButton editor={editor} textAlignment={"right"} />
+      <TextAlignButton textAlignment={"left"} />
+      <TextAlignButton textAlignment={"center"} />
+      <TextAlignButton textAlignment={"right"} />
 
-      <ColorStyleButton editor={editor} />
-      {/* <NestBlockButton editor={editor} />
-      <UnnestBlockButton editor={editor} /> */}
+      <ColorStyleButton />
+      {/* <NestBlockButton />
+      <UnnestBlockButton /> */}
 
-      <CreateLinkButton editor={editor} />
+      <CreateLinkButton />
     </FormattingToolbar>
   ) : null;
 };

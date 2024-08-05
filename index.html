@@ -1,11 +1,47 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="./basic-tailwind-imports-for-html-files.css" rel="stylesheet" />
   </head>
   <body>
-    <div><a href="/doc">Doc</a></div>
-    <div><a href="/query-data">Query data</a></div>
+    <div class="flex flex-row">
+      <a href="./test/doc/">
+        <div
+          class="p-2 m-2 cursor-pointer border rounded-md hover:bg-gray-50 flex items-center justify-center w-40 h-40"
+        >
+          Doc
+        </div>
+      </a>
+      <a href="./test/agent-embed/">
+        <div
+          class="p-2 m-2 cursor-pointer border rounded-md hover:bg-gray-50 flex items-center justify-center w-40 h-40"
+        >
+          Test full embed (allows for csv upload + db selection)
+        </div>
+      </a>
+      <a href="./test/analysis-tree-viewer/">
+        <div
+          class="p-2 m-2 cursor-pointer border rounded-md hover:bg-gray-50 flex items-center justify-center w-40 h-40"
+        >
+          Test tree viewer (single db)
+        </div>
+      </a>
+      <a href="./test/analysis-agent/">
+        <div
+          class="p-2 m-2 cursor-pointer border rounded-md hover:bg-gray-50 flex items-center justify-center w-40 h-40"
+        >
+          Single Analysis
+        </div>
+      </a>
+      <a href="./test/ui-components/">
+        <div
+          class="p-2 m-2 cursor-pointer border rounded-md hover:bg-gray-50 flex items-center justify-center w-40 h-40"
+        >
+          Test UI components
+        </div>
+      </a>
+    </div>
   </body>
 </html>

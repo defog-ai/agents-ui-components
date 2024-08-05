@@ -1,0 +1,48 @@
+import { ConfigTable } from "./agents/Setup.stories.jsx";
+import { Canvas, Meta } from "@storybook/blocks";
+
+export const sampleDbs = [
+  {
+    keyName: "Yelp",
+    name: "Yelp",
+    predefinedQuestions: [
+      "Show me any 5 rows from the dataset",
+      "Show me any 40 rows from the dataset",
+    ],
+    isTemp: false,
+    sqlOnly: false,
+  },
+  {
+    keyName: "Restaurants",
+    name: "Restaurants",
+    predefinedQuestions: ["Show me any 5 rows from the dataset"],
+    isTemp: false,
+    sqlOnly: false,
+  },
+];
+
+There's three main components you can use as exports from this library. The three components, in increasing level of complexity are:
+
+- `AnalysisAgent`: Renders a single analysis. This requires the least amount of configuration.
+- `AnalysisTreeViewer`: A "Tree" of analyses. This requires most of the similar props, but the analyses are now in a tree structure.
+- `DefogAnalysisAgentEmbed`: The most complex component, this is a full analysis viewer. It includes the tree, the analysis, and the ability to navigate between datasets. Also allows for CSV uploading and querying that using a sqlite database.
+
+For usage examples, look in the Quickstart doc.
+
+A crucial component of getting analyses to work is the `Setup` component. You will need this when using the first two components, while `DefogAnalysisAgentEmbed` will handle it for you internally.
+
+The `Setup` component wraps around your content, and handles the setup of the socket connections for you, showing you a loader until the connections are established and everything else is ready. It will also setup a sqlite db.
+
+You be able to pass it all the available options for the _agent's configuration_. This configuration has the following options, some of these are user auth related, others are related to the agent's UI look:
+
+<ConfigTable />
+
+Before you get to running your analysis, you will have a database defined somewhere, and also what you can/cannot allow for that database. For the purpose of these docs, let's say these are our two dbs. This is also the general format all components use for the databases.
+
+<div className="text-gray-500 whitespace-pre !text-sm !font-mono !my-4 !p-2 bg-gray-50">
+  {JSON.stringify(sampleDbs, null, 4)}
+</div>
+
+The `isTemp` field is used to determine if the database is temporary or not. This is always true for CSV databases, otherwise false.
+
+The `sqlOnly` field is used to determine if the database is only for single step SQL analysis, and not "advanced" aka multi-step agent analysis.

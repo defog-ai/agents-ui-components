@@ -4,9 +4,9 @@ module.exports = {
   content: [
     "./index.html",
     "./lib/**/*.{js,ts,jsx,tsx,mdx}",
-    "./test/**/*.{js,ts,jsx,tsx,mdx}",
+    "./test/**/*.{js,ts,jsx,tsx,mdx,html}",
+    "./stories/**/*.{js,ts,jsx,tsx,mdx}",
   ],
-  important: true,
   theme: {
     extend: {
       colors: {

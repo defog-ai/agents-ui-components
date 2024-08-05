@@ -1,0 +1,258 @@
+import { twMerge } from "tailwind-merge";
+import {
+  ExclamationTriangleIcon,
+  InformationCircleIcon,
+} from "@heroicons/react/20/solid";
+
+import ReactJson from "@microlink/react-json-view";
+
+import sampleAnalysisData from "./assets/sample-analysis-data.json";
+
+export const Spacer = ({ className = "h-10" }) => <div className={className} />;
+
+export const Image = ({ src = "", classNames = "", code = false }) => {
+  if (!src.startsWith("/stories")) {
+    src = src.replace("./", "/stories/");
+  }
+  return (
+    <div
+      className={twMerge("!my-4 w-full", classNames, code ? "!p-2 border" : "")}
+    >
+      <img
+        src={src}
+        className={twMerge("min-w-[500px]", code ? "w-[60%] " : "w-full")}
+      />
+    </div>
+  );
+};
+
+export const Note = ({ text }) => {
+  return (
+    <div className="text-blue-800 flex flex-row items-start py-3 px-2 !my-2 border-l-4 border-l-blue-400 bg-blue-50">
+      <InformationCircleIcon className="w-5 h-5 mr-3 text-blue-400 shrink-0" />
+      <div>
+        <span className="font-bold">NOTE: </span>
+        {text}
+      </div>
+    </div>
+  );
+};
+
+export const Warning = ({ text }) => {
+  return (
+    <div className="text-yellow-800 flex flex-row items-start py-3 px-2 !my-2  border-l-4 border-l-yellow-400 bg-yellow-50">
+      <ExclamationTriangleIcon className="w-5 h-5 mr-3 text-yellow-400 shrink-0" />
+      <div>{text}</div>
+    </div>
+  );
+};
+
+# Introduction
+
+## Rest api vs websockets
+
+Currently the agents UI is very tightly coupled with our [agents websocket backend](https://github.com/defog-ai/defog-self-hosted/blob/92cdbf778d7d902f00f2c427a7b2ff8d3ab9288a/backend/main.py#L174-L437).
+
+While websockets give a very good user experience _when they work_, we have found the connection to be quite unstable sometimes. It also depends on things like tab inactivity, etc. This is problematic for a couple reasons:
+
+- In general it would be nice to have a more stable experience even if we trade off some of the UX that only websockets can provide us.
+- It is harder to debug issues with websockets. Both tracking network requests in the browser's console, and also detecting disconnection whenever it happens, and reconnecting.
+
+Shifting to a REST API would allow us to have a more stable experience, and also make it easier to debug issues. It would also allow us to have a more consistent experience across different browsers, and also allow us to have a more consistent experience across different devices.
+
+It will also hopefully help us write more modular code.
+
+I will describe some of how the front end + backend currently works now.
+
+## Basic agent "steps"
+
+Before going into code, it's probably helpful to know the agent currently has a three step process:
+
+- **Clarifier**: This is where the agent will ask for clarity from the user if the question is unclear.
+
+<Image src={"./assets/frontend/clarifier.png"} />
+
+- **Clarifier post processing**: When the user sends over their answers, our responses are still in a "Question/Answer" format. We want to convert these into statements that we can put in our prompt later on. So we run a `clarifier_post_process` [function](https://github.com/defog-ai/defog-self-hosted/blob/92cdbf778d7d902f00f2c427a7b2ff8d3ab9288a/backend/agents/clarifier/clarifier_agent.py#L74-L101) which calls our `/turn_into_statements` [endpoint](https://github.com/defog-ai/defog-backend-python/blob/f761349ac87aa923cf1202be21ba4c977dd9d8fe/server/agent_routes.py#L254-L275).
+
+  We call this resulting piece of text `assignment_understanding`. We will later put it into our prompt to help the model have more context about the user's question.
+
+- **Planner**: This will finally convert the user question into a plan containing multiple executable steps using tools.
+
+  Using the `assignment_understanding` above, we run our `planner_executor_agent` [function](https://github.com/defog-ai/defog-self-hosted/blob/92cdbf778d7d902f00f2c427a7b2ff8d3ab9288a/backend/agents/planner_executor/planner_executor_agent.py). This repeatedly calls the backend's websocket (usually at `http://host.docker.internal:1234/agent_endpoint`), with a payload containing the `assignment_understanding` and the steps generate so far.
+
+  <Image src={"./assets/frontend/planner.png"} />
+
+<Spacer />
+
+# Code walkthrough
+
+## Frontend
+
+### Setup = connecting to websockets
+
+The first step is to establish connection to the websockets. This happens in the [Setup.jsx](https://github.com/defog-ai/agents-ui-components/blob/manas/restructure-add-embed-export/lib/components/context/Setup.jsx#L124-L133) component. There's three of them:
+
+- Main websocket: This is the primary socket used for running all tasks related to the agent workflow: clarifier and step generation.
+- Re run websocket: This handles step re running.
+- Tool editing websocket: This handles editing tool inputs. Usually, a user will edit tool inputs and then press the re run button, which will use the re run websocket above.
+
+<Image src={"./assets/frontend/sockets.png"} code />
+
+### analysisManager
+
+We now come to probably the most important piece of this repo - the [analysisManager](https://github.com/defog-ai/agents-ui-components/blob/15399fafd760ab97115eb2f14bfc7cd291ff4729/lib/components/defog-components/agent/analysisManager.js#L40). This is a class that manages the agent workflow. It is responsible for:
+
+- Maintaining internal state of the analysis's data.
+- Calling the websockets, sending it the required data.
+- Receiving the new data and updating the analysis data.
+
+For reference, this is what the analysis data looks like for a completed analysis with the user question: "show me 5 rows". You can click this and expand it to see the full data.
+
+<div className="p-3 bg-gray-50 border">
+  <ReactJson src={sampleAnalysisData} collapsed={2} />
+</div>
+
+<Note
+  classNames="my-4"
+  text={
+    "This is the exact format the data is stored on the backend in a postgres table too."
+  }
+/>
+
+The `analysisManager` _has no UI role_. Instead, in order to keep logic and UI separate, it provides [subscribe methods](https://github.com/defog-ai/agents-ui-components/blob/15399fafd760ab97115eb2f14bfc7cd291ff4729/lib/components/defog-components/agent/analysisManager.js#L640-L646), where a listener can subscribe to changes in analysis data.
+
+<Image src={"./assets/frontend/subscribe.png"} code />
+
+The listener will then be called [anytime analysis's data changes. Note the `emitDataChange()` call below. ](https://github.com/defog-ai/agents-ui-components/blob/15399fafd760ab97115eb2f14bfc7cd291ff4729/lib/components/defog-components/agent/analysisManager.js#L76-L81)
+
+<Image src={"./assets/frontend/emit.png"} code />
+
+### AnalysisAgent
+
+Here is where the [AnalysisAgent.jsx](https://github.com/defog-ai/agents-ui-components/blob/15399fafd760ab97115eb2f14bfc7cd291ff4729/lib/components/defog-components/agent/AnalysisAgent.jsx#L39) comes in. This is what constructs the UI of the agent, from the data stored in analysis manager. It uses React's `useSyncExternalStore` hook, which internally just calls the above `subscribeToDataChanges` method.
+
+<Image src={"./assets/frontend/useSync.png"} code />
+
+Note that each analysis has [its own analysis manager](https://github.com/defog-ai/agents-ui-components/blob/15399fafd760ab97115eb2f14bfc7cd291ff4729/lib/components/defog-components/agent/AnalysisAgent.jsx#L186-L203) that is created when the component mounts.
+
+### User submit code walkthrough
+
+When a user types a question and presses submit, we first go to the [handleSubmit](https://github.com/defog-ai/agents-ui-components/blob/15399fafd760ab97115eb2f14bfc7cd291ff4729/lib/components/defog-components/agent/AnalysisAgent.jsx#L336) function of the AnalysisAgent. Which is a very thin wrapper around the analysis manager's own `submit` function. The only extra thing it does is set the loading state, and add error handling.
+
+Then it will call analysis manager's [submit](https://github.com/defog-ai/agents-ui-components/blob/main/lib/components/defog-components/agent/analysisManager.js#L331) function.
+
+The manager's submit function sends a request to the websocket, after constructing the request body. The crucial part of the body is the `request_type` parameter. This describes what we are asking the agent to do. This is what the backend looks at and runs the correct functions. If we're asking for clarifications, this is `clarify` and if we're asking for a plan, this is `gen_steps`.
+
+<Note
+  text={
+    "For porting to REST API, this is perhaps the first function that we have to change. We will have to send a POST request to the backend's `/clarifier` endpoint, and then handle the response instead of sending to the websocket."
+  }
+/>
+
+The manager's submit function does one more thing: it prepares for incoming data by creating a [blank empty data](https://github.com/defog-ai/agents-ui-components/blob/main/lib/components/defog-components/agent/analysisManager.js#L367-L374) for that particular stage if it doesn't exist. Then it calls the `setAnalysisData` function, which will also notify the UI that something might be incoming from the websocket.
+
+Now, we wait. When we get a response from the websocket, we call the `onMainSocketMessage` function of the manager, which is a bit of a chonker. It:
+
+- Makes sure we have some data + it's not just a ping/pong message.
+
+  <Image src="./assets/frontend/is-not-ping.png" code />
+
+- It then makes sure the incoming response is of the analysis that created this manager. (Because we only have one websocket for all analyses, and hence they share the same one, we must have this check.)
+
+  <Image src="./assets/frontend/check-id.png" code />
+
+- It will then check if there is an `error_message` in the response, if so, it will throw an error. If it's an error, we will immediately go into the `catch` block, and send over the response to the UI (`AnalysisAgent.jsx`). If the stage's data was empty, we just _delete_ that stage so that we don't end up showing some blank state in the UI.
+
+  <Image src="./assets/frontend/throw-error.png" code />
+  <Image src="./assets/frontend/delete-if-error.png" code />
+
+- If there was no error then now, finally, we are sure that some useful data exists in the response. So we will first clear out the _next_ stages of the agent. For example, if the user submits clarification stage, we ensure that the `gen_steps` prop is blank. This is not 100% necessary, and more inheritance from older code from 2023, but a nice check to have in any case.
+
+<Image src="./assets/frontend/clear-next-stage.png" code />
+
+- Then, it will either overwrite the data or merge incoming data into existing stage data. the incoming response into the existing data. Not going into details of that, but it's pretty simple and lives [here](https://github.com/defog-ai/agents-ui-components/blob/main/lib/components/defog-components/agent/analysisManager.js#L432-L473).
+- finally, we are send our response back to the UI. Be it an error, or merged data (unless it's a pong request, in which case we skip all the above and effectively do nothing).
+
+## Backend
+
+On the backend, when we receive the submit request from the analysis manager's submit function, [we first do a few simple checks to make sure the request is valid + validate the user's api key.](https://github.com/defog-ai/defog-self-hosted/blob/4f23350480624c47c5fe75459a4987d8068e4033/backend/main.py#L181-L223)
+
+<Image src="./assets/backend/check-valid.png" code />
+
+After that is complete, we construct a "ReportDataManager" object, which is responsible for running the desired step. the data of the analysis. This is a very [simple class](https://github.com/defog-ai/defog-self-hosted/blob/4f23350480624c47c5fe75459a4987d8068e4033/backend/report_data_manager.py#L31) that just stores the data in a dictionary, and calls the aforementioned post process functions + all agent's functions.
+
+Here is a sample analysis's data (exactly the same as front end) again for reference:
+
+<div className="p-3 bg-gray-50 border">
+  <ReactJson src={sampleAnalysisData} collapsed={2} />
+</div>
+
+We have some logic for classifying whether a question could be a sql-only question or an agents question, I will not go into details of it here. But if it's sql-only, we just manually construct a response in the same format above, and send it back.
+
+Coming to the part where we do agent-y stuff...
+
+We first call the `run_agent` [function](https://github.com/defog-ai/defog-self-hosted/blob/4f23350480624c47c5fe75459a4987d8068e4033/backend/report_data_manager.py#L158) of ReportDataManager, which:
+
+- First runs the post_process function of the previous stage (`last_request_type` in the code). For example, if we're generating plan, we will run the clarifier's post processing function described above.
+- Then, it initialises the required agent: either `clarifier` or `planner_executor` [here](https://github.com/defog-ai/defog-self-hosted/blob/4f23350480624c47c5fe75459a4987d8068e4033/backend/report_data_manager.py#L203-L209).
+
+Every agent, upon initialisation, returns a generator function. This is crucial for low perceived-latency in websockets. This lets us send intermittent responses to the front end as we get them. This is why we chose to use websockets in the first place. For example, we can send the clarification questions one at a time. Or if it's a plan, we can send the steps one at a time.
+
+<Note
+  text={
+    'Every "agent" on the backend works as a python generator function. It keeps generating responses/steps and we send those responses to the front end as we get them. This is why websockets are nice to have, because they let us have low perceived-latency on the front end.'
+  }
+/>
+
+Once we have that generator, we call it in a loop, and send the responses to the front end [here](https://github.com/defog-ai/defog-self-hosted/blob/4f23350480624c47c5fe75459a4987d8068e4033/backend/main.py#L358-L381).
+
+<Image src="./assets/backend/use-generator.png" code />
+
+Let's take at look at the clarifier first, then we can go into more detail with the planner.
+
+We have already seen the post process above. The meatier function that generates clarification questions is `gen_clarification_questions` [here](https://github.com/defog-ai/defog-self-hosted/blob/4f23350480624c47c5fe75459a4987d8068e4033/backend/agents/clarifier/clarifier_agent.py#L103-L142).
+
+You can ignore most of that function, but note how it has a function called "generator" inside it. Like mentioned above, the `gen_clarification_questions` will _return_ the generator _function_ for the main loop to use and call as needed.
+
+The generator function has `yields` instead of `return`. This is what makes it a generator. It generates one question at a time. You will also note that it yields an array with a single question, instead of a single question as a string. This is simply for ease of use. We can easily call `.concat` on arrays and merge them instead of doing a `.push`. Secondly, it makes it much easier for us to change the code to generate all questions at the same time, with minimal changes, if we needed to.
+
+<Warning
+  text={
+    "You might note that the clarifier code is a bit silly. We don't actually generate questions one at a time, just return it. As a result, we wait for all of the LLM's full (all questions) output, and the return it happens pretty much instantly. It used to be rigged to also have the LLM generate one q at a time, but somewhere along the way just broke and transformed into what is effectively a simple return. But still, it's a nice smaller example of how the generator function works for agents. It will help us understand the planner's generator function better."
+  }
+/>
+
+Now coming to the [planner executor agent](https://github.com/defog-ai/defog-self-hosted/blob/4f23350480624c47c5fe75459a4987d8068e4033/backend/agents/planner_executor/planner_executor_agent.py#L27).
+
+It works very similarly to the clarify function. It has a function called [execute](https://github.com/defog-ai/defog-self-hosted/blob/4f23350480624c47c5fe75459a4987d8068e4033/backend/agents/planner_executor/planner_executor_agent.py#L82) which returns a function called [generator](https://github.com/defog-ai/defog-self-hosted/blob/4f23350480624c47c5fe75459a4987d8068e4033/backend/agents/planner_executor/planner_executor_agent.py#L93).
+
+That generator will `yield` [one step at a time](https://github.com/defog-ai/defog-self-hosted/blob/4f23350480624c47c5fe75459a4987d8068e4033/backend/agents/planner_executor/planner_executor_agent.py#L300).
+
+<Image code src="stories/assets/backend/planner-execute-fn.png" />
+
+<Image code src="stories/assets/backend/planner-return.png" />
+
+The internals of that function aren't as important as the main overview.
+
+<Image code src="stories/assets/backend/planner-check-done.png" />
+
+To know when we're done generating the full plan, we look for a `done` prop in the LLM response. We do this [here](https://github.com/defog-ai/defog-self-hosted/blob/4f23350480624c47c5fe75459a4987d8068e4033/backend/agents/planner_executor/planner_executor_agent.py#L342-L343).
+
+<Note
+  text={
+    "For porting to REST, we perhaps need to convert both the above generator functions to be single functions that return when we call them. This is straightforward-ish to imagine for the clarifier. As noted above, it already works like a normal function returning everything at once."
+  }
+/>
+
+<Note
+  text={
+    <span>
+      For planner, we probably need to convert{" "}
+      <a href="https://github.com/defog-ai/defog-self-hosted/blob/4f23350480624c47c5fe75459a4987d8068e4033/backend/agents/planner_executor/planner_executor_agent.py#L116">
+        this while loop
+      </a>{" "}
+      to a single function that generates one step at a time which we can call
+      repeatedly.
+    </span>
+  }
+/>

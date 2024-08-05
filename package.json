@@ -1,21 +1,43 @@
 {
-  "name": "agents-ui-components",
-  "private": true,
-  "version": "0.0.0",
+  "name": "@defogdotai/agents-ui-components",
+  "version": "0.0.18",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "tsc && vite build",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "pack": "npm run build && npm pack",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
   },
-  "main": "./dist/agents-ui-components.umd.cjs",
-  "module": "./dist/agents-ui-components.js",
+  "main": "dist/agent.js",
+  "types": "dist/agent.d.ts",
   "exports": {
-    ".": {
-      "import": "./dist/agents-ui-components.js",
-      "require": "./dist/agents-ui-components.umd.cjs"
-    }
+    "./agent": {
+      "types": "./dist/agent.d.ts",
+      "import": "./dist/agent.js"
+    },
+    "./core-ui": {
+      "types": "./dist/core-ui.d.ts",
+      "import": "./dist/core-ui.js"
+    },
+    "./tool-editor": {
+      "types": "./dist/tool-editor.d.ts",
+      "import": "./dist/tool-editor.js"
+    },
+    "./doc": {
+      "types": "./dist/doc.d.ts",
+      "import": "./dist/doc.js"
+    },
+    "./css": "./dist/style.css"
+  },
+  "files": [
+    "dist"
+  ],
+  "peerDependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
   },
   "dependencies": {
     "@blocknote/core": "^0.14.5",
@@ -51,11 +73,17 @@
     "y-partykit": "^0.0.29",
     "yjs": "^13.6.18"
   },
-  "peerDependencies": {
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
-  },
   "devDependencies": {
+    "@chromatic-com/storybook": "^1.6.1",
+    "@microlink/react-json-view": "^1.23.1",
+    "@storybook/addon-essentials": "^8.2.6",
+    "@storybook/addon-interactions": "^8.2.6",
+    "@storybook/addon-links": "^8.2.6",
+    "@storybook/addon-onboarding": "^8.2.6",
+    "@storybook/blocks": "^8.2.6",
+    "@storybook/react": "^8.2.6",
+    "@storybook/react-vite": "^8.2.6",
+    "@storybook/test": "^8.2.6",
     "@tailwindcss/forms": "^0.5.7",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
@@ -63,16 +91,22 @@
     "@vitejs/plugin-react-swc": "^3.7.0",
     "autoprefixer": "^10.4.19",
     "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-react": "^7.34.2",
     "eslint-plugin-react-hooks": "^4.6.2",
     "eslint-plugin-react-refresh": "^0.4.7",
+    "eslint-plugin-storybook": "^0.8.0",
     "postcss": "^8.4.39",
     "prettier": "^3.3.2",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
+    "prop-types": "^15.8.1",
     "sass": "^1.77.7",
+    "storybook": "^8.2.6",
+    "storybook-addon-jsdoc-to-mdx": "^1.0.3",
     "tailwindcss": "^3.4.4",
+    "typedoc": "^0.26.5",
+    "typescript": "^5.5.4",
     "vite": "^5.3.1",
+    "vite-plugin-dts": "^4.0.0-beta.1",
     "vite-plugin-lib-inject-css": "^2.1.1"
   }
 }
