@@ -47,7 +47,7 @@ export const Warning = ({ text }) => {
   );
 };
 
-# Code walkthrough
+# Introduction
 
 ## Rest api vs websockets
 
@@ -84,7 +84,9 @@ Before going into code, it's probably helpful to know the agent currently has a 
 
 <Spacer />
 
-## Code walkthrough
+# Code walkthrough
+
+## Frontend
 
 ### Setup = connecting to websockets
 
@@ -117,11 +119,11 @@ For reference, this is what the analysis data looks like for a completed analysi
   }
 />
 
-The `analysisManager` has no UI role. Instead, in order to keep logic and UI separate, it provides [subscribe methods](https://github.com/defog-ai/agents-ui-components/blob/15399fafd760ab97115eb2f14bfc7cd291ff4729/lib/components/defog-components/agent/analysisManager.js#L640-L646), where a listener can subscribe to changes in analysis data.
+The `analysisManager` _has no UI role_. Instead, in order to keep logic and UI separate, it provides [subscribe methods](https://github.com/defog-ai/agents-ui-components/blob/15399fafd760ab97115eb2f14bfc7cd291ff4729/lib/components/defog-components/agent/analysisManager.js#L640-L646), where a listener can subscribe to changes in analysis data.
 
 <Image src={"./assets/frontend/subscribe.png"} code />
 
-The listener will then be called [anytime analysis's data changes.](https://github.com/defog-ai/agents-ui-components/blob/15399fafd760ab97115eb2f14bfc7cd291ff4729/lib/components/defog-components/agent/analysisManager.js#L76-L81)
+The listener will then be called [anytime analysis's data changes. Note the `emitDataChange()` call below. ](https://github.com/defog-ai/agents-ui-components/blob/15399fafd760ab97115eb2f14bfc7cd291ff4729/lib/components/defog-components/agent/analysisManager.js#L76-L81)
 
 <Image src={"./assets/frontend/emit.png"} code />
 
@@ -171,7 +173,7 @@ Now, we wait. When we get a response from the websocket, we call the `onMainSock
 - Then, it will either overwrite the data or merge incoming data into existing stage data. the incoming response into the existing data. Not going into details of that, but it's pretty simple and lives [here](https://github.com/defog-ai/agents-ui-components/blob/main/lib/components/defog-components/agent/analysisManager.js#L432-L473).
 - finally, we are send our response back to the UI. Be it an error, or merged data (unless it's a pong request, in which case we skip all the above and effectively do nothing).
 
-### Backend
+## Backend
 
 On the backend, when we receive the submit request from the analysis manager's submit function, [we first do a few simple checks to make sure the request is valid + validate the user's api key.](https://github.com/defog-ai/defog-self-hosted/blob/4f23350480624c47c5fe75459a4987d8068e4033/backend/main.py#L181-L223)
 
