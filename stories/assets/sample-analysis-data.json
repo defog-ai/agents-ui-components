@@ -1,0 +1,46 @@
+{
+  "user_question": "show me 5 rows",
+  "timestamp": "2024-08-05 11:32:33.885342",
+  "report_id": "901ce370-9ea3-42c0-b06a-7fed46c7a888",
+  "api_key": "123",
+  "username": "bdbe4d376e6c8a53a791a86470b924c0715854bd353483523e3ab016eb55bcd0",
+  "currentStage": "gen_steps",
+  "clarify": {
+    "success": true,
+    "clarification_questions": [
+      {
+        "question": "Which dataset or table would you like the 5 rows from?",
+        "ui_tool": "text input",
+        "response": "",
+        "response_formatted": ""
+      }
+    ]
+  },
+  "gen_steps": {
+    "success": true,
+    "steps": [
+      {
+        "description": "Fetching 5 rows from the database to display.",
+        "tool_name": "data_fetcher_and_aggregator",
+        "inputs": {
+          "question": "Show me 5 rows from the database."
+        },
+        "outputs_storage_keys": ["five_rows"],
+        "done": true,
+        "tool_run_id": "105c5114-6a9d-43b9-b8c8-19c284b3bb52",
+        "error_message": null,
+        "input_metadata": {
+          "question": {
+            "name": "question",
+            "type": "str",
+            "default": null,
+            "description": "natural language description of the data required to answer this question (or get the required information for subsequent steps) as a string"
+          }
+        },
+        "model_generated_inputs": {
+          "question": "Show me 5 rows from the database."
+        }
+      }
+    ]
+  }
+}
