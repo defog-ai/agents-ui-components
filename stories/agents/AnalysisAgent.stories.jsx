@@ -35,5 +35,5 @@ export default {
 
 const id = v4();
 export const Primary = {
-  args: { analysisId: id },
+  args: { analysisId: id, keyName: "Restaurants" },
 };

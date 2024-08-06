@@ -121,7 +121,7 @@ export const AnalysisAgent = ({
       }
 
       if (response && response?.done) {
-        setAnalysisBusy(false);
+        // setAnalysisBusy(false);
         setGlobalLoading(false);
       }
 
@@ -144,7 +144,7 @@ export const AnalysisAgent = ({
       messageManager.error(e);
       console.log(e);
 
-      setAnalysisBusy(false);
+      // setAnalysisBusy(false);
       setGlobalLoading(false);
 
       // if the current stage is null, just destroy this analysis
@@ -200,7 +200,7 @@ export const AnalysisAgent = ({
         messageManager.error(e);
         console.log(e.stack);
       } finally {
-        setAnalysisBusy(false);
+        // setAnalysisBusy(false);
         setGlobalLoading(false);
       }
     },
@@ -227,11 +227,14 @@ export const AnalysisAgent = ({
         rerunSocket: null, // Add rerunSocket property
       })
     );
-  }, [analysisId]);
+  }, [analysisId, messageManager]);
 
   analysisManager.setOnReRunDataCallback(onReRunMessage);
 
-  const [analysisBusy, setAnalysisBusy] = useState(false);
+  const analysisBusy = useSyncExternalStore(
+    analysisManager.subscribeToAnalysisBusyChanges,
+    analysisManager.getAnalysisBiusy
+  );
 
   const analysisData = useSyncExternalStore(
     analysisManager.subscribeToDataChanges,
@@ -252,7 +255,15 @@ export const AnalysisAgent = ({
         [analysisId]: analysisData,
       },
     });
+
+    // if stage is done, also set busy to false
+    if (analysisData && analysisData.stageDone) {
+      // setAnalysisBusy(false);
+      setGlobalLoading(false);
+    }
   }, [analysisData]);
+
+  console.log(analysisBusy, analysisData);
 
   function setActiveNode(node) {
     setActiveNodePrivate(node);
@@ -319,7 +330,7 @@ export const AnalysisAgent = ({
         ) {
           handleSubmit(analysisManager?.analysisData?.user_question, {}, null);
         } else {
-          setAnalysisBusy(false);
+          // setAnalysisBusy(false);
         }
 
         if (analysisManager.wasNewAnalysisCreated) {
@@ -360,18 +371,18 @@ export const AnalysisAgent = ({
     (query, stageInput = {}, submitStage = null) => {
       try {
         if (!query) throw new Error("Query is empty");
-        analysisManager.submit(query, { ...stageInput }, submitStage);
-        setAnalysisBusy(true);
+        // setAnalysisBusy(true);
         setGlobalLoading(true);
+        analysisManager.submit(query, { ...stageInput }, submitStage);
       } catch (e) {
         messageManager.error(e);
         console.log(e.stack);
 
-        setAnalysisBusy(false);
+        // setAnalysisBusy(false);
         setGlobalLoading(false);
 
-        // if the current stage is null, just destroy this analysis
-        if (submitStage === null) {
+        // if the current stage is null, and there is an external search bar, just destroy this analysis
+        if (submitStage === null && hasExternalSearchBar) {
           analysisManager.removeEventListeners();
           analysisManager.destroy();
         }
@@ -435,7 +446,7 @@ export const AnalysisAgent = ({
             className="w-6 h-6 text-rose-300 group-hover:text-rose-500"
             onClick={() => {
               setGlobalLoading(false);
-              setAnalysisBusy(false);
+              // setAnalysisBusy(false);
               analysisManager.removeEventListeners();
               analysisManager.destroy();
             }}
