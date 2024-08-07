@@ -87,9 +87,10 @@ const defaultRowCellRender = ({
   );
 };
 
-const defaultSorter = (a, b) => {
-  return String(a).localeCompare(String(b));
+const defaultSorter = (a, b, dataIndex) => {
+  return String(a[dataIndex]).localeCompare(String(b[dataIndex]));
 };
+
 
 /**
  * Table component
@@ -185,8 +186,8 @@ export function Table({
       const sorter = sortColumn.sorter || defaultSorter;
       const sortedRows = rows.slice().sort((a, b) => {
         return sortOrder === "asc"
-          ? sorter(a[sortColumn.dataIndex], b[sortColumn.dataIndex])
-          : sorter(b[sortColumn.dataIndex], a[sortColumn.dataIndex]);
+          ? sorter(a, b, sortColumn.dataIndex)
+          : sorter(b, a, sortColumn.dataIndex);
       });
       setSortedRows(sortedRows);
     } else {
