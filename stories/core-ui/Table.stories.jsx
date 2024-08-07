@@ -1,9 +1,27 @@
 import { Table } from "../../lib/components/core-ui/Table";
 
 const sampleRows = [
-  { id: 1, name: "John Doe", age: 25, email: "john@example.com" },
-  { id: 2, name: "Manas", age: 27, email: "manas@example.com" },
-  { id: 3, name: "Manas", age: 27, email: "manas@example.com" },
+  {
+    id: 1,
+    name: "John Doe",
+    age: 25,
+    email: "john@example.com",
+    dob: "1994-01-01",
+  },
+  {
+    id: 2,
+    name: "Manas",
+    age: 27,
+    email: "manas@example.com",
+    dob: "2000-01-01",
+  },
+  {
+    id: 3,
+    name: "Jane Doe",
+    age: 22,
+    email: "jaja@jaja.com",
+    dob: "2005-01-01",
+  },
 ];
 
 const sampleColumns = [
@@ -11,6 +29,7 @@ const sampleColumns = [
   { dataIndex: "name", title: "Name" },
   { dataIndex: "age", title: "Age" },
   { dataIndex: "email", title: "Email" },
+  { dataIndex: "dob", title: "Date of Birth" },
 ];
 
 export default {
