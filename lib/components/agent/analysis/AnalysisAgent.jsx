@@ -263,8 +263,6 @@ export const AnalysisAgent = ({
     }
   }, [analysisData]);
 
-  console.log(analysisBusy, analysisData);
-
   function setActiveNode(node) {
     setActiveNodePrivate(node);
     // if update_prop is "sql" or "code_str" or "analysis", update tool_run_details
@@ -371,6 +369,7 @@ export const AnalysisAgent = ({
     (query, stageInput = {}, submitStage = null) => {
       try {
         if (!query) throw new Error("Query is empty");
+        console.log(stageInput);
         // setAnalysisBusy(true);
         setGlobalLoading(true);
         analysisManager.submit(query, { ...stageInput }, submitStage);
