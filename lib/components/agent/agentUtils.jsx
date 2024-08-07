@@ -445,10 +445,10 @@ export const reFormatData = (data, columns) => {
         simpleTypeOf: typeof rows[0][i],
         sorter:
           rows.length > 0 && typeof rows[0][i] === "number"
-            ? (a, b) => a[cols[i]] - b[cols[i]]
+            ? (a, b) => a - b
             : rows.length > 0 && !isNaN(rows[0][i])
-              ? (a, b) => Number(a[cols[i]]) - Number(b[cols[i]])
-              : (a, b) => String(a[cols[i]]).localeCompare(String(b[cols[i]])),
+              ? (a, b) => Number(a) - Number(b)
+              : (a, b) => String(a).localeCompare(String(b)),
         render: (value) => {
           if (typeof value === "number" || !isNaN(value)) {
             // don't add commas in dates (years can be 2020, 2021 etc.)
@@ -497,7 +497,7 @@ export const reFormatData = (data, columns) => {
       title: "index",
       dataIndex: "index",
       key: "index",
-      sorter: (a, b) => a["index"] - b["index"],
+      sorter: (a, b) => a - b,
       colType: "integer",
       variableType: "integer",
       numeric: true,
