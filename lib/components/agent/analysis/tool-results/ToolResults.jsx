@@ -248,6 +248,13 @@ export function ToolResults({
           }
         });
 
+        console.groupCollapsed();
+        console.log("availableOutputNodes", availableOutputNodes);
+        console.log("parentNodes", parentNodes);
+        console.log("parentIds", parentIds);
+        console.log("parentData", parentData);
+        console.groupEnd();
+
         setParentNodeData(
           parentData.reduce((acc, d) => {
             if (d.success) {
@@ -345,12 +352,9 @@ export function ToolResults({
         // this is a lot of DRY code, but it's okay for now
         let availableInputDfs = [];
         try {
-          if (!activeNode || !activeNode.ancestors) availableInputDfs = [];
-
           availableInputDfs = [...dag.nodes()]
             .filter(
               (d) =>
-                !d.data.isTool &&
                 d.data.id !== activeNode.data.id &&
                 !d.data.isError &&
                 !d.data.isAddStepNode
@@ -474,7 +478,7 @@ export function ToolResults({
         />
       ) : toolRunData?.error_message && !activeNode.data.isTool ? (
         <ToolRunError error_message={toolRunData?.error_message}></ToolRunError>
-      ) : activeNode.data.isTool ? (
+      ) : (
         <>
           <ErrorBoundary maybeOldAnalysis={true}>
             {toolRunData?.error_message && (
@@ -539,51 +543,47 @@ export function ToolResults({
               ></ToolRunOutputList>
             </div>
           </ErrorBoundary>
-        </>
-      ) : toolRunData?.parsedOutputs[activeNode.data.id] ? (
-        <>
-          <ToolResultsTable
-            toolRunData={toolRunData}
-            toolRunId={toolRunId}
-            tableData={toolRunData?.parsedOutputs[activeNode.data.id]["data"]}
-            apiEndpoint={apiEndpoint}
-            chartImages={
-              toolRunData?.parsedOutputs[activeNode.data.id]["chart_images"]
-            }
-            reactiveVars={
-              toolRunData?.parsedOutputs[activeNode.data.id]["reactive_vars"]
-            }
-            nodeId={activeNode.data.id}
-            analysisId={analysisId}
-          />
-          {agentConfigContext.val.showAnalysisUnderstanding && (
-            <div className="h-60 mt-2 rounded-md text-sm border overflow-scroll w-full mb-2">
-              <div className="relative">
-                <p className="font-bold m-0 sticky top-0 w-full p-2 bg-white shadow-sm border-b">
-                  Analysis
-                </p>
-                {toolRunData?.parsedOutputs[activeNode.data.id]["analysis"] ? (
-                  <p style={{ whiteSpace: "pre-wrap" }} className="text-xs">
-                    {toolRunData?.parsedOutputs[activeNode.data.id]["analysis"]}
-                  </p>
-                ) : (
-                  <ToolRunAnalysis
-                    question={analysisData.user_question}
-                    data_csv={toolRunData?.outputs[activeNode.data.id]["data"]}
-                    apiEndpoint={apiEndpoint}
-                    image={
-                      toolRunData?.parsedOutputs[activeNode.data.id][
-                        "chart_images"
-                      ]
-                    }
-                  />
+          {Object.values(toolRunData?.parsedOutputs).map((output) => {
+            return (
+              <>
+                <ToolResultsTable
+                  toolRunData={toolRunData}
+                  toolRunId={toolRunId}
+                  tableData={output["data"]}
+                  apiEndpoint={apiEndpoint}
+                  chartImages={output["chart_images"]}
+                  reactiveVars={output["reactive_vars"]}
+                  nodeId={activeNode.data.id}
+                  analysisId={analysisId}
+                />
+                {agentConfigContext.val.showAnalysisUnderstanding && (
+                  <div className="h-60 mt-2 rounded-md text-sm border overflow-scroll w-full mb-2">
+                    <div className="relative">
+                      <p className="font-bold m-0 sticky top-0 w-full p-2 bg-white shadow-sm border-b">
+                        Analysis
+                      </p>
+                      {output["analysis"] ? (
+                        <p
+                          style={{ whiteSpace: "pre-wrap" }}
+                          className="text-xs"
+                        >
+                          {output["analysis"]}
+                        </p>
+                      ) : (
+                        <ToolRunAnalysis
+                          question={analysisData.user_question}
+                          data_csv={output["data"]}
+                          apiEndpoint={apiEndpoint}
+                          image={output["chart_images"]}
+                        />
+                      )}
+                    </div>
+                  </div>
                 )}
-              </div>
-            </div>
-          )}
+              </>
+            );
+          })}
         </>
-      ) : (
-        <></>
       )}
     </div>
   );

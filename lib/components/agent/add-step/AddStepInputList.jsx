@@ -193,6 +193,8 @@ export const inputTypeToUI = {
         return { label: column.title, value: column.title };
       }) || [];
 
+    console.log(options);
+
     // return
     return (
       <SingleSelect
@@ -200,7 +202,7 @@ export const inputTypeToUI = {
         key={config.toolRunId + "_" + inputName}
         size="small"
         popupClassName="tool-input-value-dropdown"
-        options={options}
+        options={[...options]}
         placeholder="Select a column name"
         onChange={(val) => {
           onEdit(inputName, val);
