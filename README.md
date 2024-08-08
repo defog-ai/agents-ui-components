@@ -62,6 +62,11 @@ Now open `http://localhost:5173/` in your browser
 
 You will get several options. Pick and and play around. Corresponding code for all those pages is inside `test/` folder.
 
+### Publishing to npm
+
+First, create a build with `npm run build`. This will automatically create a `dist` folder.
+Then, run `npm run publish`
+
 ### Viewing docs
 
 Run `npm run storybook` to see detailed documentation.
