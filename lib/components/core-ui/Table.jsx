@@ -80,7 +80,9 @@ const defaultRowCellRender = ({
         colIdx === dataIndexes.length - 1 ? "pr-4 sm:pr-6 lg:pr-8" : ""
       )}
     >
-      {cellValue}
+      {
+        ((typeof(cellValue) === "number" || !isNaN(cellValue)) & (Number(cellValue) > 10000)) ? Number(cellValue).toLocaleString() : cellValue
+      }
     </td>
   );
 };
