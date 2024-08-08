@@ -7,6 +7,7 @@ const sampleRows = [
     age: 25,
     email: "john@example.com",
     dob: "1994-01-01",
+    large_number: Math.floor(Math.random() * 100000000),
   },
   {
     id: 2,
@@ -14,6 +15,7 @@ const sampleRows = [
     age: 27,
     email: "manas@example.com",
     dob: "2000-01-01",
+    large_number: Math.floor(Math.random() * 100000000),
   },
   {
     id: 3,
@@ -21,6 +23,7 @@ const sampleRows = [
     age: 22,
     email: "jaja@jaja.com",
     dob: "2005-01-01",
+    large_number: Math.floor(Math.random() * 100000000),
   },
 ];
 
@@ -30,6 +33,7 @@ const sampleColumns = [
   { dataIndex: "age", title: "Age" },
   { dataIndex: "email", title: "Email" },
   { dataIndex: "dob", title: "Date of Birth" },
+  { dataIndex: "large_number", title: "Large Number" },
 ];
 
 export default {

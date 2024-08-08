@@ -19,8 +19,8 @@ import "@defogdotai/agents-ui-components/css";
   showAnalysisUnderstanding={true}
   dbs={[
     {
-      keyName: "Yelp",
-      name: "Yelp",
+      keyName: "Manufacturing",
+      name: "Manufacturing",
       predefinedQuestions: [
         "Show me any 5 rows from the dataset",
         "Show me any 40 rows from the dataset",
@@ -29,8 +29,8 @@ import "@defogdotai/agents-ui-components/css";
       sqlOnly: false,
     },
     {
-      keyName: "Restaurants",
-      name: "Restaurants",
+      keyName: "Sales",
+      name: "Sales",
       predefinedQuestions: ["Show me any 5 rows from the dataset"],
       isTemp: false,
       sqlOnly: false,
@@ -49,7 +49,7 @@ npm i
 npm run dev
 ```
 
-Now, create a `.env` file in your root directory with the following content:
+Now, create a `.env` file in your root directory with the following content, where `HASHED_PASSWORD` and `API_ENDPOINT` are replaced by actual values.
 
 ```
 VITE_TOKEN="HASHED_PASSWORD?"
@@ -61,6 +61,11 @@ To quickly see what the different form of our agents look like, run `npm run dev
 Now open `http://localhost:5173/` in your browser
 
 You will get several options. Pick and and play around. Corresponding code for all those pages is inside `test/` folder.
+
+### Publishing to npm
+
+First, create a build with `npm run build`. This will automatically create a `dist` folder.
+Then, run `npm run publish`
 
 ### Viewing docs
 

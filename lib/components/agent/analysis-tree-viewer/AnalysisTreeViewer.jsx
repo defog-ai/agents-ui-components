@@ -54,7 +54,7 @@ export function AnalysisTreeViewer({
   const analysisDomRefs = useRef({});
 
   const [loading, setLoading] = useState(false);
-  const [sqlOnly, setSqlOnly] = useState(forceSqlOnly);
+  const [sqlOnly, setSqlOnly] = useState(true);
 
   const searchCtr = useRef(null);
   const searchRef = useRef(null);

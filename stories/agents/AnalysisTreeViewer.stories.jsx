@@ -6,16 +6,16 @@ import { Setup } from "../../lib/components/context/Setup";
 
 const dbs = [
   {
-    keyName: "Yelp",
-    name: "Yelp",
+    keyName: "Manufacturing",
+    name: "Manufacturing",
     predefinedQuestions: [
       "Show me any 5 rows from the dataset",
       "Show me any 40 rows from the dataset",
     ],
   },
   {
-    keyName: "Restaurants",
-    name: "Restaurants",
+    keyName: "Sales",
+    name: "Sales",
     predefinedQuestions: ["Show me any 5 rows from the dataset"],
   },
 ].map((d) => ({
