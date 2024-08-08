@@ -54,7 +54,7 @@ export function AnalysisTreeViewer({
   const analysisDomRefs = useRef({});
 
   const [loading, setLoading] = useState(false);
-  const [sqlOnly, setSqlOnly] = useState(forceSqlOnly);
+  const [sqlOnly, setSqlOnly] = useState(true);
 
   const searchCtr = useRef(null);
   const searchRef = useRef(null);
@@ -499,7 +499,7 @@ export function AnalysisTreeViewer({
                           if (forceSqlOnly) return;
                           setSqlOnly(!v);
                         }}
-                        defaultOn={false}
+                        defaultOn={!sqlOnly}
                         offLabel="Advanced"
                         onLabel={"Advanced"}
                         rootClassNames="items-start lg:border-r py-2 lg:py-0 px-2 w-32"
