@@ -26,14 +26,15 @@ const defaultColumnHeaderRender = ({
         columnHeaderClassNames
       )}
     >
-      <div className="flex flex-row items-center">
+      <div className="flex flex-row items-center cursor-pointer"
+        onClick={() => {
+          toggleSort(column);
+        }}
+      >
         <p className="grow">{column.title}</p>
         <div className="sorter-arrows ml-5 flex flex-col items-center w-4 overflow-hidden">
           <button className="h-3">
             <div
-              onClick={() => {
-                toggleSort(column, "asc");
-              }}
               className={twMerge(
                 "arrow-up cursor-pointer",
                 "border-b-[5px] border-b-gray-300 hover:border-b-gray-500",
@@ -45,9 +46,6 @@ const defaultColumnHeaderRender = ({
           </button>
           <button className="h-3">
             <div
-              onClick={() => {
-                toggleSort(column, "desc");
-              }}
               className={twMerge(
                 "arrow-down cursor-pointer",
                 "border-t-[5px] border-t-gray-300 hover:border-t-gray-500",
@@ -169,15 +167,19 @@ export function Table({
 
   const maxPage = Math.ceil(rows.length / pageSize);
 
-  function toggleSort(newColumn, newOrder) {
-    // if everything the same, set null
-    if (sortColumn?.title === newColumn?.title && sortOrder === newOrder) {
-      setSortColumn(null);
-      setSortOrder(null);
-    } else {
-      setSortColumn(newColumn);
-      setSortOrder(newOrder);
+  function toggleSort(newColumn) {
+    // if the column is already sorted, toggle the order
+    // else sort the new column in ascending order
+    let newOrder;
+    if (!sortOrder) {
+      newOrder = "asc";
+    } else if (sortOrder === "asc") {
+      newOrder = "desc";
+    } else if (sortOrder === "desc") {
+      newOrder = null;
     }
+    setSortColumn(newColumn);
+    setSortOrder(newOrder);
   }
 
   useEffect(() => {
