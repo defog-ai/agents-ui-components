@@ -26,12 +26,13 @@ const defaultColumnHeaderRender = ({
         columnHeaderClassNames
       )}
     >
-      <div className="flex flex-row items-center cursor-pointer"
+      <div
+        className="flex flex-row items-center cursor-pointer"
         onClick={() => {
           toggleSort(column);
         }}
       >
-        <p className="grow">{column.title}</p>
+        <p className="grow pointer-events-none">{column.title}</p>
         <div className="sorter-arrows ml-5 flex flex-col items-center w-4 overflow-hidden">
           <button className="h-3">
             <div
@@ -80,9 +81,10 @@ const defaultRowCellRender = ({
         colIdx === dataIndexes.length - 1 ? "pr-4 sm:pr-6 lg:pr-8" : ""
       )}
     >
-      {
-        ((typeof(cellValue) === "number" || !isNaN(cellValue)) & (Number(cellValue) > 10000)) ? Number(cellValue).toLocaleString() : cellValue
-      }
+      {(typeof cellValue === "number" || !isNaN(cellValue)) &
+      (Number(cellValue) > 10000)
+        ? Number(cellValue).toLocaleString()
+        : cellValue}
     </td>
   );
 };
@@ -90,7 +92,6 @@ const defaultRowCellRender = ({
 const defaultSorter = (a, b, dataIndex) => {
   return String(a[dataIndex]).localeCompare(String(b[dataIndex]));
 };
-
 
 /**
  * Table component
@@ -170,16 +171,25 @@ export function Table({
   const maxPage = Math.ceil(rows.length / pageSize);
 
   function toggleSort(newColumn) {
-    // if the column is already sorted, toggle the order
-    // else sort the new column in ascending order
     let newOrder;
-    if (!sortOrder) {
+
+    // if it's not the same column that was earlier sorted, then force "restart" the sort "cycle"
+    // and set to ascending order
+    if (newColumn.dataIndex !== sortColumn?.dataIndex) {
       newOrder = "asc";
-    } else if (sortOrder === "asc") {
-      newOrder = "desc";
-    } else if (sortOrder === "desc") {
-      newOrder = null;
+    } else {
+      // else, if it's the same column being clicked again,
+      // toggle the order
+      // else sort the new column in ascending order
+      if (!sortOrder) {
+        newOrder = "asc";
+      } else if (sortOrder === "asc") {
+        newOrder = "desc";
+      } else if (sortOrder === "desc") {
+        newOrder = null;
+      }
     }
+
     setSortColumn(newColumn);
     setSortOrder(newOrder);
   }
