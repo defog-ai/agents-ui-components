@@ -37,7 +37,7 @@ const defaultColumnHeaderRender = ({
             <div
               className={twMerge(
                 "arrow-up cursor-pointer",
-                "border-b-[5px] border-b-gray-300 hover:border-b-gray-500",
+                "border-b-[5px] border-b-gray-300",
                 sortOrder === "asc" && sortColumn.title === column.title
                   ? "border-b-gray-500"
                   : ""
@@ -48,7 +48,7 @@ const defaultColumnHeaderRender = ({
             <div
               className={twMerge(
                 "arrow-down cursor-pointer",
-                "border-t-[5px] border-t-gray-300 hover:border-t-gray-500",
+                "border-t-[5px] border-t-gray-300",
                 sortOrder === "desc" && sortColumn.title === column.title
                   ? "border-t-gray-500"
                   : ""
