@@ -499,7 +499,7 @@ export function AnalysisTreeViewer({
                           if (forceSqlOnly) return;
                           setSqlOnly(!v);
                         }}
-                        defaultOn={!sqlOnly}
+                        defaultOn={false}
                         offLabel="Advanced"
                         onLabel={"Advanced"}
                         rootClassNames="items-start lg:border-r py-2 lg:py-0 px-2 w-32"
