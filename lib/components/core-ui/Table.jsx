@@ -26,17 +26,19 @@ const defaultColumnHeaderRender = ({
         columnHeaderClassNames
       )}
     >
-      <div className="flex flex-row items-center">
-        <p className="grow">{column.title}</p>
+      <div
+        className="flex flex-row items-center cursor-pointer"
+        onClick={() => {
+          toggleSort(column);
+        }}
+      >
+        <p className="grow pointer-events-none">{column.title}</p>
         <div className="sorter-arrows ml-5 flex flex-col items-center w-4 overflow-hidden">
           <button className="h-3">
             <div
-              onClick={() => {
-                toggleSort(column, "asc");
-              }}
               className={twMerge(
                 "arrow-up cursor-pointer",
-                "border-b-[5px] border-b-gray-300 hover:border-b-gray-500",
+                "border-b-[5px] border-b-gray-300",
                 sortOrder === "asc" && sortColumn.title === column.title
                   ? "border-b-gray-500"
                   : ""
@@ -45,12 +47,9 @@ const defaultColumnHeaderRender = ({
           </button>
           <button className="h-3">
             <div
-              onClick={() => {
-                toggleSort(column, "desc");
-              }}
               className={twMerge(
                 "arrow-down cursor-pointer",
-                "border-t-[5px] border-t-gray-300 hover:border-t-gray-500",
+                "border-t-[5px] border-t-gray-300",
                 sortOrder === "desc" && sortColumn.title === column.title
                   ? "border-t-gray-500"
                   : ""
@@ -82,13 +81,16 @@ const defaultRowCellRender = ({
         colIdx === dataIndexes.length - 1 ? "pr-4 sm:pr-6 lg:pr-8" : ""
       )}
     >
-      {cellValue}
+      {(typeof cellValue === "number" || !isNaN(cellValue)) &
+      (Number(cellValue) > 10000)
+        ? Number(cellValue).toLocaleString()
+        : cellValue}
     </td>
   );
 };
 
-const defaultSorter = (a, b) => {
-  return String(a).localeCompare(String(b));
+const defaultSorter = (a, b, dataIndex) => {
+  return String(a[dataIndex]).localeCompare(String(b[dataIndex]));
 };
 
 /**
@@ -168,15 +170,28 @@ export function Table({
 
   const maxPage = Math.ceil(rows.length / pageSize);
 
-  function toggleSort(newColumn, newOrder) {
-    // if everything the same, set null
-    if (sortColumn?.title === newColumn?.title && sortOrder === newOrder) {
-      setSortColumn(null);
-      setSortOrder(null);
+  function toggleSort(newColumn) {
+    let newOrder;
+
+    // if it's not the same column that was earlier sorted, then force "restart" the sort "cycle"
+    // and set to ascending order
+    if (newColumn.dataIndex !== sortColumn?.dataIndex) {
+      newOrder = "asc";
     } else {
-      setSortColumn(newColumn);
-      setSortOrder(newOrder);
+      // else, if it's the same column being clicked again,
+      // toggle the order
+      // else sort the new column in ascending order
+      if (!sortOrder) {
+        newOrder = "asc";
+      } else if (sortOrder === "asc") {
+        newOrder = "desc";
+      } else if (sortOrder === "desc") {
+        newOrder = null;
+      }
     }
+
+    setSortColumn(newColumn);
+    setSortOrder(newOrder);
   }
 
   useEffect(() => {
@@ -185,8 +200,8 @@ export function Table({
       const sorter = sortColumn.sorter || defaultSorter;
       const sortedRows = rows.slice().sort((a, b) => {
         return sortOrder === "asc"
-          ? sorter(a[sortColumn.dataIndex], b[sortColumn.dataIndex])
-          : sorter(b[sortColumn.dataIndex], a[sortColumn.dataIndex]);
+          ? sorter(a, b, sortColumn.dataIndex)
+          : sorter(b, a, sortColumn.dataIndex);
       });
       setSortedRows(sortedRows);
     } else {

@@ -8,8 +8,8 @@ import { v4 } from "uuid";
 
 const dbs = [
   {
-    keyName: "Yelp",
-    name: "Yelp",
+    keyName: "Sales",
+    name: "Sales",
     predefinedQuestions: [
       "Show me any 5 rows from the dataset",
       "Show me any 40 rows from the dataset",
@@ -18,8 +18,8 @@ const dbs = [
     sqlOnly: false,
   },
   {
-    keyName: "Restaurants",
-    name: "Restaurants",
+    keyName: "Manufacturing",
+    name: "Manufacturing",
     predefinedQuestions: ["Show me any 5 rows from the dataset"],
     isTemp: false,
     sqlOnly: false,

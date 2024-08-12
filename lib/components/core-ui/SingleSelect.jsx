@@ -146,7 +146,12 @@ export function SingleSelect({
       setInternalOptions([...internalOptions, opt]);
       setSelectedOption(opt);
     }
-  }, [value, allowCreateNewOption, internalOptions, selectedOption]);
+  }, [
+    value,
+    allowCreateNewOption,
+    JSON.stringify(internalOptions),
+    selectedOption,
+  ]);
 
   useEffect(() => {
     // if the selected option doesn't exist
@@ -162,7 +167,9 @@ export function SingleSelect({
       setInternalOptions([...internalOptions, newOption]);
     }
     ref?.current?.blur?.();
-  }, [selectedOption, internalOptions, allowCreateNewOption]);
+  }, [selectedOption, JSON.stringify(internalOptions), allowCreateNewOption]);
+
+  console.log(filteredOptions, internalOptions);
 
   return (
     <Combobox
