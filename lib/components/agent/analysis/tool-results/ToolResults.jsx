@@ -16,6 +16,7 @@ import ToolRunAnalysis from "./ToolRunAnalysis";
 import { AddStepUI } from "../../add-step/AddStepUI";
 import { Modal } from "antd";
 import setupBaseUrl from "../../../utils/setupBaseUrl";
+import { Tabs } from "../../../core-ui/Tabs";
 import {
   AgentConfigContext,
   ReactiveVariablesContext,
@@ -479,111 +480,124 @@ export function ToolResults({
       ) : toolRunData?.error_message && !activeNode.data.isTool ? (
         <ToolRunError error_message={toolRunData?.error_message}></ToolRunError>
       ) : (
-        <>
-          <ErrorBoundary maybeOldAnalysis={true}>
-            {toolRunData?.error_message && (
-              <ToolRunError
-                error_message={toolRunData?.error_message}
-              ></ToolRunError>
-            )}
-            <div className="tool-action-buttons flex flex-row gap-2">
-              {/* {edited && ( */}
-              <ToolReRun
-                className="font-mono bg-gray-50 border border-gray-200 text-gray-500 hover:bg-blue-500 hover:text-white"
-                onClick={() => {
-                  handleReRun(toolRunId);
-                }}
-              ></ToolReRun>
-              {/* )} */}
-              <ToolReRun
-                onClick={showModal}
-                text="Delete"
-                className="font-mono bg-gray-50 border border-gray-200 text-gray-500 hover:bg-rose-500 hover:text-white"
-              ></ToolReRun>
-              <Modal
-                okText={"Yes, delete"}
-                okType="danger"
-                title="Are you sure?"
-                open={showDeleteModal}
-                onOk={handleDelete}
-                onCancel={handleCancel}
-              >
-                <p>
-                  All child steps (highlighted in red) will also be deleted.
-                </p>
-              </Modal>
-            </div>
-            <h1 className="text-lg mt-4 mb-2">
-              {toolDisplayNames[toolRunData.tool_name]}
-            </h1>
-            <div className="my-4">
-              <h1 className="text-gray-400 mb-4">INPUTS</h1>
-              <ToolRunInputList
-                analysisId={analysisId}
-                toolRunId={toolRunId}
-                step={toolRunData.step}
-                availableOutputNodes={availableOutputNodes}
-                setActiveNode={setActiveNode}
-                handleEdit={handleEdit}
-                parentNodeData={parentNodeData}
-              ></ToolRunInputList>
-            </div>
-            <div className="my-4">
-              <h1 className="text-gray-400 mb-4">OUTPUTS</h1>
-              <ToolRunOutputList
-                showCode={agentConfigContext.val.showCode}
-                analysisId={analysisId}
-                toolRunId={toolRunId}
-                step={toolRunData.step}
-                codeStr={toolRunData?.tool_run_details?.code_str}
-                sql={toolRunData?.tool_run_details?.sql}
-                handleEdit={handleEdit}
-                availableOutputNodes={availableOutputNodes}
-                setActiveNode={setActiveNode}
-              ></ToolRunOutputList>
-            </div>
-          </ErrorBoundary>
-          {Object.values(toolRunData?.parsedOutputs).map((output) => {
-            return (
-              <>
-                <ToolResultsTable
-                  toolRunData={toolRunData}
-                  toolRunId={toolRunId}
-                  tableData={output["data"]}
-                  apiEndpoint={apiEndpoint}
-                  chartImages={output["chart_images"]}
-                  reactiveVars={output["reactive_vars"]}
-                  nodeId={activeNode.data.id}
-                  analysisId={analysisId}
-                />
-                {agentConfigContext.val.showAnalysisUnderstanding && (
-                  <div className="h-60 mt-2 rounded-md text-sm border overflow-scroll w-full mb-2">
-                    <div className="relative">
-                      <p className="font-bold m-0 sticky top-0 w-full p-2 bg-white shadow-sm border-b">
-                        Analysis
-                      </p>
-                      {output["analysis"] ? (
-                        <p
-                          style={{ whiteSpace: "pre-wrap" }}
-                          className="text-xs"
-                        >
-                          {output["analysis"]}
-                        </p>
-                      ) : (
-                        <ToolRunAnalysis
-                          question={analysisData.user_question}
-                          data_csv={output["data"]}
-                          apiEndpoint={apiEndpoint}
-                          image={output["chart_images"]}
-                        />
-                      )}
-                    </div>
-                  </div>
+        <Tabs
+          tabs={[
+            {
+              name: "SQL/Code",
+              content: 
+              <ErrorBoundary maybeOldAnalysis={true}>
+                {toolRunData?.error_message && (
+                  <ToolRunError
+                    error_message={toolRunData?.error_message}
+                  ></ToolRunError>
                 )}
-              </>
-            );
-          })}
-        </>
+                <div className="tool-action-buttons flex flex-row gap-2">
+                  {/* {edited && ( */}
+                  <ToolReRun
+                    className="font-mono bg-gray-50 border border-gray-200 text-gray-500 hover:bg-blue-500 hover:text-white"
+                    onClick={() => {
+                      handleReRun(toolRunId);
+                    }}
+                  ></ToolReRun>
+                  {/* )} */}
+                  <ToolReRun
+                    onClick={showModal}
+                    text="Delete"
+                    className="font-mono bg-gray-50 border border-gray-200 text-gray-500 hover:bg-rose-500 hover:text-white"
+                  ></ToolReRun>
+                  <Modal
+                    okText={"Yes, delete"}
+                    okType="danger"
+                    title="Are you sure?"
+                    open={showDeleteModal}
+                    onOk={handleDelete}
+                    onCancel={handleCancel}
+                  >
+                    <p>
+                      All child steps (highlighted in red) will also be deleted.
+                    </p>
+                  </Modal>
+                </div>
+                <p className="text-lg mt-4 mb-2">
+                  {toolDisplayNames[toolRunData.tool_name]}
+                </p>
+                <div className="my-4">
+                  <h1 className="text-gray-400 mb-4">INPUTS</h1>
+                  <ToolRunInputList
+                    analysisId={analysisId}
+                    toolRunId={toolRunId}
+                    step={toolRunData.step}
+                    availableOutputNodes={availableOutputNodes}
+                    setActiveNode={setActiveNode}
+                    handleEdit={handleEdit}
+                    parentNodeData={parentNodeData}
+                  ></ToolRunInputList>
+                </div>
+                <div className="my-4">
+                  <h1 className="text-gray-400 mb-4">OUTPUTS</h1>
+                  <ToolRunOutputList
+                    showCode={agentConfigContext.val.showCode}
+                    analysisId={analysisId}
+                    toolRunId={toolRunId}
+                    step={toolRunData.step}
+                    codeStr={toolRunData?.tool_run_details?.code_str}
+                    sql={toolRunData?.tool_run_details?.sql}
+                    handleEdit={handleEdit}
+                    availableOutputNodes={availableOutputNodes}
+                    setActiveNode={setActiveNode}
+                  ></ToolRunOutputList>
+                </div>
+              </ErrorBoundary>
+            },
+            {
+              name: "Analysis",
+              content: 
+                Object.values(toolRunData?.parsedOutputs).map(
+                  (output) => {
+                    return (
+                      <>
+                        <ToolResultsTable
+                          toolRunData={toolRunData}
+                          toolRunId={toolRunId}
+                          tableData={output["data"]}
+                          apiEndpoint={apiEndpoint}
+                          chartImages={output["chart_images"]}
+                          reactiveVars={output["reactive_vars"]}
+                          nodeId={activeNode.data.id}
+                          analysisId={analysisId}
+                        />
+                        {agentConfigContext.val.showAnalysisUnderstanding && (
+                          <div className="h-60 mt-2 rounded-md text-sm border overflow-scroll w-full mb-2">
+                            <div className="relative">
+                              <p className="font-bold m-0 sticky top-0 w-full p-2 bg-white shadow-sm border-b">
+                                Analysis
+                              </p>
+                              {output["analysis"] ? (
+                                <p
+                                  style={{ whiteSpace: "pre-wrap" }}
+                                  className="text-xs"
+                                >
+                                  {output["analysis"]}
+                                </p>
+                              ) : (
+                                <ToolRunAnalysis
+                                  question={analysisData.user_question}
+                                  data_csv={output["data"]}
+                                  apiEndpoint={apiEndpoint}
+                                  image={output["chart_images"]}
+                                />
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    );
+                  }
+                )
+            }
+          ]}
+          defaultSelected="Analysis"
+        />
       )}
     </div>
   );
