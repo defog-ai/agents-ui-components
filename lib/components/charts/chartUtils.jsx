@@ -515,6 +515,14 @@ function formatTime(val) {
       return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
     });
   };
+  
+  const dateFormats = [
+    "YYYY-MM-DD HH:mm:ss",
+    "YYYY-MM-DDTHH:mm:ss",
+    "YYYY-MM-DD",
+    "YYYY-MM",
+    "YYYY-MMM",
+  ];
 
   // convert all values to date
   val = toTitleCase(val);
