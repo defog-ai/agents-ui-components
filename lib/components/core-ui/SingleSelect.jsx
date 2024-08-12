@@ -89,6 +89,16 @@ export function SingleSelect({
     }))
   );
 
+  useEffect(() => {
+    setInternalOptions(
+      options.map((d) => ({
+        value: isNumber(d.value) ? +d.value : d.value,
+        label: d.label,
+        rawValue: d.value,
+      }))
+    );
+  }, [JSON.stringify(options)]);
+
   const filteredOptions =
     query === ""
       ? internalOptions
@@ -168,6 +178,8 @@ export function SingleSelect({
     }
     ref?.current?.blur?.();
   }, [selectedOption, JSON.stringify(internalOptions), allowCreateNewOption]);
+
+  console.log(options);
 
   return (
     <Combobox
