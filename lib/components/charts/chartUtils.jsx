@@ -523,15 +523,7 @@ function formatTime(val) {
     "YYYY-MM",
     "YYYY-MMM",
   ];
-
-  const dateFormats = [
-    "YYYY-MM-DD HH:mm:ss",
-    "YYYY-MM-DDTHH:mm:ss",
-    "YYYY-MM-DD",
-    "YYYY-MM",
-    "YYYY-MMM",
-  ];
-
+  
   // convert all values to date
   val = toTitleCase(val);
   // check if it matches any of the date formats
