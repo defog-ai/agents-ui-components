@@ -73,6 +73,11 @@ export function StepResults({
 
   const agentConfigContext = useContext(AgentConfigContext);
   const [edited, setEdited] = useState(false);
+  const parsedOutputs = useMemo(() => {
+    return parseOutputs(step, analysisData);
+  }, [step, analysisData]);
+
+  const stepId = step.id;
 
   const [parentNodeData, setParentNodeData] = useState({});
 
@@ -80,10 +85,6 @@ export function StepResults({
     () => (dag && [...dag?.nodes()].filter((n) => !n.data.isTool)) || [],
     [dag]
   );
-
-  const data = useMemo(() => {
-    console.log(step);
-  }, [step]);
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
@@ -93,11 +94,11 @@ export function StepResults({
       ev.stopPropagation();
       // actually delete the steps
 
-      const deletestepIds = [...activeNode.descendants()]
+      const deleteStepIds = [...activeNode.descendants()]
         .filter((d) => d?.data?.isTool)
-        .map((d) => d?.data?.step?.tool_run_id);
+        .map((d) => d?.data?.step?.id);
 
-      await handleDeleteSteps(deletestepIds);
+      await handleDeleteSteps(deleteStepIds);
     } catch (e) {
       console.log(e);
     } finally {
@@ -156,7 +157,7 @@ export function StepResults({
       // update toolRunData and send to server
       toolSocketManager.send({
         analysis_id,
-        tool_run_id,
+        step_id,
         update_prop,
         new_val,
       });
@@ -167,8 +168,8 @@ export function StepResults({
     // so we can prevent react rerendering
     setPendingToolRunUpdates((prev) => {
       return {
-        [tool_run_id]: {
-          ...prev[tool_run_id],
+        [step_id]: {
+          ...prev[step_id],
           [update_prop]: new_val,
         },
       };
@@ -200,7 +201,7 @@ export function StepResults({
         availableInputDfs = [];
       }
 
-      let parentIds = availableInputDfs.map((n) => n.data.step.tool_run_id);
+      let parentIds = availableInputDfs.map((n) => n.data.stepId);
 
       // get data for all these nodes
       // let parentData = await Promise.all(
@@ -222,7 +223,7 @@ export function StepResults({
       //       analysisData
       //     );
 
-      //     // newToolRunDataCache[d.tool_run_data.tool_run_id] = d;
+      //     // newToolRunDataCache[d.tool_run_data.id] = d;
       //   }
       // });
 
@@ -253,14 +254,14 @@ export function StepResults({
     }
   }, [analysisBusy]);
 
-  // rerunningstepsis array of object: {tool_run_id: res.pre_tool_run_message,
+  // rerunningstepsis array of object: {id: res.pre_tool_run_message,
   // timeout: funciton
   // clearTimeout: function}
   const isStepReRunning = useMemo(() => {
-    return reRunningSteps.some((s) => s.id === step.id);
-  }, [reRunningSteps, step.id]);
+    return reRunningSteps.some((s) => s.id === stepId);
+  }, [reRunningSteps, stepId]);
 
-  return !activeNode || !activeNode.data || !toolRunData ? (
+  return !activeNode || !activeNode.data || !parsedOutputs || !step ? (
     <></>
   ) : (
     <div
@@ -288,20 +289,16 @@ export function StepResults({
         >
           Continuing to execute the analysis and moving on to the next step...
           <br />
-          Last executed step: {toolRunData?.tool_name}
+          Last executed step: {step?.tool_name}
         </div>
       )}
 
       {/* if analysis is busy */}
-      {toolRunDataLoading || isStepReRunning ? (
+      {isStepReRunning ? (
         <div className="tool-run-loading">
-          <AgentLoader
-            message={
-              toolRunDataLoading ? "Loading data..." : "Running analysis..."
-            }
-          />
+          <AgentLoader message={"Running analysis..."} />
         </div>
-      ) : activeNode && toolRunData && activeNode.data.isAddStepNode ? (
+      ) : activeNode && activeNode.data.isAddStepNode ? (
         <AddStepUI
           analysisId={analysisId}
           activeNode={activeNode}
@@ -311,13 +308,13 @@ export function StepResults({
           parentNodeData={parentNodeData}
           tools={tools}
         />
-      ) : toolRunData?.error_message && !activeNode.data.isTool ? (
-        <StepError error_message={toolRunData?.error_message}></StepError>
+      ) : step?.error_message && !activeNode.data.isTool ? (
+        <StepError error_message={step?.error_message}></StepError>
       ) : (
         <>
           <ErrorBoundary maybeOldAnalysis={true}>
-            {toolRunData?.error_message && (
-              <StepError error_message={toolRunData?.error_message}></StepError>
+            {step?.error_message && (
+              <StepError error_message={step?.error_message}></StepError>
             )}
             <div className="tool-action-buttons flex flex-row gap-2">
               {/* {edited && ( */}
@@ -347,14 +344,14 @@ export function StepResults({
               </Modal>
             </div>
             <h1 className="text-lg mt-4 mb-2">
-              {toolDisplayNames[toolRunData.tool_name]}
+              {toolDisplayNames[step.tool_name]}
             </h1>
             <div className="my-4">
               <h1 className="text-gray-400 mb-4">INPUTS</h1>
               <StepInputs
                 analysisId={analysisId}
                 stepId={stepId}
-                step={toolRunData.step}
+                step={step}
                 availableOutputNodes={availableOutputNodes}
                 setActiveNode={setActiveNode}
                 handleEdit={handleEdit}
@@ -367,20 +364,19 @@ export function StepResults({
                 showCode={agentConfigContext.val.showCode}
                 analysisId={analysisId}
                 stepId={stepId}
-                step={toolRunData.step}
-                codeStr={toolRunData?.tool_run_details?.code_str}
-                sql={toolRunData?.tool_run_details?.sql}
+                step={step}
+                codeStr={step?.code_str}
+                sql={step?.sql}
                 handleEdit={handleEdit}
                 availableOutputNodes={availableOutputNodes}
                 setActiveNode={setActiveNode}
               ></StepOutputs>
             </div>
           </ErrorBoundary>
-          {Object.values(toolRunData?.parsedOutputs).map((output) => {
+          {Object.values(parsedOutputs).map((output) => {
             return (
               <>
                 <StepResultsTable
-                  toolRunData={toolRunData}
                   stepId={stepId}
                   tableData={output["data"]}
                   apiEndpoint={apiEndpoint}

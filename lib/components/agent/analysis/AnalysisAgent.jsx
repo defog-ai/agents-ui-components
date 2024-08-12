@@ -546,18 +546,17 @@ export const AnalysisAgent = ({
                     {analysisData?.gen_steps?.steps.length ? (
                       <>
                         <div className="grow px-6 rounded-b-3xl lg:rounded-br-none w-full bg-gray-50">
-                          {/* {activestepId &&
+                          {activestepId &&
                             // if this is sqlonly, we will wait for tool run data to be updated before showing anything
                             // because in the normal case, the tool run data can be fetched from the servers
                             // but in sql only case, we only have a local copy
                             (!isTemp ||
-                              (isTemp &&
-                                toolRunDataCache[activestepId])) && (
+                              (isTemp && toolRunDataCache[activestepId])) && (
                               <StepResults
                                 analysisId={analysisId}
                                 activeNode={activeNode}
                                 analysisData={analysisData}
-                                step={null}
+                                step={activeNode?.data?.step}
                                 toolSocketManager={toolSocketManager}
                                 apiEndpoint={apiEndpoint}
                                 dag={dag}
@@ -571,16 +570,14 @@ export const AnalysisAgent = ({
                                 analysisBusy={analysisBusy}
                                 handleDeleteSteps={async (stepIds) => {
                                   try {
-                                    await analysisManager.deleteSteps(
-                                      stepIds
-                                    );
+                                    await analysisManager.deleteSteps(stepIds);
                                   } catch (e) {
                                     messageManager.error(e);
                                     console.log(e.stack);
                                   }
                                 }}
                               ></StepResults>
-                            )} */}
+                            )}
                         </div>
                       </>
                     ) : (

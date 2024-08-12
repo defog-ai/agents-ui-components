@@ -184,7 +184,7 @@ export const inputTypeToUI = {
     onEdit,
     config = {
       availableParentColumns: [],
-      toolRunId: "",
+      stepId: "",
     }
   ) => {
     // dropdown with available columns
@@ -199,7 +199,7 @@ export const inputTypeToUI = {
     return (
       <SingleSelect
         value={initialValue}
-        key={config.toolRunId + "_" + inputName}
+        key={config.stepId + "_" + inputName}
         size="small"
         popupClassName="tool-input-value-dropdown"
         options={[...options]}
@@ -216,7 +216,7 @@ export const inputTypeToUI = {
     onEdit,
     config = {
       availableParentColumns: [],
-      toolRunId: "",
+      stepId: "",
       type: "",
     }
   ) => {
@@ -246,7 +246,7 @@ export const inputTypeToUI = {
         <span className="list-bracket">[</span>
         {initialValue.map((val, i) => {
           return (
-            <span key={config.toolRunId + "_" + inputName + "_" + i}>
+            <span key={config.stepId + "_" + inputName + "_" + i}>
               <SingleSelect
                 value={val}
                 size="small"
@@ -315,7 +315,7 @@ export const inputTypeToUI = {
     onEdit,
     config = {
       availableParentColumns: [],
-      toolRunId: "",
+      stepId: "",
       inputMetadata: {},
     }
   ) => {
@@ -346,7 +346,7 @@ function sanitizeInputType(type) {
 }
 
 export function AddStepInputList({
-  toolRunId,
+  stepId,
   analysisId,
   toolMetadata,
   inputs = {},
@@ -376,7 +376,7 @@ export function AddStepInputList({
         });
       }
     },
-    [toolRunId, toolMetadata]
+    [stepId, toolMetadata]
   );
 
   const availableColumns = useMemo(() => {
@@ -398,10 +398,10 @@ export function AddStepInputList({
     });
 
     return avail;
-  }, [inputs, parentNodeData, toolRunId]);
+  }, [inputs, parentNodeData, stepId]);
 
   return (
-    <div className="" key={toolRunId} ref={ctr}>
+    <div className="" key={stepId} ref={ctr}>
       {Object.keys(inputs).map((input_name, i) => {
         const sanitizedType = sanitizeInputType(
           inputMetadata[input_name]?.type
@@ -410,7 +410,7 @@ export function AddStepInputList({
 
         return (
           <div
-            key={i + "_" + toolRunId}
+            key={i + "_" + stepId}
             className="font-mono flex flex-row flex-wrap gap-3 items-center *:my-1 pb-4 text-xs"
           >
             <span className="">
@@ -433,7 +433,7 @@ export function AddStepInputList({
                   availableInputDfs: Object.keys(parentNodeData),
                   newListValueDefault,
                   analysisId,
-                  toolRunId,
+                  stepId,
                   inputMetadata,
                   type: inputMetadata[input_name].type,
                 }
