@@ -8,7 +8,7 @@ import ErrorBoundary from "../../../common/ErrorBoundary";
 
 export function CodeEditor({
   analysisId = null,
-  toolRunId = null,
+  stepId = null,
   code = null,
   language = "sql",
   updateProp = null,
@@ -21,12 +21,12 @@ export function CodeEditor({
   const updateCodeAndSql = (newVal) => {
     // update values of the code and the SQL
     if (updateProp !== "sql" && updateProp !== "code_str") return;
-    if (!toolRunId) return;
+    if (!stepId) return;
     if (!analysisId) return;
     if (!newVal) return;
 
     handleEdit({
-      tool_run_id: toolRunId,
+      step_id: stepId,
       update_prop: updateProp,
       new_val: newVal,
       analysis_id: analysisId,

@@ -81,11 +81,11 @@ export default function BadModal({
 
     analysisSteps.forEach((step) => {
       // if this exists, don't do anything
-      if (newComments["step_wise"][step.tool_run_id]) {
+      if (newComments["step_wise"][step.id]) {
         return;
       }
 
-      newComments["step_wise"][step.tool_run_id] = {
+      newComments["step_wise"][step.id] = {
         description: step.description,
         tool: toolDisplayNames[step.tool_name] || "Unknown tool",
         comments: "",
@@ -178,21 +178,16 @@ export default function BadModal({
                 )}
 
                 {activeNode &&
-                comments?.["step_wise"]?.[activeNode.data.step.tool_run_id] ? (
+                comments?.["step_wise"]?.[activeNode.data.step.id] ? (
                   activeNode.data.isTool ? (
                     <div>
                       <p className="text-sm font-bold text-gray-900 ">
-                        {
-                          comments["step_wise"][
-                            activeNode.data.step.tool_run_id
-                          ].tool
-                        }
+                        {comments["step_wise"][activeNode.data.step.id].tool}
                       </p>
                       <p className="text-sm text-gray-900 ">
                         {
-                          comments["step_wise"][
-                            activeNode.data.step.tool_run_id
-                          ].description
+                          comments["step_wise"][activeNode.data.step.id]
+                            .description
                         }
                       </p>
                       <p
@@ -203,9 +198,7 @@ export default function BadModal({
                       </p>
                       <p className="text-sm text-gray-900 ">
                         {Object.entries(
-                          comments["step_wise"][
-                            activeNode.data.step.tool_run_id
-                          ].inputs
+                          comments["step_wise"][activeNode.data.step.id].inputs
                         ).map(([key, value]) => (
                           <div key={key}>
                             <span className="italic">{key}</span>:{" "}
@@ -227,7 +220,7 @@ export default function BadModal({
                       </p>
                       <p className="text-sm text-gray-900 ">
                         {comments["step_wise"][
-                          activeNode.data.step.tool_run_id
+                          activeNode.data.step.id
                         ].outputs.map((output) => (
                           <div key={output}>{output}</div>
                         ))}
@@ -235,18 +228,16 @@ export default function BadModal({
                       <textarea
                         className="w-full min-h-10 p-2 border border-gray-300 rounded-md"
                         value={
-                          comments["step_wise"][
-                            activeNode.data.step.tool_run_id
-                          ].comment
+                          comments["step_wise"][activeNode.data.step.id].comment
                         }
                         disabled={loading}
-                        placeholder={`Leave your feedback about "${comments["step_wise"][activeNode.data.step.tool_run_id].tool}" here...`}
+                        placeholder={`Leave your feedback about "${comments["step_wise"][activeNode.data.step.id].tool}" here...`}
                         onChange={(ev) => {
                           const newComments = {
                             ...comments,
                           };
                           newComments["step_wise"][
-                            activeNode.data.step.tool_run_id
+                            activeNode.data.step.id
                           ].comment = ev.target.value;
 
                           setComments(newComments);

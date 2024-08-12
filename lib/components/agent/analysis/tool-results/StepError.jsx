@@ -1,6 +1,6 @@
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 
-export function ToolRunError({ error_message = null }) {
+export function StepError({ error_message = null }) {
   return (
     <div className="tool-run-error">
       <div className="tool-run-error-icon flex flex-row items-center">

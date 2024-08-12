@@ -42,10 +42,10 @@ export default function StepsDag({
       // each resulting variable is a node
       // each input from global dictionaries is also node
       // if exists in nodes, don't do anything
-      const step_id = step.tool_run_id;
+      const stepId = step.id;
       // create node for this step
-      g["nodes"][step_id] = {
-        id: step_id,
+      g["nodes"][stepId] = {
+        id: stepId,
         title: step["tool_name"],
         key: step["tool_name"],
         isError: step.error_message,
@@ -75,7 +75,7 @@ export default function StepsDag({
             for (let i = 0; i < steps.length; i++) {
               const step = steps[i];
               if (step.outputs_storage_keys.includes(globalDictInput)) {
-                acc.add(step.tool_run_id);
+                acc.add(step.id);
               }
             }
           });
@@ -89,55 +89,26 @@ export default function StepsDag({
         // add a link from parent to child
         g["links"].push({
           source: parent,
-          target: step_id,
+          target: stepId,
         });
 
         // add this parent to the list of parents for this step
-        g["nodes"][step_id]["parents"].add(parent);
+        g["nodes"][stepId]["parents"].add(parent);
         if (!g["nodes"][parent]) {
           console.log("Error: parent not found for step: ", step);
           console.log(parents, g["nodes"], step);
           return;
         }
         // add this step to the list of children for this parent
-        g["nodes"][parent]["children"].push(g["nodes"][step_id]);
+        g["nodes"][parent]["children"].push(g["nodes"][stepId]);
       });
 
       // convert set of parents to list
-      g["nodes"][step_id]["parents"] = Array.from(
-        g["nodes"][step_id]["parents"]
-      );
-
-      // let children =
-      //   step["outputs_storage_keys"] || step["result_storage_keys"];
-
-      // if (children) {
-      // children.forEach((child) => {
-      //   // create nodes for each child
-      //   if (!g["nodes"][child]) {
-      //     g["nodes"][child] = {
-      //       id: child,
-      //       step: step,
-      //       title: child,
-      //       isTool: false,
-      //       isOutput: true,
-      //       isError: step.error_message,
-      //       key: child,
-      //       parents: [step_id],
-      //       children: [],
-      //     };
-      //   }
-
-      //   g["links"].push({
-      //     source: step_id,
-      //     target: child,
-      //   });
-      //   // add this child to the list of children for this step
-      //   g["nodes"][step_id]["children"].push(g["nodes"][child]);
+      g["nodes"][stepId]["parents"] = Array.from(g["nodes"][stepId]["parents"]);
 
       if (!step.error_message && !skipAddStepNode) {
         // "add step" as a child of this child
-        let source = step.tool_run_id;
+        let source = step.id;
         const addStepNodeId = source + "-add";
 
         // add a child that is basically a plus icon to add another node
@@ -208,9 +179,7 @@ export default function StepsDag({
     try {
       // last step node as active
       const lastStep = steps?.[steps.length - 1];
-      const lastStepOutputNode = n?.find(
-        (d) => d.data.id === lastStep.tool_run_id
-      );
+      const lastStepOutputNode = n?.find((d) => d.data.id === lastStep.id);
       if (lastStepOutputNode) {
         setActiveNode(lastStepOutputNode);
       }
@@ -342,9 +311,7 @@ export default function StepsDag({
                           d.data.isAddStepNode
                             ? "graph-node-add bg-transparent"
                             : "bg-white",
-                          reRunningSteps.some(
-                            (s) => s.tool_run_id === d.data.id
-                          )
+                          reRunningSteps.some((s) => s.id === d.data.id)
                             ? "graph-node-re-running"
                             : "",
                           extraNodeClasses(d)

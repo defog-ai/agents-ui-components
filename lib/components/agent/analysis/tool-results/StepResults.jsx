@@ -1,24 +1,20 @@
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { ToolResultsTable } from "./ToolResultsTable";
-import { ToolRunError } from "./ToolRunError";
-import { ToolRunInputList } from "./ToolRunInputList";
-import { ToolRunOutputList } from "./ToolRunOutputList";
-import { ToolReRun } from "./ToolReRun";
+import { StepResultsTable } from "./StepResultsTable";
+import { StepError } from "./StepError";
+import { StepInputs } from "./StepInputs";
+import { StepOutputs } from "./StepOutputs";
+import { StepReRun } from "./StepReRun";
 import AgentLoader from "../../../common/AgentLoader";
 // import LoadingLottie from "../../../svg/loader.json";
 import ErrorBoundary from "../../../common/ErrorBoundary";
-import {
-  fetchToolRunDataFromServer,
-  parseData,
-  toolDisplayNames,
-} from "../../../utils/utils";
-import ToolRunAnalysis from "./ToolRunAnalysis";
+import { parseData, toolDisplayNames } from "../../../utils/utils";
+import StepResultAnalysis from "./StepResultAnalysis";
 import { AddStepUI } from "../../add-step/AddStepUI";
 import { Modal } from "antd";
 import setupBaseUrl from "../../../utils/setupBaseUrl";
 import {
   AgentConfigContext,
-  ReactiveVariablesContext,
+  // ReactiveVariablesContext,
 } from "../../../context/AgentContext";
 
 function parseOutputs(data, analysisData) {
@@ -52,9 +48,10 @@ function parseOutputs(data, analysisData) {
   return parsedOutputs;
 }
 
-export function ToolResults({
+export function StepResults({
   analysisId,
   analysisData,
+  step,
   activeNode,
   toolSocketManager = null,
   dag = null,
@@ -63,8 +60,7 @@ export function ToolResults({
   handleReRun = (...args) => {},
   reRunningSteps = [],
   setPendingToolRunUpdates = (...args) => {},
-  toolRunDataCache = {},
-  setToolRunDataCache = (...args) => {},
+  // toolRunDataCache = {},
   handleDeleteSteps = async (...args) => {},
   tools = {},
   analysisBusy = false,
@@ -74,10 +70,7 @@ export function ToolResults({
     path: "delete_steps",
     apiEndpoint: apiEndpoint,
   });
-  const [toolRunId, setToolRunId] = useState(null);
-  const [toolRunData, setToolRunData] = useState(null);
-  const [toolRunDataLoading, setToolRunDataLoading] = useState(false);
-  const reactiveContext = useContext(ReactiveVariablesContext);
+
   const agentConfigContext = useContext(AgentConfigContext);
   const [edited, setEdited] = useState(false);
 
@@ -88,6 +81,10 @@ export function ToolResults({
     [dag]
   );
 
+  const data = useMemo(() => {
+    console.log(step);
+  }, [step]);
+
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   async function handleDelete(ev) {
@@ -96,11 +93,11 @@ export function ToolResults({
       ev.stopPropagation();
       // actually delete the steps
 
-      const deleteToolRunIds = [...activeNode.descendants()]
+      const deletestepIds = [...activeNode.descendants()]
         .filter((d) => d?.data?.isTool)
         .map((d) => d?.data?.step?.tool_run_id);
 
-      await handleDeleteSteps(deleteToolRunIds);
+      await handleDeleteSteps(deletestepIds);
     } catch (e) {
       console.log(e);
     } finally {
@@ -148,157 +145,11 @@ export function ToolResults({
       console.log(e);
     }
   }
-
-  const getNewData = useCallback(
-    async (newId) => {
-      if (!activeNode) return;
-      setToolRunDataLoading(true);
-
-      let res, newData;
-      let hasCache = false;
-      //   first find in context if available
-      if (toolRunDataCache[newId]) {
-        // use cache
-        res = toolRunDataCache[newId];
-        hasCache = true;
-      } else {
-        res = await fetchToolRunDataFromServer(newId, apiEndpoint);
-      }
-
-      const newToolRunDataCache = { ...toolRunDataCache };
-
-      if (res.success) {
-        if (!hasCache) {
-          // save to cache
-          newToolRunDataCache[newId] = res;
-        }
-
-        // update reactive context
-        Object.keys(res?.tool_run_data?.outputs || {}).forEach((k, i) => {
-          if (!res?.tool_run_data?.outputs?.[k]?.reactive_vars) return;
-          reactiveContext.update((prev) => {
-            return {
-              ...prev,
-              [newId]: {
-                ...prev[newId],
-                [k]: res?.tool_run_data?.outputs?.[k]?.reactive_vars,
-              },
-            };
-          });
-        });
-
-        // make life easier
-        newData = res?.tool_run_data || {};
-
-        newData.parsedOutputs = parseOutputs(newData || {}, analysisData);
-        // in case any of the inputs is a pd dataframe, we will also fetch those tool run's data
-
-        const inputs = newData?.step?.inputs || [];
-
-        let parentDfs = Array.from(
-          Object.values(inputs).reduce((acc, input, i) => {
-            let inp = input;
-            // if input is a string, convert to array and do
-            if (!Array.isArray(input)) {
-              inp = [input];
-            }
-
-            inp.forEach((i) => {
-              // if not a string don't do anything
-              if (typeof i !== "string") return acc;
-
-              let matches = [...i.matchAll(/(?:global_dict\.)(\w+)/g)];
-              matches.forEach(([_, parent]) => {
-                acc.add(parent);
-              });
-            });
-            return acc;
-          }, new Set())
-        );
-
-        // find nodes in the dag that have this output_storage_keys
-        let parentNodes = availableOutputNodes.filter((n) => {
-          return parentDfs.indexOf(n.data.id) > -1;
-        });
-
-        // get data for all these nodes using node.data.step.tool_run_id
-        let parentIds = parentNodes.map((n) => n.data.step.tool_run_id);
-
-        // get data for all these nodes
-        let parentData = await Promise.all(
-          parentIds.map((id) => {
-            // try to get from cache
-            if (toolRunDataCache[id]) {
-              return toolRunDataCache[id];
-            }
-            return fetchToolRunDataFromServer(id, apiEndpoint);
-          })
-        );
-
-        // update toolRunDataCache
-        parentData.forEach((d) => {
-          if (d.success) {
-            // parse outputs
-            d.tool_run_data.parsedOutputs = parseOutputs(
-              d.tool_run_data,
-              analysisData
-            );
-
-            newToolRunDataCache[d.tool_run_data.tool_run_id] = d;
-          }
-        });
-
-        console.groupCollapsed();
-        console.log("availableOutputNodes", availableOutputNodes);
-        console.log("parentNodes", parentNodes);
-        console.log("parentIds", parentIds);
-        console.log("parentData", parentData);
-        console.groupEnd();
-
-        setParentNodeData(
-          parentData.reduce((acc, d) => {
-            if (d.success) {
-              acc[d.tool_run_data.tool_run_id] = d.tool_run_data;
-            }
-            return acc;
-          }, {})
-        );
-
-        setToolRunId(newId);
-        setToolRunData(newData);
-        setEdited(newData.edited);
-        setToolRunDataLoading(false);
-      } else {
-        setToolRunDataLoading(false);
-        setToolRunData(res?.tool_run_data);
-        if (!hasCache) {
-          newToolRunDataCache[newId] = res;
-        }
-
-        // remove from reactive context
-        reactiveContext.update((prev) => {
-          const newContext = { ...prev };
-          if (!newContext[newId]) return newContext;
-          delete newContext[newId];
-          return newContext;
-        });
-      }
-
-      setToolRunDataCache((prev) => {
-        return {
-          ...prev,
-          ...newToolRunDataCache,
-        };
-      });
-    },
-    [toolRunDataCache, reactiveContext, analysisData, activeNode]
-  );
-
-  function handleEdit({ analysis_id, tool_run_id, update_prop, new_val }) {
-    if (!tool_run_id) return;
+  function handleEdit({ analysis_id, step_id, update_prop, new_val }) {
+    if (!step_id) return;
     if (!analysis_id) return;
     if (!update_prop) return;
-    if (tool_run_id !== toolRunId) return;
+    if (step_id !== stepId) return;
 
     if (toolSocketManager && toolSocketManager.send) {
       // if sql, or code_str is present, they are in tool_run_details
@@ -327,83 +178,67 @@ export function ToolResults({
   useEffect(() => {
     if (!activeNode) return;
 
-    if (!activeNode.data.isAddStepNode) {
-      async function getToolRun() {
-        const toolRun = activeNode.data.isTool
-          ? activeNode
-          : [...activeNode?.parents()][0];
-        const newId = toolRun?.data?.step?.tool_run_id;
+    async function getAvailableInputDfs() {
+      // if is add step node, we still need parent step data
+      // const newToolRunDataCache = { ...toolRunDataCache };
+      // this is a lot of DRY code, but it's okay for now
+      let availableInputDfs = [];
+      try {
+        if (!activeNode || !activeNode.ancestors) availableInputDfs = [];
 
-        if (!toolRun?.data?.isTool) {
-          console.error(
-            "Something's wrong on clicking node. No tool parents found."
-          );
-          console.log("Node clicked: ", activeNode);
-        }
-
-        await getNewData(newId);
+        availableInputDfs = [...dag.nodes()]
+          .filter(
+            (d) =>
+              !d.data.isTool &&
+              d.data.id !== activeNode.data.id &&
+              !d.data.isError &&
+              !d.data.isAddStepNode
+          )
+          .map((ancestor) => ancestor);
+      } catch (e) {
+        console.log(e);
+        availableInputDfs = [];
       }
 
-      getToolRun();
-    } else {
-      async function getAvailableInputDfs() {
-        // if is add step node, we still need parent step data
-        const newToolRunDataCache = { ...toolRunDataCache };
-        // this is a lot of DRY code, but it's okay for now
-        let availableInputDfs = [];
-        try {
-          availableInputDfs = [...dag.nodes()]
-            .filter(
-              (d) =>
-                d.data.id !== activeNode.data.id &&
-                !d.data.isError &&
-                !d.data.isAddStepNode
-            )
-            .map((ancestor) => ancestor);
-        } catch (e) {
-          console.log(e);
-          availableInputDfs = [];
-        }
+      let parentIds = availableInputDfs.map((n) => n.data.step.tool_run_id);
 
-        let parentIds = availableInputDfs.map((n) => n.data.step.tool_run_id);
+      // get data for all these nodes
+      // let parentData = await Promise.all(
+      //   parentIds.map((id) => {
+      //     // try to get from cache
+      //     // if (toolRunDataCache[id]) {
+      //     //   return toolRunDataCache[id];
+      //     // }
+      //     return fetchToolRunDataFromServer(id, apiEndpoint);
+      //   })
+      // );
 
-        // get data for all these nodes
-        let parentData = await Promise.all(
-          parentIds.map((id) => {
-            // try to get from cache
-            if (toolRunDataCache[id]) {
-              return toolRunDataCache[id];
-            }
-            return fetchToolRunDataFromServer(id, apiEndpoint);
-          })
-        );
+      // update toolRunDataCache
+      // parentData.forEach((d) => {
+      //   if (d.success) {
+      //     // parse outputs
+      //     d.tool_run_data.parsedOutputs = parseOutputs(
+      //       d.tool_run_data,
+      //       analysisData
+      //     );
 
-        // update toolRunDataCache
-        parentData.forEach((d) => {
-          if (d.success) {
-            // parse outputs
-            d.tool_run_data.parsedOutputs = parseOutputs(
-              d.tool_run_data,
-              analysisData
-            );
+      //     // newToolRunDataCache[d.tool_run_data.tool_run_id] = d;
+      //   }
+      // });
 
-            newToolRunDataCache[d.tool_run_data.tool_run_id] = d;
-          }
-        });
-
-        setParentNodeData(
-          parentData.reduce((acc, d) => {
-            // for each output add a key to acc
-            if (d.success) {
-              Object.keys(d.tool_run_data.parsedOutputs).forEach((k) => {
-                acc[k] = d.tool_run_data.parsedOutputs[k];
-              });
-            }
-            return acc;
-          }, {})
-        );
-      }
-
+      // setParentNodeData(
+      //   parentData.reduce((acc, d) => {
+      //     // for each output add a key to acc
+      //     if (d.success) {
+      //       Object.keys(d.tool_run_data.parsedOutputs).forEach((k) => {
+      //         acc[k] = d.tool_run_data.parsedOutputs[k];
+      //       });
+      //     }
+      //     return acc;
+      //   }, {})
+      // );
+    }
+    if (activeNode.data.isAddStepNode) {
       getAvailableInputDfs();
     }
   }, [activeNode, reRunningSteps]);
@@ -422,8 +257,8 @@ export function ToolResults({
   // timeout: funciton
   // clearTimeout: function}
   const isStepReRunning = useMemo(() => {
-    return reRunningSteps.some((s) => s.tool_run_id === toolRunId);
-  }, [reRunningSteps, toolRunId]);
+    return reRunningSteps.some((s) => s.id === step.id);
+  }, [reRunningSteps, step.id]);
 
   return !activeNode || !activeNode.data || !toolRunData ? (
     <></>
@@ -477,29 +312,27 @@ export function ToolResults({
           tools={tools}
         />
       ) : toolRunData?.error_message && !activeNode.data.isTool ? (
-        <ToolRunError error_message={toolRunData?.error_message}></ToolRunError>
+        <StepError error_message={toolRunData?.error_message}></StepError>
       ) : (
         <>
           <ErrorBoundary maybeOldAnalysis={true}>
             {toolRunData?.error_message && (
-              <ToolRunError
-                error_message={toolRunData?.error_message}
-              ></ToolRunError>
+              <StepError error_message={toolRunData?.error_message}></StepError>
             )}
             <div className="tool-action-buttons flex flex-row gap-2">
               {/* {edited && ( */}
-              <ToolReRun
+              <StepReRun
                 className="font-mono bg-gray-50 border border-gray-200 text-gray-500 hover:bg-blue-500 hover:text-white"
                 onClick={() => {
-                  handleReRun(toolRunId);
+                  handleReRun(stepId);
                 }}
-              ></ToolReRun>
+              ></StepReRun>
               {/* )} */}
-              <ToolReRun
+              <StepReRun
                 onClick={showModal}
                 text="Delete"
                 className="font-mono bg-gray-50 border border-gray-200 text-gray-500 hover:bg-rose-500 hover:text-white"
-              ></ToolReRun>
+              ></StepReRun>
               <Modal
                 okText={"Yes, delete"}
                 okType="danger"
@@ -518,37 +351,37 @@ export function ToolResults({
             </h1>
             <div className="my-4">
               <h1 className="text-gray-400 mb-4">INPUTS</h1>
-              <ToolRunInputList
+              <StepInputs
                 analysisId={analysisId}
-                toolRunId={toolRunId}
+                stepId={stepId}
                 step={toolRunData.step}
                 availableOutputNodes={availableOutputNodes}
                 setActiveNode={setActiveNode}
                 handleEdit={handleEdit}
                 parentNodeData={parentNodeData}
-              ></ToolRunInputList>
+              ></StepInputs>
             </div>
             <div className="my-4">
               <h1 className="text-gray-400 mb-4">OUTPUTS</h1>
-              <ToolRunOutputList
+              <StepOutputs
                 showCode={agentConfigContext.val.showCode}
                 analysisId={analysisId}
-                toolRunId={toolRunId}
+                stepId={stepId}
                 step={toolRunData.step}
                 codeStr={toolRunData?.tool_run_details?.code_str}
                 sql={toolRunData?.tool_run_details?.sql}
                 handleEdit={handleEdit}
                 availableOutputNodes={availableOutputNodes}
                 setActiveNode={setActiveNode}
-              ></ToolRunOutputList>
+              ></StepOutputs>
             </div>
           </ErrorBoundary>
           {Object.values(toolRunData?.parsedOutputs).map((output) => {
             return (
               <>
-                <ToolResultsTable
+                <StepResultsTable
                   toolRunData={toolRunData}
-                  toolRunId={toolRunId}
+                  stepId={stepId}
                   tableData={output["data"]}
                   apiEndpoint={apiEndpoint}
                   chartImages={output["chart_images"]}
@@ -570,7 +403,7 @@ export function ToolResults({
                           {output["analysis"]}
                         </p>
                       ) : (
-                        <ToolRunAnalysis
+                        <StepResultAnalysis
                           question={analysisData.user_question}
                           data_csv={output["data"]}
                           apiEndpoint={apiEndpoint}

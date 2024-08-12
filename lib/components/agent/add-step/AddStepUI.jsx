@@ -6,7 +6,7 @@ import setupBaseUrl from "../../utils/setupBaseUrl";
 import { v4 } from "uuid";
 import { createInitialToolInputs } from "../../utils/utils";
 import { MessageManagerContext, SingleSelect } from "@ui-components";
-import { ToolReRun } from "../analysis/tool-results/ToolReRun";
+import { StepReRun } from "../analysis/tool-results/StepReRun";
 
 export function AddStepUI({
   analysisId,
@@ -49,7 +49,7 @@ export function AddStepUI({
       <h1 className="text-lg font-bold my-2">New step</h1>
       <h1 className="my-2">TOOL</h1>
       <div className="tool-action-buttons">
-        <ToolReRun
+        <StepReRun
           text="Run"
           loading={loading || selectedTool === null}
           onClick={async () => {
@@ -80,18 +80,15 @@ export function AddStepUI({
                 message.error(
                   newStepSuccess?.error_message || "Something went wrong"
                 );
-              } else if (
-                !newStepSuccess.new_step ||
-                !newStepSuccess.tool_run_id
-              ) {
+              } else if (!newStepSuccess.new_step || !newStepSuccess.id) {
                 message.error(
                   "Something went wrong. New step or tool run data or tool run id is missing in the server response."
                 );
               } else {
-                const toolRunId = newStepSuccess.tool_run_id;
+                const stepId = newStepSuccess.id;
 
                 // re run the tool
-                handleReRun(toolRunId, {
+                handleReRun(stepId, {
                   action: "add_step",
                   new_step: newStepSuccess.new_step,
                 });
@@ -138,7 +135,7 @@ export function AddStepUI({
         <>
           <h1 className="my-2 mb-4">INPUTS</h1>
           <AddStepInputList
-            toolRunId={activeNode.data.id}
+            stepId={activeNode.data.id}
             toolMetadata={tools[selectedTool]}
             analysisId={analysisId}
             inputs={inputs}
@@ -152,7 +149,7 @@ export function AddStepUI({
           {/* a little kooky, but */}
           {/* just reuse AddStepInputList to store outputs */}
           {/* <AddStepInputList
-            toolRunId={activeNode.data.id}
+            stepId={activeNode.data.id}
             toolMetadata={{
               input_metadata: [
                 {

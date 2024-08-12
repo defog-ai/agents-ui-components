@@ -5,14 +5,14 @@ import { TrashIcon, PlusCircleIcon } from "@heroicons/react/20/solid";
 import { easyToolInputTypes } from "../../../utils/utils";
 
 const inputTypeToUI = {
-  list: (toolRunId, inputName, initialValue, onEdit) => {
+  list: (stepId, inputName, initialValue, onEdit) => {
     if (!initialValue) initialValue = [];
     return (
       <span className="tool-input-value tool-input-type-list">
         <span className="list-bracket">[</span>
         {initialValue.map((val, i) => {
           return (
-            <span key={toolRunId + "_" + inputName}>
+            <span key={stepId + "_" + inputName}>
               <Input
                 value={val}
                 size="small"
@@ -58,14 +58,14 @@ const inputTypeToUI = {
       </span>
     );
   },
-  str: (toolRunId, inputName, initialValue, onEdit) => {
+  str: (stepId, inputName, initialValue, onEdit) => {
     if (!initialValue) initialValue = "";
     return (
       <TextArea
         rootClassNames="tool-input-value lg:w-80"
         textAreaClassNames="resize-none"
         value={initialValue}
-        key={toolRunId + "_" + inputName}
+        key={stepId + "_" + inputName}
         defaultRows={1}
         onChange={(ev) => {
           onEdit(inputName, ev.target.value);
@@ -73,14 +73,14 @@ const inputTypeToUI = {
       />
     );
   },
-  bool: (toolRunId, inputName, initialValue, onEdit) => {
+  bool: (stepId, inputName, initialValue, onEdit) => {
     if (!initialValue) initialValue = false;
     return (
       <SingleSelect
         allowClear
         rootClassNames="tool-input-value"
         value={String(initialValue)}
-        key={toolRunId + "_" + inputName}
+        key={stepId + "_" + inputName}
         size="small"
         popupClassName="tool-input-value-dropdown"
         options={[
@@ -93,13 +93,13 @@ const inputTypeToUI = {
       />
     );
   },
-  int: (toolRunId, inputName, initialValue, onEdit) => {
+  int: (stepId, inputName, initialValue, onEdit) => {
     if (!initialValue) initialValue = 0;
 
     return (
       <TextArea
         rootClassNames="tool-input-value lg:w-80"
-        key={toolRunId + "_" + inputName}
+        key={stepId + "_" + inputName}
         value={initialValue}
         textAreaClassNames="resize-none"
         onChange={(ev) => {
@@ -108,13 +108,13 @@ const inputTypeToUI = {
       />
     );
   },
-  float: (toolRunId, inputName, initialValue, onEdit) => {
+  float: (stepId, inputName, initialValue, onEdit) => {
     if (!initialValue) initialValue = 0.0;
     return (
       <TextArea
         rootClassNames="tool-input-value lg:w-80"
         value={initialValue}
-        key={toolRunId + "_" + inputName}
+        key={stepId + "_" + inputName}
         defaultRows={1}
         onChange={(ev) => {
           onEdit(inputName, parseFloat(ev.target.value));
@@ -123,7 +123,7 @@ const inputTypeToUI = {
     );
   },
   "pandas.core.frame.DataFrame": (
-    toolRunId,
+    stepId,
     inputName,
     initialValue,
     onEdit,
@@ -172,7 +172,7 @@ const inputTypeToUI = {
     );
   },
   DBColumn: (
-    toolRunId,
+    stepId,
     inputName,
     initialValue,
     onEdit,
@@ -194,7 +194,7 @@ const inputTypeToUI = {
         showSearch
         rootClassNames="tool-input-value"
         value={initialValue}
-        key={toolRunId + "_" + inputName}
+        key={stepId + "_" + inputName}
         size="small"
         popupClassName="tool-input-value-dropdown"
         options={options}
@@ -207,7 +207,7 @@ const inputTypeToUI = {
     );
   },
   DBColumnList: (
-    toolRunId,
+    stepId,
     inputName,
     initialValue,
     onEdit,
@@ -251,7 +251,7 @@ const inputTypeToUI = {
         <span className="list-bracket">[</span>
         {initialValue.map((val, i) => {
           return (
-            <span key={toolRunId + "_" + inputName + "_" + i}>
+            <span key={stepId + "_" + inputName + "_" + i}>
               <SingleSelect
                 value={val}
                 showSearch
@@ -320,7 +320,7 @@ const inputTypeToUI = {
     );
   },
   DropdownSingleSelect: (
-    toolRunId,
+    stepId,
     inputName,
     initialValue,
     onEdit,
@@ -340,7 +340,7 @@ const inputTypeToUI = {
       <SingleSelect
         allowClear
         value={initialValue}
-        key={toolRunId + "_" + inputName}
+        key={stepId + "_" + inputName}
         size="small"
         rootClassNames="tool-input-value"
         popupClassName="tool-input-value-dropdown"
@@ -364,9 +364,9 @@ function sanitizeInputType(type) {
   return type;
 }
 
-export function ToolRunInputList({
+export function StepInputs({
   analysisId,
-  toolRunId,
+  stepId,
   step,
   availableOutputNodes = [],
   setActiveNode = () => {},
@@ -412,7 +412,7 @@ export function ToolRunInputList({
         });
       }
     },
-    [toolRunId]
+    [stepId]
   );
 
   // prop is input name, newVal is the new value
@@ -423,7 +423,7 @@ export function ToolRunInputList({
 
     handleEdit({
       analysis_id: analysisId,
-      tool_run_id: toolRunId,
+      step_id: stepId,
       update_prop: "inputs",
       new_val: newInputs,
     });
@@ -439,7 +439,7 @@ export function ToolRunInputList({
   // check the cache if we have tool run data available
 
   return (
-    <div className="tool-input-list" key={toolRunId} ref={ctr}>
+    <div className="tool-input-list" key={stepId} ref={ctr}>
       {Object.keys(inputs)
         .filter((i) => i !== "global_dict")
         .map((input_name, i) => {
@@ -450,7 +450,7 @@ export function ToolRunInputList({
 
           return (
             <div
-              key={i + "_" + toolRunId}
+              key={i + "_" + stepId}
               className="font-mono flex flex-row flex-wrap gap-3 items-center *:my-1 pb-4 text-xs"
             >
               <span className="">
@@ -464,7 +464,7 @@ export function ToolRunInputList({
 
               {inputTypeToUI[sanitizedType] ? (
                 inputTypeToUI[sanitizedType](
-                  toolRunId,
+                  stepId,
                   inputMetadata[input_name].name,
                   input,
                   function (prop, newVal) {
