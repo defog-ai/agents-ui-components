@@ -1,5 +1,5 @@
 import { message } from "antd";
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useState, useEffect } from "react";
 import { easyToolInputTypes } from "../../utils/utils";
 import { TextArea, SingleSelect, Input } from "@ui-components";
 import { TrashIcon } from "@heroicons/react/20/solid";
@@ -193,8 +193,6 @@ export const inputTypeToUI = {
         return { label: column.title, value: column.title };
       }) || [];
 
-    console.log(options);
-
     // return
     return (
       <SingleSelect
@@ -379,10 +377,15 @@ export function AddStepInputList({
     [toolRunId, toolMetadata]
   );
 
-  const availableColumns = useMemo(() => {
+  const [availableColumns, setAvailableColumns] = useState([]);
+  
+  useEffect(() => {
     // check if any of the inputs is global_dict.something
     if (!inputs) return [];
     let avail = [];
+
+    console.log("inputs", inputs);
+    console.log("parentNodeData", parentNodeData);
 
     Object.keys(inputs).forEach((input_name) => {
       const input = inputs[input_name];
@@ -390,6 +393,7 @@ export function AddStepInputList({
       if (typeof input !== "string") return;
       if (input?.startsWith("global_dict.")) {
         const id = input.split(".")[1];
+        console.log("id", id);
         const parent = parentNodeData[id];
         if (parent) {
           avail = avail.concat(parent.data.columns);
@@ -397,7 +401,7 @@ export function AddStepInputList({
       }
     });
 
-    return avail;
+    setAvailableColumns(avail);
   }, [inputs, parentNodeData, toolRunId]);
 
   return (

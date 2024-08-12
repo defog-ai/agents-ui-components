@@ -249,13 +249,6 @@ export function ToolResults({
           }
         });
 
-        console.groupCollapsed();
-        console.log("availableOutputNodes", availableOutputNodes);
-        console.log("parentNodes", parentNodes);
-        console.log("parentIds", parentIds);
-        console.log("parentData", parentData);
-        console.groupEnd();
-
         setParentNodeData(
           parentData.reduce((acc, d) => {
             if (d.success) {

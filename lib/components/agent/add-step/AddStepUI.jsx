@@ -49,6 +49,7 @@ export function AddStepUI({
       <h1 className="text-lg font-bold my-2">New step</h1>
       <h1 className="my-2">TOOL</h1>
       <div className="tool-action-buttons">
+        {/* this is a simple Re-Run button */}
         <ToolReRun
           text="Run"
           loading={loading || selectedTool === null}
@@ -136,6 +137,7 @@ export function AddStepUI({
         <></>
       ) : (
         <>
+          {/* these are all the options that are available for a given input list */}
           <h1 className="my-2 mb-4">INPUTS</h1>
           <AddStepInputList
             toolRunId={activeNode.data.id}
