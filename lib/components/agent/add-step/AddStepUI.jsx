@@ -12,7 +12,6 @@ export function AddStepUI({
   analysisId,
   activeNode,
   apiEndpoint,
-  dag,
   handleReRun = () => {},
   parentNodeData = {},
   tools = {},
