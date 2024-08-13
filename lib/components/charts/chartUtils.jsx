@@ -523,7 +523,7 @@ function formatTime(val) {
     "YYYY-MM",
     "YYYY-MMM",
   ];
-
+  
   // convert all values to date
   val = toTitleCase(val);
   // check if it matches any of the date formats

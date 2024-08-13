@@ -1,21 +1,18 @@
-import { useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { StepResultsTable } from "./StepResultsTable";
 import { StepError } from "./StepError";
 import { StepInputs } from "./StepInputs";
 import { StepOutputs } from "./StepOutputs";
 import { StepReRun } from "./StepReRun";
 import AgentLoader from "../../../common/AgentLoader";
-// import LoadingLottie from "../../../svg/loader.json";
 import ErrorBoundary from "../../../common/ErrorBoundary";
 import { parseData, toolDisplayNames } from "../../../utils/utils";
 import StepResultAnalysis from "./StepResultAnalysis";
 import { AddStepUI } from "../../add-step/AddStepUI";
 import { Modal } from "antd";
 import setupBaseUrl from "../../../utils/setupBaseUrl";
-import {
-  AgentConfigContext,
-  // ReactiveVariablesContext,
-} from "../../../context/AgentContext";
+import { Tabs } from "../../../core-ui/Tabs";
+import { AgentConfigContext } from "../../../context/AgentContext";
 
 function parseOutputs(data, analysisData) {
   let parsedOutputs = {};
@@ -311,108 +308,119 @@ export function StepResults({
       ) : step?.error_message && !activeNode.data.isTool ? (
         <StepError error_message={step?.error_message}></StepError>
       ) : (
-        <>
-          <ErrorBoundary maybeOldAnalysis={true}>
-            {step?.error_message && (
-              <StepError error_message={step?.error_message}></StepError>
-            )}
-            <div className="tool-action-buttons flex flex-row gap-2">
-              {/* {edited && ( */}
-              <StepReRun
-                className="font-mono bg-gray-50 border border-gray-200 text-gray-500 hover:bg-blue-500 hover:text-white"
-                onClick={() => {
-                  handleReRun(stepId);
-                }}
-              ></StepReRun>
-              {/* )} */}
-              <StepReRun
-                onClick={showModal}
-                text="Delete"
-                className="font-mono bg-gray-50 border border-gray-200 text-gray-500 hover:bg-rose-500 hover:text-white"
-              ></StepReRun>
-              <Modal
-                okText={"Yes, delete"}
-                okType="danger"
-                title="Are you sure?"
-                open={showDeleteModal}
-                onOk={handleDelete}
-                onCancel={handleCancel}
-              >
-                <p>
-                  All child steps (highlighted in red) will also be deleted.
-                </p>
-              </Modal>
-            </div>
-            <h1 className="text-lg mt-4 mb-2">
-              {toolDisplayNames[step.tool_name]}
-            </h1>
-            <div className="my-4">
-              <h1 className="text-gray-400 mb-4">INPUTS</h1>
-              <StepInputs
-                analysisId={analysisId}
-                stepId={stepId}
-                step={step}
-                availableOutputNodes={availableOutputNodes}
-                setActiveNode={setActiveNode}
-                handleEdit={handleEdit}
-                parentNodeData={parentNodeData}
-              ></StepInputs>
-            </div>
-            <div className="my-4">
-              <h1 className="text-gray-400 mb-4">OUTPUTS</h1>
-              <StepOutputs
-                showCode={agentConfigContext.val.showCode}
-                analysisId={analysisId}
-                stepId={stepId}
-                step={step}
-                codeStr={step?.code_str}
-                sql={step?.sql}
-                handleEdit={handleEdit}
-                availableOutputNodes={availableOutputNodes}
-                setActiveNode={setActiveNode}
-              ></StepOutputs>
-            </div>
-          </ErrorBoundary>
-          {Object.values(parsedOutputs).map((output) => {
-            return (
-              <>
-                <StepResultsTable
-                  stepId={stepId}
-                  tableData={output["data"]}
-                  apiEndpoint={apiEndpoint}
-                  chartImages={output["chart_images"]}
-                  reactiveVars={output["reactive_vars"]}
-                  nodeId={activeNode.data.id}
-                  analysisId={analysisId}
-                />
-                {agentConfigContext.val.showAnalysisUnderstanding && (
-                  <div className="h-60 mt-2 rounded-md text-sm border overflow-scroll w-full mb-2">
-                    <div className="relative">
-                      <p className="font-bold m-0 sticky top-0 w-full p-2 bg-white shadow-sm border-b">
-                        Analysis
+        <Tabs
+          tabs={[
+            {
+              name: "SQL/Code",
+              content: (
+                <ErrorBoundary maybeOldAnalysis={true}>
+                  {step?.error_message && (
+                    <StepError error_message={step?.error_message}></StepError>
+                  )}
+                  <div className="tool-action-buttons flex flex-row gap-2">
+                    {/* {edited && ( */}
+                    <StepReRun
+                      className="font-mono bg-gray-50 border border-gray-200 text-gray-500 hover:bg-blue-500 hover:text-white"
+                      onClick={() => {
+                        handleReRun(stepId);
+                      }}
+                    ></StepReRun>
+                    {/* )} */}
+                    <StepReRun
+                      onClick={showModal}
+                      text="Delete"
+                      className="font-mono bg-gray-50 border border-gray-200 text-gray-500 hover:bg-rose-500 hover:text-white"
+                    ></StepReRun>
+                    <Modal
+                      okText={"Yes, delete"}
+                      okType="danger"
+                      title="Are you sure?"
+                      open={showDeleteModal}
+                      onOk={handleDelete}
+                      onCancel={handleCancel}
+                    >
+                      <p>
+                        All child steps (highlighted in red) will also be
+                        deleted.
                       </p>
-                      {output["analysis"] ? (
-                        <p
-                          style={{ whiteSpace: "pre-wrap" }}
-                          className="text-xs"
-                        >
-                          {output["analysis"]}
-                        </p>
-                      ) : (
-                        <StepResultAnalysis
-                          question={analysisData.user_question}
-                          data_csv={output["data"]}
-                          apiEndpoint={apiEndpoint}
-                          image={output["chart_images"]}
-                        />
-                      )}
-                    </div>
+                    </Modal>
                   </div>
-                )}
-              </>
-            );
-          })}
-        </>
+                  <h1 className="text-lg mt-4 mb-2">
+                    {toolDisplayNames[step.tool_name]}
+                  </h1>
+                  <div className="my-4">
+                    <h1 className="text-gray-400 mb-4">INPUTS</h1>
+                    <StepInputs
+                      analysisId={analysisId}
+                      stepId={stepId}
+                      step={step}
+                      availableOutputNodes={availableOutputNodes}
+                      setActiveNode={setActiveNode}
+                      handleEdit={handleEdit}
+                      parentNodeData={parentNodeData}
+                    ></StepInputs>
+                  </div>
+                  <div className="my-4">
+                    <h1 className="text-gray-400 mb-4">OUTPUTS</h1>
+                    <StepOutputs
+                      showCode={agentConfigContext.val.showCode}
+                      analysisId={analysisId}
+                      stepId={stepId}
+                      step={step}
+                      codeStr={step?.code_str}
+                      sql={step?.sql}
+                      handleEdit={handleEdit}
+                      availableOutputNodes={availableOutputNodes}
+                      setActiveNode={setActiveNode}
+                    ></StepOutputs>
+                  </div>
+                </ErrorBoundary>
+              ),
+            },
+            {
+              name: "Analysis",
+              content: Object.values(parsedOutputs).map((output) => {
+                return (
+                  <>
+                    <StepResultsTable
+                      stepId={stepId}
+                      tableData={output["data"]}
+                      apiEndpoint={apiEndpoint}
+                      chartImages={output["chart_images"]}
+                      reactiveVars={output["reactive_vars"]}
+                      nodeId={activeNode.data.id}
+                      analysisId={analysisId}
+                    />
+                    {agentConfigContext.val.showAnalysisUnderstanding && (
+                      <div className="h-60 mt-2 rounded-md text-sm border overflow-scroll w-full mb-2">
+                        <div className="relative">
+                          <p className="font-bold m-0 sticky top-0 w-full p-2 bg-white shadow-sm border-b">
+                            Analysis
+                          </p>
+                          {output["analysis"] ? (
+                            <p
+                              style={{ whiteSpace: "pre-wrap" }}
+                              className="text-xs"
+                            >
+                              {output["analysis"]}
+                            </p>
+                          ) : (
+                            <StepResultAnalysis
+                              question={analysisData.user_question}
+                              data_csv={output["data"]}
+                              apiEndpoint={apiEndpoint}
+                              image={output["chart_images"]}
+                            />
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </>
+                );
+              }),
+            },
+          ]}
+        />
       )}
     </div>
   );
