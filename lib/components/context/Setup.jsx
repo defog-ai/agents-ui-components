@@ -55,8 +55,6 @@ export function Setup({
 
   // this is the main socket manager for the agent
   const [mainSocketManager, setMainSockerManager] = useState(null);
-  // this is for editing tool inputs/outputs
-  const [toolSocketManager, setToolSocketManager] = useState(null);
   // this is for handling re runs of tools
   const [reRunManager, setReRunManager] = useState(null);
 
@@ -127,11 +125,6 @@ export function Setup({
         urlToConnect.replace("/ws", "/step_rerun")
       );
 
-      const toolSocketManager = await setupWebsocketManager(
-        urlToConnect.replace("/ws", "/edit_tool_run"),
-        (d) => console.log(d)
-      );
-
       let conn = null;
       try {
         conn = await initializeSQLite();
@@ -142,7 +135,6 @@ export function Setup({
 
       setMainSockerManager(mainMgr);
       setReRunManager(rerunMgr);
-      setToolSocketManager(toolSocketManager);
       setSqliteConn(conn);
 
       setAgentConfig({
@@ -150,7 +142,6 @@ export function Setup({
         ...userItems,
         mainManager: mainMgr,
         reRunManager: rerunMgr,
-        toolSocketManager: toolSocketManager,
         sqliteConn: conn,
       });
 
@@ -170,10 +161,6 @@ export function Setup({
       if (reRunManager && reRunManager.close) {
         reRunManager.close();
         reRunManager.clearSocketTimeout();
-      }
-      if (toolSocketManager && toolSocketManager.close) {
-        toolSocketManager.close();
-        toolSocketManager.clearSocketTimeout();
       }
     };
   }, [apiEndpoint, token]);

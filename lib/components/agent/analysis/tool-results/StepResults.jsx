@@ -50,13 +50,12 @@ export function StepResults({
   analysisData,
   step,
   activeNode,
-  toolSocketManager = null,
   dag = null,
   apiEndpoint,
   setActiveNode = (...args) => {},
   handleReRun = (...args) => {},
   reRunningSteps = [],
-  setPendingToolRunUpdates = (...args) => {},
+  setPendingStepInputUpdates = (...args) => {},
   // toolRunDataCache = {},
   handleDeleteSteps = async (...args) => {},
   tools = {},
@@ -69,7 +68,6 @@ export function StepResults({
   });
 
   const agentConfigContext = useContext(AgentConfigContext);
-  const [edited, setEdited] = useState(false);
   const parsedOutputs = useMemo(() => {
     return parseOutputs(step, analysisData);
   }, [step, analysisData]);
@@ -149,21 +147,10 @@ export function StepResults({
     if (!update_prop) return;
     if (step_id !== stepId) return;
 
-    if (toolSocketManager && toolSocketManager.send) {
-      // if sql, or code_str is present, they are in tool_run_details
-      // update toolRunData and send to server
-      toolSocketManager.send({
-        analysis_id,
-        step_id,
-        update_prop,
-        new_val,
-      });
-      setEdited(true);
-    }
     // edit this in the context too
     // but only do batch update when we click on another node
     // so we can prevent react rerendering
-    setPendingToolRunUpdates((prev) => {
+    setPendingStepInputUpdates((prev) => {
       return {
         [step_id]: {
           ...prev[step_id],

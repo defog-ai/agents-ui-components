@@ -179,8 +179,6 @@ export function SingleSelect({
     ref?.current?.blur?.();
   }, [selectedOption, JSON.stringify(internalOptions), allowCreateNewOption]);
 
-  console.log(options);
-
   return (
     <Combobox
       as="div"

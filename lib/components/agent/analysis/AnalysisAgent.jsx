@@ -77,14 +77,8 @@ export const AnalysisAgent = ({
   },
 }) => {
   const agentConfigContext = useContext(AgentConfigContext);
-  const {
-    devMode,
-    apiEndpoint,
-    token,
-    mainManager,
-    reRunManager,
-    toolSocketManager,
-  } = agentConfigContext.val;
+  const { devMode, apiEndpoint, token, mainManager, reRunManager } =
+    agentConfigContext.val;
 
   const getToolsEndpoint = setupBaseUrl({
     protocol: "http",
@@ -94,7 +88,7 @@ export const AnalysisAgent = ({
 
   // console.log("Key name", keyName);
   // console.log("Did upload file", isTemp);
-  const [pendingToolRunUpdates, setPendingToolRunUpdates] = useState({});
+  const [pendingStepInputUpdates, setPendingStepInputUpdates] = useState({});
   const [reRunningSteps, setRerunningSteps] = useState([]);
   const reactiveContext = useContext(ReactiveVariablesContext);
   const [activeNode, setActiveNodePrivate] = useState(null);
@@ -161,7 +155,7 @@ export const AnalysisAgent = ({
         setRerunningSteps(analysisManager.reRunningSteps);
         // remove all pending updates for this id
         // because all new data is already there in the received response
-        setPendingToolRunUpdates((prev) => {
+        setPendingStepInputUpdates((prev) => {
           const newUpdates = { ...prev };
           delete newUpdates[response.id];
           return newUpdates;
@@ -181,20 +175,20 @@ export const AnalysisAgent = ({
           throw new Error(response.error_message);
         }
 
-        // update reactive context
-        Object.keys(response?.tool_run_data?.outputs || {}).forEach((k, i) => {
-          if (!response?.tool_run_data?.outputs?.[k]?.reactive_vars) return;
-          const runId = response.id;
-          reactiveContext.update((prev) => {
-            return {
-              ...prev,
-              [runId]: {
-                ...prev[runId],
-                [k]: response?.tool_run_data?.outputs?.[k]?.reactive_vars,
-              },
-            };
-          });
-        });
+        // // update reactive context
+        // Object.keys(response?.tool_run_data?.outputs || {}).forEach((k, i) => {
+        //   if (!response?.tool_run_data?.outputs?.[k]?.reactive_vars) return;
+        //   const runId = response.id;
+        //   reactiveContext.update((prev) => {
+        //     return {
+        //       ...prev,
+        //       [runId]: {
+        //         ...prev[runId],
+        //         [k]: response?.tool_run_data?.outputs?.[k]?.reactive_vars,
+        //       },
+        //     };
+        //   });
+        // });
       } catch (e) {
         messageManager.error(e);
         console.log(e.stack);
@@ -206,6 +200,9 @@ export const AnalysisAgent = ({
     [dag]
   );
 
+  /**
+   * @type {import("./analysisManager").AnalysisManager}
+   */
   const analysisManager = useMemo(() => {
     return (
       initialConfig.analysisManager ||
@@ -240,11 +237,6 @@ export const AnalysisAgent = ({
     analysisManager.getAnalysisData
   );
 
-  const toolRunDataCache = useSyncExternalStore(
-    analysisManager.subscribeToToolRunDataCacheChanges,
-    analysisManager.getToolRunDataCache
-  );
-
   useEffect(() => {
     // update context
     agentConfigContext.update({
@@ -264,39 +256,11 @@ export const AnalysisAgent = ({
 
   function setActiveNode(node) {
     setActiveNodePrivate(node);
-    // if update_prop is "sql" or "code_str" or "analysis", update tool_run_details
-    // if update_prop is inputs, update step.inputs
-    // update in context
-    Object.keys(pendingToolRunUpdates).forEach((stepId) => {
-      const updateProps = Object.keys(pendingToolRunUpdates[stepId]);
-      const toolRunData = toolRunDataCache[stepId]?.tool_run_data;
-      if (!toolRunData) return;
+    if (analysisManager) {
+      analysisManager.updateStepData(pendingStepInputUpdates);
+    }
 
-      updateProps.forEach((updateProp) => {
-        if (updateProp === "sql" || updateProp === "code_str") {
-          // update tool_run_details
-          toolRunData.tool_run_details[updateProp] =
-            pendingToolRunUpdates[stepId][updateProp];
-        } else if (updateProp === "inputs") {
-          // update step.inputs
-          toolRunData.step.inputs = pendingToolRunUpdates[stepId][updateProp];
-        }
-      });
-      toolRunData.edited = true;
-
-      // update the cache
-      analysisManager.setToolRunDataCache((prev) => {
-        return {
-          ...prev,
-          [stepId]: {
-            ...prev[stepId],
-            tool_run_data: toolRunData,
-          },
-        };
-      });
-    });
-
-    setPendingToolRunUpdates({});
+    setPendingStepInputUpdates({});
   }
 
   useEffect(() => {
@@ -304,13 +268,12 @@ export const AnalysisAgent = ({
 
     async function initialiseAnalysis() {
       try {
-        const { analysisData = {}, toolRunDataCacheUpdates = {} } =
-          await analysisManager.init({
-            question: createAnalysisRequestBody?.other_data?.user_question,
-            existingData:
-              agentConfigContext?.val?.analysisDataCache?.[analysisId] || null,
-            sqliteConn: agentConfigContext?.val?.sqliteConn,
-          });
+        const { analysisData = {} } = await analysisManager.init({
+          question: createAnalysisRequestBody?.other_data?.user_question,
+          existingData:
+            agentConfigContext?.val?.analysisDataCache?.[analysisId] || null,
+          sqliteConn: agentConfigContext?.val?.sqliteConn,
+        });
 
         const response = await fetch(getToolsEndpoint, {
           method: "POST",
@@ -452,17 +415,20 @@ export const AnalysisAgent = ({
     </div>
   );
 
-  const activestepId = useMemo(() => {
+  const activeStep = useMemo(() => {
     if (!activeNode) return null;
-
-    const toolRun = activeNode?.data?.isTool
-      ? activeNode
-      : [...activeNode?.parents()][0];
-
-    return toolRun?.data?.step?.id;
-  }, [activeNode]);
-
-  console.log(activeNode, analysisData);
+    try {
+      let stepId = activeNode.data.id;
+      // if this is an addStepNode, then the id can be figured out by removing the ending "-add"
+      if (activeNode.data.id.endsWith("-add")) {
+        stepId = activeNode.data.id.replace("-add", "");
+      }
+      return analysisData.gen_steps.steps.find((s) => s.id === stepId);
+    } catch (e) {
+      console.log(e);
+      return null;
+    }
+  }, [activeNode, analysisData]);
 
   return (
     <ErrorBoundary>
@@ -542,38 +508,35 @@ export const AnalysisAgent = ({
                     {analysisData?.gen_steps?.steps.length ? (
                       <>
                         <div className="grow px-6 rounded-b-3xl lg:rounded-br-none w-full bg-gray-50">
-                          {activestepId &&
+                          {activeStep && (
                             // if this is sqlonly, we will wait for tool run data to be updated before showing anything
                             // because in the normal case, the tool run data can be fetched from the servers
                             // but in sql only case, we only have a local copy
-                            (!isTemp ||
-                              (isTemp && toolRunDataCache[activestepId])) && (
-                              <StepResults
-                                analysisId={analysisId}
-                                activeNode={activeNode}
-                                analysisData={analysisData}
-                                step={activeNode?.data?.step}
-                                toolSocketManager={toolSocketManager}
-                                apiEndpoint={apiEndpoint}
-                                dag={dag}
-                                setActiveNode={setActiveNode}
-                                handleReRun={handleReRun}
-                                reRunningSteps={reRunningSteps}
-                                setPendingToolRunUpdates={
-                                  setPendingToolRunUpdates
+                            <StepResults
+                              analysisId={analysisId}
+                              activeNode={activeNode}
+                              analysisData={analysisData}
+                              step={activeStep}
+                              apiEndpoint={apiEndpoint}
+                              dag={dag}
+                              setActiveNode={setActiveNode}
+                              handleReRun={handleReRun}
+                              reRunningSteps={reRunningSteps}
+                              setPendingStepInputUpdates={
+                                setPendingStepInputUpdates
+                              }
+                              tools={tools}
+                              analysisBusy={analysisBusy}
+                              handleDeleteSteps={async (stepIds) => {
+                                try {
+                                  await analysisManager.deleteSteps(stepIds);
+                                } catch (e) {
+                                  messageManager.error(e);
+                                  console.log(e.stack);
                                 }
-                                tools={tools}
-                                analysisBusy={analysisBusy}
-                                handleDeleteSteps={async (stepIds) => {
-                                  try {
-                                    await analysisManager.deleteSteps(stepIds);
-                                  } catch (e) {
-                                    messageManager.error(e);
-                                    console.log(e.stack);
-                                  }
-                                }}
-                              ></StepResults>
-                            )}
+                              }}
+                            ></StepResults>
+                          )}
                         </div>
                       </>
                     ) : (

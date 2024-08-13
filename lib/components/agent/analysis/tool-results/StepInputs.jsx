@@ -373,6 +373,7 @@ export function StepInputs({
   handleEdit = () => {},
   parentNodeData = {},
 }) {
+  console.log(step);
   // parse inputs
   // if inputs doesn't start with global_dict, then it's it's type is whatever typeof returns
   // if it does start with global_dict, then it is a pandas dataframe

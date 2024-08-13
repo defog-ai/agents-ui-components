@@ -33,7 +33,16 @@ export default function StepsDag({
 }) {
   const [graph, setGraph] = useState({ nodes: {}, links: [] });
   const [nodes, setNodes] = useState([]);
-  const effectDep = JSON.stringify(steps || []);
+  const effectDep = JSON.stringify(
+    steps.map((d) => {
+      // only regenerage dag if step's tool name or error message has changed
+      return {
+        id: d.id,
+        tool_name: d.tool_name,
+        error_message: d.error_message,
+      };
+    }) || []
+  );
 
   useEffect(() => {
     let g = { nodes: {}, links: [] };

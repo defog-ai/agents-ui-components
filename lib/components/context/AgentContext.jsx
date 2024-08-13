@@ -14,7 +14,6 @@ import { createContext } from "react";
  * @property {string|null} token - Token aka hashed password. NOT api key.
  * @property {Object|null} mainManager - Main websocket manager.
  * @property {Object|null} reRunManager - Re-run websocket manager.
- * @property {Object|null} toolSocketManager - Tool websocket manager.
  * @property {boolean} showAnalysisUnderstanding - Poorly named. Whether to show "analysis understanding" aka description of the results of a step under the table of that step.
  * @property {boolean} showCode - Whether to show tool code.
  * @property {boolean} allowDashboardAdd - Whether to allow addition to dashboards.
@@ -37,7 +36,6 @@ export const defaultAgentConfig = {
   toolRunDataCache: {},
   mainManager: null,
   reRunManager: null,
-  toolSocketManager: null,
   showAnalysisUnderstanding: true,
   showCode: true,
   allowDashboardAdd: true,
