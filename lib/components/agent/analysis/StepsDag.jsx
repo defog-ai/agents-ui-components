@@ -55,7 +55,7 @@ export default function StepsDag({
         step: step,
       };
 
-      // to find if this step could have parents, we will regex search for all matches for "global.*" in the inputs
+      // to find if this step could have parents, we will regex search for all matches for "global_dict.*" in the inputs
       // and get unique parents
       let parents = Object.values(step["inputs"]).reduce((acc, input, i) => {
         let inp = input;
@@ -69,8 +69,15 @@ export default function StepsDag({
           if (typeof i !== "string") return acc;
 
           let matches = [...i.matchAll(/(?:global_dict\.)(\w+)/g)];
-          matches.forEach(([_, parent]) => {
-            acc.add(parent);
+          matches.forEach(([_, globalDictInput]) => {
+            // acc.add(parent);
+            // find which step created this globalDictInput
+            for (let i = 0; i < steps.length; i++) {
+              const step = steps[i];
+              if (step.outputs_storage_keys.includes(globalDictInput)) {
+                acc.add(step.tool_run_id);
+              }
+            }
           });
         });
         return acc;
@@ -101,81 +108,82 @@ export default function StepsDag({
         g["nodes"][step_id]["parents"]
       );
 
-      let children =
-        step["outputs_storage_keys"] || step["result_storage_keys"];
+      // let children =
+      //   step["outputs_storage_keys"] || step["result_storage_keys"];
 
-      if (children) {
-        children.forEach((child) => {
-          // create nodes for each child
-          if (!g["nodes"][child]) {
-            g["nodes"][child] = {
-              id: child,
-              step: step,
-              title: child,
-              isTool: false,
-              isOutput: true,
-              isError: step.error_message,
-              key: child,
-              parents: [step_id],
-              children: [],
-            };
-          }
+      // if (children) {
+      // children.forEach((child) => {
+      //   // create nodes for each child
+      //   if (!g["nodes"][child]) {
+      //     g["nodes"][child] = {
+      //       id: child,
+      //       step: step,
+      //       title: child,
+      //       isTool: false,
+      //       isOutput: true,
+      //       isError: step.error_message,
+      //       key: child,
+      //       parents: [step_id],
+      //       children: [],
+      //     };
+      //   }
 
-          g["links"].push({
-            source: step_id,
-            target: child,
-          });
-          // add this child to the list of children for this step
-          g["nodes"][step_id]["children"].push(g["nodes"][child]);
+      //   g["links"].push({
+      //     source: step_id,
+      //     target: child,
+      //   });
+      //   // add this child to the list of children for this step
+      //   g["nodes"][step_id]["children"].push(g["nodes"][child]);
 
-          if (!step.error_message && !skipAddStepNode) {
-            // "add step" as a child of this child
-            const addStepNodeId = child + "-add";
+      if (!step.error_message && !skipAddStepNode) {
+        // "add step" as a child of this child
+        let source = step.tool_run_id;
+        const addStepNodeId = source + "-add";
 
-            // add a child that is basically a plus icon to add another node
-            g["nodes"][addStepNodeId] = {
-              id: addStepNodeId,
-              isAddStepNode: true,
-              title: "+",
-              key: addStepNodeId,
-              isTool: false,
-              isError: step.error_message,
-              parents: [child],
-              children: [],
-              step: {
-                inputs: {},
-                tool_name: null,
-                parent_step: step,
-              },
-            };
+        // add a child that is basically a plus icon to add another node
+        g["nodes"][addStepNodeId] = {
+          id: addStepNodeId,
+          isAddStepNode: true,
+          title: "+",
+          key: addStepNodeId,
+          isTool: false,
+          isError: step.error_message,
+          parents: [source],
+          children: [],
+          step: {
+            inputs: {},
+            tool_name: null,
+            parent_step: step,
+          },
+        };
 
-            // also add a link
-            g["links"].push({
-              source: child,
-              target: addStepNodeId,
-            });
-            g["nodes"][child]["children"].push(g["nodes"][addStepNodeId]);
-          }
+        // also add a link
+        g["links"].push({
+          source: source,
+          target: addStepNodeId,
         });
+        g["nodes"][source]["children"].push(g["nodes"][addStepNodeId]);
       }
+      //   });
+      // }
 
       // for each node, figure out it's "level"
       // level is the number of steps away from a node that has 0 parents
       // a node with 0 parents has level 0
 
       // go through each node, and go through it's parents
-      Object.values(g["nodes"]).forEach((node) => {
-        if (node["parents"].length == 0) node["level"] = 0;
-        else {
-          // find the parent with the highest level
-          let highest_level = 0;
-          node["parents"].forEach((parent_id) => {
-            if (g["nodes"][parent_id]["level"] > highest_level)
-              highest_level = g["nodes"][parent_id]["level"];
-          });
-          node["level"] = highest_level + 1;
-        }
-      });
+      // Object.values(g["nodes"]).forEach((node) => {
+      //   if (node["parents"].length == 0) node["level"] = 0;
+      //   else {
+      //     // find the parent with the highest level
+      //     let highest_level = 0;
+      //     node["parents"].forEach((parent_id) => {
+      //       if (g["nodes"][parent_id]["level"] > highest_level)
+      //         highest_level = g["nodes"][parent_id]["level"];
+      //     });
+      //     node["level"] = highest_level + 1;
+      //   }
+      // });
     });
 
     const { dag, width, height } = createDag(
@@ -200,21 +208,23 @@ export default function StepsDag({
     try {
       // last step node as active
       const lastStep = steps?.[steps.length - 1];
-      if (setLastOutputNodeAsActive) {
-        // get the first output of this step
-        const lastStepOutput = lastStep?.["outputs_storage_keys"]?.[0];
-        const lastStepOutputNode = n?.find((d) => d.data.id === lastStepOutput);
-        if (lastStepOutputNode) {
-          setActiveNode(lastStepOutputNode);
-        }
-      } else {
-        // set the first step as active
-        const firstStep = steps?.[0];
-        const firstStepNode = n?.find((d) => d.data.id === firstStep.id);
-        if (firstStepNode) {
-          setActiveNode(firstStepNode);
-        }
+      const lastStepOutputNode = n?.find(
+        (d) => d.data.id === lastStep.tool_run_id
+      );
+      if (lastStepOutputNode) {
+        setActiveNode(lastStepOutputNode);
       }
+      // if (setLastOutputNodeAsActive) {
+      //   // get the first output of this step
+      //   const lastStepOutput = lastStep?.["outputs_storage_keys"]?.[0];
+      // } else {
+      //   // set the first step as active
+      //   const firstStep = steps?.[0];
+      //   const firstStepNode = n?.find((d) => d.data.id === firstStep.id);
+      //   if (firstStepNode) {
+      //     setActiveNode(firstStepNode);
+      //   }
+      // }
     } catch (e) {
       console.log("Error setting active node: ", e);
     }
