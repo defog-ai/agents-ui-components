@@ -262,8 +262,6 @@ export const AnalysisAgent = ({
     }
   }, [analysisData]);
 
-  console.log(analysisData);
-
   function setActiveNode(node) {
     setActiveNodePrivate(node);
     // if update_prop is "sql" or "code_str" or "analysis", update tool_run_details
@@ -464,9 +462,7 @@ export const AnalysisAgent = ({
     return toolRun?.data?.step?.id;
   }, [activeNode]);
 
-  console.log(activeNode);
-
-  console.log(analysisData);
+  console.log(activeNode, analysisData);
 
   return (
     <ErrorBoundary>

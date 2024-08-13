@@ -309,6 +309,7 @@ export function StepResults({
         <StepError error_message={step?.error_message}></StepError>
       ) : (
         <Tabs
+          disableSingleSelect={true}
           tabs={[
             {
               name: "SQL/Code",

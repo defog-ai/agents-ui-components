@@ -17,7 +17,7 @@ export function AnalysisList() {
       .filter((d) => d && d.user_question)
       .map((analysis, i) => {
         let dom = analysesRef.current.querySelector(
-          `#analysis-list-${analysis.report_id}`
+          `#analysis-list-${analysis.analysis_id}`
         );
 
         dom.addEventListener("dragstart", (e) => {
@@ -28,7 +28,7 @@ export function AnalysisList() {
             // remember that attributes here are going to be lowercased and camelCased
             // so "analysis-id" becomes "analysisId"
             // your prop should be "analysisId"
-            `<div data-content-type="analysis" data-analysis-id="${analysis.report_id}"></div>`
+            `<div data-content-type="analysis" data-analysis-id="${analysis.analysis_id}"></div>`
           );
         });
       });
@@ -48,8 +48,8 @@ export function AnalysisList() {
             .map((analysis, i) => (
               <div
                 draggable="true"
-                key={analysis.report_id}
-                id={`analysis-list-${analysis.report_id}`}
+                key={analysis.analysis_id}
+                id={`analysis-list-${analysis.analysis_id}`}
                 className="analysis-list-sidebar-item"
               >
                 <span>{analysis.user_question}</span>

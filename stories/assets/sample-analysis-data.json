@@ -1,7 +1,7 @@
 {
   "user_question": "show me 5 rows",
   "timestamp": "2024-08-05 11:32:33.885342",
-  "report_id": "901ce370-9ea3-42c0-b06a-7fed46c7a888",
+  "analysis_id": "901ce370-9ea3-42c0-b06a-7fed46c7a888",
   "api_key": "123",
   "username": "bdbe4d376e6c8a53a791a86470b924c0715854bd353483523e3ab016eb55bcd0",
   "currentStage": "gen_steps",
