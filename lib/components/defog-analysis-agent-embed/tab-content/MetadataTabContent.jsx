@@ -22,7 +22,7 @@ export function MetadataTabContent({
 
     const hasMetadata = db.metadata ? true : false;
     async function getMetadata() {
-      if (!apiEndpoint || !keyName || !token) {
+      if (!token) {
         messageManager.error("Failed to get metadata");
         return;
       }

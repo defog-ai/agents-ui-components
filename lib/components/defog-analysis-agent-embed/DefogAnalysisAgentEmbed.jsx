@@ -242,7 +242,7 @@ export function EmbedInner({
               : ""
           ),
         content:
-          !selectedDbManager || !selectedDbKeyName || !token || !apiEndpoint ? (
+          !selectedDbManager || !selectedDbKeyName || !token ? (
             nullTab
           ) : (
             <AnalysisTabContent
