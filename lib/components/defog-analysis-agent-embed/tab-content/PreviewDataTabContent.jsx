@@ -42,7 +42,7 @@ export function PreviewDataTabContent({
         let fetchedData;
 
         try {
-          if (!apiEndpoint || !keyName || !token) {
+          if (!token) {
             throw new Error("Failed to get data");
           }
 
