@@ -22,8 +22,8 @@ export function MetadataTabContent({
 
     const hasMetadata = db.metadata ? true : false;
     async function getMetadata() {
-      if (!apiEndpoint || !keyName || !token) {
-        messageManager.error("Api endpoint, keyname or token missing.");
+      if (!token) {
+        messageManager.error("Failed to get metadata");
         return;
       }
       let fetchedMetadata;
