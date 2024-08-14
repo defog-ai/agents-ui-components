@@ -77,7 +77,7 @@ export const AnalysisAgent = ({
   },
 }) => {
   const agentConfigContext = useContext(AgentConfigContext);
-  const { devMode, apiEndpoint, token, mainManager } = agentConfigContext.val;
+  const { devMode, apiEndpoint, token } = agentConfigContext.val;
 
   const getToolsEndpoint = setupBaseUrl({
     protocol: "http",
@@ -90,6 +90,12 @@ export const AnalysisAgent = ({
   const [activeNode, setActiveNodePrivate] = useState(null);
   const [dag, setDag] = useState(null);
   const [dagLinks, setDagLinks] = useState([]);
+
+  // we use this to prevent multiple rerender/updates when a user edits the step inputs
+  // we flush these pending updates to the actual analysis data when:
+  // 1. the active node changes
+  // 2. the user submits the step for re running
+  const [pendingStepUpdates, setPendingStepUpdates] = useState([]);
 
   const windowSize = useWindowSize();
 
@@ -145,50 +151,6 @@ export const AnalysisAgent = ({
     }
   }
 
-  const onReRunMessage = useCallback(
-    (response) => {
-      try {
-        setRerunningSteps(analysisManager.reRunningSteps);
-
-        // and set active node to this one
-        const parentNodes = [...dag.nodes()].filter(
-          (d) =>
-            d.data.isOutput && d.data.parentIds.find((p) => p === response.id)
-        );
-        if (parentNodes.length) {
-          setActiveNodePrivate(parentNodes[0]);
-        }
-
-        if (response.error_message) {
-          // messageManager.error(response.error_message);
-          throw new Error(response.error_message);
-        }
-
-        // // update reactive context
-        // Object.keys(response?.tool_run_data?.outputs || {}).forEach((k, i) => {
-        //   if (!response?.tool_run_data?.outputs?.[k]?.reactive_vars) return;
-        //   const runId = response.id;
-        //   reactiveContext.update((prev) => {
-        //     return {
-        //       ...prev,
-        //       [runId]: {
-        //         ...prev[runId],
-        //         [k]: response?.tool_run_data?.outputs?.[k]?.reactive_vars,
-        //       },
-        //     };
-        //   });
-        // });
-      } catch (e) {
-        messageManager.error(e);
-        console.log(e.stack);
-      } finally {
-        // setAnalysisBusy(false);
-        setGlobalLoading(false);
-      }
-    },
-    [dag]
-  );
-
   /**
    * @type {import("./analysisManager").AnalysisManager}
    */
@@ -205,15 +167,12 @@ export const AnalysisAgent = ({
         isTemp,
         sqlOnly,
         onNewData: onMainSocketMessage,
-        // onReRunData: onReRunMessage,
         onManagerDestroyed: onManagerDestroyed,
         createAnalysisRequestBody,
         mainSocket: null, // Add mainSocket property
       })
     );
   }, [analysisId, messageManager]);
-
-  analysisManager.setOnReRunDataCallback(onReRunMessage);
 
   const analysisBusy = useSyncExternalStore(
     analysisManager.subscribeToAnalysisBusyChanges,
@@ -242,8 +201,15 @@ export const AnalysisAgent = ({
     }
   }, [analysisData]);
 
+  function flushPendingStepUpdates() {
+    // if there are pending updates, flush them
+    analysisManager.updateStepData(pendingStepUpdates);
+    setPendingStepUpdates({});
+  }
+
   function setActiveNode(node) {
     setActiveNodePrivate(node);
+    flushPendingStepUpdates();
   }
 
   useEffect(() => {
@@ -300,15 +266,8 @@ export const AnalysisAgent = ({
   useEffect(() => {
     if (analysisManager) {
       onManagerCreated(analysisManager, analysisId, ctr.current);
-      if (mainManager) {
-        analysisManager.setMainSocket(mainManager);
-
-        analysisManager.addEventListeners();
-      }
     }
-  }, [analysisManager, mainManager]);
-
-  console.log(analysisData);
+  }, [analysisManager]);
 
   const handleSubmit = useCallback(
     (query, stageInput = {}, submitStage = null) => {
@@ -335,7 +294,7 @@ export const AnalysisAgent = ({
   );
 
   const handleReRun = useCallback(
-    async (stepId, preRunActions = {}) => {
+    async (stepId) => {
       if (!stepId || !dag || !analysisId || !activeNode || !analysisManager) {
         console.log(stepId, dag, analysisId, activeNode, analysisManager);
         messageManager.error("Invalid step id or analysis data");
@@ -344,6 +303,9 @@ export const AnalysisAgent = ({
       }
 
       try {
+        // first flush any updates
+        flushPendingStepUpdates();
+
         await analysisManager.reRun(stepId);
       } catch (e) {
         messageManager.error(e);
@@ -501,11 +463,19 @@ export const AnalysisAgent = ({
                               setActiveNode={setActiveNode}
                               handleReRun={handleReRun}
                               reRunningSteps={reRunningSteps}
-                              updateStepData={(updates) => {
+                              updateStepData={(stepId, updates) => {
                                 if (!analysisManager) return;
                                 if (analysisBusy) return;
 
-                                analysisManager.updateStepData(updates);
+                                // analysisManager.updateStepData(updates);
+                                setPendingStepUpdates((prev) => ({
+                                  ...prev,
+                                  [stepId]: Object.assign(
+                                    {},
+                                    prev[stepId],
+                                    updates
+                                  ),
+                                }));
                               }}
                               tools={tools}
                               analysisBusy={analysisBusy}

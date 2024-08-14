@@ -150,11 +150,8 @@ export function StepResults({
     // edit this in the context too
     // but only do batch update when we click on another node
     // so we can prevent react rerendering
-    updateStepData({
-      [step_id]: {
-        ...step,
-        [update_prop]: new_val,
-      },
+    updateStepData(stepId, {
+      [update_prop]: new_val,
     });
   }
 
