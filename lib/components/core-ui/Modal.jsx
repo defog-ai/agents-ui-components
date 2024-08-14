@@ -63,7 +63,7 @@ export function Modal({
         <DialogPanel className="h-[95%] w-10/12 space-y-4 z-[2] relative flex flex-row items-center pointer-events-none">
           <div
             className={twMerge(
-              "relative max-h-full overflow-scroll p-4 bg-white rounded-md grow pointer-events-auto ",
+              "relative max-h-full overflow-auto p-4 bg-white rounded-md grow pointer-events-auto ",
               contentClassNames
             )}
           >

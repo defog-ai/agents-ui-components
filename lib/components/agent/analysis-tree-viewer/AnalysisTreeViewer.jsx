@@ -290,7 +290,7 @@ export function AnalysisTreeViewer({
               setSidebarOpen(false);
             }}
           ></div>
-          <div className="grid grid-cols-1 pt-10 sm:pt-0 auto-cols-max lg:grid-cols-1 grow rounded-tr-lg p-2 lg:p-4 relative min-w-0 h-full overflow-scroll">
+          <div className="grid grid-cols-1 pt-10 sm:pt-0 auto-cols-max lg:grid-cols-1 grow rounded-tr-lg p-2 lg:p-4 relative min-w-0 h-full overflow-auto">
             {activeRootAnalysisId &&
               analysisTree?.[activeRootAnalysisId]?.analysisList &&
               analysisTree[activeRootAnalysisId].analysisList.map(
@@ -540,7 +540,7 @@ export function AnalysisTreeViewer({
           setAddToDashboardSelection(false);
         }}
       >
-        <div className="dashboard-selection mt-8 flex flex-col max-h-80 overflow-scroll bg-gray-100 rounded-md">
+        <div className="dashboard-selection mt-8 flex flex-col max-h-80 overflow-auto bg-gray-100 rounded-md">
           {dashboards.map((dashboard) => (
             <div
               className={

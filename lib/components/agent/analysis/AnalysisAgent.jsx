@@ -77,8 +77,7 @@ export const AnalysisAgent = ({
   },
 }) => {
   const agentConfigContext = useContext(AgentConfigContext);
-  const { devMode, apiEndpoint, token, mainManager, reRunManager } =
-    agentConfigContext.val;
+  const { devMode, apiEndpoint, token, mainManager } = agentConfigContext.val;
 
   const getToolsEndpoint = setupBaseUrl({
     protocol: "http",
@@ -86,9 +85,6 @@ export const AnalysisAgent = ({
     apiEndpoint: apiEndpoint,
   });
 
-  // console.log("Key name", keyName);
-  // console.log("Did upload file", isTemp);
-  const [pendingStepInputUpdates, setPendingStepInputUpdates] = useState({});
   const [reRunningSteps, setRerunningSteps] = useState([]);
   const reactiveContext = useContext(ReactiveVariablesContext);
   const [activeNode, setActiveNodePrivate] = useState(null);
@@ -153,13 +149,6 @@ export const AnalysisAgent = ({
     (response) => {
       try {
         setRerunningSteps(analysisManager.reRunningSteps);
-        // remove all pending updates for this id
-        // because all new data is already there in the received response
-        setPendingStepInputUpdates((prev) => {
-          const newUpdates = { ...prev };
-          delete newUpdates[response.id];
-          return newUpdates;
-        });
 
         // and set active node to this one
         const parentNodes = [...dag.nodes()].filter(
@@ -216,11 +205,10 @@ export const AnalysisAgent = ({
         isTemp,
         sqlOnly,
         onNewData: onMainSocketMessage,
-        onReRunData: onReRunMessage,
+        // onReRunData: onReRunMessage,
         onManagerDestroyed: onManagerDestroyed,
         createAnalysisRequestBody,
         mainSocket: null, // Add mainSocket property
-        rerunSocket: null, // Add rerunSocket property
       })
     );
   }, [analysisId, messageManager]);
@@ -256,11 +244,6 @@ export const AnalysisAgent = ({
 
   function setActiveNode(node) {
     setActiveNodePrivate(node);
-    if (analysisManager) {
-      analysisManager.updateStepData(pendingStepInputUpdates);
-    }
-
-    setPendingStepInputUpdates({});
   }
 
   useEffect(() => {
@@ -317,14 +300,15 @@ export const AnalysisAgent = ({
   useEffect(() => {
     if (analysisManager) {
       onManagerCreated(analysisManager, analysisId, ctr.current);
-      if (mainManager && reRunManager) {
+      if (mainManager) {
         analysisManager.setMainSocket(mainManager);
-        analysisManager.setReRunSocket(reRunManager);
 
         analysisManager.addEventListeners();
       }
     }
-  }, [analysisManager, mainManager, reRunManager]);
+  }, [analysisManager, mainManager]);
+
+  console.log(analysisData);
 
   const handleSubmit = useCallback(
     (query, stageInput = {}, submitStage = null) => {
@@ -351,27 +335,22 @@ export const AnalysisAgent = ({
   );
 
   const handleReRun = useCallback(
-    (stepId, preRunActions = {}) => {
-      if (
-        !stepId ||
-        !dag ||
-        !analysisId ||
-        !reRunManager ||
-        !reRunManager.send ||
-        !activeNode
-      ) {
-        console.log(stepId, dag, analysisId, reRunManager, activeNode);
+    async (stepId, preRunActions = {}) => {
+      if (!stepId || !dag || !analysisId || !activeNode || !analysisManager) {
+        console.log(stepId, dag, analysisId, activeNode, analysisManager);
+        messageManager.error("Invalid step id or analysis data");
+
         return;
       }
 
       try {
-        analysisManager.initiateReRun(stepId, preRunActions);
+        await analysisManager.reRun(stepId);
       } catch (e) {
         messageManager.error(e);
         console.log(e.stack);
       }
     },
-    [analysisId, activeNode, reRunManager, dag, analysisManager]
+    [analysisId, activeNode, dag, analysisManager]
   );
 
   const titleDiv = (
@@ -522,9 +501,12 @@ export const AnalysisAgent = ({
                               setActiveNode={setActiveNode}
                               handleReRun={handleReRun}
                               reRunningSteps={reRunningSteps}
-                              setPendingStepInputUpdates={
-                                setPendingStepInputUpdates
-                              }
+                              updateStepData={(updates) => {
+                                if (!analysisManager) return;
+                                if (analysisBusy) return;
+
+                                analysisManager.updateStepData(updates);
+                              }}
                               tools={tools}
                               analysisBusy={analysisBusy}
                               handleDeleteSteps={async (stepIds) => {

@@ -9,7 +9,7 @@ const dbs = [
     keyName: "Manufacturing",
     name: "Manufacturing",
     predefinedQuestions: [
-      "Show me any 5 rows from the dataset",
+      "Show me any 5 rows from the dataset and create a boxplot",
       "Show me any 40 rows from the dataset",
     ],
   },

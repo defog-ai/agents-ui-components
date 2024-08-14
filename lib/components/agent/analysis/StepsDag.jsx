@@ -210,7 +210,7 @@ export default function StepsDag({
 
   return (
     <div
-      className="analysis-graph p-2 rounded-md overflow-scroll"
+      className="analysis-graph p-2 rounded-md overflow-auto"
       key={steps?.length}
     >
       {dag ? (

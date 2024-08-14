@@ -165,7 +165,7 @@ export function PreviewDataTabContent({
                   allowCreateNewOption={false}
                 />
               </div>
-              <div className="max-w-full overflow-scroll">
+              <div className="max-w-full overflow-auto">
                 <Table
                   pagination={{
                     defaultPageSize: 5,

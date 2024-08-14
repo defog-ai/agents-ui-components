@@ -139,7 +139,7 @@ export function ToolFlow({
               <NewToolCodeEditor
                 editable
                 toolCode={activeInput.code}
-                className="h-96 overflow-scroll"
+                className="h-96 overflow-auto"
                 onChange={handleCodeChange}
               />
             </>
