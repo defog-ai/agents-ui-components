@@ -13,16 +13,16 @@ function QueryDataPage() {
       showAnalysisUnderstanding={true}
       dbs={[
         {
-          keyName: "Demo 1",
-          name: "Demo 1",
+          keyName: "Sales",
+          name: "Sales",
           predefinedQuestions: [
             "Show me any 5 rows from the dataset",
             "Show me any 40 rows from the dataset",
           ],
         },
         {
-          keyName: "Demo 2",
-          name: "Demo 2",
+          keyName: "Manufacturing",
+          name: "Manufacturing",
           predefinedQuestions: ["Show me any 5 rows from the dataset"],
         },
       ]}
