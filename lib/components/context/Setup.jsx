@@ -102,10 +102,10 @@ export function Setup({
       // setup user items
       const userItems = {};
 
-      // const toolboxes = await getToolboxes(token, apiEndpoint);
-      // if (toolboxes && toolboxes.success) {
-      //   userItems.toolboxes = toolboxes.toolboxes;
-      // }
+      const toolboxes = await getToolboxes(token, apiEndpoint);
+      if (toolboxes && toolboxes.success) {
+        userItems.toolboxes = toolboxes.toolboxes;
+      }
 
       let conn = null;
       try {
