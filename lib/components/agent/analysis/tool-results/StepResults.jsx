@@ -270,6 +270,7 @@ export function StepResults({
       ) : (
         <Tabs
           disableSingleSelect={true}
+          defaultSelected="Analysis"
           tabs={[
             {
               name: "SQL/Code",
