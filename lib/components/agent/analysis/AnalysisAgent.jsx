@@ -296,6 +296,8 @@ export const AnalysisAgent = ({
         return;
       }
 
+      console.log(activeNode);
+
       try {
         // first flush any updates
         flushPendingStepUpdates();
@@ -306,7 +308,7 @@ export const AnalysisAgent = ({
         console.log(e.stack);
       }
     },
-    [analysisId, activeNode, dag, analysisManager]
+    [analysisId, JSON.stringify(activeNode), dag, analysisManager]
   );
 
   const titleDiv = (
