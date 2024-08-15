@@ -49,6 +49,7 @@ import { StepResults } from "./tool-results/StepResults";
  * @property {Object} createAnalysisRequestBody - Object that will be sent as the body of the fetch request to create_analysis.
  * @property {boolean} initiateAutoSubmit - Whether to initiate auto submit.
  * @property {boolean} hasExternalSearchBar - Whether this is being controlled by an external search bar.
+ * @property {Array.<Object>} userQuestions - Questions that the user has asked so far before this analysis. has to be an array of Objects.
  * @property {Function} setGlobalLoading - Global loading. Useful if you are handling multiple analysis..
  * @property {Function} onManagerCreated - Callback when analysis manager is created.
  * @property {Function} onManagerDestroyed - Callback when analysis manager is destroyed.
@@ -69,6 +70,7 @@ export const AnalysisAgent = ({
   createAnalysisRequestBody = {},
   initiateAutoSubmit = false,
   hasExternalSearchBar = null,
+  userQuestions=[], // questions that the user has asked so far in the analysis
   setGlobalLoading = (...args) => {},
   onManagerCreated = (...args) => {},
   onManagerDestroyed = (...args) => {},
@@ -163,6 +165,7 @@ export const AnalysisAgent = ({
         metadata,
         isTemp,
         sqlOnly,
+        userQuestions,
         onNewData: onMainSocketMessage,
         onManagerDestroyed: onManagerDestroyed,
         createAnalysisRequestBody,

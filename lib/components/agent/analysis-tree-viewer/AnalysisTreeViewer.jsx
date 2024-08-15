@@ -295,6 +295,8 @@ export function AnalysisTreeViewer({
               analysisTree?.[activeRootAnalysisId]?.analysisList &&
               analysisTree[activeRootAnalysisId].analysisList.map(
                 (analysis) => {
+                  const rootAnalysisId = analysis.rootAnalysisId;
+                  const analysisChildList = analysisTree?.[rootAnalysisId]?.analysisList || [];
                   return (
                     <AnalysisAgent
                       key={analysis.analysisId}
@@ -315,6 +317,7 @@ export function AnalysisTreeViewer({
                       sqlOnly={analysis.sqlOnly}
                       isTemp={analysis.isTemp}
                       keyName={analysis.keyName}
+                      userQuestions={analysisChildList.map((i) => ({...i}))}
                       onManagerCreated={(analysisManager, id, ctr) => {
                         analysisDomRefs.current[id] = {
                           ctr,
