@@ -199,9 +199,13 @@ export const AnalysisAgent = ({
 
   function flushPendingStepUpdates() {
     // if there are pending updates, flush them
-    analysisManager.updateStepData(pendingStepUpdates);
-    setPendingStepUpdates({});
+    setPendingStepUpdates((prev) => {
+      analysisManager.updateStepData(prev);
+      return {};
+    });
   }
+
+  console.log(analysisData);
 
   function setActiveNode(node) {
     setActiveNodePrivate(node);

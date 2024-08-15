@@ -371,7 +371,7 @@ export function StepInputs({
   availableOutputNodes = [],
   setActiveNode = () => {},
   handleEdit = () => {},
-  parentNodeData = {},
+  parentNodeOutputs = {},
 }) {
   // parse inputs
   // if inputs doesn't start with global_dict, then it's it's type is whatever typeof returns
@@ -380,15 +380,16 @@ export function StepInputs({
   // if there's parsedOutputs, use the .columns property from that
   let availableParentColumns = [];
 
-  Object.keys(parentNodeData).forEach((key) => {
-    if (!parentNodeData[key]?.parsedOutputs) return;
-    if (parentNodeData[key]?.parsedOutputs) {
-      Object.keys(parentNodeData[key]?.parsedOutputs).forEach((df) => {
-        availableParentColumns = availableParentColumns.concat(
-          parentNodeData[key]?.parsedOutputs[df]?.data?.columns || []
-        );
-      });
-    }
+  Object.keys(parentNodeOutputs).forEach((output_df_name) => {
+    if (
+      !parentNodeOutputs[output_df_name]?.columns ||
+      !parentNodeOutputs[output_df_name]?.data
+    )
+      return;
+
+    availableParentColumns = availableParentColumns.concat(
+      parentNodeOutputs?.[output_df_name]?.columns || []
+    );
   });
 
   const [inputs, setInputs] = useState(step.inputs);

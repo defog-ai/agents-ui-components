@@ -75,7 +75,7 @@ export function StepResults({
 
   const stepId = step.id;
 
-  const [parentNodeData, setParentNodeData] = useState({});
+  const [parentNodeOutputs, setParentNodeOutputs] = useState({});
 
   const availableOutputNodes = useMemo(
     () => (dag && [...dag?.nodes()].filter((n) => !n.data.isTool)) || [],
@@ -160,9 +160,6 @@ export function StepResults({
     if (!activeNode) return;
 
     async function getAvailableInputDfs() {
-      // if is add step node, we still need parent step data
-      // const newToolRunDataCache = { ...toolRunDataCache };
-      // this is a lot of DRY code, but it's okay for now
       let availableInputDfs = [];
       try {
         if (!activeNode || !activeNode.ancestors) availableInputDfs = [];
@@ -170,7 +167,6 @@ export function StepResults({
         availableInputDfs = [...dag.nodes()]
           .filter(
             (d) =>
-              !d.data.isTool &&
               d.data.id !== activeNode.data.id &&
               !d.data.isError &&
               !d.data.isAddStepNode
@@ -181,47 +177,32 @@ export function StepResults({
         availableInputDfs = [];
       }
 
-      let parentIds = availableInputDfs.map((n) => n.data.stepId);
+      let parentStepIds = availableInputDfs.map((n) => n.data.id);
 
-      // get data for all these nodes
-      // let parentData = await Promise.all(
-      //   parentIds.map((id) => {
-      //     // try to get from cache
-      //     // if (toolRunDataCache[id]) {
-      //     //   return toolRunDataCache[id];
-      //     // }
-      //     return fetchToolRunDataFromServer(id, apiEndpoint);
-      //   })
-      // );
+      // get the data for all those parents
+      if (!analysisData || !analysisData?.gen_steps?.steps) return;
 
-      // update toolRunDataCache
-      // parentData.forEach((d) => {
-      //   if (d.success) {
-      //     // parse outputs
-      //     d.tool_run_data.parsedOutputs = parseOutputs(
-      //       d.tool_run_data,
-      //       analysisData
-      //     );
+      let parentNodeOutputs = analysisData.gen_steps.steps
+        .filter((s) => parentStepIds.includes(s.id))
+        .reduce((acc, d) => {
+          try {
+            // i don't trust LLMs
+            const parsedOutputs = parseOutputs(d, analysisData);
+            Object.keys(parsedOutputs).forEach((k) => {
+              acc[k] = parsedOutputs[k]?.data;
+            });
+          } catch (e) {
+            console.log("Error parsing outputs of step: ", d);
+            console.log(e);
+          }
 
-      //     // newToolRunDataCache[d.tool_run_data.id] = d;
-      //   }
-      // });
+          return acc;
+        }, {});
 
-      // setParentNodeData(
-      //   parentData.reduce((acc, d) => {
-      //     // for each output add a key to acc
-      //     if (d.success) {
-      //       Object.keys(d.tool_run_data.parsedOutputs).forEach((k) => {
-      //         acc[k] = d.tool_run_data.parsedOutputs[k];
-      //       });
-      //     }
-      //     return acc;
-      //   }, {})
-      // );
+      setParentNodeOutputs(parentNodeOutputs);
     }
-    if (activeNode.data.isAddStepNode) {
-      getAvailableInputDfs();
-    }
+
+    getAvailableInputDfs();
   }, [activeNode, reRunningSteps]);
 
   // rerunningstepsis array of object: {id: res.pre_tool_run_message,
@@ -262,7 +243,7 @@ export function StepResults({
           apiEndpoint={apiEndpoint}
           dag={dag}
           handleReRun={handleReRun}
-          parentNodeData={parentNodeData}
+          parentNodeOutputs={parentNodeOutputs}
           tools={tools}
         />
       ) : step?.error_message && !activeNode.data.isTool ? (
@@ -319,7 +300,7 @@ export function StepResults({
                       availableOutputNodes={availableOutputNodes}
                       setActiveNode={setActiveNode}
                       handleEdit={handleEdit}
-                      parentNodeData={parentNodeData}
+                      parentNodeOutputs={parentNodeOutputs}
                     ></StepInputs>
                   </div>
                   <div className="my-4">

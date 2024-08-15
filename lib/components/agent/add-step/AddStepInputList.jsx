@@ -34,7 +34,7 @@ export function AddStepInputList({
   inputs = {},
   onEdit = () => {},
   newListValueDefault = "",
-  parentNodeData = {},
+  parentNodeOutputs = {},
   autoFocus = true,
 }) {
   const inputMetadata = toolMetadata?.input_metadata || {};
@@ -63,38 +63,51 @@ export function AddStepInputList({
 
   const [availableColumns, setAvailableColumns] = useState([]);
 
+  console.log("parentNodeOutputs", parentNodeOutputs);
   useEffect(() => {
     // check if any of the inputs is global_dict.something
     if (!inputs) return [];
-    let avail = [];
+    let cols = [];
 
     console.log("inputs", inputs);
-    console.log("parentNodeData", parentNodeData);
 
-    Object.keys(inputs).forEach((input_name) => {
-      const input = inputs[input_name];
+    // the inputs prop changes whenever we select change an input from the dropdowns
+    // we need to check if any of the inputs is a dataframe, and show the columns of that dataframe
+    // as options to any other inputs that might be column names
+    // we first find if we have parent node data
 
+    if (!parentNodeOutputs) return;
+
+    // parentNodeOutputs is an object with keys as the names of the output dfs
+
+    // go through any input that is a dataframe, and add the columns of that dataframe to the available columns
+    // we get the available columns from parentNodeOutputs
+
+    Object.keys(inputs).forEach((inputName) => {
+      const input = inputs[inputName];
+
+      // if not string, return
       if (typeof input !== "string") return;
+
       if (input?.startsWith("global_dict.")) {
-        const id = input.split(".")[1];
-        console.log(id);
-        const parent = parentNodeData[id];
-        console.log("parent", parent);
-        if (parent) {
-          avail = avail.concat(parent.data.columns);
+        const dfName = input.split(".")[1];
+        const output = parentNodeOutputs[dfName];
+        console.log(dfName, output);
+
+        if (output && output.columns) {
+          cols = cols.concat(output.columns);
         }
       }
     });
-    setAvailableColumns(avail);
-  }, [inputs, parentNodeData, stepId]);
+
+    setAvailableColumns(cols);
+  }, [inputs, parentNodeOutputs, stepId]);
 
   return (
     <div className="" key={stepId} ref={ctr}>
-      {Object.keys(inputs).map((input_name, i) => {
-        const sanitizedType = sanitizeInputType(
-          inputMetadata[input_name]?.type
-        );
-        const input = inputs[input_name];
+      {Object.keys(inputs).map((inputName, i) => {
+        const sanitizedType = sanitizeInputType(inputMetadata[inputName]?.type);
+        const input = inputs[inputName];
         const ItemToRender = inputTypeToUI[sanitizedType];
 
         return (
@@ -106,25 +119,23 @@ export function AddStepInputList({
               <span className="rounded-lg p-1 bg-gray-200 text-gray-400 mr-2">
                 {easyToolInputTypes[sanitizedType] || sanitizedType}
               </span>
-              <span className="font-bold">
-                {inputMetadata[input_name].name}
-              </span>
+              <span className="font-bold">{inputMetadata[inputName].name}</span>
             </span>
             {sanitizedType in inputTypeToUI && (
               <ItemToRender
-                inputName={inputMetadata[input_name]?.name}
+                inputName={inputMetadata[inputName]?.name}
                 initialValue={input}
                 onEdit={(prop, newVal) => {
                   onEdit(prop, newVal);
                 }}
                 config={{
                   availableParentColumns: [...availableColumns],
-                  availableInputDfs: Object.keys(parentNodeData),
+                  availableInputDfs: Object.keys(parentNodeOutputs),
                   newListValueDefault,
                   analysisId,
                   stepId,
                   inputMetadata,
-                  type: inputMetadata[input_name].type,
+                  type: inputMetadata[inputName].type,
                 }}
               />
             )}
