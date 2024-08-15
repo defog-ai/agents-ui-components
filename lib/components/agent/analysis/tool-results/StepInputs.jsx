@@ -442,7 +442,7 @@ export function StepInputs({
   return (
     <div className="tool-input-list" key={stepId} ref={ctr}>
       {Object.keys(inputs)
-        .filter((i) => i !== "global_dict")
+        .filter((i) => i !== "global_dict" && i !== "previous_context")
         .map((input_name, i) => {
           const sanitizedType = sanitizeInputType(
             inputMetadata[input_name]?.type
@@ -459,7 +459,7 @@ export function StepInputs({
                   {easyToolInputTypes[sanitizedType] || sanitizedType}
                 </span>
                 <span className="font-bold">
-                  {inputMetadata[input_name].name}
+                  {inputMetadata[input_name]?.name}
                 </span>
               </span>
 
