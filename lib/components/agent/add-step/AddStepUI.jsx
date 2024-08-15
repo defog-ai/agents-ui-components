@@ -13,7 +13,7 @@ export function AddStepUI({
   activeNode,
   apiEndpoint,
   handleReRun = () => {},
-  parentNodeData = {},
+  parentNodeOutputs = {},
   tools = {},
 }) {
   const createNewStepEndpoint = setupBaseUrl({
@@ -144,7 +144,7 @@ export function AddStepUI({
               activeNode.data.step.inputs[prop] = newVal;
               setInputs(Object.assign({}, activeNode.data?.step?.inputs));
             }}
-            parentNodeData={parentNodeData}
+            parentNodeOutputs={parentNodeOutputs}
           />
           {/* <h1 className="inputs-header">OUTPUTS</h1> */}
           {/* a little kooky, but */}
@@ -167,7 +167,7 @@ export function AddStepUI({
               // don't need to worry about idx, because it's always 0
               setOutputs(newVal);
             }}
-            parentNodeData={parentNodeData}
+            parentNodeOutputs={parentNodeOutputs}
           /> */}
         </>
       )}
