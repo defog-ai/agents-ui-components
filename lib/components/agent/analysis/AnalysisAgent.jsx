@@ -173,7 +173,7 @@ export const AnalysisAgent = ({
 
   const analysisBusy = useSyncExternalStore(
     analysisManager.subscribeToAnalysisBusyChanges,
-    analysisManager.getAnalysisBiusy
+    analysisManager.getAnalysisBusy
   );
 
   const analysisData = useSyncExternalStore(
