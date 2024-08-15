@@ -1107,25 +1107,6 @@ $grid: repeating-linear-gradient(
     .tool-results-ctr {
       position: relative;
 
-      h1:not(.tool-name) {
-        font-size: 0.8em;
-        color: $text-medium;
-        display: inline-block;
-        display: block;
-        width: fit-content;
-        width: 100%;
-      }
-
-      h1.tool-name {
-        font-size: 1.2em;
-        color: $text-medium;
-        display: inline-block;
-        margin-bottom: 0.5em;
-        padding-top: 0.5em;
-        display: block;
-        font-weight: bold;
-      }
-
       .tool-input-type-list {
         display: flex;
         flex-direction: row;

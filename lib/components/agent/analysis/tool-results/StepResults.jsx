@@ -13,6 +13,7 @@ import { Modal } from "antd";
 import setupBaseUrl from "../../../utils/setupBaseUrl";
 import { Tabs } from "../../../core-ui/Tabs";
 import { AgentConfigContext } from "../../../context/AgentContext";
+import { SpinningLoader } from "@ui-components";
 
 function parseOutputs(data, analysisData) {
   let parsedOutputs = {};
@@ -223,16 +224,6 @@ export function StepResults({
     }
   }, [activeNode, reRunningSteps]);
 
-  const [displayLoadingOverlay, setDisplayLoadingOverlay] = useState(false);
-
-  useEffect(() => {
-    if (analysisBusy) {
-      setDisplayLoadingOverlay(true);
-    } else {
-      setDisplayLoadingOverlay(false);
-    }
-  }, [analysisBusy]);
-
   // rerunningstepsis array of object: {id: res.pre_tool_run_message,
   // timeout: funciton
   // clearTimeout: function}
@@ -248,27 +239,14 @@ export function StepResults({
       data-is-tool={activeNode.data.isTool}
     >
       {/* create a translucent overlay if displayLoadingOverlay is true */}
-      {displayLoadingOverlay && (
-        <div
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: 600,
-            maxHeight: "100%",
-            backgroundColor: "rgba(255, 255, 255, 0.6)",
-            zIndex: 2,
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            fontSize: 24,
-            color: "#000",
-          }}
-        >
-          Continuing to execute the analysis and moving on to the next step...
-          <br />
-          Last executed step: {step?.tool_name}
+      {analysisBusy && (
+        <div className="absolute top-0 left-0 w-full h-full bg-white bg-opacity-90 z-20 flex flex-col justify-center items-center text-md">
+          <span className="my-1">
+            Last executed step:{" "}
+            {toolDisplayNames[step?.tool_name] || step?.tool_name}
+          </span>
+          <span className="my-1">Now executing the next step</span>
+          <SpinningLoader classNames="text-gray-500 w-5 h-5" />
         </div>
       )}
 
@@ -328,11 +306,11 @@ export function StepResults({
                       </p>
                     </Modal>
                   </div>
-                  <h1 className="text-lg mt-4 mb-2">
+                  <p className="text-lg mt-4 mb-2">
                     {toolDisplayNames[step.tool_name]}
-                  </h1>
+                  </p>
                   <div className="my-4">
-                    <h1 className="text-gray-400 mb-4">INPUTS</h1>
+                    <p className="text-gray-400 mb-4 text-xs">INPUTS</p>
                     <StepInputs
                       analysisId={analysisId}
                       stepId={stepId}
@@ -344,7 +322,7 @@ export function StepResults({
                     ></StepInputs>
                   </div>
                   <div className="my-4">
-                    <h1 className="text-gray-400 mb-4">OUTPUTS</h1>
+                    <p className="text-gray-400 mb-4 text-xs">OUTPUTS</p>
                     <StepOutputs
                       showCode={agentConfigContext.val.showCode}
                       analysisId={analysisId}

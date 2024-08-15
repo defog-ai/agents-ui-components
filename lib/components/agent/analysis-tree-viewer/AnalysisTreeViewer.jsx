@@ -178,7 +178,7 @@ export function AnalysisTreeViewer({
           <div className="lg:hidden absolute bottom-0 left-0 w-full h-[10%] pointer-events-none bg-gradient-to-b from-transparent to-gray-300 z-10"></div>
         )}
         <div className="analysis-tree-viewer max-w-full h-full flex flex-row bg-white text-gray-600 w-full">
-          <div className="absolute h-full left-0 top-0 z-[20] lg:sticky lg:h-full">
+          <div className="absolute left-0 top-0 z-[20] lg:sticky">
             <Sidebar
               location="left"
               open={sidebarOpen}
