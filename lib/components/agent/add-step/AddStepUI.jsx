@@ -1,8 +1,5 @@
-import { message } from "antd";
-
 import { useContext, useEffect, useState } from "react";
 import { AddStepInputList } from "./AddStepInputList";
-import setupBaseUrl from "../../utils/setupBaseUrl";
 import { v4 } from "uuid";
 import { createInitialToolInputs } from "../../utils/utils";
 import { MessageManagerContext, SingleSelect } from "@ui-components";
@@ -11,16 +8,10 @@ import { StepReRun } from "../analysis/tool-results/StepReRun";
 export function AddStepUI({
   analysisId,
   activeNode,
-  apiEndpoint,
-  handleReRun = () => {},
+  onSubmit = async (...args) => {},
   parentNodeOutputs = {},
   tools = {},
 }) {
-  const createNewStepEndpoint = setupBaseUrl({
-    protocol: "http",
-    path: "create_new_step",
-    apiEndpoint: apiEndpoint,
-  });
   const toolOptions = Object.keys(tools).map((tool) => {
     return { value: tool, label: tools[tool]?.tool_name };
   });
@@ -60,39 +51,12 @@ export function AddStepUI({
             console.groupEnd();
 
             try {
-              const newStepSuccess = await fetch(createNewStepEndpoint, {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  parent_step: activeNode.data?.step?.parent_step,
-                  tool_name: selectedTool,
-                  inputs: inputs,
-                  analysis_id: analysisId,
-                  outputs_storage_keys: outputs,
-                }),
-              }).then((r) => r.json());
-
-              activeNode.data.step.loading = true;
-
-              if (!newStepSuccess.success) {
-                message.error(
-                  newStepSuccess?.error_message || "Something went wrong"
-                );
-              } else if (!newStepSuccess.new_step || !newStepSuccess.id) {
-                message.error(
-                  "Something went wrong. New step or tool run data or tool run id is missing in the server response."
-                );
-              } else {
-                const stepId = newStepSuccess.id;
-
-                // re run the tool
-                handleReRun(stepId, {
-                  action: "add_step",
-                  new_step: newStepSuccess.new_step,
-                });
-              }
+              await onSubmit({
+                tool_name: selectedTool,
+                inputs: inputs,
+                analysis_id: analysisId,
+                outputs_storage_keys: outputs,
+              });
             } catch (e) {
               messageManager.error(e.message);
               console.log(e.stack);

@@ -205,8 +205,6 @@ export const AnalysisAgent = ({
     });
   }
 
-  console.log(analysisData);
-
   function setActiveNode(node) {
     setActiveNodePrivate(node);
     flushPendingStepUpdates();
@@ -458,6 +456,19 @@ export const AnalysisAgent = ({
                               setActiveNode={setActiveNode}
                               handleReRun={handleReRun}
                               reRunningSteps={reRunningSteps}
+                              onCreateNewStep={async function ({
+                                tool_name,
+                                inputs,
+                                analysis_id,
+                                outputs_storage_keys,
+                              }) {
+                                await analysisManager.createNewStep({
+                                  tool_name,
+                                  inputs,
+                                  analysis_id,
+                                  outputs_storage_keys,
+                                });
+                              }}
                               updateStepData={(stepId, updates) => {
                                 if (!analysisManager) return;
                                 if (analysisBusy) return;

@@ -63,13 +63,10 @@ export function AddStepInputList({
 
   const [availableColumns, setAvailableColumns] = useState([]);
 
-  console.log("parentNodeOutputs", parentNodeOutputs);
   useEffect(() => {
     // check if any of the inputs is global_dict.something
     if (!inputs) return [];
     let cols = [];
-
-    console.log("inputs", inputs);
 
     // the inputs prop changes whenever we select change an input from the dropdowns
     // we need to check if any of the inputs is a dataframe, and show the columns of that dataframe
@@ -92,7 +89,6 @@ export function AddStepInputList({
       if (input?.startsWith("global_dict.")) {
         const dfName = input.split(".")[1];
         const output = parentNodeOutputs[dfName];
-        console.log(dfName, output);
 
         if (output && output.columns) {
           cols = cols.concat(output.columns);

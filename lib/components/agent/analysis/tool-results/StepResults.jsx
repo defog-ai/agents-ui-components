@@ -57,6 +57,7 @@ export function StepResults({
   handleReRun = (...args) => {},
   reRunningSteps = [],
   updateStepData = (...args) => {},
+  onCreateNewStep = async (...args) => {},
   // toolRunDataCache = {},
   handleDeleteSteps = async (...args) => {},
   tools = {},
@@ -242,7 +243,7 @@ export function StepResults({
           activeNode={activeNode}
           apiEndpoint={apiEndpoint}
           dag={dag}
-          handleReRun={handleReRun}
+          onSubmit={onCreateNewStep}
           parentNodeOutputs={parentNodeOutputs}
           tools={tools}
         />
