@@ -70,7 +70,7 @@ export const AnalysisAgent = ({
   createAnalysisRequestBody = {},
   initiateAutoSubmit = false,
   hasExternalSearchBar = null,
-  userQuestions=[], // questions that the user has asked so far in the analysis
+  userQuestions = [], // questions that the user has asked so far in the analysis
   setGlobalLoading = (...args) => {},
   onManagerCreated = (...args) => {},
   onManagerDestroyed = (...args) => {},
@@ -200,18 +200,13 @@ export const AnalysisAgent = ({
     }
   }, [analysisData]);
 
-  function flushPendingStepUpdates() {
-    // if there are pending updates, flush them
-    setPendingStepUpdates((prev) => {
-      analysisManager.updateStepData(prev);
-      return {};
-    });
-  }
-
-  function setActiveNode(node) {
-    setActiveNodePrivate(node);
-    flushPendingStepUpdates();
-  }
+  const setActiveNode = useCallback(
+    (node) => {
+      setActiveNodePrivate(node);
+      analysisManager.updateStepData(pendingStepUpdates);
+    },
+    [setActiveNodePrivate, pendingStepUpdates, analysisManager]
+  );
 
   useEffect(() => {
     if (analysisManager.didInit) return;
@@ -238,7 +233,6 @@ export const AnalysisAgent = ({
           !analysisManager?.analysisData?.currentStage
         ) {
           handleSubmit(analysisManager?.analysisData?.user_question, {}, null);
-        } else {
         }
 
         if (analysisManager.wasNewAnalysisCreated) {
@@ -299,21 +293,32 @@ export const AnalysisAgent = ({
         return;
       }
 
-      console.log(activeNode);
-
       try {
         // first flush any updates
-        flushPendingStepUpdates();
+        analysisManager.updateStepData(pendingStepUpdates);
 
-        await analysisManager.reRun(stepId);
+        await analysisManager.reRun(
+          stepId,
+          agentConfigContext?.val?.sqliteConn
+        );
       } catch (e) {
         messageManager.error(e);
         console.log(e.stack);
       }
     },
-    [analysisId, JSON.stringify(activeNode), dag, analysisManager]
+    [
+      analysisId,
+      JSON.stringify(activeNode),
+      dag,
+      analysisManager,
+      pendingStepUpdates,
+      agentConfigContext?.val?.sqliteConn,
+      activeNode,
+      messageManager,
+    ]
   );
 
+  console.log(analysisBusy);
   const titleDiv = (
     <div className="flex flex-row flex-wrap gap-4 p-6 items-center lg:items-start">
       <h1 className="font-bold text-xl text-gray-700 basis-0 grow min-w-[50%]">
@@ -355,7 +360,7 @@ export const AnalysisAgent = ({
   );
 
   const activeStep = useMemo(() => {
-    if (!activeNode) return null;
+    if (!activeNode || !analysisData || !analysisData.gen_steps) return null;
     try {
       let stepId = activeNode.data.id;
       // if this is an addStepNode, then the id can be figured out by removing the ending "-add"
@@ -387,11 +392,11 @@ export const AnalysisAgent = ({
             {titleDiv}
             <AgentLoader
               message={
-                !analysisData
-                  ? sqlOnly
-                    ? "Fetching data..."
-                    : "Setting up..."
-                  : "Thinking..."
+                sqlOnly
+                  ? "Fetching data..."
+                  : !analysisData
+                    ? "Setting up..."
+                    : "Thinking..."
               }
               // lottieData={LoadingLottie}
               classNames={"m-0 h-full bg-transparent"}
@@ -542,6 +547,7 @@ export const AnalysisAgent = ({
                         nodeSize={[40, 10]}
                         nodeGap={[30, 50]}
                         setActiveNode={setActiveNode}
+                        skipAddStepNode={isTemp}
                         reRunningSteps={reRunningSteps}
                         activeNode={activeNode}
                         stageDone={

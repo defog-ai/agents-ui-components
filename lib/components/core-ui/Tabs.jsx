@@ -120,7 +120,7 @@ export function Tabs({
           >
             {tabs.map((tab, tabIdx) => (
               <div
-                key={tab.name}
+                key={tab.name + "-" + tabIdx}
                 className={twMerge(
                   "flex items-center justify-center",
                   selectedTab.name === tab.name

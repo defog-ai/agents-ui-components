@@ -63,12 +63,6 @@ export function StepResults({
   tools = {},
   analysisBusy = false,
 }) {
-  const deleteStepsEndpoint = setupBaseUrl({
-    protocol: "http",
-    path: "delete_steps",
-    apiEndpoint: apiEndpoint,
-  });
-
   const agentConfigContext = useContext(AgentConfigContext);
   const parsedOutputs = useMemo(() => {
     return parseOutputs(step, analysisData);
