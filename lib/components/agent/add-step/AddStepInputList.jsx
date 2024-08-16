@@ -1,6 +1,14 @@
 import React, { useCallback, useState, useEffect } from "react";
 import { easyToolInputTypes } from "../../utils/utils";
-import { ListOptions, BoolOptions, IntOptions, FloatOptions, DataFrameOptions, DBColumnOptions, DropdownSingleSelectOptions } from "./InputTypeComponents";
+import {
+  ListOptions,
+  BoolOptions,
+  IntOptions,
+  FloatOptions,
+  DataFrameOptions,
+  DBColumnOptions,
+  DropdownSingleSelectOptions,
+} from "./InputTypeComponents";
 
 export const inputTypeToUI = {
   list: ListOptions,
@@ -9,7 +17,7 @@ export const inputTypeToUI = {
   float: FloatOptions,
   "pandas.core.frame.DataFrame": DataFrameOptions,
   DBColumn: DBColumnOptions,
-  DropdownSingleSelect: DropdownSingleSelectOptions
+  DropdownSingleSelect: DropdownSingleSelectOptions,
 };
 
 function sanitizeInputType(type) {
@@ -20,13 +28,13 @@ function sanitizeInputType(type) {
 }
 
 export function AddStepInputList({
-  toolRunId,
+  stepId,
   analysisId,
   toolMetadata,
   inputs = {},
   onEdit = () => {},
   newListValueDefault = "",
-  parentNodeData = {},
+  parentNodeOutputs = {},
   autoFocus = true,
 }) {
   const inputMetadata = toolMetadata?.input_metadata || {};
@@ -50,78 +58,83 @@ export function AddStepInputList({
         });
       }
     },
-    [toolRunId, toolMetadata]
+    [stepId, toolMetadata]
   );
 
   const [availableColumns, setAvailableColumns] = useState([]);
-  
+
   useEffect(() => {
     // check if any of the inputs is global_dict.something
     if (!inputs) return [];
-    let avail = [];
+    let cols = [];
 
-    console.log("inputs", inputs);
-    console.log("parentNodeData", parentNodeData);
+    // the inputs prop changes whenever we select change an input from the dropdowns
+    // we need to check if any of the inputs is a dataframe, and show the columns of that dataframe
+    // as options to any other inputs that might be column names
+    // we first find if we have parent node data
 
-    Object.keys(inputs).forEach((input_name) => {
-      const input = inputs[input_name];
+    if (!parentNodeOutputs) return;
 
+    // parentNodeOutputs is an object with keys as the names of the output dfs
+
+    // go through any input that is a dataframe, and add the columns of that dataframe to the available columns
+    // we get the available columns from parentNodeOutputs
+
+    Object.keys(inputs).forEach((inputName) => {
+      const input = inputs[inputName];
+
+      // if not string, return
       if (typeof input !== "string") return;
+
       if (input?.startsWith("global_dict.")) {
-        const id = input.split(".")[1];
-        console.log(id);
-        const parent = parentNodeData[id];
-        console.log("parent", parent);
-        if (parent) {
-          avail = avail.concat(parent.data.columns);
+        const dfName = input.split(".")[1];
+        const output = parentNodeOutputs[dfName];
+
+        if (output && output.columns) {
+          cols = cols.concat(output.columns);
         }
       }
-
-      console.log("avail", avail);
     });
-    setAvailableColumns(avail);
-  }, [inputs, parentNodeData, toolRunId]);
+
+    setAvailableColumns(cols);
+  }, [inputs, parentNodeOutputs, stepId]);
 
   return (
-    <div className="" key={toolRunId} ref={ctr}>
-      {Object.keys(inputs).map((input_name, i) => {
-        const sanitizedType = sanitizeInputType(
-          inputMetadata[input_name]?.type
-        );
-        const input = inputs[input_name];
+    <div className="" key={stepId} ref={ctr}>
+      {Object.keys(inputs).map((inputName, i) => {
+        const sanitizedType = sanitizeInputType(inputMetadata[inputName]?.type);
+        const input = inputs[inputName];
         const ItemToRender = inputTypeToUI[sanitizedType];
 
         return (
           <div
-            key={i + "_" + toolRunId}
+            key={i + "_" + stepId}
             className="font-mono flex flex-row flex-wrap gap-3 items-center *:my-1 pb-4 text-xs"
           >
             <span className="">
               <span className="rounded-lg p-1 bg-gray-200 text-gray-400 mr-2">
                 {easyToolInputTypes[sanitizedType] || sanitizedType}
               </span>
-              <span className="font-bold">
-                {inputMetadata[input_name].name}
-              </span>
+              <span className="font-bold">{inputMetadata[inputName].name}</span>
             </span>
-            {sanitizedType in inputTypeToUI &&
+            {sanitizedType in inputTypeToUI && (
               <ItemToRender
-                  inputName={inputMetadata[input_name]?.name}
-                  initialValue={input}
-                  onEdit={(prop, newVal) => {
-                    onEdit(prop, newVal);
-                  }}
-                  config={{
-                    availableParentColumns: [...availableColumns],
-                    availableInputDfs: Object.keys(parentNodeData),
-                    newListValueDefault,
-                    analysisId,
-                    toolRunId,
-                    inputMetadata,
-                    type: inputMetadata[input_name].type,
-                  }}
+                inputName={inputMetadata[inputName]?.name}
+                initialValue={input}
+                onEdit={(prop, newVal) => {
+                  onEdit(prop, newVal);
+                }}
+                config={{
+                  availableParentColumns: [...availableColumns],
+                  availableInputDfs: Object.keys(parentNodeOutputs),
+                  newListValueDefault,
+                  analysisId,
+                  stepId,
+                  inputMetadata,
+                  type: inputMetadata[inputName].type,
+                }}
               />
-              }
+            )}
           </div>
         );
       })}

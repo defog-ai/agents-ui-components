@@ -48,7 +48,7 @@ export function EmbedScaffolding({
         <div className="h-full mr-2 font-bold z-10 whitespace-nowrap py-2">
           Dataset:
         </div>
-        <div className="overflow-scroll flex flex-row gap-2 px-2 items-center rounded-md">
+        <div className="overflow-auto flex flex-row gap-2 px-2 items-center rounded-md">
           {availableDbs.map((db, i) => {
             return (
               <span

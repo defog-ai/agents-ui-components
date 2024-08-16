@@ -35,7 +35,7 @@ import {
 } from "../../context/AgentContext";
 import ErrorBoundary from "../../common/ErrorBoundary";
 import { StopCircleIcon } from "@heroicons/react/20/solid";
-import { ToolResults } from "./tool-results/ToolResults";
+import { StepResults } from "./step-results/StepResults";
 
 /**
  *
@@ -49,6 +49,7 @@ import { ToolResults } from "./tool-results/ToolResults";
  * @property {Object} createAnalysisRequestBody - Object that will be sent as the body of the fetch request to create_analysis.
  * @property {boolean} initiateAutoSubmit - Whether to initiate auto submit.
  * @property {boolean} hasExternalSearchBar - Whether this is being controlled by an external search bar.
+ * @property {Array.<Object>} userQuestions - Questions that the user has asked so far before this analysis. has to be an array of Objects.
  * @property {Function} setGlobalLoading - Global loading. Useful if you are handling multiple analysis..
  * @property {Function} onManagerCreated - Callback when analysis manager is created.
  * @property {Function} onManagerDestroyed - Callback when analysis manager is destroyed.
@@ -69,6 +70,7 @@ export const AnalysisAgent = ({
   createAnalysisRequestBody = {},
   initiateAutoSubmit = false,
   hasExternalSearchBar = null,
+  userQuestions = [], // questions that the user has asked so far in the analysis
   setGlobalLoading = (...args) => {},
   onManagerCreated = (...args) => {},
   onManagerDestroyed = (...args) => {},
@@ -77,14 +79,7 @@ export const AnalysisAgent = ({
   },
 }) => {
   const agentConfigContext = useContext(AgentConfigContext);
-  const {
-    devMode,
-    apiEndpoint,
-    token,
-    mainManager,
-    reRunManager,
-    toolSocketManager,
-  } = agentConfigContext.val;
+  const { devMode, apiEndpoint, token } = agentConfigContext.val;
 
   const getToolsEndpoint = setupBaseUrl({
     protocol: "http",
@@ -92,14 +87,17 @@ export const AnalysisAgent = ({
     apiEndpoint: apiEndpoint,
   });
 
-  // console.log("Key name", keyName);
-  // console.log("Did upload file", isTemp);
-  const [pendingToolRunUpdates, setPendingToolRunUpdates] = useState({});
   const [reRunningSteps, setRerunningSteps] = useState([]);
   const reactiveContext = useContext(ReactiveVariablesContext);
   const [activeNode, setActiveNodePrivate] = useState(null);
   const [dag, setDag] = useState(null);
   const [dagLinks, setDagLinks] = useState([]);
+
+  // we use this to prevent multiple rerender/updates when a user edits the step inputs
+  // we flush these pending updates to the actual analysis data when:
+  // 1. the active node changes
+  // 2. the user submits the step for re running
+  const [pendingStepUpdates, setPendingStepUpdates] = useState([]);
 
   const windowSize = useWindowSize();
 
@@ -121,7 +119,6 @@ export const AnalysisAgent = ({
       }
 
       if (response && response?.done) {
-        setAnalysisBusy(false);
         setGlobalLoading(false);
       }
 
@@ -144,69 +141,18 @@ export const AnalysisAgent = ({
       messageManager.error(e);
       console.log(e);
 
-      setAnalysisBusy(false);
       setGlobalLoading(false);
 
       // if the current stage is null, just destroy this analysis
       if (!newAnalysisData.currentStage) {
-        analysisManager.removeEventListeners();
         analysisManager.destroy();
       }
     }
   }
 
-  const onReRunMessage = useCallback(
-    (response) => {
-      try {
-        setRerunningSteps(analysisManager.reRunningSteps);
-        // remove all pending updates for this tool_run_id
-        // because all new data is already there in the received response
-        setPendingToolRunUpdates((prev) => {
-          const newUpdates = { ...prev };
-          delete newUpdates[response.tool_run_id];
-          return newUpdates;
-        });
-
-        // and set active node to this one
-        const parentNodes = [...dag.nodes()].filter(
-          (d) =>
-            d.data.isOutput &&
-            d.data.parentIds.find((p) => p === response.tool_run_id)
-        );
-        if (parentNodes.length) {
-          setActiveNodePrivate(parentNodes[0]);
-        }
-
-        if (response.error_message) {
-          // messageManager.error(response.error_message);
-          throw new Error(response.error_message);
-        }
-
-        // update reactive context
-        Object.keys(response?.tool_run_data?.outputs || {}).forEach((k, i) => {
-          if (!response?.tool_run_data?.outputs?.[k]?.reactive_vars) return;
-          const runId = response.tool_run_id;
-          reactiveContext.update((prev) => {
-            return {
-              ...prev,
-              [runId]: {
-                ...prev[runId],
-                [k]: response?.tool_run_data?.outputs?.[k]?.reactive_vars,
-              },
-            };
-          });
-        });
-      } catch (e) {
-        messageManager.error(e);
-        console.log(e.stack);
-      } finally {
-        setAnalysisBusy(false);
-        setGlobalLoading(false);
-      }
-    },
-    [dag]
-  );
-
+  /**
+   * @type {import("./analysisManager").AnalysisManager}
+   */
   const analysisManager = useMemo(() => {
     return (
       initialConfig.analysisManager ||
@@ -219,28 +165,23 @@ export const AnalysisAgent = ({
         metadata,
         isTemp,
         sqlOnly,
+        userQuestions,
         onNewData: onMainSocketMessage,
-        onReRunData: onReRunMessage,
         onManagerDestroyed: onManagerDestroyed,
         createAnalysisRequestBody,
         mainSocket: null, // Add mainSocket property
-        rerunSocket: null, // Add rerunSocket property
       })
     );
-  }, [analysisId]);
+  }, [analysisId, messageManager]);
 
-  analysisManager.setOnReRunDataCallback(onReRunMessage);
-
-  const [analysisBusy, setAnalysisBusy] = useState(false);
+  const analysisBusy = useSyncExternalStore(
+    analysisManager.subscribeToAnalysisBusyChanges,
+    analysisManager.getAnalysisBusy
+  );
 
   const analysisData = useSyncExternalStore(
     analysisManager.subscribeToDataChanges,
     analysisManager.getAnalysisData
-  );
-
-  const toolRunDataCache = useSyncExternalStore(
-    analysisManager.subscribeToToolRunDataCacheChanges,
-    analysisManager.getToolRunDataCache
   );
 
   useEffect(() => {
@@ -252,58 +193,32 @@ export const AnalysisAgent = ({
         [analysisId]: analysisData,
       },
     });
+
+    // if stage is done, also set busy to false
+    if (analysisData && analysisData.stageDone) {
+      setGlobalLoading(false);
+    }
   }, [analysisData]);
 
-  function setActiveNode(node) {
-    setActiveNodePrivate(node);
-    // if update_prop is "sql" or "code_str" or "analysis", update tool_run_details
-    // if update_prop is inputs, update step.inputs
-    // update in context
-    Object.keys(pendingToolRunUpdates).forEach((toolRunId) => {
-      const updateProps = Object.keys(pendingToolRunUpdates[toolRunId]);
-      const toolRunData = toolRunDataCache[toolRunId]?.tool_run_data;
-      if (!toolRunData) return;
-
-      updateProps.forEach((updateProp) => {
-        if (updateProp === "sql" || updateProp === "code_str") {
-          // update tool_run_details
-          toolRunData.tool_run_details[updateProp] =
-            pendingToolRunUpdates[toolRunId][updateProp];
-        } else if (updateProp === "inputs") {
-          // update step.inputs
-          toolRunData.step.inputs =
-            pendingToolRunUpdates[toolRunId][updateProp];
-        }
-      });
-      toolRunData.edited = true;
-
-      // update the cache
-      analysisManager.setToolRunDataCache((prev) => {
-        return {
-          ...prev,
-          [toolRunId]: {
-            ...prev[toolRunId],
-            tool_run_data: toolRunData,
-          },
-        };
-      });
-    });
-
-    setPendingToolRunUpdates({});
-  }
+  const setActiveNode = useCallback(
+    (node) => {
+      setActiveNodePrivate(node);
+      analysisManager.updateStepData(pendingStepUpdates);
+    },
+    [setActiveNodePrivate, pendingStepUpdates, analysisManager]
+  );
 
   useEffect(() => {
     if (analysisManager.didInit) return;
 
     async function initialiseAnalysis() {
       try {
-        const { analysisData = {}, toolRunDataCacheUpdates = {} } =
-          await analysisManager.init({
-            question: createAnalysisRequestBody?.other_data?.user_question,
-            existingData:
-              agentConfigContext?.val?.analysisDataCache?.[analysisId] || null,
-            sqliteConn: agentConfigContext?.val?.sqliteConn,
-          });
+        const { analysisData = {} } = await analysisManager.init({
+          question: createAnalysisRequestBody?.other_data?.user_question,
+          existingData:
+            agentConfigContext?.val?.analysisDataCache?.[analysisId] || null,
+          sqliteConn: agentConfigContext?.val?.sqliteConn,
+        });
 
         const response = await fetch(getToolsEndpoint, {
           method: "POST",
@@ -318,8 +233,6 @@ export const AnalysisAgent = ({
           !analysisManager?.analysisData?.currentStage
         ) {
           handleSubmit(analysisManager?.analysisData?.user_question, {}, null);
-        } else {
-          setAnalysisBusy(false);
         }
 
         if (analysisManager.wasNewAnalysisCreated) {
@@ -336,7 +249,6 @@ export const AnalysisAgent = ({
       } catch (e) {
         messageManager.error(e.message);
         console.log(e.stack);
-        analysisManager.removeEventListeners();
         analysisManager.destroy();
       }
     }
@@ -347,32 +259,24 @@ export const AnalysisAgent = ({
   useEffect(() => {
     if (analysisManager) {
       onManagerCreated(analysisManager, analysisId, ctr.current);
-      if (mainManager && reRunManager) {
-        analysisManager.setMainSocket(mainManager);
-        analysisManager.setReRunSocket(reRunManager);
-
-        analysisManager.addEventListeners();
-      }
     }
-  }, [analysisManager, mainManager, reRunManager]);
+  }, [analysisManager]);
 
   const handleSubmit = useCallback(
     (query, stageInput = {}, submitStage = null) => {
       try {
         if (!query) throw new Error("Query is empty");
-        analysisManager.submit(query, { ...stageInput }, submitStage);
-        setAnalysisBusy(true);
+
         setGlobalLoading(true);
+        analysisManager.submit(query, { ...stageInput }, submitStage);
       } catch (e) {
         messageManager.error(e);
         console.log(e.stack);
 
-        setAnalysisBusy(false);
         setGlobalLoading(false);
 
-        // if the current stage is null, just destroy this analysis
-        if (submitStage === null) {
-          analysisManager.removeEventListeners();
+        // if the current stage is null, and there is an external search bar, just destroy this analysis
+        if (submitStage === null && hasExternalSearchBar) {
           analysisManager.destroy();
         }
       }
@@ -381,27 +285,37 @@ export const AnalysisAgent = ({
   );
 
   const handleReRun = useCallback(
-    (toolRunId, preRunActions = {}) => {
-      if (
-        !toolRunId ||
-        !dag ||
-        !analysisId ||
-        !reRunManager ||
-        !reRunManager.send ||
-        !activeNode
-      ) {
-        console.log(toolRunId, dag, analysisId, reRunManager, activeNode);
+    async (stepId) => {
+      if (!stepId || !dag || !analysisId || !activeNode || !analysisManager) {
+        console.log(stepId, dag, analysisId, activeNode, analysisManager);
+        messageManager.error("Invalid step id or analysis data");
+
         return;
       }
 
       try {
-        analysisManager.initiateReRun(toolRunId, preRunActions);
+        // first flush any updates
+        analysisManager.updateStepData(pendingStepUpdates);
+
+        await analysisManager.reRun(
+          stepId,
+          agentConfigContext?.val?.sqliteConn
+        );
       } catch (e) {
         messageManager.error(e);
         console.log(e.stack);
       }
     },
-    [analysisId, activeNode, reRunManager, dag, analysisManager]
+    [
+      analysisId,
+      JSON.stringify(activeNode),
+      dag,
+      analysisManager,
+      pendingStepUpdates,
+      agentConfigContext?.val?.sqliteConn,
+      activeNode,
+      messageManager,
+    ]
   );
 
   const titleDiv = (
@@ -435,8 +349,7 @@ export const AnalysisAgent = ({
             className="w-6 h-6 text-rose-300 group-hover:text-rose-500"
             onClick={() => {
               setGlobalLoading(false);
-              setAnalysisBusy(false);
-              analysisManager.removeEventListeners();
+
               analysisManager.destroy();
             }}
           ></StopCircleIcon>
@@ -445,15 +358,20 @@ export const AnalysisAgent = ({
     </div>
   );
 
-  const activeToolRunId = useMemo(() => {
-    if (!activeNode) return null;
-
-    const toolRun = activeNode?.data?.isTool
-      ? activeNode
-      : [...activeNode?.parents()][0];
-
-    return toolRun?.data?.step?.tool_run_id;
-  }, [activeNode]);
+  const activeStep = useMemo(() => {
+    if (!activeNode || !analysisData || !analysisData.gen_steps) return null;
+    try {
+      let stepId = activeNode.data.id;
+      // if this is an addStepNode, then the id can be figured out by removing the ending "-add"
+      if (activeNode.data.id.endsWith("-add")) {
+        stepId = activeNode.data.id.replace("-add", "");
+      }
+      return analysisData.gen_steps.steps.find((s) => s.id === stepId);
+    } catch (e) {
+      console.log(e);
+      return null;
+    }
+  }, [activeNode, analysisData]);
 
   return (
     <ErrorBoundary>
@@ -473,11 +391,11 @@ export const AnalysisAgent = ({
             {titleDiv}
             <AgentLoader
               message={
-                !analysisData
-                  ? sqlOnly
-                    ? "Fetching data..."
-                    : "Setting up..."
-                  : "Thinking..."
+                sqlOnly
+                  ? "Fetching data..."
+                  : !analysisData
+                    ? "Setting up..."
+                    : "Thinking..."
               }
               // lottieData={LoadingLottie}
               classNames={"m-0 h-full bg-transparent"}
@@ -533,44 +451,59 @@ export const AnalysisAgent = ({
                     {analysisData?.gen_steps?.steps.length ? (
                       <>
                         <div className="grow px-6 rounded-b-3xl lg:rounded-br-none w-full bg-gray-50">
-                          {activeToolRunId &&
+                          {activeStep && (
                             // if this is sqlonly, we will wait for tool run data to be updated before showing anything
                             // because in the normal case, the tool run data can be fetched from the servers
                             // but in sql only case, we only have a local copy
-                            (!isTemp ||
-                              (isTemp &&
-                                toolRunDataCache[activeToolRunId])) && (
-                              <ToolResults
-                                analysisId={analysisId}
-                                activeNode={activeNode}
-                                analysisData={analysisData}
-                                toolSocketManager={toolSocketManager}
-                                apiEndpoint={apiEndpoint}
-                                dag={dag}
-                                setActiveNode={setActiveNode}
-                                handleReRun={handleReRun}
-                                reRunningSteps={reRunningSteps}
-                                setPendingToolRunUpdates={
-                                  setPendingToolRunUpdates
+                            <StepResults
+                              analysisId={analysisId}
+                              activeNode={activeNode}
+                              analysisData={analysisData}
+                              step={activeStep}
+                              apiEndpoint={apiEndpoint}
+                              dag={dag}
+                              setActiveNode={setActiveNode}
+                              handleReRun={handleReRun}
+                              reRunningSteps={reRunningSteps}
+                              onCreateNewStep={async function ({
+                                tool_name,
+                                inputs,
+                                analysis_id,
+                                outputs_storage_keys,
+                              }) {
+                                await analysisManager.createNewStep({
+                                  tool_name,
+                                  inputs,
+                                  analysis_id,
+                                  outputs_storage_keys,
+                                });
+                              }}
+                              updateStepData={(stepId, updates) => {
+                                if (!analysisManager) return;
+                                if (analysisBusy) return;
+
+                                // analysisManager.updateStepData(updates);
+                                setPendingStepUpdates((prev) => ({
+                                  ...prev,
+                                  [stepId]: Object.assign(
+                                    {},
+                                    prev[stepId],
+                                    updates
+                                  ),
+                                }));
+                              }}
+                              tools={tools}
+                              analysisBusy={analysisBusy}
+                              handleDeleteSteps={async (stepIds) => {
+                                try {
+                                  await analysisManager.deleteSteps(stepIds);
+                                } catch (e) {
+                                  messageManager.error(e);
+                                  console.log(e.stack);
                                 }
-                                toolRunDataCache={toolRunDataCache}
-                                setToolRunDataCache={
-                                  analysisManager.setToolRunDataCache
-                                }
-                                tools={tools}
-                                analysisBusy={analysisBusy}
-                                handleDeleteSteps={async (toolRunIds) => {
-                                  try {
-                                    await analysisManager.deleteSteps(
-                                      toolRunIds
-                                    );
-                                  } catch (e) {
-                                    messageManager.error(e);
-                                    console.log(e.stack);
-                                  }
-                                }}
-                              ></ToolResults>
-                            )}
+                              }}
+                            ></StepResults>
+                          )}
                         </div>
                       </>
                     ) : (
@@ -613,6 +546,7 @@ export const AnalysisAgent = ({
                         nodeSize={[40, 10]}
                         nodeGap={[30, 50]}
                         setActiveNode={setActiveNode}
+                        skipAddStepNode={isTemp}
                         reRunningSteps={reRunningSteps}
                         activeNode={activeNode}
                         stageDone={

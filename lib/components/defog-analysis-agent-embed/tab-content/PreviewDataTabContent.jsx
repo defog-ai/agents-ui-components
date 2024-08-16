@@ -14,7 +14,6 @@ export function PreviewDataTabContent({
   token = null,
   onGetData = (...args) => {},
 }) {
-  console.log(db);
   const messageManager = useContext(MessageManagerContext);
   let { keyName, isTemp } = db || {};
 
@@ -166,7 +165,7 @@ export function PreviewDataTabContent({
                   allowCreateNewOption={false}
                 />
               </div>
-              <div className="max-w-full overflow-scroll">
+              <div className="max-w-full overflow-auto">
                 <Table
                   pagination={{
                     defaultPageSize: 5,

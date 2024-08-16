@@ -4,7 +4,7 @@ import { message } from "antd";
 import setupBaseUrl from "../../../utils/setupBaseUrl";
 import { SpinningLoader } from "@ui-components";
 
-export default function ToolRunAnalysis({
+export default function StepResultAnalysis({
   question,
   data_csv,
   apiEndpoint,

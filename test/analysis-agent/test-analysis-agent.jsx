@@ -51,7 +51,5 @@ function QueryDataPage() {
 }
 
 ReactDOM.createRoot(document.getElementById("root")).render(
-  <React.StrictMode>
-    <QueryDataPage />
-  </React.StrictMode>
+  <QueryDataPage />
 );

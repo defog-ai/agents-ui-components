@@ -36,9 +36,8 @@ import { Table } from "@ui-components";
 // import { ChartContainer } from "../../../Charts/ChartContainer";
 
 // tabBarLeftContent: extra content for the tab bar on the left side
-export function ToolResultsTable({
-  toolRunData,
-  toolRunId,
+export function StepResultsTable({
+  stepId,
   analysisId,
   nodeId,
   apiEndpoint,
@@ -80,7 +79,7 @@ export function ToolResultsTable({
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            tool_run_id: toolRunId,
+            step_id: stepId,
             output_storage_key: nodeId,
             analysis_id: analysisId,
           }),
@@ -151,7 +150,7 @@ export function ToolResultsTable({
               data-reactive-var-nest-location=${
                 el.dataset.reactiveVarNestLocation
               }
-              data-table-id=${el.dataset.toolRunId}>
+              data-table-id=${el.dataset.stepId}>
             </reactive-var>`
         );
       };
@@ -161,7 +160,7 @@ export function ToolResultsTable({
   const updateCodeAndSql = (updateProp = null, newVal) => {
     // update values of the code and the SQL
     if (updateProp !== "sql" && updateProp !== "code") return;
-    if (!toolRunId) return;
+    if (!stepId) return;
     if (!newVal) return;
 
     if (updateProp === "sql") {
@@ -171,7 +170,7 @@ export function ToolResultsTable({
       setToolCode(newVal);
     }
     handleEdit({
-      tool_run_id: toolRunId,
+      step_id: stepId,
       update_prop: updateProp,
       new_val: newVal,
     });
@@ -244,58 +243,6 @@ export function ToolResultsTable({
         icon: <TableCellsIcon className="w-4 h-4 mb-0.5 mr-1 inline" />,
       });
     }
-
-    const inputs = toolRunData.step.inputs;
-
-    // if (toolRunData.tool_name === "heatmap") {
-    //   tabs.push({
-    //     component: (
-    //       <ErrorBoundary>
-    //         <Heatmap
-    //           rows={tableData.data}
-    //           columns={tableData.columns}
-    //           xCol={inputs.x_column}
-    //           yCol={inputs.y_column}
-    //           colorCol={inputs.color_column}
-    //           aggregationType={inputs.aggregation_type || "sum"}
-    //           colorScaleName={inputs.color_scale || "viridis"}
-    //         />
-    //       </ErrorBoundary>
-    //     ),
-    //     tabLabel: "Heatmap",
-    //   });
-    // }
-
-    // if (tableData) {
-    //   tabs.push({
-    //     component: (
-    //       <ErrorBoundary>
-    //         <ChartContainer rows={tableData.data} columns={tableData.columns} />
-    //       </ErrorBoundary>
-    //     ),
-    //     tabLabel: "Line Chart",
-    //   });
-    // }
-
-    // if (toolRunData.tool_name === "boxplot") {
-    //   tabs.push({
-    //     component: (
-    //       <ErrorBoundary>
-    //         <Boxplot
-    //           rows={tableData.data}
-    //           columns={tableData.columns}
-    //           xCol={inputs.boxplot_x_column}
-    //           yCol={inputs.boxplot_y_column}
-    //           facetCol={inputs.facet_column}
-    //           aggregationType={
-    //             inputs.aggregation_type === "None" ? null : inputs.estimator
-    //           }
-    //         />
-    //       </ErrorBoundary>
-    //     ),
-    //     tabLabel: "Boxplot",
-    //   });
-    // }
 
     if (!chartImages || chartImages.length <= 0) {
       if (tableData) {
@@ -466,7 +413,7 @@ export function ToolResultsTable({
             data-reactive-var-name={key}
             data-val={obj[key]}
             data-reactive-var-nest-location={nestLocation}
-            data-table-id={toolRunId}
+            data-table-id={stepId}
             draggable="true"
           >
             <span className="reactive-var-name">{key}</span>
@@ -487,7 +434,7 @@ export function ToolResultsTable({
                                 data-reactive-var-name=${key}
                                 data-val=${roundNumber(+obj[key])}
                                 data-reactive-var-nest-location=${nestLocation}
-                                data-table-id=${toolRunId}>
+                                data-table-id=${stepId}>
                               </reactive-var>&nbsp;`,
                       ],
                       { type: "text/html" }
@@ -513,7 +460,7 @@ export function ToolResultsTable({
                                 data-reactive-var-name=${key}
                                 data-val=${roundNumber(+obj[key])}
                                 data-reactive-var-nest-location=${nestLocation}
-                                data-table-id=${toolRunId}>
+                                data-table-id=${stepId}>
                               </reactive-var>&nbsp;`,
                       ],
                       { type: "text/html" }

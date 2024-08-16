@@ -6,8 +6,6 @@ import {
   RelatedAnalysesContext,
 } from "./AgentContext";
 import { getToolboxes } from "../utils/utils";
-import setupBaseUrl from "../utils/setupBaseUrl";
-import { setupWebsocketManager } from "../utils/websocket-manager";
 import {
   MessageManager,
   MessageManagerContext,
@@ -52,13 +50,6 @@ export function Setup({
   children,
 }) {
   const [socketsConnected, setSocketsConnected] = useState(false);
-
-  // this is the main socket manager for the agent
-  const [mainSocketManager, setMainSockerManager] = useState(null);
-  // this is for editing tool inputs/outputs
-  const [toolSocketManager, setToolSocketManager] = useState(null);
-  // this is for handling re runs of tools
-  const [reRunManager, setReRunManager] = useState(null);
 
   const [sqliteConn, setSqliteConn] = useState(null);
 
@@ -116,22 +107,6 @@ export function Setup({
         userItems.toolboxes = toolboxes.toolboxes;
       }
 
-      const urlToConnect = setupBaseUrl({
-        protocol: "ws",
-        path: "ws",
-        apiEndpoint: apiEndpoint,
-      });
-      const mainMgr = await setupWebsocketManager(urlToConnect);
-
-      const rerunMgr = await setupWebsocketManager(
-        urlToConnect.replace("/ws", "/step_rerun")
-      );
-
-      const toolSocketManager = await setupWebsocketManager(
-        urlToConnect.replace("/ws", "/edit_tool_run"),
-        (d) => console.log(d)
-      );
-
       let conn = null;
       try {
         conn = await initializeSQLite();
@@ -140,17 +115,11 @@ export function Setup({
         console.log(e);
       }
 
-      setMainSockerManager(mainMgr);
-      setReRunManager(rerunMgr);
-      setToolSocketManager(toolSocketManager);
       setSqliteConn(conn);
 
       setAgentConfig({
         ...agentConfig,
         ...userItems,
-        mainManager: mainMgr,
-        reRunManager: rerunMgr,
-        toolSocketManager: toolSocketManager,
         sqliteConn: conn,
       });
 
@@ -160,22 +129,6 @@ export function Setup({
     }
 
     setup();
-
-    return () => {
-      if (mainSocketManager && mainSocketManager.close) {
-        mainSocketManager.close();
-        // also stop the timeout
-        mainSocketManager.clearSocketTimeout();
-      }
-      if (reRunManager && reRunManager.close) {
-        reRunManager.close();
-        reRunManager.clearSocketTimeout();
-      }
-      if (toolSocketManager && toolSocketManager.close) {
-        toolSocketManager.close();
-        toolSocketManager.clearSocketTimeout();
-      }
-    };
   }, [apiEndpoint, token]);
 
   return (

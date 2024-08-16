@@ -178,7 +178,7 @@ export function AnalysisTreeViewer({
           <div className="lg:hidden absolute bottom-0 left-0 w-full h-[10%] pointer-events-none bg-gradient-to-b from-transparent to-gray-300 z-10"></div>
         )}
         <div className="analysis-tree-viewer max-w-full h-full flex flex-row bg-white text-gray-600 w-full">
-          <div className="absolute h-full left-0 top-0 z-[20] lg:sticky lg:h-full">
+          <div className="absolute left-0 top-0 z-[20] lg:sticky">
             <Sidebar
               location="left"
               open={sidebarOpen}
@@ -290,11 +290,13 @@ export function AnalysisTreeViewer({
               setSidebarOpen(false);
             }}
           ></div>
-          <div className="grid grid-cols-1 pt-10 sm:pt-0 auto-cols-max lg:grid-cols-1 grow rounded-tr-lg p-2 lg:p-4 relative min-w-0 h-full overflow-scroll">
+          <div className="grid grid-cols-1 pt-10 sm:pt-0 auto-cols-max lg:grid-cols-1 grow rounded-tr-lg p-2 lg:p-4 relative min-w-0 h-full overflow-auto">
             {activeRootAnalysisId &&
               analysisTree?.[activeRootAnalysisId]?.analysisList &&
               analysisTree[activeRootAnalysisId].analysisList.map(
                 (analysis) => {
+                  const rootAnalysisId = analysis.rootAnalysisId;
+                  const analysisChildList = analysisTree?.[rootAnalysisId]?.analysisList || [];
                   return (
                     <AnalysisAgent
                       key={analysis.analysisId}
@@ -315,6 +317,7 @@ export function AnalysisTreeViewer({
                       sqlOnly={analysis.sqlOnly}
                       isTemp={analysis.isTemp}
                       keyName={analysis.keyName}
+                      userQuestions={analysisChildList.map((i) => ({...i}))}
                       onManagerCreated={(analysisManager, id, ctr) => {
                         analysisDomRefs.current[id] = {
                           ctr,
@@ -540,7 +543,7 @@ export function AnalysisTreeViewer({
           setAddToDashboardSelection(false);
         }}
       >
-        <div className="dashboard-selection mt-8 flex flex-col max-h-80 overflow-scroll bg-gray-100 rounded-md">
+        <div className="dashboard-selection mt-8 flex flex-col max-h-80 overflow-auto bg-gray-100 rounded-md">
           {dashboards.map((dashboard) => (
             <div
               className={

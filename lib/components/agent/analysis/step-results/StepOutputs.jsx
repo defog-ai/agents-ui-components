@@ -2,9 +2,9 @@ import { ArrowRightIcon, ChevronRightIcon } from "@heroicons/react/20/solid";
 import { CodeEditor } from "./CodeEditor";
 import { useRef, useState } from "react";
 
-export function ToolRunOutputList({
+export function StepOutputs({
   analysisId,
-  toolRunId,
+  stepId,
   step,
   sql = null,
   codeStr = null,
@@ -72,7 +72,7 @@ export function ToolRunOutputList({
               key={sql}
               className="tool-code-ctr"
               analysisId={analysisId}
-              toolRunId={toolRunId}
+              stepId={stepId}
               code={sql}
               handleEdit={handleEdit}
               updateProp={"sql"}
@@ -123,7 +123,7 @@ export function ToolRunOutputList({
                 key={codeStr}
                 className="tool-code-ctr"
                 analysisId={analysisId}
-                toolRunId={toolRunId}
+                stepId={stepId}
                 code={codeStr}
                 language="python"
                 handleEdit={handleEdit}

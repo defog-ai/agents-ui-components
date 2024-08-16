@@ -179,7 +179,7 @@ On the backend, when we receive the submit request from the analysis manager's s
 
 <Image src="./assets/backend/check-valid.png" code />
 
-After that is complete, we construct a "ReportDataManager" object, which is responsible for running the desired step. the data of the analysis. This is a very [simple class](https://github.com/defog-ai/defog-self-hosted/blob/4f23350480624c47c5fe75459a4987d8068e4033/backend/report_data_manager.py#L31) that just stores the data in a dictionary, and calls the aforementioned post process functions + all agent's functions.
+After that is complete, we construct a "AnalysisDataManager" object, which is responsible for running the desired step. the data of the analysis. This is a very [simple class](https://github.com/defog-ai/defog-self-hosted/blob/4f23350480624c47c5fe75459a4987d8068e4033/backend/analysis_data_manager.py#L31) that just stores the data in a dictionary, and calls the aforementioned post process functions + all agent's functions.
 
 Here is a sample analysis's data (exactly the same as front end) again for reference:
 
@@ -191,10 +191,10 @@ We have some logic for classifying whether a question could be a sql-only questi
 
 Coming to the part where we do agent-y stuff...
 
-We first call the `run_agent` [function](https://github.com/defog-ai/defog-self-hosted/blob/4f23350480624c47c5fe75459a4987d8068e4033/backend/report_data_manager.py#L158) of ReportDataManager, which:
+We first call the `run_agent` [function](https://github.com/defog-ai/defog-self-hosted/blob/4f23350480624c47c5fe75459a4987d8068e4033/backend/analysis_data_manager.py#L158) of AnalysisDataManager, which:
 
 - First runs the post_process function of the previous stage (`last_request_type` in the code). For example, if we're generating plan, we will run the clarifier's post processing function described above.
-- Then, it initialises the required agent: either `clarifier` or `planner_executor` [here](https://github.com/defog-ai/defog-self-hosted/blob/4f23350480624c47c5fe75459a4987d8068e4033/backend/report_data_manager.py#L203-L209).
+- Then, it initialises the required agent: either `clarifier` or `planner_executor` [here](https://github.com/defog-ai/defog-self-hosted/blob/4f23350480624c47c5fe75459a4987d8068e4033/backend/analysis_data_manager.py#L203-L209).
 
 Every agent, upon initialisation, returns a generator function. This is crucial for low perceived-latency in websockets. This lets us send intermittent responses to the front end as we get them. This is why we chose to use websockets in the first place. For example, we can send the clarification questions one at a time. Or if it's a plan, we can send the steps one at a time.
 

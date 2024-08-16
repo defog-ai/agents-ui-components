@@ -1,26 +1,17 @@
-import { message } from "antd";
-
 import { useContext, useEffect, useState } from "react";
 import { AddStepInputList } from "./AddStepInputList";
-import setupBaseUrl from "../../utils/setupBaseUrl";
 import { v4 } from "uuid";
 import { createInitialToolInputs } from "../../utils/utils";
 import { MessageManagerContext, SingleSelect } from "@ui-components";
-import { ToolReRun } from "../analysis/tool-results/ToolReRun";
+import { StepReRun } from "../analysis/step-results/StepReRun";
 
 export function AddStepUI({
   analysisId,
   activeNode,
-  apiEndpoint,
-  handleReRun = () => {},
-  parentNodeData = {},
+  onSubmit = async (...args) => {},
+  parentNodeOutputs = {},
   tools = {},
 }) {
-  const createNewStepEndpoint = setupBaseUrl({
-    protocol: "http",
-    path: "create_new_step",
-    apiEndpoint: apiEndpoint,
-  });
   const toolOptions = Object.keys(tools).map((tool) => {
     return { value: tool, label: tools[tool]?.tool_name };
   });
@@ -49,7 +40,7 @@ export function AddStepUI({
       <h1 className="my-2">TOOL</h1>
       <div className="tool-action-buttons">
         {/* this is a simple Re-Run button */}
-        <ToolReRun
+        <StepReRun
           text="Run"
           loading={loading || selectedTool === null}
           onClick={async () => {
@@ -60,42 +51,12 @@ export function AddStepUI({
             console.groupEnd();
 
             try {
-              const newStepSuccess = await fetch(createNewStepEndpoint, {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  parent_step: activeNode.data?.step?.parent_step,
-                  tool_name: selectedTool,
-                  inputs: inputs,
-                  analysis_id: analysisId,
-                  outputs_storage_keys: outputs,
-                }),
-              }).then((r) => r.json());
-
-              activeNode.data.step.loading = true;
-
-              if (!newStepSuccess.success) {
-                message.error(
-                  newStepSuccess?.error_message || "Something went wrong"
-                );
-              } else if (
-                !newStepSuccess.new_step ||
-                !newStepSuccess.tool_run_id
-              ) {
-                message.error(
-                  "Something went wrong. New step or tool run data or tool run id is missing in the server response."
-                );
-              } else {
-                const toolRunId = newStepSuccess.tool_run_id;
-
-                // re run the tool
-                handleReRun(toolRunId, {
-                  action: "add_step",
-                  new_step: newStepSuccess.new_step,
-                });
-              }
+              await onSubmit({
+                tool_name: selectedTool,
+                inputs: inputs,
+                analysis_id: analysisId,
+                outputs_storage_keys: outputs,
+              });
             } catch (e) {
               messageManager.error(e.message);
               console.log(e.stack);
@@ -139,7 +100,7 @@ export function AddStepUI({
           {/* these are all the options that are available for a given input list */}
           <h1 className="my-2 mb-4">INPUTS</h1>
           <AddStepInputList
-            toolRunId={activeNode.data.id}
+            stepId={activeNode.data.id}
             toolMetadata={tools[selectedTool]}
             analysisId={analysisId}
             inputs={inputs}
@@ -147,13 +108,13 @@ export function AddStepUI({
               activeNode.data.step.inputs[prop] = newVal;
               setInputs(Object.assign({}, activeNode.data?.step?.inputs));
             }}
-            parentNodeData={parentNodeData}
+            parentNodeOutputs={parentNodeOutputs}
           />
           {/* <h1 className="inputs-header">OUTPUTS</h1> */}
           {/* a little kooky, but */}
           {/* just reuse AddStepInputList to store outputs */}
           {/* <AddStepInputList
-            toolRunId={activeNode.data.id}
+            stepId={activeNode.data.id}
             toolMetadata={{
               input_metadata: [
                 {
@@ -170,7 +131,7 @@ export function AddStepUI({
               // don't need to worry about idx, because it's always 0
               setOutputs(newVal);
             }}
-            parentNodeData={parentNodeData}
+            parentNodeOutputs={parentNodeOutputs}
           /> */}
         </>
       )}
