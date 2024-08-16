@@ -35,7 +35,7 @@ import {
 } from "../../context/AgentContext";
 import ErrorBoundary from "../../common/ErrorBoundary";
 import { StopCircleIcon } from "@heroicons/react/20/solid";
-import { StepResults } from "./tool-results/StepResults";
+import { StepResults } from "./step-results/StepResults";
 
 /**
  *
