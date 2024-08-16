@@ -318,7 +318,6 @@ export const AnalysisAgent = ({
     ]
   );
 
-  console.log(analysisBusy);
   const titleDiv = (
     <div className="flex flex-row flex-wrap gap-4 p-6 items-center lg:items-start">
       <h1 className="font-bold text-xl text-gray-700 basis-0 grow min-w-[50%]">
