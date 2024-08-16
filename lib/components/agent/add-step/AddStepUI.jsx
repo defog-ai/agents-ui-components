@@ -3,7 +3,7 @@ import { AddStepInputList } from "./AddStepInputList";
 import { v4 } from "uuid";
 import { createInitialToolInputs } from "../../utils/utils";
 import { MessageManagerContext, SingleSelect } from "@ui-components";
-import { StepReRun } from "../analysis/tool-results/StepReRun";
+import { StepReRun } from "../analysis/step-results/StepReRun";
 
 export function AddStepUI({
   analysisId,
