@@ -124,7 +124,10 @@ export function PrimarySelection({ columns }) {
         value={selectedColumns.facet}
         allowClear
       >
-        {orderedColumns.map(renderColumnOption)}
+        
+        {orderedColumns
+          .filter((col) => col.variableType === "categorical")
+          .map(renderColumnOption)}
       </Select>
     </div>
   );

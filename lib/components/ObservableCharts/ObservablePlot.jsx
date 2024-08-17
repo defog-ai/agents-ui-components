@@ -64,7 +64,7 @@ export const ObservablePlot = forwardRef(({ data = [], options = {} }, ref) => {
     const baseOptions = {
       width: dimensions.width,
       height: dimensions.height,
-      marginTop: 30,
+      marginTop: 50,
       marginRight: 30,
       marginBottom: 50,
       marginLeft: 30,
@@ -93,11 +93,12 @@ export const ObservablePlot = forwardRef(({ data = [], options = {} }, ref) => {
       baseOptions.facet = {
         data: data,
         x: mergedOptions.facet,
-        marginRight: 90,
+        marginRight: 50,
+        
         label: null,
       };
     }
-    console.log("chartOptions", data);
+    
 
     return baseOptions;
   }, [data, mergedOptions, dimensions]);
