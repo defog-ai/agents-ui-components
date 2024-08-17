@@ -1,14 +1,12 @@
-import React, {
+import  {
   isValidElement,
-  Fragment,
   useEffect,
   useState,
   useMemo,
   useRef,
 } from "react";
 import { Tabs, Button, message, Popover } from "antd";
-import ChartJSContainer from "../../../charts/chartjs/ChartJSContainer";
-import { chartNames, processData, roundColumns } from "../../agentUtils";
+import { chartNames,  roundColumns } from "../../agentUtils";
 
 import {
   ArrowDownTrayIcon,
@@ -30,10 +28,9 @@ import "prismjs/themes/prism.css";
 import { roundNumber } from "../../../utils/utils";
 import setupBaseUrl from "../../../utils/setupBaseUrl";
 import { Table } from "@ui-components";
-// import Heatmap from "../../../Charts/Heatmap";
-// import LinePlot from "./Charts/LinePlot";
-// import Boxplot from "../../../Charts/Boxplot";
-// import { ChartContainer } from "../../../Charts/ChartContainer";
+import { ChartContainer } from "../../../ObservableCharts/ChartContainer";
+import { DashboardProvider } from "../../../ObservableCharts/dashboardState";
+
 
 // tabBarLeftContent: extra content for the tab bar on the left side
 export function StepResultsTable({
@@ -246,28 +243,16 @@ export function StepResultsTable({
 
     if (!chartImages || chartImages.length <= 0) {
       if (tableData) {
-        const {
-          xAxisColumns,
-          categoricalColumns,
-          yAxisColumns,
-          xAxisColumnValues,
-          dateColumns,
-        } = processData(tableData.data, tableData.columns);
+      
         tabs.push({
           component: (
             <ErrorBoundary>
-              <ChartJSContainer
-                xAxisColumns={xAxisColumns}
-                dateColumns={dateColumns}
-                categoricalColumns={categoricalColumns}
-                yAxisColumns={yAxisColumns}
-                xAxisColumnValues={xAxisColumnValues}
-                data={tableData.data}
-                columns={tableData.columns}
-                title={tableData.query}
-                key="1"
-                vizType={"Bar Chart"}
-              ></ChartJSContainer>
+             
+             <DashboardProvider >
+              <ChartContainer   rows={tableData.data}
+                columns={tableData.columns} />
+             
+             </DashboardProvider>
             </ErrorBoundary>
           ),
           tabLabel: "Chart",

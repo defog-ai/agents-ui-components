@@ -14,6 +14,7 @@ import {
 } from "@ui-components";
 import { twMerge } from "tailwind-merge";
 import { initializeSQLite } from "../utils/sqlite";
+import { DashboardProvider } from "../ObservableCharts/dashboardState";
 
 /**
  * @typedef {Object} SetupProps
@@ -132,6 +133,7 @@ export function Setup({
   }, [apiEndpoint, token]);
 
   return (
+   
     <RelatedAnalysesContext.Provider
       value={{
         val: relatedAnalysesContext,
@@ -141,32 +143,35 @@ export function Setup({
       <ReactiveVariablesContext.Provider
         value={{ val: reactiveContext, update: setReactiveContext }}
       >
-        <AgentConfigContext.Provider
-          value={{ val: agentConfig, update: setAgentConfig }}
-        >
-          <MessageManagerContext.Provider value={messageManager.current}>
-            <MessageMonitor
-              rootClassNames={"absolute left-0 right-0"}
-              disabled={disableMessages}
-            />
-            {socketsConnected ? (
-              children
-            ) : (
-              <div
-                className={twMerge(
-                  "w-full h-full min-h-60 flex flex-col justify-center items-center ",
-                  loaderRootClassNames
-                )}
-              >
-                <div className="mb-2 text-gray-400 text-sm">
-                  Connecting to servers
+        <DashboardProvider>
+          <AgentConfigContext.Provider
+            value={{ val: agentConfig, update: setAgentConfig }}
+          >
+            <MessageManagerContext.Provider value={messageManager.current}>
+              <MessageMonitor
+                rootClassNames={"absolute left-0 right-0"}
+                disabled={disableMessages}
+              />
+              {socketsConnected ? (
+                children
+              ) : (
+                <div
+                  className={twMerge(
+                    "w-full h-full min-h-60 flex flex-col justify-center items-center ",
+                    loaderRootClassNames
+                  )}
+                >
+                  <div className="mb-2 text-sm text-gray-400">
+                    Connecting to servers
+                  </div>
+                  <SpinningLoader classNames="w-5 h-5 text-gray-500" />
                 </div>
-                <SpinningLoader classNames="w-5 h-5 text-gray-500" />
-              </div>
-            )}
-          </MessageManagerContext.Provider>
-        </AgentConfigContext.Provider>
+              )}
+            </MessageManagerContext.Provider>
+          </AgentConfigContext.Provider>
+        </DashboardProvider>
       </ReactiveVariablesContext.Provider>
     </RelatedAnalysesContext.Provider>
+ 
   );
 }
