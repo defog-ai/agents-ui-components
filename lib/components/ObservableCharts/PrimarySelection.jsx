@@ -85,9 +85,9 @@ export function PrimarySelection({ columns }) {
   // For histogram, only allow one column for x-axis
   const renderHistogramYAxisLabel = () => (
     <div>
-      <h3 className="mb-2 input-label">Y-Axis Label</h3>
+      <h3 className="mb-2 input-label">Horizontal Label</h3>
       <TextInput
-        placeholder="Enter Y-Axis Label"
+        placeholder="Enter Horizontal Label"
         defaultValue="Frequency"
         value={chartStyle.yLabel}
         onChange={(e) => updateChartStyle({ yLabel: e.target.value })}

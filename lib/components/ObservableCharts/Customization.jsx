@@ -5,6 +5,8 @@ import LineChartControls from "./components/LineChartControls";
 import ScatterPlotControls from "./components/ScatterPlotControls";
 import BarChartControls from "./components/BarChartControls";
 import HistogramControls from "./components/HistogramControls";
+import GridToggleButton from "./components/GridToggle";
+
 export function Customization() {
   const { selectedChart, chartStyle, updateChartStyle } = useChartContainer();
 
@@ -49,6 +51,22 @@ export function Customization() {
           value={chartStyle.fontSize}
           onChange={(value) => handleStyleChange("fontSize", value)}
         />
+      </div>
+
+      <div>
+        <h3 className="mb-2 input-label">Grid Controls</h3>
+        <div className="flex gap-2">
+          <GridToggleButton
+            isActive={chartStyle.xGrid}
+            onClick={() => handleStyleChange("xGrid", !chartStyle.xGrid)}
+            axis="x"
+          />
+          <GridToggleButton
+            isActive={chartStyle.yGrid}
+            onClick={() => handleStyleChange("yGrid", !chartStyle.yGrid)}
+            axis="y"
+          />
+        </div>
       </div>
     </div>
   );

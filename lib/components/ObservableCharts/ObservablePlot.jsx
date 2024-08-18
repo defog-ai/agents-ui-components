@@ -83,12 +83,13 @@ export const ObservablePlot = forwardRef(({ data = [], options = {} }, ref) => {
         overflow: "visible",
       },
       y: {
-        grid: true,
+        grid: mergedOptions.yGrid,
         nice: true,
         label: mergedOptions.yLabel,
         labelOffset: 22,
       },
       x: {
+        grid: mergedOptions.xGrid,
         nice: true,
         label: mergedOptions.xLabel,
       },

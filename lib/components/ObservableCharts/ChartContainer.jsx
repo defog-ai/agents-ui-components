@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useCallback } from "react";
 import { Tabs, Button } from "antd";
 import { ChartNoAxesCombined, SlidersHorizontal, Download } from "lucide-react";
 import { PrimarySelection } from "./PrimarySelection";
@@ -18,11 +18,11 @@ export function ChartContainer({ columns, rows }) {
   } = useChartContainer();
   const observablePlotRef = useRef(null);
 
-  // Effect to filter and format data based on selected columns and chart type
-  useEffect(() => {
-    if (!rows || !selectedColumns.x) return;
+  // Memoized filtered data
+  const filteredData = useMemo(() => {
+    if (!rows || !selectedColumns.x) return [];
 
-    const filteredData = rows.map((row) => {
+    return rows.map((row) => {
       const baseData = {
         [selectedColumns.x]: row[selectedColumns.x],
       };
@@ -39,11 +39,14 @@ export function ChartContainer({ columns, rows }) {
 
       return baseData;
     });
+  }, [rows, selectedColumns, selectedChart]);
 
+  // Effect to update data state
+  useEffect(() => {
     setData(filteredData);
-  }, [rows, selectedColumns, selectedChart, setData]);
+  }, [filteredData, setData]);
 
-  // Memoized plot options based on selected chart settings
+  // Memoized plot options
   const plotOptions = useMemo(
     () => ({
       type: selectedChart || "line",
@@ -57,6 +60,8 @@ export function ChartContainer({ columns, rows }) {
       backgroundColor: chartStyle.backgroundColor,
       fontSize: chartStyle.fontSize,
       title: chartStyle.title,
+      xGrid: chartStyle.xGrid,
+      yGrid: chartStyle.yGrid,
       margin: chartStyle.margin,
       facet: selectedColumns.facet,
       ...(chartSpecificOptions[selectedChart] || {}),
@@ -64,12 +69,12 @@ export function ChartContainer({ columns, rows }) {
     [selectedChart, selectedColumns, chartStyle, chartSpecificOptions]
   );
 
-  // Handler for saving the chart as PNG
-  const handleSaveAsPNG = () => {
+  // Memoized handler for saving the chart as PNG
+  const handleSaveAsPNG = useCallback(() => {
     if (observablePlotRef.current) {
       observablePlotRef.current.saveAsPNG();
     }
-  };
+  }, []);
 
   // Custom styles for the tabs
   const tabBarStyle = {
@@ -82,27 +87,30 @@ export function ChartContainer({ columns, rows }) {
     justifyContent: "space-between",
   };
 
-  // Define items for Tabs
-  const tabItems = [
-    {
-      key: "1",
-      label: <ChartNoAxesCombined size={24} />,
-      children: (
-        <TabPaneWrapper className="overflow-x-hidden">
-          <PrimarySelection columns={columns} />
-        </TabPaneWrapper>
-      ),
-    },
-    {
-      key: "2",
-      label: <SlidersHorizontal size={24} />,
-      children: (
-        <TabPaneWrapper className="overflow-x-hidden">
-          <Customization />
-        </TabPaneWrapper>
-      ),
-    },
-  ];
+  // Memoized tab items
+  const tabItems = useMemo(
+    () => [
+      {
+        key: "1",
+        label: <ChartNoAxesCombined size={24} />,
+        children: (
+          <TabPaneWrapper className="overflow-x-hidden">
+            <PrimarySelection columns={columns} />
+          </TabPaneWrapper>
+        ),
+      },
+      {
+        key: "2",
+        label: <SlidersHorizontal size={24} />,
+        children: (
+          <TabPaneWrapper className="overflow-x-hidden">
+            <Customization />
+          </TabPaneWrapper>
+        ),
+      },
+    ],
+    [columns]
+  );
 
   return (
     <div className="flex flex-col h-full">

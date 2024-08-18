@@ -31,13 +31,6 @@ const HistogramControls = () => {
       </div>
 
       <div>
-        <h3 className="mb-2 input-label">Normalize</h3>
-        <Switch
-          checked={histogramOptions.normalize}
-          onChange={(checked) => handleOptionChange("normalize", checked)}
-        />
-      </div>
-      <div>
         <h3 className="mb-2 input-label">Cumulative</h3>
         <Switch
           checked={histogramOptions.cumulative}

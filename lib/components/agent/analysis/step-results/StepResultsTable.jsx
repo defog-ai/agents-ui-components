@@ -1,12 +1,6 @@
-import  {
-  isValidElement,
-  useEffect,
-  useState,
-  useMemo,
-  useRef,
-} from "react";
+import { isValidElement, useEffect, useState, useMemo, useRef } from "react";
 import { Tabs, Button, message, Popover } from "antd";
-import { chartNames,  roundColumns } from "../../agentUtils";
+import { chartNames, roundColumns } from "../../agentUtils";
 
 import {
   ArrowDownTrayIcon,
@@ -30,7 +24,6 @@ import setupBaseUrl from "../../../utils/setupBaseUrl";
 import { Table } from "@ui-components";
 import { ChartContainer } from "../../../ObservableCharts/ChartContainer";
 import { DashboardProvider } from "../../../ObservableCharts/dashboardState";
-
 
 // tabBarLeftContent: extra content for the tab bar on the left side
 export function StepResultsTable({
@@ -243,16 +236,13 @@ export function StepResultsTable({
 
     if (!chartImages || chartImages.length <= 0) {
       if (tableData) {
-      
         tabs.push({
           component: (
             <ErrorBoundary>
-             
-             <DashboardProvider >
-              <ChartContainer   rows={tableData.data}
-                columns={tableData.columns} />
-             
-             </DashboardProvider>
+              <ChartContainer
+                rows={tableData.data}
+                columns={tableData.columns}
+              />
             </ErrorBoundary>
           ),
           tabLabel: "Chart",
@@ -478,9 +468,11 @@ export function StepResultsTable({
   }, [reactiveVars]);
 
   return (
-    <div className="table-chart-ctr" ref={tableChartRef}>
-      {results}
-      {reactiveVarJsx}
-    </div>
+    <DashboardProvider>
+      <div className="table-chart-ctr" ref={tableChartRef}>
+        {results}
+        {reactiveVarJsx}
+      </div>
+    </DashboardProvider>
   );
 }
