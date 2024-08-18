@@ -5,7 +5,6 @@ import {
 } from "@heroicons/react/20/solid";
 import { TextArea, Toggle } from "@ui-components";
 import { twMerge } from "tailwind-merge";
-import { useGhostImage } from "../../utils/utils";
 
 export function DraggableInput({
   searchBarClasses = "",
@@ -21,7 +20,6 @@ export function DraggableInput({
 }) {
   const searchCtr = useRef(null);
   const searchRef = useRef(null);
-  const ghostImage = useGhostImage();
   const isDragging = useRef(false);
 
   useEffect(() => {
