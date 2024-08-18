@@ -4,7 +4,6 @@ import { ChartNoAxesCombined, SlidersHorizontal, Download } from "lucide-react";
 import { PrimarySelection } from "./PrimarySelection";
 import { Customization } from "./Customization";
 import { useChartContainer } from "./dashboardState";
-
 import { ObservablePlot } from "./ObservablePlot";
 
 const { TabPane } = Tabs;
@@ -20,31 +19,32 @@ export function ChartContainer({ columns, rows }) {
   } = useChartContainer();
   const observablePlotRef = useRef(null);
 
- 
+  // Effect to filter and format data based on selected columns and chart type
   useEffect(() => {
-    if (rows && selectedColumns.x) {
-      const filteredData = rows.map((row) => {
-        const baseData = {
-          [selectedColumns.x]: row[selectedColumns.x],
-        };
+    if (!rows || !selectedColumns.x) return;
 
-        if (selectedChart === "line" && Array.isArray(selectedColumns.y)) {
-          selectedColumns.y.forEach((key) => (baseData[key] = row[key]));
-        } else {
-          baseData[selectedColumns.y] = row[selectedColumns.y];
-        }
+    const filteredData = rows.map((row) => {
+      const baseData = {
+        [selectedColumns.x]: row[selectedColumns.x],
+      };
 
-        if (selectedColumns.facet) {
-          baseData[selectedColumns.facet] = row[selectedColumns.facet];
-        }
+      if (selectedChart === "line" && Array.isArray(selectedColumns.y)) {
+        selectedColumns.y.forEach((key) => (baseData[key] = row[key]));
+      } else {
+        baseData[selectedColumns.y] = row[selectedColumns.y];
+      }
 
-        return baseData;
-      });
-    
-      setData(filteredData);
-    }
+      if (selectedColumns.facet) {
+        baseData[selectedColumns.facet] = row[selectedColumns.facet];
+      }
+
+      return baseData;
+    });
+
+    setData(filteredData);
   }, [rows, selectedColumns, selectedChart, setData]);
 
+  // Memoized plot options based on selected chart settings
   const plotOptions = useMemo(
     () => ({
       type: selectedChart || "line",
@@ -65,39 +65,44 @@ export function ChartContainer({ columns, rows }) {
     [selectedChart, selectedColumns, chartStyle, chartSpecificOptions]
   );
 
+  // Handler for saving the chart as PNG
   const handleSaveAsPNG = () => {
     if (observablePlotRef.current) {
       observablePlotRef.current.saveAsPNG();
     }
   };
 
+  // Custom styles for the tabs
+  const tabBarStyle = {
+    width: "60px",
+    height: "100%",
+    display: "flex",
+    padding: "0",
+    marginLeft: "-20px",
+    flexDirection: "column",
+    justifyContent: "space-between",
+  };
+
   return (
     <div className="flex flex-col h-full">
       <div className="flex flex-grow gap-3">
+        {/* Left sidebar with tabs for chart selection and customization */}
         <div className="w-2/3 max-w-[350px] h-full border-r">
           <Tabs
             tabPosition="left"
             className="h-full pl-0"
             size="small"
-            tabBarStyle={{
-              width: "60px",
-              height: "100%",
-              display: "flex",
-              padding: "0",
-              marginLeft: "-20px",
-              flexDirection: "column",
-              justifyContent: "space-between",
-            }}
+            tabBarStyle={tabBarStyle}
           >
             <TabPane
-              className=" h-[500px] overflow-x-hidden overflow-y-scroll scrollbar pl-2"
+              className="h-[500px] overflow-x-hidden overflow-y-scroll scrollbar"
               key="1"
               tab={<ChartNoAxesCombined size={24} />}
             >
               <PrimarySelection columns={columns} />
             </TabPane>
             <TabPane
-              className="pl-2 h-[500px] overflow-y-scroll scrollbar overflow-x-hidden"
+              className="h-[500px] overflow-y-scroll scrollbar overflow-x-hidden"
               key="2"
               tab={<SlidersHorizontal size={24} />}
             >
@@ -105,6 +110,7 @@ export function ChartContainer({ columns, rows }) {
             </TabPane>
           </Tabs>
         </div>
+        {/* Main chart display area */}
         <div className="flex-grow p-4 bg-white">
           <div className="flex justify-end mb-2">
             <Button icon={<Download size={16} />} onClick={handleSaveAsPNG}>
@@ -123,3 +129,5 @@ export function ChartContainer({ columns, rows }) {
     </div>
   );
 }
+
+export default ChartContainer;

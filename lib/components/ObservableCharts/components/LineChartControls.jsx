@@ -2,7 +2,8 @@ import { SingleSelect } from "@ui-components";
 import { ColorPicker, Slider, Switch } from "antd";
 import { useChartContainer } from "../dashboardState";
 
-const curveOptions = [
+// Options for curve types
+const CURVE_OPTIONS = [
   { label: "Linear", value: "linear" },
   { label: "Step", value: "step" },
   { label: "Catmull-Rom", value: "catmull-rom" },
@@ -12,10 +13,12 @@ const LineChartControls = () => {
   const { selectedColumns, chartSpecificOptions, updateChartSpecificOptions } =
     useChartContainer();
 
+  // Handle changes for global line chart options
   const handleGlobalOptionChange = (key, value) => {
     updateChartSpecificOptions({ [key]: value });
   };
 
+  // Handle changes for individual line options
   const handleLineOptionChange = (index, key, value) => {
     const updatedLineOptions = [
       ...(chartSpecificOptions.line.lineOptions || []),
@@ -24,12 +27,13 @@ const LineChartControls = () => {
     updateChartSpecificOptions({ lineOptions: updatedLineOptions });
   };
 
-  return (
-    <div className="flex flex-col gap-4 text-xs">
+  // Render global line chart controls
+  const renderGlobalControls = () => (
+    <>
       <div className="flex gap-2">
         <SingleSelect
           label="Curve Type"
-          options={curveOptions}
+          options={CURVE_OPTIONS}
           onChange={(value) => handleGlobalOptionChange("curve", value)}
           value={chartSpecificOptions.line.curve || "linear"}
         />
@@ -64,38 +68,44 @@ const LineChartControls = () => {
           }
         />
       </div>
+    </>
+  );
 
-      {Array.isArray(selectedColumns.y) &&
-        selectedColumns.y.map((column, index) => (
-          <div key={column} className="p-2 border rounded">
-            <h4 className="mb-2 font-bold">{`Line ${index + 1}: ${column}`}</h4>
-            <div className="mb-2">
-              <span className="block mb-1">Line Color</span>
-              <ColorPicker
-                value={
-                  chartSpecificOptions.line.lineOptions?.[index]?.stroke || ""
-                }
-                onChange={(color) =>
-                  handleLineOptionChange(index, "stroke", color.toHexString())
-                }
-              />
-            </div>
-            <div className="mb-2">
-              <span className="block mb-1">Stroke Width</span>
-              <Slider
-                min={1}
-                max={10}
-                value={
-                  chartSpecificOptions.line.lineOptions?.[index]?.strokeWidth ||
-                  2
-                }
-                onChange={(value) =>
-                  handleLineOptionChange(index, "strokeWidth", value)
-                }
-              />
-            </div>
-          </div>
-        ))}
+  // Render controls for individual lines
+  const renderIndividualLineControls = () =>
+    Array.isArray(selectedColumns.y) &&
+    selectedColumns.y.map((column, index) => (
+      <div key={column} className="p-2 border rounded">
+        <h4 className="mb-2 font-bold">{`Line ${index + 1}: ${column}`}</h4>
+        <div className="mb-2">
+          <span className="block mb-1">Line Color</span>
+          <ColorPicker
+            value={chartSpecificOptions.line.lineOptions?.[index]?.stroke || ""}
+            onChange={(color) =>
+              handleLineOptionChange(index, "stroke", color.toHexString())
+            }
+          />
+        </div>
+        <div className="mb-2">
+          <span className="block mb-1">Stroke Width</span>
+          <Slider
+            min={1}
+            max={10}
+            value={
+              chartSpecificOptions.line.lineOptions?.[index]?.strokeWidth || 2
+            }
+            onChange={(value) =>
+              handleLineOptionChange(index, "strokeWidth", value)
+            }
+          />
+        </div>
+      </div>
+    ));
+
+  return (
+    <div className="flex flex-col gap-4 text-xs">
+      {renderGlobalControls()}
+      {renderIndividualLineControls()}
     </div>
   );
 };

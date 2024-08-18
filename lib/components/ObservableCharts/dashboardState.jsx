@@ -1,5 +1,6 @@
 import { createContext, useContext, useReducer } from "react";
 
+// Initial state for the dashboard
 const initialState = {
   selectedChart: "line",
   selectedColumns: { x: null, y: [], facet: null },
@@ -31,6 +32,7 @@ const initialState = {
   availableColumns: [],
 };
 
+// Action handlers for state updates
 const actionHandlers = {
   setSelectedChart: (state, payload) => ({
     ...state,
@@ -70,38 +72,26 @@ const actionHandlers = {
     );
 
     // Select x-axis variable
-    let xAxis = null;
-    if (dateColumn) {
-      xAxis = dateColumn.key;
-    } else if (quantColumns.length > 0) {
-      xAxis = quantColumns[0].key;
-    } else if (availableColumns.length > 0) {
-      xAxis = availableColumns[0].key;
-    }
+    let xAxis =
+      dateColumn?.key ||
+      quantColumns[0]?.key ||
+      availableColumns[0]?.key ||
+      null;
 
     // Select y-axis variable(s)
     let yAxis = null;
     if (selectedChart === "line") {
       // For line charts, select up to two quantitative columns
-      yAxis = quantColumns.slice(0, 1).map((col) => col.key);
-      // but not the same as the x-axis
-      if (xAxis && yAxis.includes(xAxis)) {
-        yAxis = quantColumns.slice(1, 2).map((col) => col.key);
-      }
+      yAxis = quantColumns
+        .filter((col) => col.key !== xAxis)
+        .slice(0, 1)
+        .map((col) => col.key);
     } else {
       // For other charts, select a single column
-      if (quantColumns.length > 0) {
-        yAxis = quantColumns[0].key;
-        // but not the same as the x-axis
-        if (xAxis === yAxis) {
-          yAxis = quantColumns.length > 1 ? quantColumns[1].key : null;
-        }
-      } else if (availableColumns.length > 1) {
-        yAxis =
-          availableColumns[0].key === xAxis
-            ? availableColumns[1].key
-            : availableColumns[0].key;
-      }
+      yAxis =
+        quantColumns.find((col) => col.key !== xAxis)?.key ||
+        availableColumns.find((col) => col.key !== xAxis)?.key ||
+        null;
     }
 
     return {
@@ -111,11 +101,14 @@ const actionHandlers = {
   },
 };
 
+// Reducer function to handle state updates
 const dashboardReducer = (state, action) =>
   actionHandlers[action.type]?.(state, action.payload) ?? state;
 
+// Create context for the dashboard state
 const DashboardContext = createContext();
 
+// Provider component to wrap the app and provide state
 export const DashboardProvider = ({ children }) => {
   const [state, dispatch] = useReducer(dashboardReducer, initialState);
   return (
@@ -125,6 +118,7 @@ export const DashboardProvider = ({ children }) => {
   );
 };
 
+// Custom hook to use the dashboard context
 export const useDashboardContext = () => {
   const context = useContext(DashboardContext);
   if (!context) {
@@ -135,6 +129,7 @@ export const useDashboardContext = () => {
   return context;
 };
 
+// Create action creators for each action type
 export const dashboardActions = Object.fromEntries(
   Object.keys(actionHandlers).map((type) => [
     type,
@@ -142,6 +137,7 @@ export const dashboardActions = Object.fromEntries(
   ])
 );
 
+// Custom hook to access state and dispatch actions
 export const useChartContainer = () => {
   const { state, dispatch } = useDashboardContext();
   const actionDispatchers = Object.fromEntries(
@@ -152,3 +148,5 @@ export const useChartContainer = () => {
   );
   return { ...state, ...actionDispatchers };
 };
+
+export default DashboardProvider;

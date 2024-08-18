@@ -6,13 +6,7 @@ import ScatterPlotControls from "./components/ScatterPlotControls";
 import BarChartControls from "./components/BarChartControls";
 
 export function Customization() {
-  const {
-    selectedChart,
-    chartStyle,
-    updateChartStyle,
-    selectedColumns,
-    availableColumns,
-  } = useChartContainer();
+  const { selectedChart, chartStyle, updateChartStyle } = useChartContainer();
 
   const handleStyleChange = (key, value) => {
     updateChartStyle({ [key]: value });
@@ -29,12 +23,6 @@ export function Customization() {
       default:
         return null;
     }
-  };
-
-  const isDateAxis = (axis) => {
-    const columnKey = selectedColumns[axis];
-    const column = availableColumns.find((col) => col.key === columnKey);
-    return column && column.isDate;
   };
 
   return (

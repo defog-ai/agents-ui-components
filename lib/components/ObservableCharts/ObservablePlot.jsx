@@ -15,18 +15,24 @@ export const ObservablePlot = forwardRef(({ data = [], options = {} }, ref) => {
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const prevDimensionsRef = useRef({ width: 0, height: 0 });
 
+  // Merge default options with user-provided options
+  const mergedOptions = useMemo(
+    () => ({ ...defaultOptions, ...options }),
+    [options]
+  );
+
+  // Expose saveAsPNG method to parent component
   useImperativeHandle(ref, () => ({
-    saveAsPNG: () => {
-      const mergedOptions = { ...defaultOptions, ...options };
-      saveAsPNG(containerRef.current, mergedOptions.backgroundColor);
-    },
+    saveAsPNG: () =>
+      saveAsPNG(containerRef.current, mergedOptions.backgroundColor),
   }));
 
+  // Update dimensions when container size changes
   const updateDimensions = useCallback(() => {
     if (containerRef.current) {
       const { width, height } = containerRef.current.getBoundingClientRect();
       const prevDimensions = prevDimensionsRef.current;
-      
+
       if (width !== prevDimensions.width || height !== prevDimensions.height) {
         setDimensions({ width, height });
         prevDimensionsRef.current = { width, height };
@@ -34,23 +40,26 @@ export const ObservablePlot = forwardRef(({ data = [], options = {} }, ref) => {
     }
   }, []);
 
+  // Set up resize observer
   useEffect(() => {
     const resizeObserver = new ResizeObserver(updateDimensions);
-    if (containerRef.current) {
-      resizeObserver.observe(containerRef.current);
+    const currentRef = containerRef.current;
+
+    if (currentRef) {
+      resizeObserver.observe(currentRef);
     }
 
     updateDimensions();
 
     return () => {
-      if (containerRef.current) {
-        resizeObserver.unobserve(containerRef.current);
+      if (currentRef) {
+        resizeObserver.unobserve(currentRef);
       }
+      resizeObserver.disconnect();
     };
   }, [updateDimensions]);
 
-  const mergedOptions = useMemo(() => ({ ...defaultOptions, ...options }), [options]);
-
+  // Compute plot options based on current dimensions and merged options
   const plotOptions = useMemo(() => {
     if (
       dimensions.width === 0 ||
@@ -94,15 +103,14 @@ export const ObservablePlot = forwardRef(({ data = [], options = {} }, ref) => {
         data: data,
         x: mergedOptions.facet,
         marginRight: 50,
-        
         label: null,
       };
     }
-    
 
     return baseOptions;
   }, [data, mergedOptions, dimensions]);
 
+  // Render the plot
   useEffect(() => {
     if (!containerRef.current || !plotOptions) {
       return;
@@ -111,9 +119,9 @@ export const ObservablePlot = forwardRef(({ data = [], options = {} }, ref) => {
     containerRef.current.innerHTML = "";
     const plot = Plot.plot(plotOptions);
     containerRef.current.appendChild(plot);
+  }, [plotOptions]);
 
-  }, [plotOptions, mergedOptions]);
-
+  // Render component
   return (
     <div className="w-full h-full bg-white" ref={containerRef}>
       {(!mergedOptions.x || !mergedOptions.y) && (
@@ -126,3 +134,5 @@ export const ObservablePlot = forwardRef(({ data = [], options = {} }, ref) => {
 });
 
 ObservablePlot.displayName = "ObservablePlot";
+
+export default ObservablePlot;
