@@ -27,6 +27,13 @@ const initialState = {
     },
     bar: { barColor: "#4287f5", barWidth: 0.8 },
     scatter: { pointColor: "#f54242", pointSize: 5 },
+    histogram: {
+      binCount: 10,
+      fillColor: "#4287f5",
+      thresholds: "auto",
+      normalize: false,
+      cumulative: false,
+    },
   },
   data: [],
   availableColumns: [],
@@ -38,6 +45,11 @@ const actionHandlers = {
     ...state,
     selectedChart: payload,
     selectedColumns: { x: null, y: payload === "line" ? [] : null },
+    chartStyle: {
+      ...state.chartStyle,
+      xLabel: null,
+      yLabel: null,
+    },
   }),
   setSelectedColumns: (state, payload) => ({
     ...state,

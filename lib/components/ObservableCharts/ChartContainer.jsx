@@ -5,8 +5,7 @@ import { PrimarySelection } from "./PrimarySelection";
 import { Customization } from "./Customization";
 import { useChartContainer } from "./dashboardState";
 import { ObservablePlot } from "./ObservablePlot";
-
-const { TabPane } = Tabs;
+import TabPaneWrapper from "./utils/TabPaneWrapper";
 
 export function ChartContainer({ columns, rows }) {
   const {
@@ -77,11 +76,33 @@ export function ChartContainer({ columns, rows }) {
     width: "60px",
     height: "100%",
     display: "flex",
-    padding: "0",
+    paddingLeft: "0px !important",
     marginLeft: "-20px",
     flexDirection: "column",
     justifyContent: "space-between",
   };
+
+  // Define items for Tabs
+  const tabItems = [
+    {
+      key: "1",
+      label: <ChartNoAxesCombined size={24} />,
+      children: (
+        <TabPaneWrapper className="overflow-x-hidden">
+          <PrimarySelection columns={columns} />
+        </TabPaneWrapper>
+      ),
+    },
+    {
+      key: "2",
+      label: <SlidersHorizontal size={24} />,
+      children: (
+        <TabPaneWrapper className="overflow-x-hidden">
+          <Customization />
+        </TabPaneWrapper>
+      ),
+    },
+  ];
 
   return (
     <div className="flex flex-col h-full">
@@ -93,22 +114,8 @@ export function ChartContainer({ columns, rows }) {
             className="h-full pl-0"
             size="small"
             tabBarStyle={tabBarStyle}
-          >
-            <TabPane
-              className="h-[500px] overflow-x-hidden overflow-y-scroll scrollbar"
-              key="1"
-              tab={<ChartNoAxesCombined size={24} />}
-            >
-              <PrimarySelection columns={columns} />
-            </TabPane>
-            <TabPane
-              className="h-[500px] overflow-y-scroll scrollbar overflow-x-hidden"
-              key="2"
-              tab={<SlidersHorizontal size={24} />}
-            >
-              <Customization />
-            </TabPane>
-          </Tabs>
+            items={tabItems}
+          />
         </div>
         {/* Main chart display area */}
         <div className="flex-grow p-4 bg-white">

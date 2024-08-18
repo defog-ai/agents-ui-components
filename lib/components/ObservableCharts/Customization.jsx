@@ -4,7 +4,7 @@ import { useChartContainer } from "./dashboardState";
 import LineChartControls from "./components/LineChartControls";
 import ScatterPlotControls from "./components/ScatterPlotControls";
 import BarChartControls from "./components/BarChartControls";
-
+import HistogramControls from "./components/HistogramControls";
 export function Customization() {
   const { selectedChart, chartStyle, updateChartStyle } = useChartContainer();
 
@@ -20,6 +20,8 @@ export function Customization() {
         return <BarChartControls />;
       case "scatter":
         return <ScatterPlotControls />;
+      case "histogram":
+        return <HistogramControls />;
       default:
         return null;
     }
