@@ -87,11 +87,13 @@ export const ObservablePlot = forwardRef(({ data = [], options = {} }, ref) => {
         nice: true,
         label: mergedOptions.yLabel,
         labelOffset: 22,
+        ticks: mergedOptions.yTicks,
       },
       x: {
         grid: mergedOptions.xGrid,
         nice: true,
         label: mergedOptions.xLabel,
+        ticks: mergedOptions.xTicks,
       },
       color: {
         legend: true,
@@ -107,7 +109,7 @@ export const ObservablePlot = forwardRef(({ data = [], options = {} }, ref) => {
         label: null,
       };
     }
-
+    console.log(mergedOptions);
     return baseOptions;
   }, [data, mergedOptions, dimensions]);
 

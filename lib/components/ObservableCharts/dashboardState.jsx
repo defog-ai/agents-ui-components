@@ -13,6 +13,8 @@ const initialState = {
     yLabel: "",
     xGrid: false,
     yGrid: true,
+    xTicks: 10,
+    yTicks: 10,
     yAxisUnitLabel: "",
   },
   chartSpecificOptions: {

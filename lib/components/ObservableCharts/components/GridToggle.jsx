@@ -5,7 +5,7 @@ const GridToggleButton = ({ isActive, onClick, axis }) => {
     <button
       onClick={onClick}
       className={`
-        size-5 p-[0.15rem] flex items-center justify-center rounded-sm 
+        size-5 p-[0.15rem] flex mt-[17px] items-center justify-center rounded-sm 
         transition-all duration-200 ease-in-out
         ${isActive ? "bg-blue-500 shadow-md" : "bg-gray-200 hover:bg-gray-300"}
       `}

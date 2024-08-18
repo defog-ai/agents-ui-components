@@ -62,6 +62,8 @@ export function ChartContainer({ columns, rows }) {
       title: chartStyle.title,
       xGrid: chartStyle.xGrid,
       yGrid: chartStyle.yGrid,
+      xTicks: chartStyle.xTicks,
+      yTicks: chartStyle.yTicks,
       margin: chartStyle.margin,
       facet: selectedColumns.facet,
       ...(chartSpecificOptions[selectedChart] || {}),

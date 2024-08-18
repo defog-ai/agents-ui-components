@@ -1,11 +1,11 @@
 import { Slider } from "@ui-components";
 import { ColorPicker } from "antd";
 import { useChartContainer } from "./dashboardState";
-import LineChartControls from "./components/LineChartControls";
-import ScatterPlotControls from "./components/ScatterPlotControls";
-import BarChartControls from "./components/BarChartControls";
-import HistogramControls from "./components/HistogramControls";
-import GridToggleButton from "./components/GridToggle";
+import LineChartControls from "./ChartControls/LineChartControls";
+import ScatterPlotControls from "./ChartControls/ScatterPlotControls";
+import BarChartControls from "./ChartControls/BarChartControls";
+import HistogramControls from "./ChartControls/HistogramControls";
+import AxisControl from "./components/AxisControl";
 
 export function Customization() {
   const { selectedChart, chartStyle, updateChartStyle } = useChartContainer();
@@ -53,21 +53,7 @@ export function Customization() {
         />
       </div>
 
-      <div>
-        <h3 className="mb-2 input-label">Grid Controls</h3>
-        <div className="flex gap-2">
-          <GridToggleButton
-            isActive={chartStyle.xGrid}
-            onClick={() => handleStyleChange("xGrid", !chartStyle.xGrid)}
-            axis="x"
-          />
-          <GridToggleButton
-            isActive={chartStyle.yGrid}
-            onClick={() => handleStyleChange("yGrid", !chartStyle.yGrid)}
-            axis="y"
-          />
-        </div>
-      </div>
+      <AxisControl />
     </div>
   );
 }
