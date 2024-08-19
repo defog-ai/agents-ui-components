@@ -45,7 +45,7 @@ const SQLFeedback = ({
     } else {
       message.error("Failed to submit feedback");
     }
-    setLoading(true);
+    setLoading(false);
   }
 
   const NegativeFeedbackModal = () => {
