@@ -20,7 +20,7 @@ const BarChartControls = () => {
           }
         />
       </div>
-      <div>
+      {/* <div>
         <h3 className="mb-2">Bar Width</h3>
         <Slider
           min={2}
@@ -30,7 +30,7 @@ const BarChartControls = () => {
           value={chartSpecificOptions.bar.barWidth}
           onChange={(value) => handleOptionChange("barWidth", value)}
         />
-      </div>
+      </div> */}
     </div>
   );
 };
