@@ -14,6 +14,7 @@ import setupBaseUrl from "../../../utils/setupBaseUrl";
 import { Tabs } from "../../../core-ui/Tabs";
 import { AgentConfigContext } from "../../../context/AgentContext";
 import { SpinningLoader } from "@ui-components";
+import SQLFeedback from "./SQLFeedback";
 
 function parseOutputs(data, analysisData) {
   let parsedOutputs = {};
@@ -50,6 +51,8 @@ export function StepResults({
   analysisId,
   analysisData,
   step,
+  keyName,
+  token,
   activeNode,
   dag = null,
   apiEndpoint,
@@ -312,6 +315,18 @@ export function StepResults({
                       setActiveNode={setActiveNode}
                     ></StepOutputs>
                   </div>
+                  {step?.sql && (
+                    // get feedback from user if the sql is good or not
+                    <SQLFeedback
+                      question={step?.inputs?.question}
+                      sql={step?.sql}
+                      previous_context={step?.inputs?.previous_context}
+                      apiEndpoint={apiEndpoint}
+                      token={token}
+                      keyName={keyName}
+                      analysisId={analysisId}
+                    />
+                  )}
                 </ErrorBoundary>
               ),
             },
@@ -329,29 +344,17 @@ export function StepResults({
                       nodeId={activeNode.data.id}
                       analysisId={analysisId}
                     />
-                    {agentConfigContext.val.showAnalysisUnderstanding && (
-                      <div className="h-60 mt-2 rounded-md text-sm border overflow-auto w-full mb-2">
-                        <div className="relative">
-                          <p className="font-bold m-0 sticky top-0 w-full p-2 bg-white shadow-sm border-b">
-                            Analysis
-                          </p>
-                          {output["analysis"] ? (
-                            <p
-                              style={{ whiteSpace: "pre-wrap" }}
-                              className="text-xs"
-                            >
-                              {output["analysis"]}
-                            </p>
-                          ) : (
-                            <StepResultAnalysis
-                              question={analysisData.user_question}
-                              data_csv={output["data"]}
-                              apiEndpoint={apiEndpoint}
-                              image={output["chart_images"]}
-                            />
-                          )}
-                        </div>
-                      </div>
+                    {step?.sql && (
+                      // get feedback from user if the sql is good or not
+                      <SQLFeedback
+                        question={step?.inputs?.question}
+                        sql={step?.sql}
+                        previous_context={step?.inputs?.previous_context}
+                        apiEndpoint={apiEndpoint}
+                        token={token}
+                        keyName={keyName}
+                        analysisId={analysisId}
+                      />
                     )}
                   </>
                 );
