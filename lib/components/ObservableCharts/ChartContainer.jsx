@@ -50,7 +50,7 @@ export function ChartContainer({ columns, rows }) {
   const plotOptions = useMemo(
     () => ({
       type: selectedChart || "line",
-      x: selectedColumns.x || "x",
+      x: selectedColumns.x || null,
       y:
         selectedChart === "line" ? selectedColumns.y : selectedColumns.y || "y",
       xLabel: chartStyle.xLabel || selectedColumns.x || "X Axis",

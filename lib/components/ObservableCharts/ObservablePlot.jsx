@@ -122,15 +122,14 @@ export const ObservablePlot = forwardRef(({ data = [], options = {} }, ref) => {
 
     if (mergedOptions.facet) {
       baseOptions.facet = {
-        data: data,
+        data: processedData,
         x: mergedOptions.facet,
         marginRight: 50,
         label: null,
       };
     }
-    console.log(mergedOptions);
     return baseOptions;
-  }, [data, mergedOptions, dimensions, processedData]);
+  }, [mergedOptions, dimensions, processedData]);
 
   useEffect(() => {
     if (!containerRef.current || !plotOptions) {
@@ -138,6 +137,8 @@ export const ObservablePlot = forwardRef(({ data = [], options = {} }, ref) => {
     }
 
     containerRef.current.innerHTML = "";
+    console.log(plotOptions);
+
     const plot = Plot.plot(plotOptions);
     containerRef.current.appendChild(plot);
   }, [plotOptions]);
