@@ -52,7 +52,9 @@ export function ChartContainer({ columns, rows }) {
       type: selectedChart || "line",
       x: selectedColumns.x || null,
       y:
-        selectedChart === "line" ? selectedColumns.y : selectedColumns.y || "y",
+        selectedChart === "line"
+          ? selectedColumns.y
+          : selectedColumns.y || null,
       xLabel: chartStyle.xLabel || selectedColumns.x || "X Axis",
       yLabel: chartStyle.yLabel || selectedColumns.y || "Y Axis",
       yAxisUnitLabel: chartStyle.yAxisUnitLabel,

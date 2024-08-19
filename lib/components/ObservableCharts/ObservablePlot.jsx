@@ -132,12 +132,16 @@ export const ObservablePlot = forwardRef(({ data = [], options = {} }, ref) => {
   }, [mergedOptions, dimensions, processedData]);
 
   useEffect(() => {
-    if (!containerRef.current || !plotOptions) {
+    if (
+      !containerRef.current ||
+      !plotOptions ||
+      !plotOptions.x ||
+      !plotOptions.y
+    ) {
       return;
     }
 
     containerRef.current.innerHTML = "";
-    console.log(plotOptions);
 
     const plot = Plot.plot(plotOptions);
     containerRef.current.appendChild(plot);

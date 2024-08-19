@@ -3,7 +3,7 @@ import { createContext, useContext, useReducer } from "react";
 // Initial state for the dashboard
 const initialState = {
   selectedChart: "line",
-  selectedColumns: { x: null, y: [], facet: null },
+  selectedColumns: { x: null, y: null, facet: null },
   chartStyle: {
     title: "",
     fontSize: 12,
