@@ -14,6 +14,21 @@ export const ObservablePlot = forwardRef(({ data = [], options = {} }, ref) => {
   const containerRef = useRef(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
 
+  const processedData = useMemo(() => {
+    if (options.type === "bar" && options.useCount) {
+      const counts = data.reduce((acc, item) => {
+        const key = item[options.x];
+        acc[key] = (acc[key] || 0) + 1;
+        return acc;
+      }, {});
+      return Object.entries(counts).map(([key, count]) => ({
+        [options.x]: key,
+        count: count,
+      }));
+    }
+    return data;
+  }, [data, options]);
+
   const mergedOptions = useMemo(() => {
     return { ...defaultOptions, ...options };
   }, [options]);
@@ -85,20 +100,24 @@ export const ObservablePlot = forwardRef(({ data = [], options = {} }, ref) => {
       y: {
         grid: mergedOptions.yGrid,
         nice: true,
-        label: mergedOptions.yLabel,
+        label: mergedOptions.useCount ? "Count" : mergedOptions.yLabel,
         labelOffset: 22,
         ticks: mergedOptions.yTicks,
       },
       x: {
         grid: mergedOptions.xGrid,
         nice: true,
+
         label: mergedOptions.xLabel,
         ticks: mergedOptions.xTicks,
       },
       color: {
         legend: true,
       },
-      marks: getMarks(data, mergedOptions),
+      marks: getMarks(processedData, {
+        ...mergedOptions,
+        y: mergedOptions.useCount ? "count" : mergedOptions.y,
+      }),
     };
 
     if (mergedOptions.facet) {
@@ -111,7 +130,7 @@ export const ObservablePlot = forwardRef(({ data = [], options = {} }, ref) => {
     }
     console.log(mergedOptions);
     return baseOptions;
-  }, [data, mergedOptions, dimensions]);
+  }, [data, mergedOptions, dimensions, processedData]);
 
   useEffect(() => {
     if (!containerRef.current || !plotOptions) {

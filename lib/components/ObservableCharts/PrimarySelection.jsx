@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useChartContainer } from "./dashboardState";
-import { Select } from "antd";
+import { Select, Switch } from "antd";
 import {
   CalendarIcon,
   HashIcon,
@@ -39,6 +39,8 @@ export function PrimarySelection({ columns }) {
     setSelectedColumns,
     setAvailableColumns,
     autoSelectVariables,
+    chartSpecificOptions,
+    updateChartSpecificOptions,
     updateChartStyle,
   } = useChartContainer();
 
@@ -63,6 +65,16 @@ export function PrimarySelection({ columns }) {
       ...selectedColumns,
       [axis]: value,
     });
+
+    // Enable use count by default if the y selection is categorical in bar chart
+    if (selectedChart === "bar" && axis === "y") {
+      const selectedColumn = columns.find((col) => col.key === value);
+      if (selectedColumn && selectedColumn.variableType === "categorical") {
+        updateChartSpecificOptions({ useCount: true });
+      } else {
+        updateChartSpecificOptions({ useCount: false });
+      }
+    }
   };
 
   // Handle axis label change
@@ -126,26 +138,40 @@ export function PrimarySelection({ columns }) {
         >
           {orderedColumns.map(renderColumnOption)}
         </Select>
+        {selectedChart === "bar" && axis === "y" && (
+          <div className="mt-2">
+            <span className="mr-2 input-label">Use frequency</span>
+
+            <Switch
+              checkedChildren="Count"
+              unCheckedChildren="Value"
+              checked={chartSpecificOptions.bar.useCount}
+              onChange={(value) =>
+                updateChartSpecificOptions({ useCount: value })
+              }
+            />
+          </div>
+        )}
       </div>
     );
   };
 
   // Render vertical axis unit input
-  const renderVerticalAxisUnit = () => (
-    <div>
-      <h3 className="mb-2 input-label">Unit Label</h3>
-      <UnitPositionToggle
-        position={chartStyle.yAxisUnitPosition || "suffix"}
-        onChange={(newPosition) =>
-          updateChartStyle({ yAxisUnitPosition: newPosition })
-        }
-        value={chartStyle.yAxisUnitLabel}
-        onValueChange={(newValue) =>
-          updateChartStyle({ yAxisUnitLabel: newValue })
-        }
-      />
-    </div>
-  );
+  // const renderVerticalAxisUnit = () => (
+  //   <div>
+  //     <h3 className="mb-2 input-label">Unit Label</h3>
+  //     <UnitPositionToggle
+  //       position={chartStyle.yAxisUnitPosition || "suffix"}
+  //       onChange={(newPosition) =>
+  //         updateChartStyle({ yAxisUnitPosition: newPosition })
+  //       }
+  //       value={chartStyle.yAxisUnitLabel}
+  //       onValueChange={(newValue) =>
+  //         updateChartStyle({ yAxisUnitLabel: newValue })
+  //       }
+  //     />
+  //   </div>
+  // );
 
   // Render facet selection dropdown
   const renderFacetSelection = () => (
@@ -206,7 +232,7 @@ export function PrimarySelection({ columns }) {
             )}
             <div className="flex items-center gap-4">
               {renderAxisLabel("y")}
-              {renderVerticalAxisUnit()}
+              {/* {renderVerticalAxisUnit()} */}
             </div>
           </div>
         ) : (

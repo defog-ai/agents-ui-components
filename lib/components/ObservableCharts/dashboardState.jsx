@@ -29,7 +29,7 @@ const initialState = {
       lineOptions: [],
       showLabels: false,
     },
-    bar: { barColor: "#4287f5", barWidth: 0.8 },
+    bar: { barColor: "#4287f5", barWidth: 0.8, useCount: false },
     scatter: { pointColor: "#f54242", pointSize: 5 },
     histogram: {
       binCount: 10,
