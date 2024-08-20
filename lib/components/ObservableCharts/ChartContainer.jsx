@@ -31,50 +31,19 @@ export function ChartContainer({ columns, rows }) {
 
       // Process X column
       if (xColumn && xColumn.isDate && xColumn.dateToUnix) {
-        baseData[selectedColumns.x] = xColumn.dateToUnix(
-          row[selectedColumns.x]
+        const originalDate = row[selectedColumns.x];
+        const processedDate = xColumn.dateToUnix(originalDate);
+        console.log(
+          `Original X date: ${originalDate}, Processed: ${processedDate}`
         );
+        baseData[selectedColumns.x] = processedDate;
       } else {
         baseData[selectedColumns.x] = row[selectedColumns.x];
       }
 
-      // Process Y column(s)
-      if (selectedChart === "line" && Array.isArray(selectedColumns.y)) {
-        selectedColumns.y.forEach((key) => {
-          const col = columns.find((c) => c.key === key);
-          if (col && col.isDate && col.dateToUnix) {
-            baseData[key] = col.dateToUnix(row[key]);
-          } else {
-            baseData[key] = row[key];
-          }
-        });
-      } else {
-        if (yColumn && yColumn.isDate && yColumn.dateToUnix) {
-          baseData[selectedColumns.y] = yColumn.dateToUnix(
-            row[selectedColumns.y]
-          );
-        } else {
-          baseData[selectedColumns.y] = row[selectedColumns.y];
-        }
-      }
-
-      // Process facet column if exists
-      if (selectedColumns.facet) {
-        const facetColumn = columns.find(
-          (col) => col.key === selectedColumns.facet
-        );
-        if (facetColumn && facetColumn.isDate && facetColumn.dateToUnix) {
-          baseData[selectedColumns.facet] = facetColumn.dateToUnix(
-            row[selectedColumns.facet]
-          );
-        } else {
-          baseData[selectedColumns.facet] = row[selectedColumns.facet];
-        }
-      }
-
       return baseData;
     });
-  }, [rows, selectedColumns, selectedChart, columns]);
+  }, [rows, selectedColumns, columns]);
   // Effect to update data state
   useEffect(() => {
     setData(filteredData);
