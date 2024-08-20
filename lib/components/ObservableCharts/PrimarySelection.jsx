@@ -8,6 +8,7 @@ import {
   ChartLine,
   ChartScatter,
   ChartColumnIncreasing,
+  ChartNoAxesColumn,
 } from "lucide-react";
 import { reorderColumns } from "./columnOrdering.js";
 import { Input as TextInput, Button } from "@ui-components";
@@ -20,7 +21,7 @@ const CHART_TYPES = [
   { value: "line", label: "Line", Icon: ChartLine },
   { value: "bar", label: "Bar", Icon: ChartColumnIncreasing },
   { value: "scatter", label: "Scatter", Icon: ChartScatter },
-  { value: "histogram", label: "Histogram", Icon: ChartLine },
+  { value: "histogram", label: "Histogram", Icon: ChartNoAxesColumn },
 ];
 
 // Icons for different column types
@@ -203,7 +204,7 @@ export function PrimarySelection({ columns }) {
                 key={value}
                 onClick={() => handleChartChange(value)}
                 className={`
-                  p-2 rounded-sm w-20 border-[1px] flex items-center justify-center font-semibold transition-colors duration-200 ease-in-out
+                  p-2 rounded-sm min-w-20 border-[1px] flex items-center justify-center font-semibold transition-colors duration-200 ease-in-out
                   ${
                     selectedChart === value
                       ? "bg-blue-500 border-blue-600 text-white shadow-md"
