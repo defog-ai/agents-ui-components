@@ -95,7 +95,6 @@ export const ObservablePlot = forwardRef(({ data = [], options = {} }, ref) => {
       marginLeft: 30,
       style: {
         backgroundColor: mergedOptions.backgroundColor,
-        fontSize: `${mergedOptions.fontSize}px`,
         overflow: "visible",
       },
       y: {
@@ -103,20 +102,13 @@ export const ObservablePlot = forwardRef(({ data = [], options = {} }, ref) => {
         nice: true,
         label: mergedOptions.useCount ? "Count" : mergedOptions.yLabel,
         labelOffset: 22,
-        ticks: mergedOptions.yTicks,
       },
       x: {
         grid: mergedOptions.xGrid,
-        nice: true,
         label: mergedOptions.xLabel,
-        ticks: mergedOptions.xTicks,
         ...(mergedOptions.xIsDate && {
-          tickFormat: utcFormat(mergedOptions.xDateFormat || "%b %d, %Y"),
           transform: (d) => new Date(d * 1000),
         }),
-      },
-      color: {
-        legend: true,
       },
       marks: getMarks(processedData, {
         ...mergedOptions,

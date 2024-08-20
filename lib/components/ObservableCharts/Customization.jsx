@@ -6,6 +6,7 @@ import ScatterPlotControls from "./ChartControls/ScatterPlotControls";
 import BarChartControls from "./ChartControls/BarChartControls";
 import HistogramControls from "./ChartControls/HistogramControls";
 import AxisControl from "./components/AxisControl";
+import D3DateFormatBuilder from "./components/DateFormatter";
 
 export function Customization() {
   const { selectedChart, chartStyle, updateChartStyle } = useChartContainer();
@@ -33,6 +34,7 @@ export function Customization() {
     <div className="flex flex-col gap-4 mx-2">
       {renderChartSpecificControls()}
 
+      <D3DateFormatBuilder />
       <div>
         <h3 className="mb-2 input-label">Background Color</h3>
         <ColorPicker

@@ -18,13 +18,11 @@ export function ChartContainer({ columns, rows }) {
   } = useChartContainer();
   const observablePlotRef = useRef(null);
 
-  // Memoized filtered data
   // Memoized filtered and processed data
   const filteredData = useMemo(() => {
     if (!rows || !selectedColumns.x) return [];
 
     const xColumn = columns.find((col) => col.key === selectedColumns.x);
-    const yColumn = columns.find((col) => col.key === selectedColumns.y);
     return rows.map((row) => {
       const baseData = {};
 
@@ -74,7 +72,7 @@ export function ChartContainer({ columns, rows }) {
       margin: chartStyle.margin,
       facet: selectedColumns.facet,
       xIsDate: xColumn?.isDate,
-      xDateFormat: chartStyle.xDateFormat,
+      dateFormat: chartStyle.dateFormat,
       dateToUnix: xColumn?.isDate ? xColumn.dateToUnix : null,
 
       ...(chartSpecificOptions[selectedChart] || {}),
