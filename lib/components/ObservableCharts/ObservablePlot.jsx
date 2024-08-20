@@ -102,12 +102,15 @@ export const ObservablePlot = forwardRef(({ data = [], options = {} }, ref) => {
         nice: true,
         label: mergedOptions.useCount ? "Count" : mergedOptions.yLabel,
         labelOffset: 22,
+        ticks: mergedOptions.yTicks,
       },
       x: {
         grid: mergedOptions.xGrid,
         label: mergedOptions.xLabel,
+        ticks: mergedOptions.xTicks,
         ...(mergedOptions.xIsDate && {
           transform: (d) => new Date(d * 1000),
+          tickFormat: (d) => utcFormat(mergedOptions.dateFormat)(d),
         }),
       },
       marks: getMarks(processedData, {
@@ -125,7 +128,6 @@ export const ObservablePlot = forwardRef(({ data = [], options = {} }, ref) => {
       };
     }
 
-    console.log("mergedOptions", mergedOptions);
     return baseOptions;
   }, [mergedOptions, dimensions, processedData]);
 
