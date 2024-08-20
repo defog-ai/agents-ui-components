@@ -14,6 +14,7 @@ const initialState = {
     xGrid: false,
     yGrid: true,
     xTicks: 10,
+    xDateFormat: "%b %d, %Y",
     yTicks: 10,
     yAxisUnitLabel: "",
   },

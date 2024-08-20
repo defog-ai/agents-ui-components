@@ -12,7 +12,6 @@ import {
 } from "lucide-react";
 import { reorderColumns } from "./columnOrdering.js";
 import { Input as TextInput, Button } from "@ui-components";
-import UnitPositionToggle from "./components/UnitPositionToggle";
 
 const { Option } = Select;
 

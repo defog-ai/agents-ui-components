@@ -9,6 +9,7 @@ import React, {
 } from "react";
 import * as Plot from "@observablehq/plot";
 import { defaultOptions, getMarks, saveAsPNG } from "./plotUtils";
+import { utcFormat } from "d3";
 
 export const ObservablePlot = forwardRef(({ data = [], options = {} }, ref) => {
   const containerRef = useRef(null);
@@ -107,9 +108,12 @@ export const ObservablePlot = forwardRef(({ data = [], options = {} }, ref) => {
       x: {
         grid: mergedOptions.xGrid,
         nice: true,
-
         label: mergedOptions.xLabel,
+        // type: mergedOptions.xIsDate ? "utc" : undefined,
         ticks: mergedOptions.xTicks,
+        ...(mergedOptions.xIsDate && {
+          tickFormat: utcFormat(mergedOptions.xDateFormat || "%b %d, %Y"),
+        }),
       },
       color: {
         legend: true,
@@ -124,7 +128,7 @@ export const ObservablePlot = forwardRef(({ data = [], options = {} }, ref) => {
       baseOptions.facet = {
         data: processedData,
         x: mergedOptions.facet,
-        marginRight: 50,
+        marginRight: 30,
         label: null,
       };
     }

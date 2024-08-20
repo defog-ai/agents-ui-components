@@ -19,36 +19,74 @@ export function ChartContainer({ columns, rows }) {
   const observablePlotRef = useRef(null);
 
   // Memoized filtered data
+  // Memoized filtered and processed data
   const filteredData = useMemo(() => {
     if (!rows || !selectedColumns.x) return [];
 
-    return rows.map((row) => {
-      const baseData = {
-        [selectedColumns.x]: row[selectedColumns.x],
-      };
+    const xColumn = columns.find((col) => col.key === selectedColumns.x);
+    const yColumn = columns.find((col) => col.key === selectedColumns.y);
 
-      if (selectedChart === "line" && Array.isArray(selectedColumns.y)) {
-        selectedColumns.y.forEach((key) => (baseData[key] = row[key]));
+    return rows.map((row) => {
+      const baseData = {};
+
+      // Process X column
+      if (xColumn && xColumn.isDate && xColumn.dateToUnix) {
+        baseData[selectedColumns.x] = xColumn.dateToUnix(
+          row[selectedColumns.x]
+        );
       } else {
-        baseData[selectedColumns.y] = row[selectedColumns.y];
+        baseData[selectedColumns.x] = row[selectedColumns.x];
       }
 
+      // Process Y column(s)
+      if (selectedChart === "line" && Array.isArray(selectedColumns.y)) {
+        selectedColumns.y.forEach((key) => {
+          const col = columns.find((c) => c.key === key);
+          if (col && col.isDate && col.dateToUnix) {
+            baseData[key] = col.dateToUnix(row[key]);
+          } else {
+            baseData[key] = row[key];
+          }
+        });
+      } else {
+        if (yColumn && yColumn.isDate && yColumn.dateToUnix) {
+          baseData[selectedColumns.y] = yColumn.dateToUnix(
+            row[selectedColumns.y]
+          );
+        } else {
+          baseData[selectedColumns.y] = row[selectedColumns.y];
+        }
+      }
+
+      // Process facet column if exists
       if (selectedColumns.facet) {
-        baseData[selectedColumns.facet] = row[selectedColumns.facet];
+        const facetColumn = columns.find(
+          (col) => col.key === selectedColumns.facet
+        );
+        if (facetColumn && facetColumn.isDate && facetColumn.dateToUnix) {
+          baseData[selectedColumns.facet] = facetColumn.dateToUnix(
+            row[selectedColumns.facet]
+          );
+        } else {
+          baseData[selectedColumns.facet] = row[selectedColumns.facet];
+        }
       }
 
       return baseData;
     });
-  }, [rows, selectedColumns, selectedChart]);
-
+  }, [rows, selectedColumns, selectedChart, columns]);
   // Effect to update data state
   useEffect(() => {
     setData(filteredData);
   }, [filteredData, setData]);
 
   // Memoized plot options
-  const plotOptions = useMemo(
-    () => ({
+  const plotOptions = useMemo(() => {
+    const xColumn = columns.find((col) => col.key === selectedColumns.x);
+    const yColumn = columns.find((col) => col.key === selectedColumns.y);
+    console.log("xColumn", xColumn);
+    console.log("yColumn", yColumn);
+    return {
       type: selectedChart || "line",
       x: selectedColumns.x || null,
       y:
@@ -68,10 +106,19 @@ export function ChartContainer({ columns, rows }) {
       yTicks: chartStyle.yTicks,
       margin: chartStyle.margin,
       facet: selectedColumns.facet,
+      xIsDate: xColumn?.isDate,
+      xDateFormat: chartStyle.xDateFormat,
+      dateToUnix: xColumn?.isDate ? xColumn.dateToUnix : null,
+
       ...(chartSpecificOptions[selectedChart] || {}),
-    }),
-    [selectedChart, selectedColumns, chartStyle, chartSpecificOptions]
-  );
+    };
+  }, [
+    selectedChart,
+    selectedColumns,
+    chartStyle,
+    chartSpecificOptions,
+    columns,
+  ]);
 
   // Memoized handler for saving the chart as PNG
   const handleSaveAsPNG = useCallback(() => {
