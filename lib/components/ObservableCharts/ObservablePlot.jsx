@@ -111,9 +111,8 @@ export const ObservablePlot = forwardRef(({ data = [], options = {} }, ref) => {
         label: mergedOptions.xLabel,
         ticks: mergedOptions.xTicks,
         ...(mergedOptions.xIsDate && {
-          type: "utc",
           tickFormat: utcFormat(mergedOptions.xDateFormat || "%b %d, %Y"),
-          transform: (d) => new Date(d * 1000), // Convert Unix timestamp to JavaScript Date object
+          transform: (d) => new Date(d * 1000),
         }),
       },
       color: {

@@ -25,22 +25,20 @@ export function ChartContainer({ columns, rows }) {
 
     const xColumn = columns.find((col) => col.key === selectedColumns.x);
     const yColumn = columns.find((col) => col.key === selectedColumns.y);
-
     return rows.map((row) => {
       const baseData = {};
 
       // Process X column
       if (xColumn && xColumn.isDate && xColumn.dateToUnix) {
-        const originalDate = row[selectedColumns.x];
-        const processedDate = xColumn.dateToUnix(originalDate);
-        console.log(
-          `Original X date: ${originalDate}, Processed: ${processedDate}`
-        );
+        const processedDate = xColumn.dateToUnix(row[selectedColumns.x]);
+
         baseData[selectedColumns.x] = processedDate;
       } else {
         baseData[selectedColumns.x] = row[selectedColumns.x];
       }
 
+      // Process Y column
+      baseData[selectedColumns.y] = row[selectedColumns.y];
       return baseData;
     });
   }, [rows, selectedColumns, columns]);
