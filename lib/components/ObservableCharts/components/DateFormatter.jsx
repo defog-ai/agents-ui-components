@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { twMerge } from "tailwind-merge";
 import { LucideChevronsUpDown, CircleHelp } from "lucide-react";
 import { Popover } from "antd";
+import { useChartContainer } from "../dashboardState";
 
 const formatOptions = [
   { value: "%Y-%m-%d", label: "YYYY-MM-DD" },
@@ -36,17 +37,17 @@ const FormatHelpContent = () => (
 );
 
 const D3DateFormatBuilder = () => {
-  const [format, setFormat] = useState("%Y-%m-%d");
+  const { chartStyle, updateChartStyle } = useChartContainer();
   const [isOpen, setIsOpen] = useState(false);
   const inputRef = useRef(null);
   const dropdownRef = useRef(null);
 
   const handleFormatChange = (e) => {
-    setFormat(e.target.value);
+    updateChartStyle({ dateFormat: e.target.value });
   };
 
   const handleOptionClick = (value) => {
-    setFormat(value);
+    updateChartStyle({ dateFormat: value });
     setIsOpen(false);
   };
 
@@ -68,10 +69,13 @@ const D3DateFormatBuilder = () => {
 
   return (
     <div className="font-sans w-full max-w-[300px] relative">
+      <label className="block mb-1 text-sm font-medium text-gray-700">
+        Date Format
+      </label>
       <div className="flex items-center gap-2">
         <input
           ref={inputRef}
-          value={format}
+          value={chartStyle.dateFormat}
           onChange={handleFormatChange}
           onFocus={() => setIsOpen(true)}
           placeholder="Select or enter format"

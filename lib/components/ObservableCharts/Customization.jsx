@@ -9,7 +9,13 @@ import AxisControl from "./components/AxisControl";
 import D3DateFormatBuilder from "./components/DateFormatter";
 
 export function Customization() {
-  const { selectedChart, chartStyle, updateChartStyle } = useChartContainer();
+  const {
+    selectedChart,
+    chartStyle,
+    updateChartStyle,
+    selectedColumns,
+    availableColumns,
+  } = useChartContainer();
 
   const handleStyleChange = (key, value) => {
     updateChartStyle({ [key]: value });
@@ -30,11 +36,16 @@ export function Customization() {
     }
   };
 
+  const isDateColumnSelected = availableColumns.some(
+    (col) => col.key === selectedColumns.x && col.isDate
+  );
+
   return (
     <div className="flex flex-col gap-4 mx-2">
       {renderChartSpecificControls()}
 
-      <D3DateFormatBuilder />
+      {isDateColumnSelected && <D3DateFormatBuilder />}
+
       <div>
         <h3 className="mb-2 input-label">Background Color</h3>
         <ColorPicker

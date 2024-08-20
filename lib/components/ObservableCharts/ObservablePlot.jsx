@@ -124,6 +124,8 @@ export const ObservablePlot = forwardRef(({ data = [], options = {} }, ref) => {
         label: null,
       };
     }
+
+    console.log("mergedOptions", mergedOptions);
     return baseOptions;
   }, [mergedOptions, dimensions, processedData]);
 
