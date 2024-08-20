@@ -25,7 +25,7 @@ const formatHelp = {
 };
 
 const FormatHelpContent = () => (
-  <div className="text-sm">
+  <div className="text-sm w-44">
     <ul className="space-y-1">
       {Object.entries(formatHelp).map(([key, value]) => (
         <li key={key} className="mb-1 text-xs">
@@ -33,6 +33,10 @@ const FormatHelpContent = () => (
         </li>
       ))}
     </ul>
+    <p className="mt-2 text-xs text-gray-500 whitespace-normal ">
+      Uppercase specifiers (e.g., %Y, %B) typically provide full values, while
+      lowercase (e.g., %y, %b) often give abbreviated versions.
+    </p>
   </div>
 );
 
@@ -69,9 +73,7 @@ const D3DateFormatBuilder = () => {
 
   return (
     <div className="font-sans w-full max-w-[300px] relative">
-      <label className="block mb-1 text-sm font-medium text-gray-700">
-        Date Format
-      </label>
+      <label className="block mb-1 input-label">Date Format</label>
       <div className="flex items-center gap-2">
         <input
           ref={inputRef}
