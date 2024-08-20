@@ -8,7 +8,7 @@ import {
   ChartLine,
   ChartScatter,
   ChartColumnIncreasing,
-  ChartNoAxesColumn,
+  ChartCandlestick,
 } from "lucide-react";
 import { reorderColumns } from "./columnOrdering.js";
 import { Input as TextInput, Button } from "@ui-components";
@@ -21,7 +21,8 @@ const CHART_TYPES = [
   { value: "line", label: "Line", Icon: ChartLine },
   { value: "bar", label: "Bar", Icon: ChartColumnIncreasing },
   { value: "scatter", label: "Scatter", Icon: ChartScatter },
-  { value: "histogram", label: "Histogram", Icon: ChartNoAxesColumn },
+  { value: "histogram", label: "Histogram", Icon: ChartLine },
+  { value: "boxplot", label: "Box Plot", Icon: ChartCandlestick },
 ];
 
 // Icons for different column types

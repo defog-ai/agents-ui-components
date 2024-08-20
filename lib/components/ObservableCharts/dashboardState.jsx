@@ -38,6 +38,11 @@ const initialState = {
       normalize: false,
       cumulative: false,
     },
+    boxplot: {
+      fill: "#ccc",
+      stroke: "currentColor",
+      opacity: 1,
+    },
   },
   data: [],
   availableColumns: [],
