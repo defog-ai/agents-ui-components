@@ -191,6 +191,19 @@ export function PrimarySelection({ columns }) {
     </div>
   );
 
+  const colorSchemeSelection = (value) => {
+    if (selectedChart !== "line") {
+      updateChartSpecificOptions({ fill: value });
+      setSelectedColumns({ ...selectedColumns, fill: value });
+    } else if (selectedChart === "line") {
+      updateChartSpecificOptions({ stroke: value });
+      setSelectedColumns({ ...selectedColumns, stroke: value });
+    } else {
+      updateChartSpecificOptions({ fill: value });
+      setSelectedColumns({ ...selectedColumns, fill: value });
+    }
+  };
+
   const renderColorBySelection = () => {
     return (
       <div>
@@ -200,12 +213,13 @@ export function PrimarySelection({ columns }) {
           value={selectedColumns.fill}
           style={{ width: "100%" }}
           onChange={(value) => {
-            updateChartSpecificOptions({ fill: value });
-            setSelectedColumns({ ...selectedColumns, fill: value });
+            colorSchemeSelection(value);
           }}
           allowClear
         >
-          {orderedColumns.map(renderColumnOption)}
+          {orderedColumns
+            .filter((col) => col.variableType === "categorical")
+            .map(renderColumnOption)}
         </Select>
       </div>
     );

@@ -35,6 +35,7 @@ const LineChartControls = () => {
           label="Curve Type"
           options={CURVE_OPTIONS}
           onChange={(value) => handleGlobalOptionChange("curve", value)}
+          allowClear={false}
           value={chartSpecificOptions.line.curve || "linear"}
         />
         <div>

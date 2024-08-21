@@ -37,6 +37,8 @@ export function ChartContainer({ columns, rows }) {
       }
       if (selectedColumns.fill) {
         filteredRow[selectedColumns.fill] = row[selectedColumns.fill];
+      } else if (selectedColumns.stroke) {
+        filteredRow[selectedColumns.stroke] = row[selectedColumns.stroke];
       }
       return filteredRow;
     });
