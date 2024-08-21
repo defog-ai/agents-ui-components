@@ -191,6 +191,26 @@ export function PrimarySelection({ columns }) {
     </div>
   );
 
+  const renderColorBySelection = () => {
+    return (
+      <div>
+        <h3 className="mb-2 input-label">Color By</h3>
+        <Select
+          placeholder="Color Column"
+          value={selectedColumns.fill}
+          style={{ width: "100%" }}
+          onChange={(value) => {
+            updateChartSpecificOptions({ fill: value });
+            setSelectedColumns({ ...selectedColumns, fill: value });
+          }}
+          allowClear
+        >
+          {orderedColumns.map(renderColumnOption)}
+        </Select>
+      </div>
+    );
+  };
+
   return (
     <div className="grid grid-rows-[auto_1fr_auto] h-full gap-4 pl-1">
       <div className="flex flex-col gap-4">
@@ -241,8 +261,11 @@ export function PrimarySelection({ columns }) {
           </div>
         )}
       </div>
-      {/* Facet Selection */}
-      <div>{renderFacetSelection()}</div>
+      {/* Facet Selection and color */}
+      <div className="grid grid-cols-2 gap-4">
+        {renderFacetSelection()}
+        {renderColorBySelection()}
+      </div>
     </div>
   );
 }

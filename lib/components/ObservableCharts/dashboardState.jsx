@@ -1,4 +1,3 @@
-import { legend } from "@observablehq/plot";
 import { createContext, useContext, useReducer } from "react";
 
 // Initial state for the dashboard
@@ -16,7 +15,7 @@ const initialState = {
     xTicks: 10,
     dateFormat: "%b %d, %Y",
     yTicks: 10,
-
+    scheme: "accent",
     yAxisUnitLabel: "",
   },
   chartSpecificOptions: {
