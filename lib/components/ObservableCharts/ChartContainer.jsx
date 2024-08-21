@@ -1,11 +1,17 @@
 import { useEffect, useMemo, useRef, useCallback } from "react";
 import { Tabs, Button } from "antd";
-import { ChartNoAxesCombined, SlidersHorizontal, Download } from "lucide-react";
+import {
+  ChartNoAxesCombined,
+  SlidersHorizontal,
+  Download,
+  FilterIcon,
+} from "lucide-react";
 import { PrimarySelection } from "./PrimarySelection";
 import { Customization } from "./Customization";
 import { useChartContainer } from "./dashboardState";
 import { ObservablePlot } from "./ObservablePlot";
 import TabPaneWrapper from "./utils/TabPaneWrapper";
+import FilterBuilder from "./Filtering";
 
 export function ChartContainer({ columns, rows }) {
   const {
@@ -14,6 +20,7 @@ export function ChartContainer({ columns, rows }) {
     chartStyle,
     chartSpecificOptions,
     setData,
+    availableColumns,
   } = useChartContainer();
   const observablePlotRef = useRef(null);
 
@@ -32,6 +39,7 @@ export function ChartContainer({ columns, rows }) {
       yLabel: chartStyle.yLabel || selectedColumns.y || "Y Axis",
       facet: selectedColumns.facet,
       fill: selectedColumns.fill,
+      filter: selectedColumns.filter,
       stroke: selectedColumns.stroke,
       xIsDate: xColumn?.isDate,
       dateToUnix: xColumn?.isDate ? xColumn.dateToUnix : null,
@@ -44,6 +52,7 @@ export function ChartContainer({ columns, rows }) {
     selectedChart,
     selectedColumns,
     chartStyle,
+
     chartSpecificOptions,
     columns,
   ]);
@@ -72,8 +81,21 @@ export function ChartContainer({ columns, rows }) {
           </TabPaneWrapper>
         ),
       },
+      {
+        key: "3",
+        label: <FilterIcon size={24} />,
+        children: (
+          <TabPaneWrapper className="overflow-x-hidden">
+            <FilterBuilder
+              columns={columns.filter((col) =>
+                Object.values(selectedColumns).includes(col.key)
+              )}
+            />
+          </TabPaneWrapper>
+        ),
+      },
     ],
-    [columns]
+    [columns, selectedColumns]
   );
 
   return (

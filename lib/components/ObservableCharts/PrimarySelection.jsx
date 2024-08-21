@@ -10,7 +10,6 @@ import {
   ChartColumnIncreasing,
   ChartCandlestick,
   ChartNoAxesColumn,
-  GripVertical,
 } from "lucide-react";
 import { reorderColumns } from "./columnOrdering.js";
 import { Input as TextInput, Button } from "@ui-components";
@@ -24,7 +23,6 @@ const CHART_TYPES = [
   { value: "scatter", label: "Scatter", Icon: ChartScatter },
   { value: "histogram", label: "Histogram", Icon: ChartNoAxesColumn },
   { value: "boxplot", label: "Box Plot", Icon: ChartCandlestick },
-  { value: "boxplot", label: "Dot plot", Icon: GripVertical },
 ];
 
 // Icons for different column types
@@ -83,6 +81,7 @@ export function PrimarySelection({ columns }) {
   const handleAxisChange = (axis) => (value) => {
     setSelectedColumns({
       ...selectedColumns,
+
       [axis]: value,
     });
 
