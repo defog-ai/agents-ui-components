@@ -1,8 +1,9 @@
 import { Select } from "antd";
 import { useChartContainer } from "../dashboardState";
+import { useEffect } from "react";
 
 const BoxPlotControls = () => {
-  const { chartSpecificOptions, updateChartSpecificOptions } =
+  const { chartSpecificOptions, updateChartSpecificOptions, selectedChart } =
     useChartContainer();
 
   const handleOrientationChange = (value) => {
@@ -10,6 +11,15 @@ const BoxPlotControls = () => {
       boxplotOrientation: value,
     });
   };
+
+  // If chart changes, reset the orientation to vertical
+  useEffect(() => {
+    if (selectedChart !== "boxplot") {
+      updateChartSpecificOptions({
+        boxplotOrientation: "vertical",
+      });
+    }
+  }, [selectedChart, updateChartSpecificOptions]);
 
   return (
     <div>

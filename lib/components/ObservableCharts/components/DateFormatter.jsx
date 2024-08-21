@@ -5,11 +5,12 @@ import { Popover } from "antd";
 import { useChartContainer } from "../dashboardState";
 
 const formatOptions = [
+  { value: "%b, %Y", label: "Month, YYYY" },
   { value: "%Y-%m-%d", label: "YYYY-MM-DD" },
   { value: "%d/%m/%Y", label: "DD/MM/YYYY" },
   { value: "%m/%d/%Y", label: "MM/DD/YYYY" },
   { value: "%B %d, %Y", label: "Month DD, YYYY" },
-  { value: "%Y-%m-%dT%H:%M:%S", label: "ISO 8601" },
+  // { value: "%Y-%m-%dT%H:%M:%S", label: "ISO 8601" },
 ];
 
 const formatHelp = {
@@ -34,8 +35,8 @@ const FormatHelpContent = () => (
       ))}
     </ul>
     <p className="mt-2 text-xs text-gray-500 whitespace-normal ">
-      Uppercase specifiers (e.g., %Y, %B) typically provide full values, while
-      lowercase (e.g., %y, %b) often give abbreviated versions.
+      Uppercase specifiers (e.g., %Y, %B) show full values; lowercase (e.g., %y,
+      %b) use abbreviations. All d3.js date/time specifiers work here.
     </p>
   </div>
 );

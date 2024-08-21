@@ -22,13 +22,19 @@ export function ChartContainer({ columns, rows }) {
     if (!rows || !selectedColumns.x) return [];
 
     const xColumn = columns.find((col) => col.key === selectedColumns.x);
-    return rows.map((row) => ({
-      [selectedColumns.x]:
-        xColumn?.isDate && xColumn.dateToUnix
-          ? xColumn.dateToUnix(row[selectedColumns.x])
-          : row[selectedColumns.x],
-      [selectedColumns.y]: row[selectedColumns.y],
-    }));
+    return rows.map((row) => {
+      const filteredRow = {
+        [selectedColumns.x]:
+          xColumn?.isDate && xColumn.dateToUnix
+            ? xColumn.dateToUnix(row[selectedColumns.x])
+            : row[selectedColumns.x],
+        [selectedColumns.y]: row[selectedColumns.y],
+      };
+      if (selectedColumns.facet) {
+        filteredRow[selectedColumns.facet] = row[selectedColumns.facet];
+      }
+      return filteredRow;
+    });
   }, [rows, selectedColumns, columns]);
 
   useEffect(() => {
