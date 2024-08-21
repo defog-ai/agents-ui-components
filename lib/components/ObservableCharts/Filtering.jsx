@@ -1,15 +1,24 @@
-import React, { useState, useEffect } from "react";
-import { Select, Input, Button, DatePicker, Space } from "antd";
+import { useState } from "react";
+import {
+  Select,
+  Input,
+  Button,
+  DatePicker,
+  Space,
+  Card,
+  Typography,
+  Tag,
+} from "antd";
 import { DeleteOutlined, PlusOutlined } from "@ant-design/icons";
 import { useChartContainer } from "./dashboardState";
 
 const { Option } = Select;
 const { RangePicker } = DatePicker;
+const { Text } = Typography;
 
 const FilterBuilder = ({ columns }) => {
   const [filters, setFilters] = useState([]);
-  const { selectedColumns, setSelectedColumns, updateChartSpecificOptions } =
-    useChartContainer();
+  const { updateChartSpecificOptions } = useChartContainer();
 
   const addFilter = () => {
     setFilters([...filters, { column: "", operator: "==", value: "" }]);
@@ -121,6 +130,31 @@ const FilterBuilder = ({ columns }) => {
     return ["==", "!="];
   };
 
+  const getFilterPreview = (filter, column) => {
+    if (!filter.column || !filter.operator || filter.value === "") return "";
+
+    const columnName = column ? column.title : filter.column;
+    let preview = `${columnName} ${filter.operator} `;
+
+    switch (filter.operator) {
+      case "in":
+      case "not in":
+        preview += filter.value
+          .split(",")
+          .map((v) => `"${v.trim()}"`)
+          .join(", ");
+        break;
+      case "between":
+        const [start, end] = filter.value.split(",");
+        preview += `${start} and ${end}`;
+        break;
+      default:
+        preview += `"${filter.value}"`;
+    }
+
+    return preview;
+  };
+
   const renderFilterInput = (filter, index, column) => {
     if (column.variableType === "categorical") {
       return (
@@ -219,61 +253,65 @@ const FilterBuilder = ({ columns }) => {
   };
 
   return (
-    <Space direction="vertical" size="small" style={{ width: "100%" }}>
+    <Space direction="vertical" size="middle" style={{ width: "100%" }}>
       {filters.map((filter, index) => {
         const column = columns.find((c) => c.dataIndex === filter.column);
+        const filterPreview = getFilterPreview(filter, column);
         return (
-          <div
+          <Card
             key={index}
-            style={{ display: "flex", alignItems: "center", marginBottom: 8 }}
+            size="small"
+            title={
+              filterPreview ? (
+                <Tag color="blue" style={{ marginLeft: 8 }}>
+                  {filterPreview}
+                </Tag>
+              ) : (
+                `Filter ${index + 1}`
+              )
+            }
+            extra={
+              <Button
+                type="text"
+                danger
+                icon={<DeleteOutlined />}
+                onClick={() => removeFilter(index)}
+              />
+            }
           >
-            <Select
-              size="small"
-              style={{ width: "40%", marginRight: 4 }}
-              value={filter.column}
-              onChange={(value) => updateFilter(index, "column", value)}
-              placeholder="Column"
-            >
-              {columns.map((column) => (
-                <Option key={column.dataIndex} value={column.dataIndex}>
-                  {column.title}
-                </Option>
-              ))}
-            </Select>
-            <Select
-              size="small"
-              style={{ width: "25%", marginRight: 4 }}
-              value={filter.operator}
-              onChange={(value) => updateFilter(index, "operator", value)}
-              placeholder="Op"
-            >
-              {column &&
-                getOperators(column).map((op) => (
-                  <Option key={op} value={op}>
-                    {op}
+            <Space direction="vertical" style={{ width: "100%" }}>
+              <Select
+                style={{ width: "100%" }}
+                value={filter.column}
+                onChange={(value) => updateFilter(index, "column", value)}
+                placeholder="Select column"
+              >
+                {columns.map((column) => (
+                  <Option key={column.dataIndex} value={column.dataIndex}>
+                    {column.title}
                   </Option>
                 ))}
-            </Select>
-            <div style={{ width: "30%", marginRight: 4 }}>
+              </Select>
+              <Select
+                style={{ width: "100%" }}
+                value={filter.operator}
+                onChange={(value) => updateFilter(index, "operator", value)}
+                placeholder="Select operator"
+              >
+                {column &&
+                  getOperators(column).map((op) => (
+                    <Option key={op} value={op}>
+                      {op}
+                    </Option>
+                  ))}
+              </Select>
               {column && renderFilterInput(filter, index, column)}
-            </div>
-            <Button
-              size="small"
-              type="text"
-              icon={<DeleteOutlined />}
-              onClick={() => removeFilter(index)}
-              style={{ padding: 0 }}
-            />
-          </div>
+              <Text type="secondary"> </Text>
+            </Space>
+          </Card>
         );
       })}
-      <Button
-        size="small"
-        type="dashed"
-        onClick={addFilter}
-        block
-        icon={<PlusOutlined />}
-      >
+      <Button type="dashed" onClick={addFilter} block icon={<PlusOutlined />}>
         Add Filter
       </Button>
     </Space>
