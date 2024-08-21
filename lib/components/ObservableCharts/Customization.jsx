@@ -7,6 +7,7 @@ import BarChartControls from "./ChartControls/BarChartControls";
 import HistogramControls from "./ChartControls/HistogramControls";
 import AxisControl from "./components/AxisControl";
 import D3DateFormatBuilder from "./components/DateFormatter";
+import BoxPlotControls from "./ChartControls/BoxControl";
 
 export function Customization() {
   const {
@@ -31,6 +32,8 @@ export function Customization() {
         return <ScatterPlotControls />;
       case "histogram":
         return <HistogramControls />;
+      case "boxplot":
+        return <BoxPlotControls />;
       default:
         return null;
     }

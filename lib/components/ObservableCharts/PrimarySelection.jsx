@@ -46,6 +46,10 @@ export function PrimarySelection({ columns }) {
   } = useChartContainer();
 
   const [orderedColumns, setOrderedColumns] = useState(columns);
+  const [axisLabel, setAxisLabel] = useState({
+    x: "Horizontal",
+    y: "Vertical",
+  });
 
   // Reorder columns when chart type or available columns change
   useEffect(() => {
@@ -59,6 +63,15 @@ export function PrimarySelection({ columns }) {
     updateChartStyle({ xLabel: null, yLabel: null });
     autoSelectVariables();
   };
+
+  // if we have a vertically oriented boxplot, we need to switch the x and y axis labels
+  useEffect(() => {
+    if (selectedChart === "boxplot") {
+      setAxisLabel({ x: "Vertical", y: "Horizontal" });
+    } else {
+      setAxisLabel({ x: "Horizontal", y: "Vertical" });
+    }
+  }, [selectedChart]);
 
   // Handle axis selection change
   const handleAxisChange = (axis) => (value) => {
@@ -220,7 +233,7 @@ export function PrimarySelection({ columns }) {
         </div>
         {/* Horizontal Axis Selection */}
         <div className="flex flex-col gap-2 pb-6 border-b border-black/20">
-          {renderAxisSelection("x", "Horizontal")}
+          {renderAxisSelection("x", axisLabel.x)}
           {renderAxisLabel("x")}
         </div>
         {/* Vertical Axis Selection */}
@@ -228,7 +241,7 @@ export function PrimarySelection({ columns }) {
           <div className="flex flex-col gap-2">
             {renderAxisSelection(
               "y",
-              "Vertical",
+              axisLabel.y,
               selectedChart === "line" ? "multiple" : undefined
             )}
             <div className="flex items-center gap-4">

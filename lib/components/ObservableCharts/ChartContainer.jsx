@@ -48,6 +48,8 @@ export function ChartContainer({ columns, rows }) {
       yLabel: chartStyle.yLabel || selectedColumns.y || "Y Axis",
       facet: selectedColumns.facet,
       xIsDate: xColumn?.isDate,
+      boxplotOrientation:
+        chartSpecificOptions[selectedChart]?.boxplotOrientation || "vertical",
       dateToUnix: xColumn?.isDate ? xColumn.dateToUnix : null,
       ...chartStyle,
       ...chartSpecificOptions[selectedChart],

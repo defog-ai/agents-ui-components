@@ -43,6 +43,7 @@ const initialState = {
       stroke: "#355DA3",
       strokeWidth: 1,
       opacity: 1,
+      boxplotOrientation: "vertical",
     },
   },
   data: [],
