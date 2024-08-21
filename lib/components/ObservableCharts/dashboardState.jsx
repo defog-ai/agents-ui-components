@@ -135,6 +135,7 @@ const initialState = {
       curve: "linear",
       marker: false,
       scheme: "category10",
+      filter: null,
       groupBy: "",
       stroke: "",
       lineOptions: [],

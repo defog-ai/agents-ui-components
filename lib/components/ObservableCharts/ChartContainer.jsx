@@ -52,7 +52,6 @@ export function ChartContainer({ columns, rows }) {
     selectedChart,
     selectedColumns,
     chartStyle,
-
     chartSpecificOptions,
     columns,
   ]);

@@ -8,12 +8,8 @@ const { RangePicker } = DatePicker;
 
 const FilterBuilder = ({ columns }) => {
   const [filters, setFilters] = useState([]);
-  const {
-    selectedColumns,
-    setSelectedColumns,
-    // chartSpecificOptions,
-    // updateChartSpecificOptions,
-  } = useChartContainer();
+  const { selectedColumns, setSelectedColumns, updateChartSpecificOptions } =
+    useChartContainer();
 
   const addFilter = () => {
     setFilters([...filters, { column: "", operator: "==", value: "" }]);
@@ -33,9 +29,23 @@ const FilterBuilder = ({ columns }) => {
   };
 
   const updateFilterFunction = (currentFilters) => {
+    // Check if all filters are empty or if there are no filters
+    const allFiltersEmpty = currentFilters.every(
+      (filter) => !filter.column || !filter.operator || filter.value === ""
+    );
+
+    if (allFiltersEmpty || currentFilters.length === 0) {
+      // If all filters are empty or there are no filters, set the chart filter to null
+      updateChartSpecificOptions({ filter: null });
+      return;
+    }
+
     const filterFunction = (d) => {
       return currentFilters.every((filter) => {
         const { column, operator, value } = filter;
+        // If any part of the filter is empty, consider it as always true
+        if (!column || !operator || value === "") return true;
+
         const columnDef = columns.find((c) => c.dataIndex === column);
 
         switch (operator) {
@@ -87,9 +97,8 @@ const FilterBuilder = ({ columns }) => {
     };
 
     // Update the filter function in the chart container
-    setSelectedColumns({ ...selectedColumns, filterFunction });
+    updateChartSpecificOptions({ filter: filterFunction });
   };
-
   const getOperators = (column) => {
     if (column.variableType === "categorical") {
       return [
