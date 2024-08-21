@@ -8,31 +8,29 @@ import React, {
   useCallback,
 } from "react";
 import * as Plot from "@observablehq/plot";
-import { defaultOptions, getMarks, saveAsPNG } from "./plotUtils";
-import { utcFormat } from "d3";
+import { defaultOptions, saveAsPNG, getPlotOptions } from "./plotUtils";
 
 export const ObservablePlot = forwardRef(({ data = [], options = {} }, ref) => {
   const containerRef = useRef(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
 
+  const mergedOptions = useMemo(
+    () => ({ ...defaultOptions, ...options }),
+    [options]
+  );
+
   const processedData = useMemo(() => {
-    if (options.type === "bar" && options.useCount) {
-      const counts = data.reduce((acc, item) => {
-        const key = item[options.x];
-        acc[key] = (acc[key] || 0) + 1;
-        return acc;
-      }, {});
-      return Object.entries(counts).map(([key, count]) => ({
-        [options.x]: key,
-        count: count,
-      }));
+    if (mergedOptions.type === "bar" && mergedOptions.useCount) {
+      return Object.entries(
+        data.reduce((acc, item) => {
+          const key = item[mergedOptions.x];
+          acc[key] = (acc[key] || 0) + 1;
+          return acc;
+        }, {})
+      ).map(([key, count]) => ({ [mergedOptions.x]: key, count }));
     }
     return data;
-  }, [data, options]);
-
-  const mergedOptions = useMemo(() => {
-    return { ...defaultOptions, ...options };
-  }, [options]);
+  }, [data, mergedOptions]);
 
   useImperativeHandle(
     ref,
@@ -46,105 +44,30 @@ export const ObservablePlot = forwardRef(({ data = [], options = {} }, ref) => {
   const updateDimensions = useCallback(() => {
     if (containerRef.current) {
       const { width, height } = containerRef.current.getBoundingClientRect();
-      setDimensions((prevDimensions) => {
-        if (
-          width !== prevDimensions.width ||
-          height !== prevDimensions.height
-        ) {
-          return { width, height };
-        }
-        return prevDimensions;
-      });
+      setDimensions((prev) =>
+        width !== prev.width || height !== prev.height
+          ? { width, height }
+          : prev
+      );
     }
   }, []);
 
   useEffect(() => {
     const resizeObserver = new ResizeObserver(updateDimensions);
-    const currentRef = containerRef.current;
-
-    if (currentRef) {
-      resizeObserver.observe(currentRef);
-    }
-
+    if (containerRef.current) resizeObserver.observe(containerRef.current);
     updateDimensions();
-
-    return () => {
-      if (currentRef) {
-        resizeObserver.unobserve(currentRef);
-      }
-      resizeObserver.disconnect();
-    };
+    return () => resizeObserver.disconnect();
   }, [updateDimensions]);
 
-  const plotOptions = useMemo(() => {
-    if (
-      dimensions.width === 0 ||
-      dimensions.height === 0 ||
-      !mergedOptions.x ||
-      !mergedOptions.y
-    ) {
-      return null;
-    }
-
-    const baseOptions = {
-      width: dimensions.width,
-      height: dimensions.height,
-      marginTop: 50,
-      marginRight: 30,
-      marginBottom: 50,
-      marginLeft: 30,
-      style: {
-        backgroundColor: mergedOptions.backgroundColor,
-        overflow: "visible",
-      },
-      y: {
-        grid: mergedOptions.yGrid,
-        nice: true,
-        label: mergedOptions.useCount ? "Count" : mergedOptions.yLabel,
-        labelOffset: 22,
-        ticks: mergedOptions.yTicks,
-      },
-      x: {
-        grid: mergedOptions.xGrid,
-        label: mergedOptions.xLabel,
-        ticks: mergedOptions.xTicks,
-        ...(mergedOptions.xIsDate && {
-          transform: (d) => new Date(d * 1000),
-          tickFormat: (d) => utcFormat(mergedOptions.dateFormat)(d),
-        }),
-      },
-      marks: getMarks(processedData, {
-        ...mergedOptions,
-        y: mergedOptions.useCount ? "count" : mergedOptions.y,
-      }),
-    };
-
-    if (mergedOptions.facet) {
-      baseOptions.facet = {
-        data: processedData,
-        x: mergedOptions.facet,
-        marginRight: 30,
-        label: null,
-      };
-    }
-
-    return baseOptions;
-  }, [mergedOptions, dimensions, processedData]);
+  const plotOptions = useMemo(
+    () => getPlotOptions(dimensions, mergedOptions, processedData),
+    [dimensions, mergedOptions, processedData]
+  );
 
   useEffect(() => {
-    if (
-      !containerRef.current ||
-      !plotOptions ||
-      !plotOptions.x ||
-      !plotOptions.y
-    ) {
-      return;
-    }
-
+    if (!containerRef.current || !plotOptions) return;
     containerRef.current.innerHTML = "";
-
-    const plot = Plot.plot(plotOptions);
-    containerRef.current.appendChild(plot);
+    containerRef.current.appendChild(Plot.plot(plotOptions));
   }, [plotOptions]);
 
   return (
