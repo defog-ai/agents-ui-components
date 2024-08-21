@@ -1,9 +1,10 @@
+import { legend } from "@observablehq/plot";
 import { createContext, useContext, useReducer } from "react";
 
 // Initial state for the dashboard
 const initialState = {
   selectedChart: "line",
-  selectedColumns: { x: null, y: null, facet: null },
+  selectedColumns: { x: null, y: null, facet: null, fill: null, stroke: null },
   chartStyle: {
     title: "",
     fontSize: 12,
@@ -15,6 +16,7 @@ const initialState = {
     xTicks: 10,
     dateFormat: "%b %d, %Y",
     yTicks: 10,
+
     yAxisUnitLabel: "",
   },
   chartSpecificOptions: {
@@ -23,13 +25,13 @@ const initialState = {
       lineWidth: 2,
       curve: "linear",
       marker: false,
-      colorScheme: "category10",
+      scheme: "category10",
       groupBy: "",
       stroke: "",
       lineOptions: [],
       showLabels: false,
     },
-    bar: { barColor: "#4287f5", barWidth: 0.8, useCount: false },
+    bar: { barColor: "#4287f5", barWidth: 0.8, useCount: false, fill: null },
     scatter: { pointColor: "#f54242", pointSize: 5 },
     histogram: {
       binCount: 10,

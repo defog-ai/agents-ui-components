@@ -21,6 +21,8 @@ export function ChartContainer({ columns, rows }) {
   const filteredData = useMemo(() => {
     if (!rows || !selectedColumns.x) return [];
 
+    console.log(selectedChart, selectedColumns);
+
     const xColumn = columns.find((col) => col.key === selectedColumns.x);
     return rows.map((row) => {
       const filteredRow = {
@@ -33,9 +35,12 @@ export function ChartContainer({ columns, rows }) {
       if (selectedColumns.facet) {
         filteredRow[selectedColumns.facet] = row[selectedColumns.facet];
       }
+      if (selectedColumns.fill) {
+        filteredRow[selectedColumns.fill] = row[selectedColumns.fill];
+      }
       return filteredRow;
     });
-  }, [rows, selectedColumns, columns]);
+  }, [rows, selectedColumns, columns, selectedChart]);
 
   useEffect(() => {
     setData(filteredData);
@@ -43,6 +48,7 @@ export function ChartContainer({ columns, rows }) {
 
   const plotOptions = useMemo(() => {
     const xColumn = columns.find((col) => col.key === selectedColumns.x);
+
     return {
       type: selectedChart || "line",
       x: selectedColumns.x || null,

@@ -66,12 +66,15 @@ export function PrimarySelection({ columns }) {
 
   // if we have a vertically oriented boxplot, we need to switch the x and y axis labels
   useEffect(() => {
-    if (selectedChart === "boxplot") {
+    if (
+      selectedChart === "boxplot" &&
+      chartSpecificOptions.boxplotOrientation === "vertical"
+    ) {
       setAxisLabel({ x: "Vertical", y: "Horizontal" });
     } else {
       setAxisLabel({ x: "Horizontal", y: "Vertical" });
     }
-  }, [selectedChart]);
+  }, [selectedChart, chartSpecificOptions]);
 
   // Handle axis selection change
   const handleAxisChange = (axis) => (value) => {
@@ -169,23 +172,6 @@ export function PrimarySelection({ columns }) {
       </div>
     );
   };
-
-  // Render vertical axis unit input
-  // const renderVerticalAxisUnit = () => (
-  //   <div>
-  //     <h3 className="mb-2 input-label">Unit Label</h3>
-  //     <UnitPositionToggle
-  //       position={chartStyle.yAxisUnitPosition || "suffix"}
-  //       onChange={(newPosition) =>
-  //         updateChartStyle({ yAxisUnitPosition: newPosition })
-  //       }
-  //       value={chartStyle.yAxisUnitLabel}
-  //       onValueChange={(newValue) =>
-  //         updateChartStyle({ yAxisUnitLabel: newValue })
-  //       }
-  //     />
-  //   </div>
-  // );
 
   // Render facet selection dropdown
   const renderFacetSelection = () => (
