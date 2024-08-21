@@ -23,12 +23,23 @@ export const ObservablePlot = forwardRef(({ data = [], options = {} }, ref) => {
     if (mergedOptions.type === "bar" && mergedOptions.useCount) {
       return Object.entries(
         data.reduce((acc, item) => {
-          const key = item[mergedOptions.x];
+          const key = item[mergedOptions.xKey];
           acc[key] = (acc[key] || 0) + 1;
           return acc;
         }, {})
-      ).map(([key, count]) => ({ [mergedOptions.x]: key, count }));
+      ).map(([key, count]) => ({ [mergedOptions.xKey]: key, count }));
     }
+
+    // Process dates if necessary
+    if (mergedOptions.xIsDate && mergedOptions.dateToUnix) {
+      return data.map((item) => ({
+        ...item,
+        [mergedOptions.xKey]: mergedOptions.dateToUnix(
+          item[mergedOptions.xKey]
+        ),
+      }));
+    }
+
     return data;
   }, [data, mergedOptions]);
 
@@ -72,7 +83,7 @@ export const ObservablePlot = forwardRef(({ data = [], options = {} }, ref) => {
 
   return (
     <div className="w-full h-full bg-white" ref={containerRef}>
-      {(!mergedOptions.x || !mergedOptions.y) && (
+      {(!mergedOptions.xKey || !mergedOptions.yKey) && (
         <div className="flex items-center justify-center h-full text-gray-500">
           Please select X and Y axes to display the chart.
         </div>

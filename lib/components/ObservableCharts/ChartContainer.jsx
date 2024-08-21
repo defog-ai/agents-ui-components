@@ -13,40 +13,13 @@ export function ChartContainer({ columns, rows }) {
     selectedColumns,
     chartStyle,
     chartSpecificOptions,
-    data,
     setData,
   } = useChartContainer();
   const observablePlotRef = useRef(null);
 
-  const filteredData = useMemo(() => {
-    if (!rows || !selectedColumns.x) return [];
-
-    console.log(selectedChart, selectedColumns);
-
-    const xColumn = columns.find((col) => col.key === selectedColumns.x);
-    return rows.map((row) => {
-      const filteredRow = {
-        [selectedColumns.x]:
-          xColumn?.isDate && xColumn.dateToUnix
-            ? xColumn.dateToUnix(row[selectedColumns.x])
-            : row[selectedColumns.x],
-        [selectedColumns.y]: row[selectedColumns.y],
-      };
-      if (selectedColumns.facet) {
-        filteredRow[selectedColumns.facet] = row[selectedColumns.facet];
-      }
-      if (selectedColumns.fill) {
-        filteredRow[selectedColumns.fill] = row[selectedColumns.fill];
-      } else if (selectedColumns.stroke) {
-        filteredRow[selectedColumns.stroke] = row[selectedColumns.stroke];
-      }
-      return filteredRow;
-    });
-  }, [rows, selectedColumns, columns, selectedChart]);
-
   useEffect(() => {
-    setData(filteredData);
-  }, [filteredData, setData]);
+    setData(rows);
+  }, [rows, setData]);
 
   const plotOptions = useMemo(() => {
     const xColumn = columns.find((col) => col.key === selectedColumns.x);
@@ -54,17 +27,16 @@ export function ChartContainer({ columns, rows }) {
     return {
       type: selectedChart || "line",
       x: selectedColumns.x || null,
-      y:
-        selectedChart === "line"
-          ? selectedColumns.y
-          : selectedColumns.y || null,
+      y: selectedColumns.y || null,
       xLabel: chartStyle.xLabel || selectedColumns.x || "X Axis",
       yLabel: chartStyle.yLabel || selectedColumns.y || "Y Axis",
       facet: selectedColumns.facet,
+      fill: selectedColumns.fill,
+      stroke: selectedColumns.stroke,
       xIsDate: xColumn?.isDate,
-      boxplotOrientation:
-        chartSpecificOptions[selectedChart]?.boxplotOrientation || "vertical",
       dateToUnix: xColumn?.isDate ? xColumn.dateToUnix : null,
+      xKey: selectedColumns.x,
+      yKey: selectedColumns.y,
       ...chartStyle,
       ...chartSpecificOptions[selectedChart],
     };
@@ -133,7 +105,7 @@ export function ChartContainer({ columns, rows }) {
           <div style={{ width: "100%", height: "460px" }}>
             <ObservablePlot
               ref={observablePlotRef}
-              data={data}
+              data={rows}
               options={plotOptions}
             />
           </div>
