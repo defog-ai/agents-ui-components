@@ -43,7 +43,7 @@ function suggestCharts(columns: ColumnType[]): ChartSuggestion[] {
       chartType: "Line Chart",
       xAxis: dateColumn.title,
       yAxis: numericColumns[0].title,
-      description: `Track ${numericColumns[0].title} over time`,
+      // description: `Track ${numericColumns[0].title} over time`,
     });
   }
 
