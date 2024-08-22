@@ -86,6 +86,7 @@ export function Tabs({
             {/* Use an "onChange" listener to redirect the user to the selected tab URL. */}
             <SingleSelect
               options={tabs.map((tab) => ({
+                key: tab.name,
                 label: tab.name,
                 value: tab.name,
               }))}
