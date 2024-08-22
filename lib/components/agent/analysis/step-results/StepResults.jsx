@@ -14,6 +14,7 @@ import setupBaseUrl from "../../../utils/setupBaseUrl";
 import { Tabs } from "../../../core-ui/Tabs";
 import { AgentConfigContext } from "../../../context/AgentContext";
 import { SpinningLoader } from "@ui-components";
+import { v4 } from "uuid";
 
 function parseOutputs(data, analysisData) {
   let parsedOutputs = {};
@@ -319,7 +320,7 @@ export function StepResults({
               name: "Analysis",
               content: Object.values(parsedOutputs).map((output) => {
                 return (
-                  <>
+                  <div key={v4()}>
                     <StepResultsTable
                       stepId={stepId}
                       tableData={output["data"]}
@@ -353,7 +354,7 @@ export function StepResults({
                         </div>
                       </div>
                     )}
-                  </>
+                  </div>
                 );
               }),
             },
