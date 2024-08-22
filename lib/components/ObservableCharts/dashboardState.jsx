@@ -1,4 +1,4 @@
-import { createContext, useContext, useReducer } from "react";
+import { createContext, useContext, useReducer, useMemo } from "react";
 
 /**
  * @typedef {Object} ChartStyle
@@ -276,19 +276,6 @@ export const DashboardProvider = ({ children }) => {
 };
 
 /**
- * @returns {{ state: DashboardState, dispatch: React.Dispatch<Action> }}
- */
-export const useDashboardContext = () => {
-  const context = useContext(DashboardContext);
-  if (!context) {
-    throw new Error(
-      "useDashboardContext must be used within a DashboardProvider"
-    );
-  }
-  return context;
-};
-
-/**
  * @typedef {Object} DashboardActions
  * @property {(payload: string) => Action} setSelectedChart
  * @property {(payload: SelectedColumns) => Action} setSelectedColumns
@@ -315,12 +302,17 @@ export const dashboardActions = Object.fromEntries(
  * @returns {ChartContainerHook}
  */
 export const useChartContainer = () => {
-  const { state, dispatch } = useDashboardContext();
-  const actionDispatchers = Object.fromEntries(
-    Object.entries(dashboardActions).map(([key, action]) => [
-      key,
-      (payload) => dispatch(action(payload)),
-    ])
+  console.log("useChartContainer called");
+  const context = useContext(DashboardContext);
+  const { state, dispatch } = context;
+  const actionDispatchers = useMemo(() => 
+    Object.fromEntries(
+      Object.entries(dashboardActions).map(([key, action]) => [
+        key,
+        (payload) => dispatch(action(payload)),
+      ])
+    ), 
+    [dispatch]
   );
   return { ...state, ...actionDispatchers };
 };
