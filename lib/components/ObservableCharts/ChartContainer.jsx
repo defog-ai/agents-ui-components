@@ -20,82 +20,74 @@ export function ChartContainer({ columns, rows }) {
     chartStyle,
     chartSpecificOptions,
     setData,
-    availableColumns,
   } = useChartContainer();
   const observablePlotRef = useRef(null);
 
+  // if rows have changed, update the data with `setData`
   useEffect(() => {
     setData(rows);
-  }, [rows, setData]);
+  }, [rows]);
 
-  const plotOptions = useMemo(() => {
-    const xColumn = columns.find((col) => col.key === selectedColumns.x);
+  const xColumn = columns.find((col) => col.key === selectedColumns.x);
+  const plotOptions = {
+    type: selectedChart || "line",
+    x: selectedColumns.x || null,
+    y: selectedColumns.y || null,
+    xLabel: chartStyle.xLabel || selectedColumns.x || "X Axis",
+    yLabel: chartStyle.yLabel || selectedColumns.y || "Y Axis",
+    facet: selectedColumns.facet,
+    fill: selectedColumns.fill,
+    filter: selectedColumns.filter,
+    stroke: selectedColumns.stroke,
+    xIsDate: xColumn?.isDate,
+    dateToUnix: xColumn?.isDate ? xColumn.dateToUnix : null,
+    xKey: selectedColumns.x,
+    yKey: selectedColumns.y,
+    ...chartStyle,
+    ...chartSpecificOptions[selectedChart],
+  };
 
-    return {
-      type: selectedChart || "line",
-      x: selectedColumns.x || null,
-      y: selectedColumns.y || null,
-      xLabel: chartStyle.xLabel || selectedColumns.x || "X Axis",
-      yLabel: chartStyle.yLabel || selectedColumns.y || "Y Axis",
-      facet: selectedColumns.facet,
-      fill: selectedColumns.fill,
-      filter: selectedColumns.filter,
-      stroke: selectedColumns.stroke,
-      xIsDate: xColumn?.isDate,
-      dateToUnix: xColumn?.isDate ? xColumn.dateToUnix : null,
-      xKey: selectedColumns.x,
-      yKey: selectedColumns.y,
-      ...chartStyle,
-      ...chartSpecificOptions[selectedChart],
-    };
-  }, [
-    selectedChart,
-    selectedColumns,
-    chartStyle,
-    chartSpecificOptions,
-    columns,
-  ]);
+  // const handleSaveAsPNG = useCallback(() => {
+  //   observablePlotRef.current?.saveAsPNG();
+  // }, []);
 
-  const handleSaveAsPNG = useCallback(() => {
-    observablePlotRef.current?.saveAsPNG();
-  }, []);
+  const handleSaveAsPNG = () => {
+    console.log("Save as PNG");
+  }
 
-  const tabItems = useMemo(
-    () => [
-      {
-        key: "1",
-        label: <ChartNoAxesCombined size={24} />,
-        children: (
-          <TabPaneWrapper className="overflow-x-hidden">
-            <PrimarySelection columns={columns} />
-          </TabPaneWrapper>
-        ),
-      },
-      {
-        key: "2",
-        label: <SlidersHorizontal size={24} />,
-        children: (
-          <TabPaneWrapper className="overflow-x-hidden">
-            <Customization />
-          </TabPaneWrapper>
-        ),
-      },
-      {
-        key: "3",
-        label: <FilterIcon size={24} />,
-        children: (
-          <TabPaneWrapper className="overflow-x-hidden">
-            <FilterBuilder
-              columns={columns.filter((col) =>
-                Object.values(selectedColumns).includes(col.key)
-              )}
-            />
-          </TabPaneWrapper>
-        ),
-      },
-    ],
-    [columns, selectedColumns]
-  );
+  const tabItems = [
+    {
+      key: "1",
+      label: <ChartNoAxesCombined size={24} />,
+      children: (
+        <TabPaneWrapper className="overflow-x-hidden">
+          <PrimarySelection columns={columns} />
+        </TabPaneWrapper>
+      ),
+    },
+    {
+      key: "2",
+      label: <SlidersHorizontal size={24} />,
+      children: (
+        <TabPaneWrapper className="overflow-x-hidden">
+          <Customization />
+        </TabPaneWrapper>
+      ),
+    },
+    {
+      key: "3",
+      label: <FilterIcon size={24} />,
+      children: (
+        <TabPaneWrapper className="overflow-x-hidden">
+          <FilterBuilder
+            columns={columns.filter((col) =>
+              Object.values(selectedColumns).includes(col.key)
+            )}
+          />
+        </TabPaneWrapper>
+      ),
+    },
+  ];
 
   return (
     <div className="flex flex-col h-full">
