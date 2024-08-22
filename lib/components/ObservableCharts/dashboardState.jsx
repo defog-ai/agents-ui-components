@@ -105,7 +105,7 @@ import { createContext, useContext, useReducer, useMemo } from "react";
 
 /** @type {DashboardState} */
 const initialState = {
-  selectedChart: "line",
+  selectedChart: "bar",
   selectedColumns: {
     x: null,
     y: null,

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Tabs, Button } from "antd";
 import {
   ChartNoAxesCombined,
@@ -20,17 +20,21 @@ export function ChartContainer({ columns, rows }) {
     chartStyle,
     chartSpecificOptions,
     setData,
+    setSelectedChart,
+    setSelectedColumns,
   } = useChartContainer();
   const observablePlotRef = useRef(null);
-
+  const [userQuestion, setUserQuestion] = useState("");
+  const [loading, setLoading] = useState(false);
   // if rows have changed, update the data with `setData`
   useEffect(() => {
     setData(rows);
   }, [rows]);
 
   const xColumn = columns.find((col) => col.key === selectedColumns.x);
-  const plotOptions = {
-    type: selectedChart || "line",
+  const [plotOptions, setPlotOptions] = useState({
+  // const plotOptions = {
+    type: selectedChart || "Bar",
     x: selectedColumns.x || null,
     y: selectedColumns.y || null,
     xLabel: chartStyle.xLabel || selectedColumns.x || "X Axis",
@@ -45,7 +49,8 @@ export function ChartContainer({ columns, rows }) {
     yKey: selectedColumns.y,
     ...chartStyle,
     ...chartSpecificOptions[selectedChart],
-  };
+  // }
+  });
 
   const handleSaveAsPNG = useCallback(() => {
     if (observablePlotRef.current) {
@@ -53,13 +58,32 @@ export function ChartContainer({ columns, rows }) {
     }
   }, []);
 
+  // useEffect(() => {
+  //   setPlotOptions((prev) => ({
+  //     ...prev,
+  //     type: selectedChart || "Bar",
+  //     x: selectedColumns.x,
+  //     y: selectedColumns.y,
+  //     xLabel: chartStyle.xLabel || selectedColumns.x || "X Axis",
+  //     yLabel: chartStyle.yLabel || selectedColumns.y || "Y Axis",
+  //     facet: selectedColumns.facet,
+  //     fill: selectedColumns.fill,
+  //     stroke: selectedColumns.stroke,
+  //     ...chartSpecificOptions[selectedChart],
+  //   }));
+  // }, [selectedChart, JSON.stringify(selectedColumns), JSON.stringify(chartStyle), JSON.stringify(chartSpecificOptions)]);
+
   const tabItems = [
     {
       key: "1",
       label: <ChartNoAxesCombined size={24} />,
       children: (
         <TabPaneWrapper className="overflow-x-hidden">
-          <PrimarySelection columns={columns} />
+          <PrimarySelection
+            columns={columns}
+            propSelectedChart={plotOptions.type}
+            propSelectedColumns={{x: plotOptions.x, y: plotOptions.y, fill: plotOptions.fill}}
+          />
         </TabPaneWrapper>
       ),
     },
@@ -89,6 +113,57 @@ export function ChartContainer({ columns, rows }) {
 
   return (
     <div className="flex flex-col h-full">
+      <div className="flex justify-center items-center p-4 bg-white">
+        {/* textbox where users can ask a question */}
+        <input
+          type="text"
+          className="w-full p-2 border border-gray-300 rounded"
+          placeholder="Ask a question to create a visualization"
+          value={userQuestion}
+          onChange={(e) => setUserQuestion(e.target.value)}
+          disabled={loading}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              if (userQuestion === "Create a dotplot of plasticity vs lot_id") {
+                
+                setLoading(true);
+                setTimeout(() => {
+                  setPlotOptions({
+                    ...plotOptions,
+                    type: "scatter",
+                    x: "lot_id",
+                    y: "plasticity",
+                  });
+                  setLoading(false);
+                }, 2205);
+              } else if (
+                userQuestion === "color the rejected items in a different color"
+              ) {
+                setLoading(true);
+                setTimeout(() => {
+                  setPlotOptions({
+                    ...plotOptions,
+                    fill: "qc_approved",
+                  });
+                  setLoading(false);
+                }, 1230);
+              } else if (
+                userQuestion === "Can you change the theme and make the rejected items in red?"
+              ) {
+                setLoading(true);
+                setTimeout(() => {
+                  setPlotOptions({
+                    ...plotOptions,
+                    scheme: "set1",
+                  });
+                  setLoading(false);
+                }, 1940);
+              }
+            }
+          }}
+        />
+      </div>
       <div className="flex flex-grow gap-3">
         <div className="w-2/3 max-w-[350px] h-full border-r">
           <Tabs
