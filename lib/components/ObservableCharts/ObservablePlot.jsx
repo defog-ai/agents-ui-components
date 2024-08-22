@@ -8,7 +8,8 @@ import React, {
   useCallback,
 } from "react";
 import * as Plot from "@observablehq/plot";
-import { defaultOptions, saveAsPNG, getPlotOptions } from "./plotUtils";
+import { defaultOptions, getPlotOptions } from "./plotUtils";
+import { saveAsPNG } from "./utils/saveChart";
 
 export const ObservablePlot = forwardRef(({ data = [], options = {} }, ref) => {
   const containerRef = useRef(null);
@@ -82,7 +83,7 @@ export const ObservablePlot = forwardRef(({ data = [], options = {} }, ref) => {
   }, [plotOptions]);
 
   return (
-    <div className="w-full h-full bg-white" ref={containerRef}>
+    <div className="w-full h-full bg-white observable-plot" ref={containerRef}>
       {(!mergedOptions.xKey || !mergedOptions.yKey) && (
         <div className="flex items-center justify-center h-full text-gray-500">
           Please select X and Y axes to display the chart.
