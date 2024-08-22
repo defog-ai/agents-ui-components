@@ -118,34 +118,32 @@ export function StepResultsTable({
     }
   }
 
-  let extraTabs = [];
-
   // if reactive vars change, add dragstart handler to them
-  useEffect(() => {
-    if (!tableChartRef.current) return;
-    const reactiveEls = tableChartRef.current.getElementsByClassName(
-      "table-chart-reactive-var"
-    );
+  // useEffect(() => {
+  //   if (!tableChartRef.current) return;
+  //   const reactiveEls = tableChartRef.current.getElementsByClassName(
+  //     "table-chart-reactive-var"
+  //   );
 
-    Array.from(reactiveEls).forEach((el) => {
-      el.ondragstart = (e) => {
-        e.stopPropagation();
-        e.dataTransfer.clearData();
-        e.dataTransfer.setData(
-          "text/html",
-          `<reactive-var
-              data-reactive-var='true'
-              data-reactive-var-name=${el.dataset.reactiveVarName}
-              data-val=${roundNumber(+el.dataset.val)}
-              data-reactive-var-nest-location=${
-                el.dataset.reactiveVarNestLocation
-              }
-              data-table-id=${el.dataset.stepId}>
-            </reactive-var>`
-        );
-      };
-    });
-  }, [reactiveVars]);
+  //   Array.from(reactiveEls).forEach((el) => {
+  //     el.ondragstart = (e) => {
+  //       e.stopPropagation();
+  //       e.dataTransfer.clearData();
+  //       e.dataTransfer.setData(
+  //         "text/html",
+  //         `<reactive-var
+  //             data-reactive-var='true'
+  //             data-reactive-var-name=${el.dataset.reactiveVarName}
+  //             data-val=${roundNumber(+el.dataset.val)}
+  //             data-reactive-var-nest-location=${
+  //               el.dataset.reactiveVarNestLocation
+  //             }
+  //             data-table-id=${el.dataset.stepId}>
+  //           </reactive-var>`
+  //       );
+  //     };
+  //   });
+  // }, [reactiveVars]);
 
   const updateCodeAndSql = (updateProp = null, newVal) => {
     // update values of the code and the SQL
@@ -171,17 +169,10 @@ export function StepResultsTable({
     setToolCode(codeStr);
   }, [sql, codeStr]);
 
-  const results = useMemo(() => {
+  const [results, setResults] = useState([]);
+  useEffect(() => {
+    console.log("Re-Rendering StepResultsTable");
     // extra tabs should be an array and all elements should be jsx components
-    if (
-      !extraTabs ||
-      !Array.isArray(extraTabs) ||
-      !extraTabs.every((d) => d.component && d.tabLabel) ||
-      !extraTabs.every((d) => isValidElement(d.component))
-    ) {
-      extraTabs = [];
-    }
-
     let tabs = [];
     if (tableData) {
       const roundedData = roundColumns(tableData.data, tableData.columns);
@@ -236,6 +227,7 @@ export function StepResultsTable({
 
     if (!chartImages || chartImages.length <= 0) {
       if (tableData) {
+        console.log("Fresh add to tabs");
         tabs.push({
           component: (
             <ErrorBoundary>
@@ -306,9 +298,6 @@ export function StepResultsTable({
       });
     }
 
-    // push extra tabs
-    tabs = tabs.concat(extraTabs);
-
     // convert to antd tabs
     tabs = (
       <Tabs
@@ -341,8 +330,99 @@ export function StepResultsTable({
       ></Tabs>
     );
 
-    return tabs;
-  }, [tableData, extraTabs, chartImages, toolCode, sqlQuery]);
+    setResults(tabs);
+  }, [tableData, chartImages, toolCode, sqlQuery]);
+
+  function nestedDivsUntilNumericKeys(key, obj, nestLocation) {
+    if (typeof obj[key] === "object") {
+      return (
+        <div className="table-chart-reactive-var-group" key={key}>
+          <>
+            <div className="table-chart-reactive-var-group-name">{key}</div>
+            <div className="table-chart-reactive-var-vals">
+              {Object.keys(obj[key]).map((nestedKey) =>
+                nestedDivsUntilNumericKeys(
+                  nestedKey,
+                  obj[key],
+                  nestLocation + "---" + nestedKey
+                )
+              )}
+            </div>
+          </>
+        </div>
+      );
+    }
+
+    return (
+      <div
+        className="table-chart-reactive-var"
+        key={key}
+        data-reactive-var-name={key}
+        data-val={obj[key]}
+        data-reactive-var-nest-location={nestLocation}
+        data-table-id={stepId}
+        draggable="true"
+      >
+        <span className="reactive-var-name">{key}</span>
+        <Popover
+          content={() => <span>{obj[key]}</span>}
+          rootClassName="reactive-var-popover-val"
+          arrow={false}
+          placement="left"
+        >
+          <span
+            className="reactive-var-value"
+            onClick={() => {
+              let clipboardItem = new ClipboardItem({
+                "text/html": new Blob(
+                  [
+                    `<reactive-var
+                            data-reactive-var='true'
+                            data-reactive-var-name=${key}
+                            data-val=${roundNumber(+obj[key])}
+                            data-reactive-var-nest-location=${nestLocation}
+                            data-table-id=${stepId}>
+                          </reactive-var>&nbsp;`,
+                  ],
+                  { type: "text/html" }
+                ),
+              });
+
+              navigator.clipboard.write([clipboardItem]).then(() => {
+                message.success("Copied to clipboard.");
+              });
+            }}
+          >
+            {roundNumber(obj[key])}
+          </span>
+          <DocumentDuplicateIcon
+            className="w-3 h-3 reactive-var-copy-icon"
+            title="Copy"
+            onClick={() => {
+              let clipboardItem = new ClipboardItem({
+                "text/html": new Blob(
+                  [
+                    `<reactive-var
+                            data-reactive-var='true'
+                            data-reactive-var-name=${key}
+                            data-val=${roundNumber(+obj[key])}
+                            data-reactive-var-nest-location=${nestLocation}
+                            data-table-id=${stepId}>
+                          </reactive-var>&nbsp;`,
+                  ],
+                  { type: "text/html" }
+                ),
+              });
+
+              navigator.clipboard.write([clipboardItem]).then(() => {
+                message.success("Copied to clipboard.");
+              });
+            }}
+          />
+        </Popover>
+      </div>
+    );
+  }
 
   const reactiveVarJsx = useMemo(() => {
     if (
@@ -360,97 +440,6 @@ export function StepResultsTable({
       // keep nesting into divs until we get to the keys that are not objects
 
       let keys = Object.keys(reactiveVars);
-
-      function nestedDivsUntilNumericKeys(key, obj, nestLocation) {
-        if (typeof obj[key] === "object") {
-          return (
-            <div className="table-chart-reactive-var-group" key={key}>
-              <>
-                <div className="table-chart-reactive-var-group-name">{key}</div>
-                <div className="table-chart-reactive-var-vals">
-                  {Object.keys(obj[key]).map((nestedKey) =>
-                    nestedDivsUntilNumericKeys(
-                      nestedKey,
-                      obj[key],
-                      nestLocation + "---" + nestedKey
-                    )
-                  )}
-                </div>
-              </>
-            </div>
-          );
-        }
-
-        return (
-          <div
-            className="table-chart-reactive-var"
-            key={key}
-            data-reactive-var-name={key}
-            data-val={obj[key]}
-            data-reactive-var-nest-location={nestLocation}
-            data-table-id={stepId}
-            draggable="true"
-          >
-            <span className="reactive-var-name">{key}</span>
-            <Popover
-              content={() => <span>{obj[key]}</span>}
-              rootClassName="reactive-var-popover-val"
-              arrow={false}
-              placement="left"
-            >
-              <span
-                className="reactive-var-value"
-                onClick={() => {
-                  let clipboardItem = new ClipboardItem({
-                    "text/html": new Blob(
-                      [
-                        `<reactive-var
-                                data-reactive-var='true'
-                                data-reactive-var-name=${key}
-                                data-val=${roundNumber(+obj[key])}
-                                data-reactive-var-nest-location=${nestLocation}
-                                data-table-id=${stepId}>
-                              </reactive-var>&nbsp;`,
-                      ],
-                      { type: "text/html" }
-                    ),
-                  });
-
-                  navigator.clipboard.write([clipboardItem]).then(() => {
-                    message.success("Copied to clipboard.");
-                  });
-                }}
-              >
-                {roundNumber(obj[key])}
-              </span>
-              <DocumentDuplicateIcon
-                className="w-3 h-3 reactive-var-copy-icon"
-                title="Copy"
-                onClick={() => {
-                  let clipboardItem = new ClipboardItem({
-                    "text/html": new Blob(
-                      [
-                        `<reactive-var
-                                data-reactive-var='true'
-                                data-reactive-var-name=${key}
-                                data-val=${roundNumber(+obj[key])}
-                                data-reactive-var-nest-location=${nestLocation}
-                                data-table-id=${stepId}>
-                              </reactive-var>&nbsp;`,
-                      ],
-                      { type: "text/html" }
-                    ),
-                  });
-
-                  navigator.clipboard.write([clipboardItem]).then(() => {
-                    message.success("Copied to clipboard.");
-                  });
-                }}
-              />
-            </Popover>
-          </div>
-        );
-      }
 
       return (
         <>
