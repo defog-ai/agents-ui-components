@@ -19,7 +19,7 @@ import {
 import Clarify from "./Clarify";
 import AnalysisManager from "./analysisManager";
 import setupBaseUrl from "../../utils/setupBaseUrl";
-import { AnalysisFeedback } from "../feedback/AnalysisFeedback";
+// import { AnalysisFeedback } from "../feedback/AnalysisFeedback";
 import {
   breakpoints,
   Collapse,
@@ -333,16 +333,17 @@ export const AnalysisAgent = ({
         !analysisData ||
         (!analysisData.currentStage && hasExternalSearchBar)
       ) ? (
-        <div className="basis-0 text-nowrap whitespace-nowrap">
-          <AnalysisFeedback
-            analysisSteps={analysisData?.gen_steps?.steps || []}
-            analysisId={analysisId}
-            user_question={analysisData?.user_question}
-            apiEndpoint={apiEndpoint}
-            token={token}
-            keyName={keyName}
-          />
-        </div>
+        null
+        // <div className="basis-0 text-nowrap whitespace-nowrap">
+        //   <AnalysisFeedback
+        //     analysisSteps={analysisData?.gen_steps?.steps || []}
+        //     analysisId={analysisId}
+        //     user_question={analysisData?.user_question}
+        //     apiEndpoint={apiEndpoint}
+        //     token={token}
+        //     keyName={keyName}
+        //   />
+        // </div>
       ) : (
         <div className="basis-0 text-nowrap whitespace-nowrap group cursor-pointer">
           <StopCircleIcon
@@ -465,6 +466,8 @@ export const AnalysisAgent = ({
                               setActiveNode={setActiveNode}
                               handleReRun={handleReRun}
                               reRunningSteps={reRunningSteps}
+                              keyName={keyName}
+                              token={token}
                               onCreateNewStep={async function ({
                                 tool_name,
                                 inputs,

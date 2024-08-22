@@ -9,17 +9,11 @@ import {
 } from "react";
 import { AnalysisAgent } from "../analysis/AnalysisAgent";
 import { AnalysisTreeItem } from "./AnalysisTreeItem";
-import {
-  ArrowRightEndOnRectangleIcon,
-  ArrowsPointingOutIcon,
-  PlusIcon,
-} from "@heroicons/react/20/solid";
+import { PlusIcon } from "@heroicons/react/20/solid";
 import { sentenceCase, useGhostImage } from "../../utils/utils";
 import { twMerge } from "tailwind-merge";
 import {
   Sidebar,
-  Toggle,
-  TextArea,
   MessageManagerContext,
   useWindowSize,
   breakpoints,
@@ -27,6 +21,7 @@ import {
 import ErrorBoundary from "../../common/ErrorBoundary";
 import { AnalysisTreeViewerLinks } from "./AnalysisTreeViewerLinks";
 import { AgentConfigContext } from "../../context/AgentContext";
+import { DraggableInput } from "./DraggableInput";
 /**
  * Analysis tree viewer component
  * @param {Object} props
@@ -49,14 +44,11 @@ export function AnalysisTreeViewer({
 }) {
   const messageManager = useContext(MessageManagerContext);
 
-  const ghostImage = useGhostImage();
-
   const analysisDomRefs = useRef({});
 
   const [loading, setLoading] = useState(false);
   const [sqlOnly, setSqlOnly] = useState(true);
 
-  const searchCtr = useRef(null);
   const searchRef = useRef(null);
   const [addToDashboardSelection, setAddToDashboardSelection] = useState(false);
   const [selectedDashboards, setSelectedDashboards] = useState([]);
@@ -126,8 +118,6 @@ export function AnalysisTreeViewer({
 
         analysisTreeManager.setActiveAnalysisId(newAnalysis.analysisId);
         analysisTreeManager.setActiveRootAnalysisId(newAnalysis.rootAnalysisId);
-
-        searchRef.current.value = "";
       } catch (e) {
         messageManager.error("Failed to create analysis");
         console.log(e.stack);
@@ -137,26 +127,6 @@ export function AnalysisTreeViewer({
     },
     [analysisTreeManager, forceSqlOnly, sqlOnly, isTemp, keyName, metadata]
   );
-
-  useEffect(() => {
-    if (!searchBarDraggable) return;
-    function setSearchBar() {
-      if (!searchCtr.current) return;
-
-      searchCtr.current.style.left = "0";
-      searchCtr.current.style.right = "0";
-      searchCtr.current.style.bottom =
-        window.innerWidth > 1600 ? "30%" : "20px";
-    }
-
-    setSearchBar();
-
-    window.addEventListener("resize", setSearchBar);
-
-    return () => {
-      window.removeEventListener("resize", setSearchBar);
-    };
-  }, [searchBarDraggable]);
 
   function scrollTo(id) {
     if (!analysisDomRefs.current?.[id]?.ctr) return;
@@ -177,7 +147,7 @@ export function AnalysisTreeViewer({
         {activeAnalysisId && activeRootAnalysisId && (
           <div className="lg:hidden absolute bottom-0 left-0 w-full h-[10%] pointer-events-none bg-gradient-to-b from-transparent to-gray-300 z-10"></div>
         )}
-        <div className="analysis-tree-viewer max-w-full h-full flex flex-row bg-white text-gray-600 w-full">
+        <div className="flex flex-row w-full h-full max-w-full text-gray-600 bg-white analysis-tree-viewer">
           <div className="absolute left-0 top-0 z-[20] lg:sticky">
             <Sidebar
               location="left"
@@ -198,7 +168,7 @@ export function AnalysisTreeViewer({
                 "w-72 px-2 pt-5 pb-14 rounded-tl-lg relative sm:block pl-4 min-h-96 h-full overflow-y-auto"
               }
             >
-              <div className="flex flex-col text-sm relative history-list">
+              <div className="relative flex flex-col text-sm history-list">
                 <AnalysisTreeViewerLinks
                   analyses={allAnalyses}
                   activeAnalysisId={
@@ -254,7 +224,7 @@ export function AnalysisTreeViewer({
                     isActive={!activeRootAnalysisId}
                   />
                 ) : (
-                  <div className="w-full mt-5 sticky bottom-5">
+                  <div className="sticky w-full mt-5 bottom-5">
                     <div
                       data-enabled={!loading}
                       className={twMerge(
@@ -273,9 +243,9 @@ export function AnalysisTreeViewer({
                           setSidebarOpen(false);
                       }}
                     >
-                      New <PlusIcon className="ml-2 w-4 h-4 inline" />
+                      New <PlusIcon className="inline w-4 h-4 ml-2" />
                     </div>
-                    <div className="absolute w-full h-10 bg-gray-100 z-0"></div>
+                    <div className="absolute z-0 w-full h-10 bg-gray-100"></div>
                   </div>
                 )}
               </div>
@@ -290,13 +260,14 @@ export function AnalysisTreeViewer({
               setSidebarOpen(false);
             }}
           ></div>
-          <div className="grid grid-cols-1 pt-10 sm:pt-0 auto-cols-max lg:grid-cols-1 grow rounded-tr-lg p-2 lg:p-4 relative min-w-0 h-full overflow-auto">
+          <div className="relative grid h-full min-w-0 grid-cols-1 p-2 pt-10 overflow-auto rounded-tr-lg sm:pt-0 auto-cols-max lg:grid-cols-1 grow lg:p-4">
             {activeRootAnalysisId &&
               analysisTree?.[activeRootAnalysisId]?.analysisList &&
               analysisTree[activeRootAnalysisId].analysisList.map(
                 (analysis) => {
                   const rootAnalysisId = analysis.rootAnalysisId;
-                  const analysisChildList = analysisTree?.[rootAnalysisId]?.analysisList || [];
+                  const analysisChildList =
+                    analysisTree?.[rootAnalysisId]?.analysisList || [];
                   return (
                     <AnalysisAgent
                       key={analysis.analysisId}
@@ -317,7 +288,7 @@ export function AnalysisTreeViewer({
                       sqlOnly={analysis.sqlOnly}
                       isTemp={analysis.isTemp}
                       keyName={analysis.keyName}
-                      userQuestions={analysisChildList.map((i) => ({...i}))}
+                      userQuestions={analysisChildList.map((i) => ({ ...i }))}
                       onManagerCreated={(analysisManager, id, ctr) => {
                         analysisDomRefs.current[id] = {
                           ctr,
@@ -362,12 +333,12 @@ export function AnalysisTreeViewer({
 
             {!activeAnalysisId && (
               <div className=" grow flex flex-col place-content-center m-auto max-w-full relative z-[1]">
-                <div className="text-gray-400 text-center rounded-md">
-                  <p className="cursor-default block text-sm mb-4 font-bold">
+                <div className="text-center text-gray-400 rounded-md">
+                  <p className="block mb-4 text-sm font-bold cursor-default">
                     Quickstart
                   </p>
 
-                  <ul className="text-gray-500 font-light">
+                  <ul className="font-light text-gray-500">
                     {predefinedQuestions.map((question, i) => (
                       <li className="" key={i}>
                         <button
@@ -396,140 +367,18 @@ export function AnalysisTreeViewer({
                 </div>
               </div>
             )}
-
-            <div
-              className={twMerge(
-                "w-full lg:w-8/12 m-auto fixed z-20 bg-white rounded-lg shadow-custom border border-gray-400 hover:border-blue-500 focus:border-blue-500 flex flex-row",
-                searchBarClasses
-              )}
-              style={{
-                left: "0",
-                right: "0",
-                bottom: searchBarDraggable
-                  ? window.innerWidth > 1600
-                    ? "30%"
-                    : "20px"
-                  : null,
-              }}
-              ref={searchCtr}
-            >
-              {searchBarDraggable && (
-                <div
-                  className="cursor-move min-h-full w-3 flex items-center ml-1 group"
-                  draggable={searchBarDraggable}
-                  onDragStart={(e) => {
-                    if (!searchBarDraggable) return;
-                    e.dataTransfer.setDragImage(ghostImage, 0, 0);
-                  }}
-                  onDrag={(e) => {
-                    if (!searchBarDraggable) return;
-                    if (!e.clientX || !e.clientY || !searchCtr.current) return;
-
-                    const eBottom =
-                      window.innerHeight -
-                      e.clientY -
-                      searchCtr.current.clientHeight;
-                    const eLeft = e.clientX;
-
-                    const minBottom = 20;
-
-                    const maxBottom =
-                      window.innerHeight - 20 - searchCtr.current.clientHeight;
-
-                    if (eBottom < minBottom) {
-                      searchCtr.current.style.bottom = minBottom + "px";
-                    } else if (eBottom > maxBottom) {
-                      searchCtr.current.style.bottom = maxBottom + "px";
-                    } else {
-                      searchCtr.current.style.bottom = eBottom + "px";
-                    }
-
-                    const maxLeft =
-                      window.innerWidth - searchCtr.current.clientWidth - 20;
-
-                    const minLeft = 20;
-
-                    searchCtr.current.style.right = "auto";
-
-                    if (eLeft < minLeft) {
-                      searchCtr.current.style.left = minLeft + "px";
-                    } else if (eLeft > maxLeft) {
-                      searchCtr.current.style.left = maxLeft + "px";
-                    } else {
-                      searchCtr.current.style.left = eLeft + "px";
-                    }
-                  }}
-                >
-                  <ArrowsPointingOutIcon className="h-3 w-3 text-gray-400 group-hover:text-primary-text" />
-                </div>
-              )}
-              <div className="grow rounded-md lg:items-center flex flex-col-reverse lg:flex-row">
-                <div className="flex flex-row grow">
-                  <div className="flex lg:flex-row-reverse lg:items-center flex-col grow">
-                    <TextArea
-                      rootClassNames="grow border-none bg-transparent py-1.5 text-gray-900 px-2 placeholder:text-gray-400 sm:leading-6 text-sm break-all focus:ring-0 focus:outline-none"
-                      textAreaClassNames="resize-none"
-                      ref={searchRef}
-                      disabled={loading}
-                      defaultRows={1}
-                      onKeyDown={(ev) => {
-                        if (ev.key === "Enter") {
-                          ev.preventDefault();
-                          ev.stopPropagation();
-
-                          // if (!searchRef.current.value) return;
-
-                          handleSubmit(
-                            searchRef.current.value,
-                            activeRootAnalysisId,
-                            !activeRootAnalysisId,
-                            activeAnalysisId
-                          );
-                        }
-                      }}
-                      placeholder={
-                        activeRootAnalysisId
-                          ? "Type your next question here"
-                          : "Type your question here"
-                      }
-                    />
-                    {showToggle && (
-                      <Toggle
-                        disabled={forceSqlOnly || loading}
-                        titleClassNames="font-bold text-gray-400"
-                        // if true, means advance = sql only off
-                        onToggle={(v) => {
-                          if (forceSqlOnly) return;
-                          setSqlOnly(!v);
-                        }}
-                        defaultOn={!sqlOnly}
-                        offLabel="Advanced"
-                        onLabel={"Advanced"}
-                        rootClassNames="items-start lg:border-r py-2 lg:py-0 px-2 w-32"
-                      />
-                    )}
-                  </div>
-                  <button
-                    type="button"
-                    className="relative -ml-px inline-flex items-center gap-x-1.5 rounded-r-md px-3 p-0 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-blue-500 hover:bg-blue-500 hover:text-white"
-                    onClick={() => {
-                      handleSubmit(
-                        searchRef.current.value,
-                        activeRootAnalysisId,
-                        !activeRootAnalysisId,
-                        activeAnalysisId
-                      );
-                    }}
-                  >
-                    <ArrowRightEndOnRectangleIcon
-                      className="-ml-0.5 h-5 w-5 text-gray-400"
-                      aria-hidden="true"
-                    />
-                    Ask
-                  </button>
-                </div>
-              </div>
-            </div>
+            <DraggableInput
+              searchBarClasses={searchBarClasses}
+              searchBarDraggable={searchBarDraggable}
+              loading={loading}
+              handleSubmit={handleSubmit}
+              activeRootAnalysisId={activeRootAnalysisId}
+              activeAnalysisId={activeAnalysisId}
+              showToggle={showToggle}
+              forceSqlOnly={forceSqlOnly}
+              setSqlOnly={setSqlOnly}
+              sqlOnly={sqlOnly}
+            />
           </div>
         </div>
       </div>
@@ -543,7 +392,7 @@ export function AnalysisTreeViewer({
           setAddToDashboardSelection(false);
         }}
       >
-        <div className="dashboard-selection mt-8 flex flex-col max-h-80 overflow-auto bg-gray-100 rounded-md">
+        <div className="flex flex-col mt-8 overflow-auto bg-gray-100 rounded-md dashboard-selection max-h-80">
           {dashboards.map((dashboard) => (
             <div
               className={
@@ -567,10 +416,10 @@ export function AnalysisTreeViewer({
                 }
               }}
             >
-              <div className="checkbox mr-3">
+              <div className="mr-3 checkbox">
                 <input
                   // style input to have no background and a black tick
-                  className="appearance-none w-3 h-3 border border-gray-300 rounded-md checked:bg-blue-600 checked:border-transparent"
+                  className="w-3 h-3 border border-gray-300 rounded-md appearance-none checked:bg-blue-600 checked:border-transparent"
                   type="checkbox"
                   checked={selectedDashboards.includes(dashboard.doc_id)}
                   readOnly
