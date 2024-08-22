@@ -110,11 +110,11 @@ export function ChartContainer({ columns, rows }) {
           />
         </div>
         <div className="flex-grow p-4 bg-white">
-          <div className="flex justify-end mb-2">
+          {/* <div className="flex justify-end mb-2">
             <Button icon={<Download size={16} />} onClick={handleSaveAsPNG}>
               Save as PNG
             </Button>
-          </div>
+          </div> */}
           <div style={{ width: "100%", height: "460px" }}>
             <ObservablePlot
               ref={observablePlotRef}
