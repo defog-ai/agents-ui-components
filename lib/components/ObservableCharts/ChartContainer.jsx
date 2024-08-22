@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { Tabs, Button } from "antd";
 import {
   ChartNoAxesCombined,
@@ -47,13 +47,11 @@ export function ChartContainer({ columns, rows }) {
     ...chartSpecificOptions[selectedChart],
   };
 
-  // const handleSaveAsPNG = useCallback(() => {
-  //   observablePlotRef.current?.saveAsPNG();
-  // }, []);
-
-  const handleSaveAsPNG = () => {
-    console.log("Save as PNG");
-  }
+  const handleSaveAsPNG = useCallback(() => {
+    if (observablePlotRef.current) {
+      observablePlotRef.current.saveAsPNG();
+    }
+  }, []);
 
   const tabItems = [
     {
@@ -110,11 +108,11 @@ export function ChartContainer({ columns, rows }) {
           />
         </div>
         <div className="flex-grow p-4 bg-white">
-          {/* <div className="flex justify-end mb-2">
+          <div className="flex justify-end mb-2">
             <Button icon={<Download size={16} />} onClick={handleSaveAsPNG}>
               Save as PNG
             </Button>
-          </div> */}
+          </div>
           <div style={{ width: "100%", height: "460px" }}>
             <ObservablePlot
               ref={observablePlotRef}
