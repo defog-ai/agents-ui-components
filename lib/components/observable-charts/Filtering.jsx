@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import {
   Select,
   Input,
@@ -10,7 +10,7 @@ import {
   Tag,
 } from "antd";
 import { DeleteOutlined, PlusOutlined } from "@ant-design/icons";
-import { useChartContainer } from "./dashboardState";
+import { ChartStateContext } from "./ChartStateContext";
 
 const { Option } = Select;
 const { RangePicker } = DatePicker;
@@ -18,7 +18,8 @@ const { Text } = Typography;
 
 const FilterBuilder = ({ columns }) => {
   const [filters, setFilters] = useState([]);
-  const { updateChartSpecificOptions } = useChartContainer();
+  const chartState = useContext(ChartStateContext);
+  const { setState } = chartState;
 
   const addFilter = () => {
     setFilters([...filters, { column: "", operator: "==", value: "" }]);
@@ -45,7 +46,7 @@ const FilterBuilder = ({ columns }) => {
 
     if (allFiltersEmpty || currentFilters.length === 0) {
       // If all filters are empty or there are no filters, set the chart filter to null
-      updateChartSpecificOptions({ filter: null });
+      setState(chartState.updateChartSpecificOptions({ filter: null }));
       return;
     }
 
@@ -106,7 +107,7 @@ const FilterBuilder = ({ columns }) => {
     };
 
     // Update the filter function in the chart container
-    updateChartSpecificOptions({ filter: filterFunction });
+    setState(chartState.updateChartSpecificOptions({ filter: filterFunction }));
   };
   const getOperators = (column) => {
     if (column.variableType === "categorical") {

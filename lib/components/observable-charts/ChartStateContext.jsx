@@ -1,4 +1,132 @@
-import { createContext, useContext, useReducer, useMemo } from "react";
+// this context is specific for each chart
+// hence not used in the Setup.jsx file once
+// but used inside ChartContainer.jsx and added to each chart separately
+
+import { createContext } from "react";
+
+/**
+ *
+ * @typedef {Object} ActionHandlers
+ * @property {function(string): ChartState} setSelectedChart
+ * @property {function(SelectedColumns): ChartState} setSelectedColumns
+ * @property {function(Partial<ChartStyle>): ChartState} updateChartStyle
+ * @property {function(Partial<ChartSpecificOptions[keyof ChartSpecificOptions]>): ChartState} updateChartSpecificOptions
+ * @property {function(Array<Object>): ChartState} setData
+ * @property {function(Array<Column>): ChartState} setAvailableColumns
+ * @property {function(): ChartState} autoSelectVariables
+ */
+
+/**
+ * Handy, chainable methods to change chart state without doing chartState.update({...}) everytime.
+ *
+ * Always used with defaultChartState.
+ *
+ * @returns {ActionHandlers} - Action handlers.
+ * @example
+ * const [state, setState] = useState(defaultChartState);
+ *
+ * // update the state
+ * setState(state.setSelectedChart("line"));
+ *
+ * // update state by chaining multiple actions
+ * setState(state
+ *          .setSelectedChart("line")
+ *          .setSelectedColumns({ x: "date", y: "value" })
+ * );
+ */
+export function createActionHandlers() {
+  const actionHandlers = {
+    setSelectedChart: function (payload) {
+      console.log(this);
+      const newState = {
+        ...this,
+        selectedChart: payload,
+        selectedColumns: { x: null, y: payload === "line" ? [] : null },
+        chartStyle: {
+          ...this.chartStyle,
+          xLabel: null,
+          yLabel: null,
+        },
+      };
+
+      return newState;
+    },
+    setSelectedColumns: function (payload) {
+      const newState = { ...this, selectedColumns: payload };
+
+      return newState;
+    },
+    updateChartStyle: function (payload) {
+      const newState = {
+        ...this,
+        chartStyle: { ...this.chartStyle, ...payload },
+      };
+
+      return newState;
+    },
+    updateChartSpecificOptions: function (payload) {
+      const newState = {
+        ...this,
+        chartSpecificOptions: {
+          ...this.chartSpecificOptions,
+          [this.selectedChart]: {
+            ...this.chartSpecificOptions[this.selectedChart],
+            ...payload,
+          },
+        },
+      };
+      return newState;
+    },
+    setData: function (payload) {
+      const newState = { ...this, data: payload };
+      return newState;
+    },
+    setAvailableColumns: function (payload) {
+      const newState = {
+        ...this,
+        availableColumns: payload,
+      };
+
+      return newState;
+    },
+    autoSelectVariables: function () {
+      const { selectedChart, availableColumns } = this;
+
+      const dateColumn = availableColumns.find((col) => col.isDate);
+      const quantColumns = availableColumns.filter(
+        (col) => col.variableType === "quantitative"
+      );
+
+      let xAxis =
+        dateColumn?.key ||
+        quantColumns[0]?.key ||
+        availableColumns[0]?.key ||
+        null;
+
+      let yAxis = null;
+      if (selectedChart === "line") {
+        yAxis = quantColumns
+          .filter((col) => col.key !== xAxis)
+          .slice(0, 1)
+          .map((col) => col.key);
+      } else {
+        yAxis =
+          quantColumns.find((col) => col.key !== xAxis)?.key ||
+          availableColumns.find((col) => col.key !== xAxis)?.key ||
+          null;
+      }
+
+      const newState = {
+        ...this,
+        selectedColumns: { x: xAxis, y: yAxis },
+      };
+
+      return newState;
+    },
+  };
+
+  return actionHandlers;
+}
 
 /**
  * @typedef {Object} ChartStyle
@@ -94,7 +222,7 @@ import { createContext, useContext, useReducer, useMemo } from "react";
  */
 
 /**
- * @typedef {Object} DashboardState
+ * @typedef {Object} ChartConfig
  * @property {string} selectedChart - Currently selected chart type
  * @property {SelectedColumns} selectedColumns - Selected columns for the chart
  * @property {ChartStyle} chartStyle - Style options for the chart
@@ -103,8 +231,10 @@ import { createContext, useContext, useReducer, useMemo } from "react";
  * @property {Array<Column>} availableColumns - Available columns in the dataset
  */
 
-/** @type {DashboardState} */
-const initialState = {
+/**
+ * @typedef {ChartConfig & ActionHandlers} ChartState
+ */
+export const defaultChartState = {
   selectedChart: "bar",
   selectedColumns: {
     x: null,
@@ -164,157 +294,37 @@ const initialState = {
   },
   data: [],
   availableColumns: [],
+  ...createActionHandlers(),
 };
 
 /**
- * @typedef {Object} ActionHandlers
- * @property {function(DashboardState, string): DashboardState} setSelectedChart
- * @property {function(DashboardState, SelectedColumns): DashboardState} setSelectedColumns
- * @property {function(DashboardState, Partial<ChartStyle>): DashboardState} updateChartStyle
- * @property {function(DashboardState, Partial<ChartSpecificOptions[keyof ChartSpecificOptions]>): DashboardState} updateChartSpecificOptions
- * @property {function(DashboardState, Array<Object>): DashboardState} setData
- * @property {function(DashboardState, Array<Column>): DashboardState} setAvailableColumns
- * @property {function(DashboardState): DashboardState} autoSelectVariables
+ * Create a new chart state.
+ * @param {object} partialState - Partial chart state.
+ * @returns {ChartState} - Chart State.
  */
+export function createChartState(partialState = {}) {
+  // only set defined keys
+  const newState = Object.assign({}, defaultChartState);
 
-/** @type {ActionHandlers} */
-const actionHandlers = {
-  setSelectedChart: (state, payload) => ({
-    ...state,
-    selectedChart: payload,
-    selectedColumns: { x: null, y: payload === "line" ? [] : null },
-    chartStyle: {
-      ...state.chartStyle,
-      xLabel: null,
-      yLabel: null,
-    },
-  }),
-  setSelectedColumns: (state, payload) => ({
-    ...state,
-    selectedColumns: payload,
-  }),
-  updateChartStyle: (state, payload) => ({
-    ...state,
-    chartStyle: { ...state.chartStyle, ...payload },
-  }),
-  updateChartSpecificOptions: (state, payload) => ({
-    ...state,
-    chartSpecificOptions: {
-      ...state.chartSpecificOptions,
-      [state.selectedChart]: {
-        ...state.chartSpecificOptions[state.selectedChart],
-        ...payload,
-      },
-    },
-  }),
-  setData: (state, payload) => ({ ...state, data: payload }),
-  setAvailableColumns: (state, payload) => ({
-    ...state,
-    availableColumns: payload,
-  }),
-  autoSelectVariables: (state) => {
-    const { selectedChart, availableColumns } = state;
-
-    const dateColumn = availableColumns.find((col) => col.isDate);
-    const quantColumns = availableColumns.filter(
-      (col) => col.variableType === "quantitative"
-    );
-
-    let xAxis =
-      dateColumn?.key ||
-      quantColumns[0]?.key ||
-      availableColumns[0]?.key ||
-      null;
-
-    let yAxis = null;
-    if (selectedChart === "line") {
-      yAxis = quantColumns
-        .filter((col) => col.key !== xAxis)
-        .slice(0, 1)
-        .map((col) => col.key);
-    } else {
-      yAxis =
-        quantColumns.find((col) => col.key !== xAxis)?.key ||
-        availableColumns.find((col) => col.key !== xAxis)?.key ||
-        null;
+  for (const key in partialState) {
+    if (partialState[key] !== undefined) {
+      newState[key] = partialState[key];
     }
+  }
 
-    return {
-      ...state,
-      selectedColumns: { x: xAxis, y: yAxis },
-    };
-  },
-};
+  const actionHandlers = createActionHandlers();
 
-/**
- * @typedef {Object} Action
- * @property {keyof ActionHandlers} type
- * @property {*} payload
- */
+  return {
+    ...newState,
+    ...actionHandlers,
+  };
+}
 
-/**
- * @param {DashboardState} state
- * @param {Action} action
- * @returns {DashboardState}
- */
-const dashboardReducer = (state, action) =>
-  actionHandlers[action.type]?.(state, action.payload) ?? state;
-
-const DashboardContext = createContext();
-
-/**
- * @param {Object} props
- * @param {React.ReactNode} props.children
- */
-export const DashboardProvider = ({ children }) => {
-  const [state, dispatch] = useReducer(dashboardReducer, initialState);
-  return (
-    <DashboardContext.Provider value={{ state, dispatch }}>
-      {children}
-    </DashboardContext.Provider>
-  );
-};
-
-/**
- * @typedef {Object} DashboardActions
- * @property {(payload: string) => Action} setSelectedChart
- * @property {(payload: SelectedColumns) => Action} setSelectedColumns
- * @property {(payload: Partial<ChartStyle>) => Action} updateChartStyle
- * @property {(payload: Partial<ChartSpecificOptions[keyof ChartSpecificOptions]>) => Action} updateChartSpecificOptions
- * @property {(payload: Array<Object>) => Action} setData
- * @property {(payload: Array<Column>) => Action} setAvailableColumns
- * @property {() => Action} autoSelectVariables
- */
-
-/** @type {DashboardActions} */
-export const dashboardActions = Object.fromEntries(
-  Object.keys(actionHandlers).map((type) => [
-    type,
-    (payload) => ({ type, payload }),
-  ])
-);
-
-/**
- * @typedef {DashboardState & DashboardActions} ChartContainerHook
- */
-
-/**
- * @returns {ChartContainerHook}
- */
-export const useChartContainer = () => {
-  const context = useContext(DashboardContext);
-  const { state, dispatch } = context;
-  const actionDispatchers = useMemo(
-    () =>
-      Object.fromEntries(
-        Object.entries(dashboardActions).map(([key, action]) => [
-          key,
-          (payload) => dispatch(action(payload)),
-        ])
-      ),
-    [dispatch]
-  );
-  return { ...state, ...actionDispatchers };
-};
-
-export default DashboardProvider;
+// defining this so explicitly here only to allow vscode's intellisense to work
+// we can also just do createContext()
+// but defining this here lets jsdoc + intellisense play together nicely
+export const ChartStateContext = createContext({
+  ...Object.assign({}, defaultChartState),
+  ...createActionHandlers(),
+  setChartState: () => {},
+});
