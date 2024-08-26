@@ -4,45 +4,86 @@ import React, {
   useState,
   useMemo,
   useCallback,
+  useContext,
 } from "react";
 import * as Plot from "@observablehq/plot";
-import { defaultOptions, getPlotOptions } from "./plotUtils";
+import { defaultOptions, getObservableOptions } from "./plotUtils";
 import { saveAsPNG } from "./utils/saveChart";
 import { Button } from "@ui-components";
 import { Download } from "lucide-react";
+import { ChartStateContext } from "./ChartStateContext";
 
-export default function ObservablePlot({ data = [], options = {} }) {
+export default function ObservablePlot() {
   const containerRef = useRef(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
 
-  const mergedOptions = useMemo(
-    () => ({ ...defaultOptions, ...options }),
-    [options]
-  );
+  const chartState = useContext(ChartStateContext);
 
-  const processedData = useMemo(() => {
-    if (mergedOptions.type === "bar" && mergedOptions.useCount) {
-      return Object.entries(
+  const observableOptions = useMemo(() => {
+    // figure out both the data for the chart
+    // process it if needed
+    // and also create options for observable
+    const {
+      selectedChart,
+      selectedColumns,
+      chartStyle,
+      chartSpecificOptions,
+      availableColumns,
+      data,
+    } = chartState;
+
+    let processedData = Object.assign({}, data);
+
+    const xColumn = availableColumns.find(
+      (col) => col.key === selectedColumns.x
+    );
+
+    const dateToUnix = xColumn?.isDate ? xColumn.dateToUnix : null;
+
+    if (
+      selectedChart === "bar" &&
+      chartSpecificOptions[selectedChart].useCount
+    ) {
+      processedData = Object.entries(
         data.reduce((acc, item) => {
-          const key = item[mergedOptions.xKey];
+          const key = item[selectedColumns.x];
           acc[key] = (acc[key] || 0) + 1;
           return acc;
         }, {})
-      ).map(([key, count]) => ({ [mergedOptions.xKey]: key, count }));
+      ).map(([key, count]) => ({ [selectedColumns.x]: key, count }));
     }
 
     // Process dates if necessary
-    if (mergedOptions.xIsDate && mergedOptions.dateToUnix) {
-      return data.map((item) => ({
+    if (xColumn?.isDate && dateToUnix) {
+      processedData = data.map((item) => ({
         ...item,
-        [mergedOptions.xKey]: mergedOptions.dateToUnix(
-          item[mergedOptions.xKey]
-        ),
+        [selectedColumns.x]: dateToUnix(item[selectedColumns.x]),
       }));
     }
 
-    return data;
-  }, [data, mergedOptions]);
+    return getObservableOptions(
+      dimensions,
+      {
+        ...defaultOptions,
+        type: selectedChart || "Bar",
+        x: selectedColumns.x || null,
+        y: selectedColumns.y || null,
+        xLabel: chartStyle.xLabel || selectedColumns.x || "X Axis",
+        yLabel: chartStyle.yLabel || selectedColumns.y || "Y Axis",
+        facet: selectedColumns.facet,
+        fill: selectedColumns.fill,
+        filter: selectedColumns.filter,
+        stroke: selectedColumns.stroke,
+        xIsDate: xColumn?.isDate,
+        xKey: selectedColumns.x,
+        yKey: selectedColumns.y,
+        dateToUnix,
+        ...chartStyle,
+        ...chartSpecificOptions[selectedChart],
+      },
+      processedData
+    );
+  }, [dimensions, chartState]);
 
   const updateDimensions = useCallback(() => {
     if (containerRef.current) {
@@ -62,29 +103,24 @@ export default function ObservablePlot({ data = [], options = {} }) {
     return () => resizeObserver.disconnect();
   }, [updateDimensions]);
 
-  const plotOptions = useMemo(
-    () => getPlotOptions(dimensions, mergedOptions, processedData),
-    [dimensions, mergedOptions, processedData]
-  );
-
   useEffect(() => {
-    if (!containerRef.current || !plotOptions) return;
+    if (!containerRef.current || !observableOptions) return;
     containerRef.current.innerHTML = "";
-    containerRef.current.appendChild(Plot.plot(plotOptions));
-  }, [plotOptions]);
-
-  const handleSaveAsPNG = useCallback(() => {
-    if (containerRef.current) {
-      saveAsPNG(containerRef.current, mergedOptions.backgroundColor);
-    }
-  }, []);
+    containerRef.current.appendChild(Plot.plot(observableOptions));
+  }, [observableOptions]);
 
   return (
     <div className="flex-grow p-4 bg-white">
       <div className="flex justify-end mb-2">
         <Button
           className="border bg-gray-50 hover:bg-gray-200 text-gray-800 text-sm flex flex-row items-center"
-          onClick={handleSaveAsPNG}
+          onClick={() => {
+            if (containerRef.current)
+              saveAsPNG(
+                containerRef.current,
+                observableOptions.backgroundColor
+              );
+          }}
         >
           <Download size={16} className="mr-2" /> Save as PNG
         </Button>
@@ -94,7 +130,9 @@ export default function ObservablePlot({ data = [], options = {} }) {
           className="w-full h-full bg-white observable-plot"
           ref={containerRef}
         >
-          {(!mergedOptions.xKey || !mergedOptions.yKey) && (
+          {(!observableOptions ||
+            !observableOptions.xKey ||
+            !observableOptions.yKey) && (
             <div className="flex items-center justify-center h-full text-gray-500">
               Please select X and Y axes to display the chart.
             </div>

@@ -55,6 +55,9 @@ export function createAgentConfig(partialConfig = {}) {
   return newConfig;
 }
 
+// defining this so explicitly here only to allow vscode's intellisense to work
+// we can also just do createContext()
+// but defining this here lets jsdoc + intellisense play together nicely
 export const AgentConfigContext = createContext({
   val: Object.assign({}, defaultAgentConfig),
   update: function (newVal) {
