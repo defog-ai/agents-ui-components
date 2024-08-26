@@ -2,6 +2,11 @@ import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 import { forwardRef, useEffect, useRef } from "react";
 import { twMerge } from "tailwind-merge";
 
+function setHeight(el) {
+  el.style.height = "auto";
+  el.style.height = el.scrollHeight + "px";
+}
+
 /**
  * @typedef {Object} TextAreaProps
  * @property {string} [value] - The value of the textarea. Setting this converts this to a controlled component.
@@ -53,8 +58,7 @@ let TextArea = forwardRef(function TextArea(
       const textArea = rootRef.current.querySelector("textarea");
       if (!textArea) return;
 
-      textArea.style.height = "auto";
-      textArea.style.height = textArea.scrollHeight + "px";
+      setHeight(textArea);
     }
   });
   return (
@@ -87,14 +91,12 @@ let TextArea = forwardRef(function TextArea(
             )}
             onFocus={(ev) => {
               if (autoResize) {
-                ev.target.style.height = "auto";
-                ev.target.style.height = ev.target.scrollHeight + "px";
+                setHeight(ev.target);
               }
             }}
             onChange={(ev) => {
               if (autoResize) {
-                ev.target.style.height = "auto";
-                ev.target.style.height = ev.target.scrollHeight + "px";
+                setHeight(ev.target);
               }
               onChange(ev);
             }}

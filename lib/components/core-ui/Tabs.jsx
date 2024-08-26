@@ -214,7 +214,7 @@ export function Tabs({
               selectedTab?.classNames,
               selectedTab.name === tab.name
                 ? "relative z-10"
-                : "absolute w-0 h-0 left-0 top-0 z-[-1] pointer-events-none *:pointer-events-none opacity-0"
+                : "fixed left-[-1000px] top-[-1000px] z-[-1] pointer-events-none *:pointer-events-none opacity-0"
             )}
           >
             {tab.content}
