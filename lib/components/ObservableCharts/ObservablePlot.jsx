@@ -2,7 +2,6 @@ import React, {
   useRef,
   useEffect,
   useState,
-  forwardRef,
   useMemo,
   useCallback,
 } from "react";
@@ -12,7 +11,7 @@ import { saveAsPNG } from "./utils/saveChart";
 import { Button } from "@ui-components";
 import { Download } from "lucide-react";
 
-export const ObservablePlot = forwardRef(({ data = [], options = {} }) => {
+export default function ObservablePlot({ data = [], options = {} }) {
   const containerRef = useRef(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
 
@@ -104,8 +103,4 @@ export const ObservablePlot = forwardRef(({ data = [], options = {} }) => {
       </div>
     </div>
   );
-});
-
-ObservablePlot.displayName = "ObservablePlot";
-
-export default React.memo(ObservablePlot);
+}

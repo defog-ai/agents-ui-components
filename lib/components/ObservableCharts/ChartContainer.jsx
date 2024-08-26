@@ -8,7 +8,7 @@ import {
 import { PrimarySelection } from "./PrimarySelection";
 import { Customization } from "./Customization";
 import { useChartContainer } from "./dashboardState";
-import { ObservablePlot } from "./ObservablePlot";
+import ObservablePlot from "./ObservablePlot";
 import TabPaneWrapper from "./utils/TabPaneWrapper";
 import FilterBuilder from "./Filtering";
 
