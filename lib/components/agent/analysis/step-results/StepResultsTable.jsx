@@ -22,8 +22,8 @@ import "prismjs/themes/prism.css";
 import { roundNumber } from "../../../utils/utils";
 import setupBaseUrl from "../../../utils/setupBaseUrl";
 import { Table } from "@ui-components";
-import { ChartContainer } from "../../../ObservableCharts/ChartContainer";
-import { DashboardProvider } from "../../../ObservableCharts/dashboardState";
+import { ChartContainer } from "../../../observable-charts/ChartContainer";
+import { DashboardProvider } from "../../../observable-charts/dashboardState";
 
 // tabBarLeftContent: extra content for the tab bar on the left side
 export function StepResultsTable({
