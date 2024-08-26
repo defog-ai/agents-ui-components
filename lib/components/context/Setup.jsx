@@ -14,7 +14,7 @@ import {
 } from "@ui-components";
 import { twMerge } from "tailwind-merge";
 import { initializeSQLite } from "../utils/sqlite";
-import { DashboardProvider } from "../ObservableCharts/dashboardState";
+import { DashboardProvider } from "../observable-charts/dashboardState";
 
 /**
  * @typedef {Object} SetupProps
@@ -133,7 +133,6 @@ export function Setup({
   }, [apiEndpoint, token]);
 
   return (
-   
     <RelatedAnalysesContext.Provider
       value={{
         val: relatedAnalysesContext,
@@ -172,6 +171,5 @@ export function Setup({
         </DashboardProvider>
       </ReactiveVariablesContext.Provider>
     </RelatedAnalysesContext.Provider>
- 
   );
 }

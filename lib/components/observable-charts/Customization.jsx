@@ -1,13 +1,13 @@
 import { Slider } from "@ui-components";
 import { ColorPicker } from "antd";
 import { useChartContainer } from "./dashboardState";
-import LineChartControls from "./ChartControls/LineChartControls";
-import ScatterPlotControls from "./ChartControls/ScatterPlotControls";
-import BarChartControls from "./ChartControls/BarChartControls";
-import HistogramControls from "./ChartControls/HistogramControls";
+import LineChartControls from "./chart-controls/LineChartControls";
+import ScatterPlotControls from "./chart-controls/ScatterPlotControls";
+import BarChartControls from "./chart-controls/BarChartControls";
+import HistogramControls from "./chart-controls/HistogramControls";
 import AxisControl from "./components/AxisControl";
 import D3DateFormatBuilder from "./components/DateFormatter";
-import BoxPlotControls from "./ChartControls/BoxControl";
+import BoxPlotControls from "./chart-controls/BoxControl";
 import ColorSchemeSelector from "./components/ColorschemeSelector";
 
 export function Customization() {

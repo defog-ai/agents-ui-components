@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useChartContainer } from "./dashboardState";
+import { useChartContainer } from "./dashboardState.jsx";
 import { Select, Switch } from "antd";
 import {
   CalendarIcon,
