@@ -1,9 +1,8 @@
-import { useState, useEffect, useRef, useCallback } from "react";
-import { Tabs, Button } from "antd";
+import { useState, useEffect } from "react";
+import { Tabs } from "antd";
 import {
   ChartNoAxesCombined,
   SlidersHorizontal,
-  Download,
   FilterIcon,
 } from "lucide-react";
 import { PrimarySelection } from "./PrimarySelection";
@@ -23,17 +22,19 @@ export function ChartContainer({ columns, rows }) {
     setSelectedChart,
     setSelectedColumns,
   } = useChartContainer();
-  const observablePlotRef = useRef(null);
   const [userQuestion, setUserQuestion] = useState("");
   const [loading, setLoading] = useState(false);
+
   // if rows have changed, update the data with `setData`
   useEffect(() => {
     setData(rows);
   }, [rows]);
 
+  console.log(selectedChart, selectedColumns);
+
   const xColumn = columns.find((col) => col.key === selectedColumns.x);
   const [plotOptions, setPlotOptions] = useState({
-  // const plotOptions = {
+    // const plotOptions = {
     type: selectedChart || "Bar",
     x: selectedColumns.x || null,
     y: selectedColumns.y || null,
@@ -49,29 +50,23 @@ export function ChartContainer({ columns, rows }) {
     yKey: selectedColumns.y,
     ...chartStyle,
     ...chartSpecificOptions[selectedChart],
-  // }
+    // }
   });
 
-  const handleSaveAsPNG = useCallback(() => {
-    if (observablePlotRef.current) {
-      observablePlotRef.current.saveAsPNG();
-    }
-  }, []);
-
-  // useEffect(() => {
-  //   setPlotOptions((prev) => ({
-  //     ...prev,
-  //     type: selectedChart || "Bar",
-  //     x: selectedColumns.x,
-  //     y: selectedColumns.y,
-  //     xLabel: chartStyle.xLabel || selectedColumns.x || "X Axis",
-  //     yLabel: chartStyle.yLabel || selectedColumns.y || "Y Axis",
-  //     facet: selectedColumns.facet,
-  //     fill: selectedColumns.fill,
-  //     stroke: selectedColumns.stroke,
-  //     ...chartSpecificOptions[selectedChart],
-  //   }));
-  // }, [selectedChart, JSON.stringify(selectedColumns), JSON.stringify(chartStyle), JSON.stringify(chartSpecificOptions)]);
+  useEffect(() => {
+    setPlotOptions((prev) => ({
+      ...prev,
+      type: selectedChart || "Bar",
+      x: selectedColumns.x,
+      y: selectedColumns.y,
+      xLabel: chartStyle.xLabel || selectedColumns.x || "X Axis",
+      yLabel: chartStyle.yLabel || selectedColumns.y || "Y Axis",
+      facet: selectedColumns.facet,
+      fill: selectedColumns.fill,
+      stroke: selectedColumns.stroke,
+      ...chartSpecificOptions[selectedChart],
+    }));
+  }, [selectedChart, selectedColumns, chartStyle, chartSpecificOptions]);
 
   const tabItems = [
     {
@@ -82,7 +77,11 @@ export function ChartContainer({ columns, rows }) {
           <PrimarySelection
             columns={columns}
             propSelectedChart={plotOptions.type}
-            propSelectedColumns={{x: plotOptions.x, y: plotOptions.y, fill: plotOptions.fill}}
+            propSelectedColumns={{
+              x: plotOptions.x,
+              y: plotOptions.y,
+              fill: plotOptions.fill,
+            }}
           />
         </TabPaneWrapper>
       ),
@@ -119,14 +118,13 @@ export function ChartContainer({ columns, rows }) {
           type="text"
           className="w-full p-2 border border-gray-300 rounded"
           placeholder="Ask a question to create a visualization"
-          value={userQuestion}
+          value={userQuestion || undefined}
           onChange={(e) => setUserQuestion(e.target.value)}
           disabled={loading}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
               e.preventDefault();
               if (userQuestion === "Create a dotplot of plasticity vs lot_id") {
-                
                 setLoading(true);
                 setTimeout(() => {
                   setPlotOptions({
@@ -149,7 +147,8 @@ export function ChartContainer({ columns, rows }) {
                   setLoading(false);
                 }, 1230);
               } else if (
-                userQuestion === "Can you change the theme and make the rejected items in red?"
+                userQuestion ===
+                "Can you change the theme and make the rejected items in red?"
               ) {
                 setLoading(true);
                 setTimeout(() => {
@@ -182,20 +181,7 @@ export function ChartContainer({ columns, rows }) {
             items={tabItems}
           />
         </div>
-        <div className="flex-grow p-4 bg-white">
-          <div className="flex justify-end mb-2">
-            <Button icon={<Download size={16} />} onClick={handleSaveAsPNG}>
-              Save as PNG
-            </Button>
-          </div>
-          <div style={{ width: "100%", height: "460px" }}>
-            <ObservablePlot
-              ref={observablePlotRef}
-              data={rows}
-              options={plotOptions}
-            />
-          </div>
-        </div>
+        <ObservablePlot data={rows} options={plotOptions} />
       </div>
     </div>
   );

@@ -30,7 +30,7 @@ class ErrorBoundary extends React.Component {
       return (
         <div className="error-boundary-ctr">
           {this.props.maybeOldAnalysis ? (
-            <p className="text-red">
+            <p className="text-rose-500">
               You might need to re run this analysis for the latest version of
               the UI.
             </p>

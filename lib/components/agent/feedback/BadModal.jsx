@@ -169,9 +169,9 @@ export default function BadModal({
               </div>
               <div className="user-comments-ctr flex flex-col pl-8 relative flex-grow">
                 {activeNode && activeNode.data.isError && (
-                  <div class="absolute -top-6 flex flex-row items-center rounded-md ">
-                    <div className="bg-medium-red px-2 rounded-md text-white">
-                      <div class="rounded-full  bg-dark-red mr-1 w-2 h-2 inline-block"></div>
+                  <div className="absolute -top-6 flex flex-row items-center rounded-md ">
+                    <div className="bg-rose-500 px-2 rounded-md text-white">
+                      <div className="rounded-full bg-rose-500 mr-1 w-2 h-2 inline-block"></div>
                       This step had an error
                     </div>
                   </div>

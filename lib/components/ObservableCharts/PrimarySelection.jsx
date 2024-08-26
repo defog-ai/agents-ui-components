@@ -83,10 +83,10 @@ export function PrimarySelection({
 
   // Handle axis selection change
   const handleAxisChange = (axis) => (value) => {
-    // setSelectedColumns({
-    //   ...selectedColumns,
-    //   [axis]: value,
-    // });
+    setSelectedColumns({
+      ...selectedColumns,
+      [axis]: value,
+    });
 
     // Enable use count by default if the y selection is categorical in bar chart
     if ((propSelectedChart || selectedChart) === "bar" && axis === "y") {
@@ -267,7 +267,9 @@ export function PrimarySelection({
             {renderAxisSelection(
               "y",
               axisLabel.y,
-              (propSelectedChart || selectedChart) === "line" ? "multiple" : undefined
+              (propSelectedChart || selectedChart) === "line"
+                ? "multiple"
+                : undefined
             )}
             <div className="flex items-center gap-4">
               {renderAxisLabel("y")}

@@ -3,15 +3,16 @@ import React, {
   useEffect,
   useState,
   forwardRef,
-  useImperativeHandle,
   useMemo,
   useCallback,
 } from "react";
 import * as Plot from "@observablehq/plot";
 import { defaultOptions, getPlotOptions } from "./plotUtils";
 import { saveAsPNG } from "./utils/saveChart";
+import { Button } from "@ui-components";
+import { Download } from "lucide-react";
 
-export const ObservablePlot = forwardRef(({ data = [], options = {} }, ref) => {
+export const ObservablePlot = forwardRef(({ data = [], options = {} }) => {
   const containerRef = useRef(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
 
@@ -44,15 +45,6 @@ export const ObservablePlot = forwardRef(({ data = [], options = {} }, ref) => {
     return data;
   }, [data, mergedOptions]);
 
-  useImperativeHandle(
-    ref,
-    () => ({
-      saveAsPNG: () =>
-        saveAsPNG(containerRef.current, mergedOptions.backgroundColor),
-    }),
-    [mergedOptions.backgroundColor]
-  );
-
   const updateDimensions = useCallback(() => {
     if (containerRef.current) {
       const { width, height } = containerRef.current.getBoundingClientRect();
@@ -82,13 +74,34 @@ export const ObservablePlot = forwardRef(({ data = [], options = {} }, ref) => {
     containerRef.current.appendChild(Plot.plot(plotOptions));
   }, [plotOptions]);
 
+  const handleSaveAsPNG = useCallback(() => {
+    if (containerRef.current) {
+      saveAsPNG(containerRef.current, mergedOptions.backgroundColor);
+    }
+  }, []);
+
   return (
-    <div className="w-full h-full bg-white observable-plot" ref={containerRef}>
-      {(!mergedOptions.xKey || !mergedOptions.yKey) && (
-        <div className="flex items-center justify-center h-full text-gray-500">
-          Please select X and Y axes to display the chart.
+    <div className="flex-grow p-4 bg-white">
+      <div className="flex justify-end mb-2">
+        <Button
+          className="border bg-gray-50 hover:bg-gray-200 text-gray-800 text-sm flex flex-row items-center"
+          onClick={handleSaveAsPNG}
+        >
+          <Download size={16} className="mr-2" /> Save as PNG
+        </Button>
+      </div>
+      <div style={{ width: "100%", height: "460px" }}>
+        <div
+          className="w-full h-full bg-white observable-plot"
+          ref={containerRef}
+        >
+          {(!mergedOptions.xKey || !mergedOptions.yKey) && (
+            <div className="flex items-center justify-center h-full text-gray-500">
+              Please select X and Y axes to display the chart.
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 });
