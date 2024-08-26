@@ -10,41 +10,6 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        "very-light-blue": "#fafcff",
-        "very-light-orange": "#fffcfa",
-        "very-light-green": "#fbfef9",
-        "light-blue": "#eff2fd",
-        "light-orange": "#fff4ed",
-        "light-green": "#eaf8e5",
-        "light-red": "#fdeff0",
-        "medium-blue": "#6381f7",
-        "medium-blue-opacity": "rgba(99, 129, 247, 0.3)",
-        "medium-light-orange": "#f7caae",
-        "medium-orange": "#ffa565",
-        "medium-orange-opacity": "rgba(247, 161, 100, 0.3)",
-        "medium-green": "#96c880",
-        "medium-green-opacity": "rgba(193, 225, 179, 0.3)",
-        "medium-red": "#efa1a1",
-        "medium-red-opacity": "rgba(239, 161, 161, 0.3)",
-        "dark-blue": "#2957ff",
-        "dark-orange": "#ff8229",
-        "dark-green": "#63b758",
-        "dark-red": "#f04646",
-        "text-dark": "#171717",
-        "text-medium": "#4c4c4c",
-        "text-light": "#a0a0a0",
-        "text-very-light": "#d0d0d0",
-        white: "#ffffff",
-        "dark-gray": "#4c4c4c",
-        "medium-gray": "#949494",
-        "light-gray": "#efefef",
-        "very-light-gray": "#fafafa",
-        "text-blue": "#6481f7",
-        "text-orange": "#f3b289",
-        "text-green": "#607158",
-        "text-red": "#fca5a5",
-        green: "#96c880",
-        red: "#fc8e8e",
         "primary-text": "#2B2B2B",
         "primary-highlight": "#2B59FF",
         "secondary-highlight-1": "#6E00A2",
@@ -54,30 +19,6 @@ module.exports = {
       },
       boxShadow: {
         custom: " rgba(0, 0, 0, 0.24) 0px 3px 8px",
-      },
-      height: {
-        "10vh": "10vh",
-        "20vh": "20vh",
-        "30vh": "30vh",
-        "40vh": "40vh",
-        "50vh": "50vh",
-        "60vh": "60vh",
-        "70vh": "70vh",
-        "80vh": "80vh",
-        "90vh": "90vh",
-        "100vh": "100vh",
-      },
-      width: {
-        "10vw": "10vw",
-        "20vw": "20vw",
-        "30vw": "30vw",
-        "40vw": "40vw",
-        "50vw": "50vw",
-        "60vw": "60vw",
-        "70vw": "70vw",
-        "80vw": "80vw",
-        "90vw": "90vw",
-        "100vw": "100vw",
       },
       keyframes: {
         "fade-in-down": {
@@ -105,9 +46,6 @@ module.exports = {
         "fade-in-down": "fade-in-down 1s",
         "fade-in": "fade-in 0.2s",
       },
-      fontFamily: {
-        platypi: ["Platypi, serif"],
-      },
     },
   },
 
@@ -115,10 +53,6 @@ module.exports = {
     require("@tailwindcss/forms"),
     plugin(function ({ addUtilities }) {
       addUtilities({
-        ".writing-vertical": {
-          "writing-mode": "tb lr",
-          transform: "rotate(-180deg)",
-        },
         ".arrow-up": {
           width: "0",
           height: "0",

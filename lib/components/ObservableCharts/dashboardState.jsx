@@ -302,16 +302,16 @@ export const dashboardActions = Object.fromEntries(
  * @returns {ChartContainerHook}
  */
 export const useChartContainer = () => {
-  console.log("useChartContainer called");
   const context = useContext(DashboardContext);
   const { state, dispatch } = context;
-  const actionDispatchers = useMemo(() => 
-    Object.fromEntries(
-      Object.entries(dashboardActions).map(([key, action]) => [
-        key,
-        (payload) => dispatch(action(payload)),
-      ])
-    ), 
+  const actionDispatchers = useMemo(
+    () =>
+      Object.fromEntries(
+        Object.entries(dashboardActions).map(([key, action]) => [
+          key,
+          (payload) => dispatch(action(payload)),
+        ])
+      ),
     [dispatch]
   );
   return { ...state, ...actionDispatchers };

@@ -9,21 +9,73 @@ VITE_TOKEN="HASHED_PASSWORD"
 VITE_API_ENDPOINT="API_ENDPOINT"
 ```
 
-You will also need a tailwind project for this to work as all styles are tailwind based. To your tailwind.config.json, add `./node_modules/@defogdotai/agents-ui-components/**/*.{js,ts,jsx,tsx,mdx}` inside the `content` property like so:
+You will also need a tailwind project for this to work as all styles are tailwind based. To your tailwind.config.json, add `./node_modules/@defogdotai/agents-ui-components/**/*.{js,ts,jsx,tsx,mdx}` inside the `content` property, and extend your theme like so:
 
 ```js
 // tailwind.config.js
 
-
 module.exports = {
-  ...
   content: [
-    ...
+    // ... OTHER FILES HERE
     "./node_modules/@defogdotai/agents-ui-components/**/*.{js,ts,jsx,tsx,mdx}",
-    ...
   ],
-  ...
-}
+  theme: {
+    extend: {
+      colors: {
+        "primary-text": "#2B2B2B",
+        "primary-highlight": "#2B59FF",
+        "secondary-highlight-1": "#6E00A2",
+        "secondary-highlight-2": "#7891EE",
+        "secondary-highlight-3": "rgba(112, 0, 163, 0.2)",
+        "secondary-highlight-4": "hsla(37, 100%, 53%, 0.2)",
+      },
+      boxShadow: {
+        custom: " rgba(0, 0, 0, 0.24) 0px 3px 8px",
+      },
+      keyframes: {
+        "fade-in-down": {
+          "0%": {
+            opacity: "0",
+            transform: "translateY(-20px)",
+          },
+          "20%": {
+            opacity: "1",
+            transform: "translateY(0)",
+          },
+        },
+        "fade-in": {
+          "0%": {
+            opacity: "0",
+          },
+          "100%": {
+            opacity: "1",
+          },
+        },
+      },
+      animation: {
+        "fade-in-down": "fade-in-down 1s",
+        "fade-in": "fade-in 0.2s",
+      },
+    },
+  },
+};
+```
+
+Also make sure you add tailwind's imports to your project's main css file:
+
+```css
+// styles.css
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+```
+
+In the case of a nextjs project, import it inside `pages/_app.js` like so:
+
+```jsx
+import "PATH_TO_ABOVE_styles.css_FILE";
+
+...
 ```
 
 ### DefogAnalysisAgentEmbed

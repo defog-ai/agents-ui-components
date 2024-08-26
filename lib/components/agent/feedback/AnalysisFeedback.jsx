@@ -67,7 +67,7 @@ export function AnalysisFeedback({
               });
             }}
           >
-            <ThumbsUp fill="fill-gray-300 hover:fill-medium-blue" />
+            <ThumbsUp fill="fill-gray-300 hover:fill-blue-300" />
           </div>
         </Popover>
         <Popover content="Nope">
@@ -75,7 +75,7 @@ export function AnalysisFeedback({
             className="bad-feedback h-4 w-4 pt-1 cursor-pointer"
             onClick={() => setModalVisible("bad")}
           >
-            <ThumbsDown fill="fill-gray-300 hover:fill-medium-blue" />
+            <ThumbsDown fill="fill-gray-300 hover:fill-blue-300" />
           </div>
         </Popover>
 

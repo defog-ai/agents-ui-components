@@ -171,7 +171,6 @@ export function StepResultsTable({
 
   const [results, setResults] = useState([]);
   useEffect(() => {
-    console.log("Re-Rendering StepResultsTable");
     // extra tabs should be an array and all elements should be jsx components
     let tabs = [];
     if (tableData) {
@@ -227,7 +226,6 @@ export function StepResultsTable({
 
     if (!chartImages || chartImages.length <= 0) {
       if (tableData) {
-        console.log("Fresh add to tabs");
         tabs.push({
           component: (
             <ErrorBoundary>
