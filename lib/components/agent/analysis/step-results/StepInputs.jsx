@@ -63,7 +63,7 @@ const inputTypeToUI = {
     return (
       <TextArea
         rootClassNames="tool-input-value lg:w-80"
-        textAreaClassNames="resize-none"
+        textAreaClassNames="resize-none max-h-20 overflow-auto"
         value={initialValue}
         key={stepId + "_" + inputName}
         defaultRows={1}
