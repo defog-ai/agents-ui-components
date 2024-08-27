@@ -32,8 +32,8 @@ export default function ObservablePlot() {
       data,
     } = chartState;
 
-    let processedData = Object.assign({}, data);
-
+    // let processedData = Object.assign({}, data);
+    let processedData = Array.isArray(data) ? [...data] : [data];
     const xColumn = availableColumns.find(
       (col) => col.key === selectedColumns.x
     );
@@ -107,13 +107,14 @@ export default function ObservablePlot() {
     if (!containerRef.current || !observableOptions) return;
     containerRef.current.innerHTML = "";
     containerRef.current.appendChild(Plot.plot(observableOptions));
+    console.log(observableOptions);
   }, [observableOptions]);
 
   return (
     <div className="flex-grow p-4 bg-white">
       <div className="flex justify-end mb-2">
         <Button
-          className="border bg-gray-50 hover:bg-gray-200 text-gray-800 text-sm flex flex-row items-center"
+          className="flex flex-row items-center text-sm text-gray-800 border bg-gray-50 hover:bg-gray-200"
           onClick={() => {
             if (containerRef.current)
               saveAsPNG(

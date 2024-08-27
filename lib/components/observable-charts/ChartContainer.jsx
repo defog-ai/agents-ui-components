@@ -17,7 +17,7 @@ export function ChartContainer({ columns, rows }) {
     createChartState({ data: rows, availableColumns: columns })
   );
 
-  console.log(chartState);
+  // console.log(chartState);
 
   const { selectedChart, selectedColumns } = chartState;
 
@@ -82,7 +82,7 @@ export function ChartContainer({ columns, rows }) {
   return (
     <ChartStateContext.Provider value={{ ...chartState, setChartState }}>
       <div className="flex flex-col h-full">
-        <div className="flex justify-center items-center p-4 bg-white">
+        <div className="flex items-center justify-center p-4 bg-white">
           {/* textbox where users can ask a question */}
           <input
             type="text"
