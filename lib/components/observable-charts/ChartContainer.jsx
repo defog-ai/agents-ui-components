@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Tabs } from "antd";
 import {
   ChartNoAxesCombined,
@@ -28,6 +28,7 @@ export function ChartContainer({ columns, rows }) {
       ...prev,
       data: rows,
       availableColumns: columns,
+      setStateCallback: setChartState,
     }));
   }, [rows, columns]);
 

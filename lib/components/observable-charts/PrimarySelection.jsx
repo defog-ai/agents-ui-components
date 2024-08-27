@@ -39,13 +39,8 @@ export function PrimarySelection({
 }) {
   const chartState = useContext(ChartStateContext);
 
-  const {
-    selectedChart,
-    selectedColumns,
-    chartStyle,
-    chartSpecificOptions,
-    setChartState,
-  } = chartState;
+  const { selectedChart, selectedColumns, chartStyle, chartSpecificOptions } =
+    chartState;
 
   const [orderedColumns, setOrderedColumns] = useState(columns);
   const [axisLabel, setAxisLabel] = useState({
@@ -55,19 +50,18 @@ export function PrimarySelection({
 
   // Reorder columns when chart type or available columns change
   useEffect(() => {
-    setChartState(chartState.setAvailableColumns(columns));
+    chartState.setAvailableColumns(columns).render();
 
     setOrderedColumns(reorderColumns(columns, selectedChart));
   }, [columns, selectedChart]);
 
   // Handle chart type change
   const handleChartChange = (value) => {
-    setChartState(
-      chartState
-        .setSelectedChart(value)
-        .updateChartStyle({ xLabel: null, yLabel: null })
-        .autoSelectVariables(chartState)
-    );
+    chartState
+      .setSelectedChart(value)
+      .updateChartStyle({ xLabel: null, yLabel: null })
+      .autoSelectVariables(chartState)
+      .render();
   };
 
   // if we have a vertically oriented boxplot, we need to switch the x and y axis labels
@@ -84,33 +78,31 @@ export function PrimarySelection({
 
   // Handle axis selection change
   const handleAxisChange = (axis) => (value) => {
-    setChartState(
-      chartState.setSelectedColumns({
-        ...selectedColumns,
-        [axis]: value,
-      })
-    );
+    let newChartState = chartState.setSelectedColumns({
+      ...selectedColumns,
+      [axis]: value,
+    });
 
     // Enable use count by default if the y selection is categorical in bar chart
     if ((propSelectedChart || selectedChart) === "bar" && axis === "y") {
       const selectedColumn = columns.find((col) => col.key === value);
       if (selectedColumn && selectedColumn.variableType === "categorical") {
-        setChartState(
-          chartState.updateChartSpecificOptions({ useCount: true })
-        );
+        newChartState = newChartState.updateChartSpecificOptions({
+          useCount: true,
+        });
       } else {
-        setChartState(
-          chartState.updateChartSpecificOptions({ useCount: false })
-        );
+        newChartState = newChartState.updateChartSpecificOptions({
+          useCount: false,
+        });
       }
     }
+
+    newChartState.render();
   };
 
   // Handle axis label change
   const handleAxisLabelChange = (axis) => (e) => {
-    setChartState(
-      chartState.updateChartStyle({ [`${axis}Label`]: e.target.value })
-    );
+    chartState.updateChartStyle({ [`${axis}Label`]: e.target.value }).render();
   };
 
   // Render axis label input
@@ -134,7 +126,7 @@ export function PrimarySelection({
         defaultValue="Frequency"
         value={chartStyle.yLabel}
         onChange={(e) =>
-          setChartState(chartState.updateChartStyle({ yLabel: e.target.value }))
+          chartState.updateChartStyle({ yLabel: e.target.value }).render()
         }
       />
     </div>
@@ -180,9 +172,9 @@ export function PrimarySelection({
               unCheckedChildren="Value"
               checked={chartSpecificOptions.bar.useCount}
               onChange={(value) =>
-                setChartState(
-                  chartState.updateChartSpecificOptions({ useCount: value })
-                )
+                chartState
+                  .updateChartSpecificOptions({ useCount: value })
+                  .render()
               }
             />
           </div>
@@ -211,32 +203,29 @@ export function PrimarySelection({
 
   const colorSchemeSelection = (value) => {
     if ((propSelectedChart || selectedChart) !== "line") {
-      setChartState(
-        chartState
-          .updateChartSpecificOptions({ fill: value })
-          .setSelectedColumns({
-            ...selectedColumns,
-            fill: value,
-          })
-      );
+      chartState
+        .updateChartSpecificOptions({ fill: value })
+        .setSelectedColumns({
+          ...selectedColumns,
+          fill: value,
+        })
+        .render();
     } else if ((propSelectedChart || selectedChart) === "line") {
-      setChartState(
-        chartState
-          .updateChartSpecificOptions({ stroke: value })
-          .setSelectedColumns({
-            ...selectedColumns,
-            stroke: value,
-          })
-      );
+      chartState
+        .updateChartSpecificOptions({ stroke: value })
+        .setSelectedColumns({
+          ...selectedColumns,
+          stroke: value,
+        })
+        .render();
     } else {
-      setChartState(
-        chartState
-          .updateChartSpecificOptions({ fill: value })
-          .setSelectedColumns({
-            ...selectedColumns,
-            fill: value,
-          })
-      );
+      chartState
+        .updateChartSpecificOptions({ fill: value })
+        .setSelectedColumns({
+          ...selectedColumns,
+          fill: value,
+        })
+        .render();
     }
   };
 

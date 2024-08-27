@@ -1,13 +1,15 @@
 import { Input, Slider, Switch } from "antd";
-import { useChartContainer } from "../dashboardState";
+import { ChartStateContext } from "../ChartStateContext";
+import { useContext } from "react";
 
 const HistogramControls = () => {
-  const { chartSpecificOptions, updateChartSpecificOptions } =
-    useChartContainer();
+  const chartState = useContext(ChartStateContext);
+  const { chartSpecificOptions } = chartState;
+
   const histogramOptions = chartSpecificOptions.histogram;
 
   const handleOptionChange = (option, value) => {
-    updateChartSpecificOptions({ [option]: value });
+    chartState.updateChartSpecificOptions({ [option]: value }).render();
   };
 
   return (

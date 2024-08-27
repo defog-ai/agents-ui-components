@@ -1,12 +1,13 @@
 import { ColorPicker, Slider } from "antd";
-import { useChartContainer } from "../dashboardState";
+import { useContext } from "react";
+import { ChartStateContext } from "../ChartStateContext";
 
 const ScatterPlotControls = () => {
-  const { chartSpecificOptions, updateChartSpecificOptions } =
-    useChartContainer();
+  const chartState = useContext(ChartStateContext);
+  const { chartSpecificOptions } = chartState;
 
   const handleOptionChange = (key, value) => {
-    updateChartSpecificOptions({ [key]: value });
+    chartState.updateChartSpecificOptions({ [key]: value }).render();
   };
 
   return (
