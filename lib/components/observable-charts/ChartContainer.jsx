@@ -17,6 +17,8 @@ export function ChartContainer({ columns, rows }) {
     createChartState({ data: rows, availableColumns: columns })
   );
 
+  console.log(chartState);
+
   const { selectedChart, selectedColumns } = chartState;
 
   const [userQuestion, setUserQuestion] = useState("");

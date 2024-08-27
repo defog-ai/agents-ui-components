@@ -38,7 +38,6 @@ import { createContext } from "react";
 export function createActionHandlers() {
   const actionHandlers = {
     render: function () {
-      console.log(this);
       this.setStateCallback(this);
     },
     setSelectedChart: function (payload) {
