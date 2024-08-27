@@ -132,6 +132,20 @@ export function createActionHandlers() {
   return actionHandlers;
 }
 
+function deepMergeObjects(obj1, obj2) {
+  const merged = { ...obj1 };
+
+  for (const key in obj2) {
+    if (typeof obj2[key] === "object") {
+      merged[key] = deepMergeObjects(obj1[key], obj2[key]);
+    } else {
+      merged[key] = obj2[key];
+    }
+  }
+
+  return merged;
+}
+
 /**
  * @typedef {Object} ChartStyle
  * @property {string} title - The chart title
@@ -233,7 +247,9 @@ export function createActionHandlers() {
  * @property {ChartSpecificOptions} chartSpecificOptions - Options specific to each chart type
  * @property {Array<Object>} data - Data for the chart
  * @property {Array<Column>} availableColumns - Available columns in the dataset
+ * @property {function(Object): ChartState} mergeStateUpdates - Deep merge state updates into current state, and return the merged state.
  * @property {function(ChartState): void} setStateCallback - Callback function to set the state
+ * @property {function(): ChartState} clone - Clone the current state. Returns the state without any function properties.
  */
 
 /**
@@ -299,8 +315,27 @@ export const defaultChartState = {
   },
   data: [],
   availableColumns: [],
+  mergeStateUpdates: function (stateUpdates) {
+    // because these state updates can have nested objects
+    // for example: user question: "plot ratings onthe x axis"
+    // if currently the selectedColumns are { x: "date", y: "value" }
+    // then the state update will be { selectedColumns: { x: "ratings" } }
+    // but if we directly do {...this, ...stateUpdates}, then the y value will be lost
+    // hence we need to do a deep merge
+    return deepMergeObjects(this, stateUpdates);
+  },
   setStateCallback: () => {},
   ...createActionHandlers(),
+  clone: function (skipKeys = []) {
+    // return a copy of the state without any function properties, and without any keys in skipKeys
+    const clone = {};
+    for (const key in this) {
+      if (typeof this[key] !== "function" && skipKeys.indexOf(key) === -1) {
+        clone[key] = this[key];
+      }
+    }
+    return clone;
+  },
 };
 
 /**
