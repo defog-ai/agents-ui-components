@@ -126,8 +126,6 @@ The manager will keep sending a request to the backend till a `done` parameter i
 
 It will then check if there is an `error_message` in the response, if so, it will throw an error. If it's an error, we will immediately go into the `catch` block, and send over the response to the UI (`AnalysisAgent.jsx`). If the stage's data was empty, we just _delete_ that stage so that we don't end up showing some blank state in the UI.
 
-{" "}
-
 <Image src="./assets/frontend/res-error.png" code />
 
 If the response is successful, and there is no error, When the manager calls the `mergeNewDataToAnalysis` [function](https://github.com/defog-ai/agents-ui-components/blob/main/lib/components/agent/analysis/analysisManager.js#L425).
@@ -138,3 +136,30 @@ If the response is successful, and there is no error, When the manager calls the
 ## Backend
 
 Most of the logic for our backend can be understood by looking at the endpoints in [agent_routes.py](https://github.com/defog-ai/defog-self-hosted/blob/main/backend/agent_routes.py)
+
+- The [clarify endpoint](https://github.com/defog-ai/defog-self-hosted/blob/main/backend/agent_routes.py#L234-L292) is pretty simple, needing only the user question and db metadata to run.
+
+The `generate_step` [function](https://github.com/defog-ai/defog-self-hosted/blob/main/backend/agent_routes.py#L48) is only slightly more complex, requiring a few things before we can generate a step:
+
+- It will first collect all the "previous questions" the user has asked (because we want our UI allows for a "follow up" question type behaviour).
+- If it's a `sql_only` analysis, we manually construct a step, and run the data_fetcher tool using the `run_step` function. And return.
+- If not, we first collate the previous questions into one via a `/convert_question_to_single` endpoint, which returns a single question from the parent/previous questions above.
+- Then we call the `generate_single_step` function.
+
+[The `generate_single_step` function:](https://github.com/defog-ai/defog-self-hosted/blob/main/backend/agents/planner_executor/planner_executor_agent.py#L536)
+
+- First prepares an "analysis_execution_cache" via a `prepare_cache` function. This cache stores things like api key, user question, server url etc that our tools can readily use if needed.
+- Eventually the above cache is also used for storing outputs of previous steps (if a step depends on a parent's step's output, it can get that output from this object).
+- It will then figure out if there are steps in this analysis that have already been generated. It does this by fetching the latest data for this anlaysis from the db and checking the `gen_steps` column.
+- Then constructs a giant payload to send to the defog servers. [Code here.](https://github.com/defog-ai/defog-self-hosted/blob/main/backend/agents/planner_executor/planner_executor_agent.py#L613-L633)
+- Once we receive the step's yaml from the backend, we parse it. Then finally we [call the `run_step` function](https://github.com/defog-ai/defog-self-hosted/blob/main/backend/agents/planner_executor/planner_executor_agent.py#L652-L660).
+
+[The `run_step` function:](https://github.com/defog-ai/defog-self-hosted/blob/main/backend/agents/planner_executor/planner_executor_agent.py#L203)
+
+- Runs a single step and stores the output of that step in the db.
+- It first tries to resolve the inputs of a step. If any input is missing (usually only happens if one of the inputs is an output of a previous step of the analysis, and that step hasn't been run yet), a `MissingDependencyException` is raised. Then we will recursively call the `run_step` function to run that step. [Code](https://github.com/defog-ai/defog-self-hosted/blob/main/backend/agents/planner_executor/planner_executor_agent.py#L241-L263)
+- Then we check if this step has been run already (in case this is a call from re run step). If it has, we just return the output of that step. [Code](https://github.com/defog-ai/defog-self-hosted/blob/main/backend/agents/planner_executor/planner_executor_agent.py#L278-L288)
+- Now finally, we can run this step calling the old trusty `execute_tool` function. [Code](https://github.com/defog-ai/defog-self-hosted/blob/main/backend/agents/planner_executor/planner_executor_agent.py#L319-L325)
+- Then we do some post-result stuff like storing the outputs into our assets folders and in the cache.
+- Finally storing the result of this step and the step itself in the db using the `update_analysis_data` function. [Code](https://github.com/defog-ai/defog-self-hosted/blob/main/backend/agents/planner_executor/planner_executor_agent.py#L408-L417)
+- Finally, we return the generated step to the front end.
