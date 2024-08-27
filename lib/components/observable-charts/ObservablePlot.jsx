@@ -107,7 +107,6 @@ export default function ObservablePlot() {
     if (!containerRef.current || !observableOptions) return;
     containerRef.current.innerHTML = "";
     containerRef.current.appendChild(Plot.plot(observableOptions));
-    console.log(observableOptions);
   }, [observableOptions]);
 
   return (

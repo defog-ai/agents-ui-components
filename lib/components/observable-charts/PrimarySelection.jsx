@@ -60,7 +60,7 @@ export function PrimarySelection({
     chartState
       .setSelectedChart(value)
       .updateChartStyle({ xLabel: null, yLabel: null })
-      .autoSelectVariables(chartState)
+      .autoSelectVariables()
       .render();
   };
 
@@ -265,7 +265,7 @@ export function PrimarySelection({
                   p-2 rounded-sm min-w-20 border-[1px] flex items-center justify-center font-semibold transition-colors duration-200 text-[11px] font-sans ease-in-out
                   ${
                     (propSelectedChart || selectedChart) === value
-                      ? "bg-blue-500 border-blue-600 text-white shadow-md"
+                      ? "bg-blue-500 border-blue-600 text-white"
                       : "bg-blue-100 text-blue-600/50 border-blue-200 hover:bg-blue-300"
                   }
                 `}

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useContext } from "react";
 import { Tabs } from "antd";
 import {
   ChartNoAxesCombined,
@@ -11,13 +11,25 @@ import ObservablePlot from "./ObservablePlot";
 import TabPaneWrapper from "./utils/TabPaneWrapper";
 import FilterBuilder from "./Filtering";
 import { ChartStateContext, createChartState } from "./ChartStateContext";
+import { Input, MessageManagerContext } from "@ui-components";
+import setupBaseUrl from "../utils/setupBaseUrl";
+import { AgentConfigContext } from "../context/AgentContext";
 
 export function ChartContainer({ columns, rows }) {
   const [chartState, setChartState] = useState(
     createChartState({ data: rows, availableColumns: columns })
   );
 
-  // console.log(chartState);
+  const agentConfigContext = useContext(AgentConfigContext);
+  const { apiEndpoint } = agentConfigContext.val;
+
+  const chartEditUrl = setupBaseUrl({
+    protocol: "http",
+    path: "edit_chart",
+    apiEndpoint: apiEndpoint,
+  });
+
+  const messageManager = useContext(MessageManagerContext);
 
   const { selectedChart, selectedColumns } = chartState;
 
@@ -26,12 +38,16 @@ export function ChartContainer({ columns, rows }) {
 
   // if rows or columns change, update the chart state
   useEffect(() => {
-    setChartState((prev) => ({
-      ...prev,
-      data: rows,
-      availableColumns: columns,
-      setStateCallback: setChartState,
-    }));
+    setChartState((prev) => {
+      const newState = {
+        ...prev,
+        data: rows,
+        availableColumns: columns,
+        setStateCallback: setChartState,
+      }.autoSelectVariables();
+
+      return newState;
+    });
   }, [rows, columns]);
 
   const tabItems = useMemo(
@@ -81,61 +97,59 @@ export function ChartContainer({ columns, rows }) {
 
   return (
     <ChartStateContext.Provider value={{ ...chartState, setChartState }}>
-      <div className="flex flex-col h-full">
-        <div className="flex items-center justify-center p-4 bg-white">
-          {/* textbox where users can ask a question */}
-          <input
-            type="text"
-            className="w-full p-2 border border-gray-300 rounded"
-            placeholder="Ask a question to create a visualization"
-            value={userQuestion || undefined}
-            onChange={(e) => setUserQuestion(e.target.value)}
-            disabled={loading}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                if (
-                  userQuestion === "Create a dotplot of plasticity vs lot_id"
-                ) {
-                  setLoading(true);
-                  // setTimeout(() => {
-                  //   setPlotOptions({
-                  //     ...plotOptions,
-                  //     type: "scatter",
-                  //     x: "lot_id",
-                  //     y: "plasticity",
-                  //   });
-                  //   setLoading(false);
-                  // }, 2205);
-                } else if (
-                  userQuestion ===
-                  "color the rejected items in a different color"
-                ) {
-                  setLoading(true);
-                  // setTimeout(() => {
-                  //   setPlotOptions({
-                  //     ...plotOptions,
-                  //     fill: "qc_approved",
-                  //   });
-                  //   setLoading(false);
-                  // }, 1230);
-                } else if (
-                  userQuestion ===
-                  "Can you change the theme and make the rejected items in red?"
-                ) {
-                  setLoading(true);
-                  // setTimeout(() => {
-                  //   setPlotOptions({
-                  //     ...plotOptions,
-                  //     scheme: "set1",
-                  //   });
-                  //   setLoading(false);
-                  // }, 1940);
-                }
+      <div className="relative">
+        <Input
+          type="text"
+          rootClassNames="w-full mb-6 p-2 rounded"
+          label="Ask a question to edit the visualization"
+          onChange={(e) => setUserQuestion(e.target.value)}
+          disabled={loading}
+          onPressEnter={async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            try {
+              setLoading(true);
+
+              if (!userQuestion || userQuestion === "") {
+                throw new Error("Please enter a question");
               }
-            }}
-          />
-        </div>
+
+              const res = await fetch(chartEditUrl, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  user_request: userQuestion,
+                  // we only want to send non function properties
+                  current_chart_state: chartState.clone([
+                    "data",
+                    "availableColumns",
+                  ]),
+                  columns: chartState.availableColumns.map((col) => ({
+                    title: col.title,
+                    col_type: col.colType,
+                  })),
+                }),
+              }).then((res) => res.json());
+
+              if (!res.success) {
+                throw new Error(res.error_message || "Failed to edit chart");
+              }
+
+              const chartStateEdits = res["chart_state_edits"];
+
+              chartState.mergeStateUpdates(chartStateEdits).render();
+            } catch (e) {
+              messageManager.error(e.message);
+              console.error(e);
+            } finally {
+              setLoading(false);
+            }
+          }}
+        />
+
         <div className="flex flex-grow gap-3">
           <div className="w-2/3 max-w-[350px] h-full border-r">
             <Tabs
