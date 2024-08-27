@@ -301,7 +301,7 @@ export default function StepsDag({
                       content={
                         !disablePopovers &&
                         (d?.data?.isAddStepNode
-                          ? "Create new step"
+                          ? "Do additional tasks with this data"
                           : d?.data?.isTool
                             ? d?.data?.step?.description || d.data.id
                             : null)
