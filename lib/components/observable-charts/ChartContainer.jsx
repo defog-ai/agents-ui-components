@@ -20,6 +20,8 @@ export function ChartContainer({ columns, rows }) {
     createChartState({ data: rows, availableColumns: columns })
   );
 
+  chartState.setStateCallback = setChartState;
+
   const agentConfigContext = useContext(AgentConfigContext);
   const { apiEndpoint } = agentConfigContext.val;
 
