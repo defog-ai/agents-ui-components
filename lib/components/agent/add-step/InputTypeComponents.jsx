@@ -247,3 +247,21 @@ export function DropdownSingleSelectOptions({
     />
   );
 }
+
+export function StringOptions({
+  inputName,
+  initialValue,
+  onEdit,
+}) {
+  return (
+    <Input
+      rootClassNames="tool-input-value lg:w-80"
+      textAreaClassNames="resize-none"
+      defaultRows={1}
+      value={initialValue || ""}
+      onChange={(ev) => {
+        onEdit(inputName, ev.target.value);
+      }}
+    />
+  );
+}
