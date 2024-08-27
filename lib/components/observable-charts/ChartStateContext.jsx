@@ -7,6 +7,7 @@ import { createContext } from "react";
 /**
  *
  * @typedef {Object} ActionHandlers
+ * @property {function(): ChartState} render
  * @property {function(string): ChartState} setSelectedChart
  * @property {function(SelectedColumns): ChartState} setSelectedColumns
  * @property {function(Partial<ChartStyle>): ChartState} updateChartStyle
@@ -26,16 +27,20 @@ import { createContext } from "react";
  * const [state, setState] = useState(defaultChartState);
  *
  * // update the state
- * setState(state.setSelectedChart("line"));
+ * state.setSelectedChart("line").render();
  *
- * // update state by chaining multiple actions
- * setState(state
- *          .setSelectedChart("line")
- *          .setSelectedColumns({ x: "date", y: "value" })
- * );
+ * // update state by chaining multiple actions and then calling .render()
+ * state
+ *  .setSelectedChart("line")
+ *  .setSelectedColumns({ x: "date", y: "value" })
+ *  .render();
  */
 export function createActionHandlers() {
   const actionHandlers = {
+    render: function () {
+      console.log(this);
+      this.setStateCallback(this);
+    },
     setSelectedChart: function (payload) {
       console.log(this);
       const newState = {
@@ -229,6 +234,7 @@ export function createActionHandlers() {
  * @property {ChartSpecificOptions} chartSpecificOptions - Options specific to each chart type
  * @property {Array<Object>} data - Data for the chart
  * @property {Array<Column>} availableColumns - Available columns in the dataset
+ * @property {function(ChartState): void} setStateCallback - Callback function to set the state
  */
 
 /**
@@ -294,15 +300,20 @@ export const defaultChartState = {
   },
   data: [],
   availableColumns: [],
+  setStateCallback: () => {},
   ...createActionHandlers(),
 };
 
 /**
  * Create a new chart state.
  * @param {object} partialState - Partial chart state.
+ * @param {function} setStateCallback - Callback function to set the state. chartState.xxx().yyy().render() will call this function with the latest chartState after applying the xxx and yyy methods.
  * @returns {ChartState} - Chart State.
  */
-export function createChartState(partialState = {}) {
+export function createChartState(
+  partialState = {},
+  setStateCallback = () => {}
+) {
   // only set defined keys
   const newState = Object.assign({}, defaultChartState);
 
@@ -317,14 +328,11 @@ export function createChartState(partialState = {}) {
   return {
     ...newState,
     ...actionHandlers,
+    setStateCallback,
   };
 }
 
 // defining this so explicitly here only to allow vscode's intellisense to work
 // we can also just do createContext()
 // but defining this here lets jsdoc + intellisense play together nicely
-export const ChartStateContext = createContext({
-  ...Object.assign({}, defaultChartState),
-  ...createActionHandlers(),
-  setChartState: () => {},
-});
+export const ChartStateContext = createContext(createChartState());

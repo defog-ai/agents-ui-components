@@ -1,12 +1,13 @@
 import { ColorPicker } from "antd";
-import { useChartContainer } from "../dashboardState";
-import { Slider } from "@ui-components";
+import { ChartStateContext } from "../ChartStateContext";
+import { useContext } from "react";
+
 const BarChartControls = () => {
-  const { chartSpecificOptions, updateChartSpecificOptions } =
-    useChartContainer();
+  const chartState = useContext(ChartStateContext);
+  const { chartSpecificOptions } = chartState;
 
   const handleOptionChange = (key, value) => {
-    updateChartSpecificOptions({ [key]: value });
+    chartState.updateChartSpecificOptions({ [key]: value }).render();
   };
 
   return (

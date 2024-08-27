@@ -1,6 +1,5 @@
 import { Slider } from "@ui-components";
 import { ColorPicker } from "antd";
-import { useChartContainer } from "./dashboardState";
 import LineChartControls from "./chart-controls/LineChartControls";
 import ScatterPlotControls from "./chart-controls/ScatterPlotControls";
 import BarChartControls from "./chart-controls/BarChartControls";
@@ -9,18 +8,16 @@ import AxisControl from "./components/AxisControl";
 import D3DateFormatBuilder from "./components/DateFormatter";
 import BoxPlotControls from "./chart-controls/BoxControl";
 import ColorSchemeSelector from "./components/ColorschemeSelector";
+import { ChartStateContext } from "./ChartStateContext";
+import { useContext } from "react";
 
 export function Customization() {
-  const {
-    selectedChart,
-    chartStyle,
-    updateChartStyle,
-    selectedColumns,
-    availableColumns,
-  } = useChartContainer();
+  const chartState = useContext(ChartStateContext);
+  const { selectedChart, chartStyle, selectedColumns, availableColumns } =
+    chartState;
 
   const handleStyleChange = (key, value) => {
-    updateChartStyle({ [key]: value });
+    chartState.updateChartStyle({ [key]: value }).render();
   };
 
   const renderChartSpecificControls = () => {

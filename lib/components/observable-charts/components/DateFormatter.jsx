@@ -2,7 +2,8 @@ import { useState, useRef, useEffect } from "react";
 import { twMerge } from "tailwind-merge";
 import { LucideChevronsUpDown, CircleHelp } from "lucide-react";
 import { Popover } from "antd";
-import { useChartContainer } from "../dashboardState";
+import { useContext } from "react";
+import { ChartStateContext } from "../ChartStateContext";
 
 const formatOptions = [
   { value: "%b, %Y", label: "Month, YYYY" },
@@ -42,17 +43,18 @@ const FormatHelpContent = () => (
 );
 
 const D3DateFormatBuilder = () => {
-  const { chartStyle, updateChartStyle } = useChartContainer();
+  const chartState = useContext(ChartStateContext);
+  const { chartStyle } = chartState;
   const [isOpen, setIsOpen] = useState(false);
   const inputRef = useRef(null);
   const dropdownRef = useRef(null);
 
   const handleFormatChange = (e) => {
-    updateChartStyle({ dateFormat: e.target.value });
+    chartState.updateChartStyle({ dateFormat: e.target.value }).render();
   };
 
   const handleOptionClick = (value) => {
-    updateChartStyle({ dateFormat: value });
+    chartState.updateChartStyle({ dateFormat: value }).render();
     setIsOpen(false);
   };
 

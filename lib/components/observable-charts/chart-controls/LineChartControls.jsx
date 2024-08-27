@@ -1,6 +1,7 @@
 import { SingleSelect } from "@ui-components";
 import { ColorPicker, Slider, Switch } from "antd";
-import { useChartContainer } from "../dashboardState";
+import { ChartStateContext } from "../ChartStateContext";
+import { useContext } from "react";
 
 // Options for curve types
 const CURVE_OPTIONS = [
@@ -10,12 +11,12 @@ const CURVE_OPTIONS = [
 ];
 
 const LineChartControls = () => {
-  const { selectedColumns, chartSpecificOptions, updateChartSpecificOptions } =
-    useChartContainer();
+  const chartState = useContext(ChartStateContext);
+  const { selectedColumns, chartSpecificOptions } = chartState;
 
   // Handle changes for global line chart options
   const handleGlobalOptionChange = (key, value) => {
-    updateChartSpecificOptions({ [key]: value });
+    chartState.updateChartSpecificOptions({ [key]: value }).render();
   };
 
   // Handle changes for individual line options
@@ -24,7 +25,9 @@ const LineChartControls = () => {
       ...(chartSpecificOptions.line.lineOptions || []),
     ];
     updatedLineOptions[index] = { ...updatedLineOptions[index], [key]: value };
-    updateChartSpecificOptions({ lineOptions: updatedLineOptions });
+    chartState
+      .updateChartSpecificOptions({ lineOptions: updatedLineOptions })
+      .render();
   };
 
   // Render global line chart controls

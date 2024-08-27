@@ -1,4 +1,4 @@
-import { isValidElement, useEffect, useState, useMemo, useRef } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { Tabs, Button, message, Popover } from "antd";
 import { chartNames, roundColumns } from "../../agentUtils";
 
@@ -23,7 +23,6 @@ import { roundNumber } from "../../../utils/utils";
 import setupBaseUrl from "../../../utils/setupBaseUrl";
 import { Table } from "@ui-components";
 import { ChartContainer } from "../../../observable-charts/ChartContainer";
-import { DashboardProvider } from "../../../observable-charts/dashboardState";
 
 // tabBarLeftContent: extra content for the tab bar on the left side
 export function StepResultsTable({
@@ -455,11 +454,9 @@ export function StepResultsTable({
   }, [reactiveVars]);
 
   return (
-    <DashboardProvider>
-      <div className="table-chart-ctr" ref={tableChartRef}>
-        {results}
-        {reactiveVarJsx}
-      </div>
-    </DashboardProvider>
+    <div className="table-chart-ctr" ref={tableChartRef}>
+      {results}
+      {reactiveVarJsx}
+    </div>
   );
 }
