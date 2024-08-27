@@ -8,6 +8,7 @@ import {
   DataFrameOptions,
   DBColumnOptions,
   DropdownSingleSelectOptions,
+  StringOptions
 } from "./InputTypeComponents";
 
 export const inputTypeToUI = {
@@ -103,8 +104,8 @@ export function AddStepInputList({
     <div className="" key={stepId} ref={ctr}>
       {Object.keys(inputs).map((inputName, i) => {
         const sanitizedType = sanitizeInputType(inputMetadata[inputName]?.type);
-        const input = inputs[inputName];
-        const ItemToRender = inputTypeToUI[sanitizedType];
+        const input = inputs[inputName] || "";
+        const ItemToRender = sanitizedType in inputTypeToUI ? inputTypeToUI[sanitizedType] : StringOptions;
 
         return (
           <div
@@ -117,24 +118,22 @@ export function AddStepInputList({
               </span>
               <span className="font-bold">{inputMetadata[inputName].name}</span>
             </span>
-            {sanitizedType in inputTypeToUI && (
-              <ItemToRender
-                inputName={inputMetadata[inputName]?.name}
-                initialValue={input}
-                onEdit={(prop, newVal) => {
-                  onEdit(prop, newVal);
-                }}
-                config={{
-                  availableParentColumns: [...availableColumns],
-                  availableInputDfs: Object.keys(parentNodeOutputs),
-                  newListValueDefault,
-                  analysisId,
-                  stepId,
-                  inputMetadata,
-                  type: inputMetadata[inputName].type,
-                }}
-              />
-            )}
+            <ItemToRender
+              inputName={inputMetadata[inputName]?.name}
+              initialValue={input}
+              onEdit={(prop, newVal) => {
+                onEdit(prop, newVal);
+              }}
+              config={{
+                availableParentColumns: [...availableColumns],
+                availableInputDfs: Object.keys(parentNodeOutputs),
+                newListValueDefault,
+                analysisId,
+                stepId,
+                inputMetadata,
+                type: inputMetadata[inputName].type,
+              }}
+            />
           </div>
         );
       })}
