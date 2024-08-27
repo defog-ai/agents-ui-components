@@ -1,15 +1,18 @@
 {
-  "user_question": "show me 5 rows",
-  "timestamp": "2024-08-05 11:32:33.885342",
-  "analysis_id": "901ce370-9ea3-42c0-b06a-7fed46c7a888",
+  "user_question": "Show me any 40 rows from the dataset",
+  "timestamp": "2024-08-27 11:47:11.043848",
+  "analysis_id": "analysis-07a1fc18-9c59-4a94-9eec-ffcce92bc992",
   "api_key": "123",
   "username": "bdbe4d376e6c8a53a791a86470b924c0715854bd353483523e3ab016eb55bcd0",
+  "is_root_analysis": true,
+  "root_analysis_id": null,
+  "direct_parent_id": null,
   "currentStage": "gen_steps",
   "clarify": {
     "success": true,
     "clarification_questions": [
       {
-        "question": "Which dataset or table would you like the 5 rows from?",
+        "question": "Which table should the 40 rows be selected from?",
         "ui_tool": "text input",
         "response": "",
         "response_formatted": ""
@@ -20,14 +23,14 @@
     "success": true,
     "steps": [
       {
-        "description": "Fetching 5 rows from the database to display.",
+        "description": "Fetching any 40 rows from the dataset.",
         "tool_name": "data_fetcher_and_aggregator",
         "inputs": {
-          "question": "Show me 5 rows from the database."
+          "question": "Show me any 40 rows from the dataset."
         },
-        "outputs_storage_keys": ["five_rows"],
+        "outputs_storage_keys": ["sample_data"],
         "done": true,
-        "tool_run_id": "105c5114-6a9d-43b9-b8c8-19c284b3bb52",
+        "id": "cb461d06-5139-4d15-b35d-3c61d1fcc761",
         "error_message": null,
         "input_metadata": {
           "question": {
@@ -38,8 +41,15 @@
           }
         },
         "model_generated_inputs": {
-          "question": "Show me 5 rows from the database."
-        }
+          "question": "Show me any 40 rows from the dataset."
+        },
+        "outputs": {
+          "sample_data": {
+            "data": "rid,business_id,user_id,rating,text,year,month\n1,abc123,1,4.500,Great pizza!,2021,January\n2,def456,2,4.200,Delicious food.,2021,February\n3,ghi789,3,3.900,Average diner.,2021,March\n4,jkl012,4,4.800,Amazing bistro.,2021,April\n5,mno345,5,4.600,Yummy bakery.,2021,January\n6,ghi789,1,1.200,Horrible staff!,2021,April\n7,def456,2,4.900,Second visit. I’m loving it.,2021,May\n8,xyz123,3,0.500,Hate it,2021,June\n9,uvw456,4,4.000,Not bad.,2021,July\n10,abc123,5,4.600,Very goody.,2022,January\n11,def456,1,3.000,Average,2022,February\n12,ghi789,2,4.000,Not bad.,2022,March\n13,jkl012,3,4.500,Second time here.,2022,April\n14,mno345,4,4.600,Third time here.,2022,May\n15,xyz123,5,3.500,Wont come again.,2022,June\n16,uvw456,1,4.000,Quite good.,2022,July\n17,mno345,2,4.600,Superb.,2022,July\n18,jkl012,3,5.000,WOwowow.,2022,August\n19,jkl012,4,4.800,Lovin it.,2022,September\n20,ghi789,5,1.500,Worst experience ever.,2022,October\n"
+          }
+        },
+        "sql": "SELECT *\n  FROM review\n LIMIT 40",
+        "code_str": "async def data_fetcher_and_aggregator(\n    question: str,\n    global_dict: dict = {},\n    previous_context: list = [],\n    **kwargs,\n):\n    \"\"\"\n    This function generates a SQL query and runs it to get the answer.\n    \"\"\"\n    import os\n    import asyncio\n    import pandas as pd\n    from tool_code_utilities import safe_sql, fetch_query_into_df\n    from defog import Defog\n    from utils import SqlExecutionError\n    from db_utils import get_db_type_creds\n\n    if question == \"\" or question is None:\n        raise ValueError(\"Question cannot be empty\")\n\n    api_key = global_dict.get(\"dfg_api_key\", \"\")\n    res = get_db_type_creds(api_key)\n    db_type, db_creds = res\n\n    dev = global_dict.get(\"dev\", False)\n    temp = global_dict.get(\"temp\", False)\n    print(f\"Dev: {dev}\")\n    print(f\"Global dict currently has keys: {list(global_dict.keys())}\")\n    print(f\"Previous context: {previous_context}\", flush=True)\n\n    # send the data to the Defog, and get a response from it\n    defog = Defog(api_key=api_key, db_type=db_type, db_creds=db_creds)\n    defog.base_url = os.environ.get(\"DEFOG_BASE_URL\", \"https://api.defog.ai\")\n    defog.generate_query_url = os.environ.get(\n        \"DEFOG_GENERATE_URL\", defog.base_url + \"/generate_query_chat\"\n    )\n    # make async request to the url, using the appropriate library\n    try:\n        res = await asyncio.to_thread(\n            defog.get_query,\n            question=question,\n            previous_context=previous_context,\n            dev=dev,\n            temp=temp,\n        )\n        query = res[\"query_generated\"]\n        print(query, flush=True)\n    except:\n        return {\n            \"error_message\": \"There was an error in generating the query. Please try again.\"\n        }\n\n    if not safe_sql(query):\n        success = False\n        print(\"Unsafe SQL Query\")\n        return {\n            \"outputs\": [\n                {\n                    \"data\": pd.DataFrame(),\n                    \"analysis\": \"This was an unsafe query, and hence was not executed\",\n                }\n            ],\n            \"sql\": query.strip(),\n        }\n\n    print(f\"Running query: {query}\")\n\n    try:\n        df, sql_query = await fetch_query_into_df(\n            api_key=api_key, sql_query=query, temp=temp\n        )\n    except Exception as e:\n        print(\"Raising execution error\", flush=True)\n        raise SqlExecutionError(query, str(e))\n\n    analysis = \"\"\n    return {\n        \"outputs\": [{\"data\": df, \"analysis\": analysis}],\n        \"sql\": sql_query.strip(),\n    }\n"
       }
     ]
   }

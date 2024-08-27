@@ -332,8 +332,7 @@ export const AnalysisAgent = ({
       !(
         !analysisData ||
         (!analysisData.currentStage && hasExternalSearchBar)
-      ) ? (
-        null
+      ) ? null : (
         // <div className="basis-0 text-nowrap whitespace-nowrap">
         //   <AnalysisFeedback
         //     analysisSteps={analysisData?.gen_steps?.steps || []}
@@ -344,7 +343,6 @@ export const AnalysisAgent = ({
         //     keyName={keyName}
         //   />
         // </div>
-      ) : (
         <div className="basis-0 text-nowrap whitespace-nowrap group cursor-pointer">
           <StopCircleIcon
             className="w-6 h-6 text-rose-300 group-hover:text-rose-500"
