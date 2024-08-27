@@ -31,7 +31,7 @@ For usage examples, look in the Quickstart doc.
 
 A crucial component of getting analyses to work is the `Setup` component. You will need this when using the first two components, while `DefogAnalysisAgentEmbed` will handle it for you internally.
 
-The `Setup` component wraps around your content, and handles the setup of the socket connections for you, showing you a loader until the connections are established and everything else is ready. It will also setup a sqlite db.
+The `Setup` component wraps around your content, and handles the setup of the tools and initialises a sqlite db.
 
 You be able to pass it all the available options for the _agent's configuration_. This configuration has the following options, some of these are user auth related, others are related to the agent's UI look:
 

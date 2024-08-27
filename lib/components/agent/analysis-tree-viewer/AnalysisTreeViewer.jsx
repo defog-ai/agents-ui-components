@@ -288,7 +288,9 @@ export function AnalysisTreeViewer({
                       sqlOnly={analysis.sqlOnly}
                       isTemp={analysis.isTemp}
                       keyName={analysis.keyName}
-                      userQuestions={analysisChildList.map((i) => ({ ...i }))}
+                      previousQuestions={analysisChildList.map((i) => ({
+                        ...i,
+                      }))}
                       onManagerCreated={(analysisManager, id, ctr) => {
                         analysisDomRefs.current[id] = {
                           ctr,
