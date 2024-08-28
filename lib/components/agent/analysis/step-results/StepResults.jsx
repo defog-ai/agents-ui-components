@@ -366,8 +366,9 @@ export function StepResults({
               ) : step?.error_message ? (
                 <StepError error_message={step?.error_message}></StepError>
               ) : (
-                <div className="text-gray-400 text-sm h-40 flex items-center justify-center">
-                  No data found
+                <div className="text-gray-400 text-sm h-40 max-w-80 m-auto text-center flex items-center justify-center">
+                  No data found when we ran the SQL query. Are you sure that
+                  data for the question you asked is available in the database
                 </div>
               ),
             },
