@@ -104,9 +104,14 @@ export default function ObservablePlot() {
   }, [updateDimensions]);
 
   useEffect(() => {
-    if (!containerRef.current || !observableOptions) return;
-    containerRef.current.innerHTML = "";
-    containerRef.current.appendChild(Plot.plot(observableOptions));
+    if (!containerRef.current) return;
+    if (observableOptions) {
+      containerRef.current.innerHTML = "";
+      containerRef.current.appendChild(Plot.plot(observableOptions));
+    } else {
+      containerRef.current.innerHTML =
+        "Please select X and Y axes to display the chart.";
+    }
   }, [observableOptions]);
 
   return (
@@ -127,17 +132,9 @@ export default function ObservablePlot() {
       </div>
       <div style={{ width: "100%", height: "460px" }}>
         <div
-          className="w-full h-full bg-white observable-plot"
+          className="w-full h-full bg-white observable-plot flex items-center justify-center text-gray-500"
           ref={containerRef}
-        >
-          {(!observableOptions ||
-            !observableOptions.xKey ||
-            !observableOptions.yKey) && (
-            <div className="flex items-center justify-center h-full text-gray-500">
-              Please select X and Y axes to display the chart.
-            </div>
-          )}
-        </div>
+        ></div>
       </div>
     </div>
   );

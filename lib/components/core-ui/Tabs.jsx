@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { twMerge } from "tailwind-merge";
 import { breakpoints } from "../hooks/useBreakPoint";
 import { useWindowSize } from "../hooks/useWindowSize";
@@ -48,6 +48,10 @@ export function Tabs({
 }) {
   const windowSize = useWindowSize();
 
+  const showVerticalTabs = useMemo(() => {
+    return vertical && !(disableSingleSelect && windowSize[0] < breakpoints.sm);
+  }, [windowSize[0] < breakpoints.sm, vertical, disableSingleSelect]);
+
   const [selectedTab, setSelectedTab] = useState(
     (defaultSelected && tabs.find((tab) => tab.name === defaultSelected)) ||
       selected ||
@@ -67,7 +71,7 @@ export function Tabs({
     <div
       className={twMerge(
         "relative",
-        vertical && !(disableSingleSelect && windowSize[0] < breakpoints.sm)
+        showVerticalTabs
           ? "flex flex-col sm:flex sm:flex-row"
           : "flex flex-col",
         rootClassNames
@@ -76,7 +80,7 @@ export function Tabs({
       <div
         className={twMerge(
           "tab-group",
-          vertical && !(disableSingleSelect && windowSize[0] < breakpoints.sm)
+          showVerticalTabs
             ? " sm:relative sm:left-0 origin-right z-10"
             : "flex flex-row"
         )}
@@ -112,10 +116,7 @@ export function Tabs({
           <nav
             className={twMerge(
               "isolate flex divide-gray-200 rounded-2xl shadow cursor-pointer",
-              vertical &&
-                !(disableSingleSelect && windowSize[0] < breakpoints.sm)
-                ? "divide-y flex flex-col"
-                : "divide-x"
+              showVerticalTabs ? "divide-y flex flex-col" : "divide-x"
             )}
             aria-label="Tabs"
           >
@@ -128,20 +129,17 @@ export function Tabs({
                     ? "text-gray-900"
                     : "text-gray-500 hover:text-gray-1000",
                   tabIdx === 0
-                    ? vertical &&
-                      !(disableSingleSelect && windowSize[0] < breakpoints.sm)
+                    ? showVerticalTabs
                       ? "rounded-tl-2xl"
                       : "rounded-l-2xl"
                     : "",
                   tabIdx === tabs.length - 1
-                    ? vertical &&
-                      !(disableSingleSelect && windowSize[0] < breakpoints.sm)
+                    ? showVerticalTabs
                       ? "rounded-bl-2xl"
                       : "rounded-r-2xl"
                     : "",
                   "group relative min-w-0 overflow-hidden flex-1 bg-white text-center text-sm font-medium hover:bg-gray-50 focus:z-10",
-                  vertical &&
-                    !(disableSingleSelect && windowSize[0] < breakpoints.sm)
+                  showVerticalTabs
                     ? "px-2 py-4 min-h-28 max-h-32"
                     : "py-4 px-4",
                   typeof tab?.headerClassNames === "function"
@@ -160,16 +158,8 @@ export function Tabs({
               >
                 <div
                   style={{
-                    writingMode:
-                      vertical &&
-                      !(disableSingleSelect && windowSize[0] < breakpoints.sm)
-                        ? "tb-rl"
-                        : "",
-                    transform:
-                      vertical &&
-                      !(disableSingleSelect && windowSize[0] < breakpoints.sm)
-                        ? "rotate(-180deg)"
-                        : "",
+                    writingMode: showVerticalTabs ? "tb-rl" : "",
+                    transform: showVerticalTabs ? "rotate(-180deg)" : "",
                   }}
                 >
                   {tab.name}
@@ -186,8 +176,7 @@ export function Tabs({
                         )
                       : "bg-black/10",
                     "absolute",
-                    vertical &&
-                      !(disableSingleSelect && windowSize[0] < breakpoints.sm)
+                    showVerticalTabs
                       ? "top-0 right-0 w-0.5 h-full"
                       : "inset-x-0 bottom-0 h-0.5"
                   )}
@@ -200,9 +189,7 @@ export function Tabs({
       <div
         className={twMerge(
           "tab-content relative",
-          vertical && !(disableSingleSelect && windowSize[0] < breakpoints.sm)
-            ? "pl-0"
-            : "",
+          showVerticalTabs ? "pl-0" : "",
           contentClassNames
         )}
       >
