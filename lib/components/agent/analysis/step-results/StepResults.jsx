@@ -333,33 +333,43 @@ export function StepResults({
             },
             {
               name: "Analysis",
-              content: Object.values(parsedOutputs).map((output) => {
-                return (
-                  <div key={v4()}>
-                    <StepResultsTable
-                      stepId={stepId}
-                      tableData={output["data"]}
-                      apiEndpoint={apiEndpoint}
-                      chartImages={output["chart_images"]}
-                      reactiveVars={output["reactive_vars"]}
-                      nodeId={activeNode.data.id}
-                      analysisId={analysisId}
-                    />
-                    {step?.sql && (
-                      // get feedback from user if the sql is good or not
-                      <SQLFeedback
-                        question={step?.inputs?.question}
-                        sql={step?.sql}
-                        previous_context={step?.inputs?.previous_context}
+              // if we have an error message in the step, show that
+              // if we have no parsedOutputs: show a message saying "No data found"
+              content: Object.values(parsedOutputs).length ? (
+                Object.values(parsedOutputs).map((output) => {
+                  return (
+                    <div key={v4()}>
+                      <StepResultsTable
+                        stepId={stepId}
+                        tableData={output["data"]}
                         apiEndpoint={apiEndpoint}
-                        token={token}
-                        keyName={keyName}
+                        chartImages={output["chart_images"]}
+                        reactiveVars={output["reactive_vars"]}
+                        nodeId={activeNode.data.id}
                         analysisId={analysisId}
                       />
-                    )}
-                  </div>
-                );
-              }),
+                      {step?.sql && (
+                        // get feedback from user if the sql is good or not
+                        <SQLFeedback
+                          question={step?.inputs?.question}
+                          sql={step?.sql}
+                          previous_context={step?.inputs?.previous_context}
+                          apiEndpoint={apiEndpoint}
+                          token={token}
+                          keyName={keyName}
+                          analysisId={analysisId}
+                        />
+                      )}
+                    </div>
+                  );
+                })
+              ) : step?.error_message ? (
+                <StepError error_message={step?.error_message}></StepError>
+              ) : (
+                <div className="text-gray-400 text-sm h-40 flex items-center justify-center">
+                  No data found
+                </div>
+              ),
             },
           ]}
         />
