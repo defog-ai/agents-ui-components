@@ -20,9 +20,6 @@ export default function ObservablePlot() {
   const chartState = useContext(ChartStateContext);
 
   const observableOptions = useMemo(() => {
-    // figure out both the data for the chart
-    // process it if needed
-    // and also create options for observable
     const {
       selectedChart,
       selectedColumns,
@@ -32,26 +29,13 @@ export default function ObservablePlot() {
       data,
     } = chartState;
 
-    // let processedData = Object.assign({}, data);
-    let processedData = Array.isArray(data) ? [...data] : [data];
     const xColumn = availableColumns.find(
       (col) => col.key === selectedColumns.x
     );
 
     const dateToUnix = xColumn?.isDate ? xColumn.dateToUnix : null;
 
-    if (
-      selectedChart === "bar" &&
-      chartSpecificOptions[selectedChart].useCount
-    ) {
-      processedData = Object.entries(
-        data.reduce((acc, item) => {
-          const key = item[selectedColumns.x];
-          acc[key] = (acc[key] || 0) + 1;
-          return acc;
-        }, {})
-      ).map(([key, count]) => ({ [selectedColumns.x]: key, count }));
-    }
+    let processedData = data;
 
     // Process dates if necessary
     if (xColumn?.isDate && dateToUnix) {
@@ -60,8 +44,6 @@ export default function ObservablePlot() {
         [selectedColumns.x]: dateToUnix(item[selectedColumns.x]),
       }));
     }
-
-    console.log(chartStyle, selectedColumns, selectedChart);
 
     return getObservableOptions(
       dimensions,

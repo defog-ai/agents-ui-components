@@ -153,6 +153,12 @@ export function PrimarySelection({
     if ((propSelectedChart || selectedChart) === "histogram" && axis === "y") {
       return null;
     }
+
+    const selectedColumnKey = (propSelectedColumns || selectedColumns)[axis];
+    const selectedColumn = columns.find((col) => col.key === selectedColumnKey);
+    const isCategorical =
+      selectedColumn && selectedColumn.variableType === "categorical";
+
     return (
       <div>
         <h3 className="mb-2 input-label">
@@ -165,9 +171,10 @@ export function PrimarySelection({
           style={{ width: "100%" }}
           placeholder={`Select ${label}-Axis`}
           onChange={handleAxisChange(axis)}
-          value={(propSelectedColumns || selectedColumns)[axis]}
+          value={selectedColumnKey}
           allowClear={axis === "x"}
           mode={mode}
+          disabled={chartSpecificOptions.bar.useCount && axis === "y"}
         >
           {(propSelectedChart || selectedChart) === "histogram"
             ? orderedColumns
@@ -175,22 +182,23 @@ export function PrimarySelection({
                 .map(renderColumnOption)
             : orderedColumns.map(renderColumnOption)}
         </Select>
-        {(propSelectedChart || selectedChart) === "bar" && axis === "y" && (
-          <div className="mt-2">
-            <span className="mr-2 input-label">Use frequency</span>
-
-            <Switch
-              checkedChildren="Count"
-              unCheckedChildren="Value"
-              checked={chartSpecificOptions.bar.useCount}
-              onChange={(value) =>
-                chartState
-                  .updateChartSpecificOptions({ useCount: value })
-                  .render()
-              }
-            />
-          </div>
-        )}
+        {(propSelectedChart || selectedChart) === "bar" &&
+          axis === "x" &&
+          isCategorical && (
+            <div className="mt-2">
+              <span className="mr-2 input-label">Count frequency</span>
+              <Switch
+                checkedChildren="Count"
+                unCheckedChildren="Value"
+                checked={chartSpecificOptions.bar.useCount}
+                onChange={(value) =>
+                  chartState
+                    .updateChartSpecificOptions({ useCount: value })
+                    .render()
+                }
+              />
+            </div>
+          )}
       </div>
     );
   };
