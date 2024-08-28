@@ -169,6 +169,7 @@ export function StepResultsTable({
   }, [sql, codeStr]);
 
   const [results, setResults] = useState([]);
+
   useEffect(() => {
     // extra tabs should be an array and all elements should be jsx components
     let tabs = [];
