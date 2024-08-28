@@ -100,29 +100,52 @@ export function createActionHandlers() {
       const quantColumns = availableColumns.filter(
         (col) => col.variableType === "quantitative"
       );
+      const nonQuantNonDateColumns = availableColumns.filter(
+        (col) => col.variableType !== "quantitative" && !col.isDate
+      );
 
-      let xAxis =
-        dateColumn?.key ||
+      // first select y column, then x column
+
+      let yAxis =
+        // first try getting quant columns
         quantColumns[0]?.key ||
+        // try selecting non quant non date columns
+        nonQuantNonDateColumns[0]?.key ||
+        // just get first column
         availableColumns[0]?.key ||
         null;
 
-      let yAxis = null;
-      if (selectedChart === "line") {
-        yAxis = quantColumns
-          .filter((col) => col.key !== xAxis)
-          .slice(0, 1)
-          .map((col) => col.key);
-      } else {
-        yAxis =
-          quantColumns.find((col) => col.key !== xAxis)?.key ||
-          availableColumns.find((col) => col.key !== xAxis)?.key ||
-          null;
-      }
+      // get all columns except the y axis column
+      const remainingColumns = availableColumns.filter(
+        (col) => col.key !== yAxis
+      );
+
+      const remainingNonQuantColumns = remainingColumns.filter(
+        (col) => col.variableType !== "quantitative"
+      );
+
+      const remainingQuantColumns = remainingColumns.filter(
+        (col) => col.variableType === "quantitative"
+      );
+
+      let xAxis =
+        // first try getting a date column
+        dateColumn?.key ||
+        // then try getting a remaining quant column
+        remainingQuantColumns[0]?.key ||
+        // then try a remaining non-quant column
+        remainingNonQuantColumns[0]?.key ||
+        // else just get the first column from all columns
+        availableColumns[0]?.key ||
+        // if here, then just do null
+        null;
 
       const newState = {
         ...this,
-        selectedColumns: { x: xAxis, y: yAxis },
+        selectedColumns: {
+          x: xAxis,
+          y: selectedChart === "line" ? [yAxis] : yAxis,
+        },
       };
 
       return newState;
