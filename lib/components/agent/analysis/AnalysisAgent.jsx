@@ -100,6 +100,9 @@ export const AnalysisAgent = ({
   const [pendingStepUpdates, setPendingStepUpdates] = useState([]);
 
   const windowSize = useWindowSize();
+  const collapsed = useMemo(() => {
+    return windowSize[0] < breakpoints.lg;
+  }, [windowSize[0] < breakpoints.lg]);
 
   // in case this isn't called from analysis tree viewer (which has a central singular search bar)
   // we will have an independent search bar for each analysis as well
@@ -539,8 +542,8 @@ export const AnalysisAgent = ({
                       }
                       headerClassNames="lg:hidden flex flex-row items-center pl-5 lg:pointer-events-none lg:cursor-default"
                       iconClassNames="lg:hidden"
-                      collapsed={windowSize[0] < breakpoints.lg}
-                      alwaysOpen={windowSize[0] >= breakpoints.lg}
+                      collapsed={collapsed}
+                      alwaysOpen={!collapsed}
                     >
                       <StepsDag
                         steps={analysisData?.gen_steps?.steps || []}

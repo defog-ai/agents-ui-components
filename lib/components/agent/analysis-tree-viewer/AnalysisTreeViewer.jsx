@@ -57,8 +57,6 @@ export function AnalysisTreeViewer({
 
   const [sidebarOpen, setSidebarOpen] = useState(defaultSidebarOpen);
 
-  const windowSize = useWindowSize();
-
   const analysisTree = useSyncExternalStore(
     analysisTreeManager.subscribeToDataChanges,
     analysisTreeManager.getTree
@@ -202,7 +200,7 @@ export function AnalysisTreeViewer({
                                 scrollTo(tree.analysisId);
                               }
 
-                              if (windowSize[0] < breakpoints.lg)
+                              if (window.innerWidth < breakpoints.lg)
                                 setSidebarOpen(false);
                             }}
                             extraClasses={tree.isRoot ? "" : "ml-2 border-l-2"}
@@ -239,7 +237,7 @@ export function AnalysisTreeViewer({
                         analysisTreeManager.setActiveAnalysisId(null);
 
                         // on ipad/phone, close sidebar when new button is clicked
-                        if (windowSize[0] < breakpoints.lg)
+                        if (window.innerWidth < breakpoints.lg)
                           setSidebarOpen(false);
                       }}
                     >
