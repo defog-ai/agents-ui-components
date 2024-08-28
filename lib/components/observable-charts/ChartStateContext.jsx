@@ -41,7 +41,6 @@ export function createActionHandlers() {
       this.setStateCallback(this);
     },
     setSelectedChart: function (payload) {
-      console.log(this);
       const newState = {
         ...this,
         selectedChart: payload,
