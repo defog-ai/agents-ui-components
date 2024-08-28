@@ -61,6 +61,8 @@ export default function ObservablePlot() {
       }));
     }
 
+    console.log(chartStyle, selectedColumns, selectedChart);
+
     return getObservableOptions(
       dimensions,
       {
@@ -132,7 +134,7 @@ export default function ObservablePlot() {
       </div>
       <div style={{ width: "100%", height: "460px" }}>
         <div
-          className="w-full h-full bg-white observable-plot flex items-center justify-center text-gray-500"
+          className="flex items-center justify-center w-full h-full text-gray-500 bg-white observable-plot"
           ref={containerRef}
         ></div>
       </div>
