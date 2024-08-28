@@ -116,6 +116,7 @@ export function PrimarySelection({
         placeholder={`Enter ${axis.toUpperCase()}-Axis Label`}
         value={chartStyle[`${axis}Label`]}
         onChange={handleAxisLabelChange(axis)}
+        defaultValue={selectedColumns[axis]}
       />
     </div>
   );
@@ -127,7 +128,7 @@ export function PrimarySelection({
       <TextInput
         placeholder="Enter Horizontal Label"
         defaultValue="Frequency"
-        value={chartStyle.yLabel}
+        value={chartStyle.yLabel || "Frequency"}
         onChange={(e) =>
           chartState.updateChartStyle({ yLabel: e.target.value }).render()
         }
@@ -158,7 +159,10 @@ export function PrimarySelection({
     const selectedColumn = columns.find((col) => col.key === selectedColumnKey);
     const isCategorical =
       selectedColumn && selectedColumn.variableType === "categorical";
-
+    const disableYAxisForBarChart =
+      chartSpecificOptions.bar.useCount &&
+      axis === "y" &&
+      (propSelectedChart || selectedChart) === "bar";
     return (
       <div>
         <h3 className="mb-2 input-label">
@@ -174,7 +178,7 @@ export function PrimarySelection({
           value={selectedColumnKey}
           allowClear={axis === "x"}
           mode={mode}
-          disabled={chartSpecificOptions.bar.useCount && axis === "y"}
+          disabled={disableYAxisForBarChart}
         >
           {(propSelectedChart || selectedChart) === "histogram"
             ? orderedColumns
