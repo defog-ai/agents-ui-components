@@ -162,10 +162,12 @@ const FilterBuilder = ({ columns }) => {
       column.variableType === "quantitative" ||
       column.variableType === "integer"
     ) {
-      return ["!=", ">", "<", ">=", "<=", "between"];
-    } else if (column.colType === "date") {
-      return ["==", "!=", "before", "after", "between"];
+      return ["==", "!=", ">", "<", ">=", "<=", "between"];
     }
+    // Commenting out date-specific operators
+    // else if (column.colType === "date") {
+    //   return ["==", "!=", "before", "after", "between"];
+    // }
     return ["==", "!="];
   };
 
@@ -263,25 +265,26 @@ const FilterBuilder = ({ columns }) => {
       );
     }
 
-    if (column.colType === "date") {
-      return filter.operator === "between" ? (
-        <RangePicker
-          {...commonInputProps}
-          value={filter.value.split(",").map((v) => (v ? new Date(v) : null))}
-          onChange={(dates, dateStrings) =>
-            updateFilter(index, "value", dateStrings.join(","))
-          }
-        />
-      ) : (
-        <DatePicker
-          {...commonInputProps}
-          value={filter.value ? new Date(filter.value) : null}
-          onChange={(date, dateString) =>
-            updateFilter(index, "value", dateString)
-          }
-        />
-      );
-    }
+    // Commenting out date-specific input
+    // if (column.colType === "date") {
+    //   return filter.operator === "between" ? (
+    //     <RangePicker
+    //       {...commonInputProps}
+    //       value={filter.value.split(",").map((v) => (v ? new Date(v) : null))}
+    //       onChange={(dates, dateStrings) =>
+    //         updateFilter(index, "value", dateStrings.join(","))
+    //       }
+    //     />
+    //   ) : (
+    //     <DatePicker
+    //       {...commonInputProps}
+    //       value={filter.value ? new Date(filter.value) : null}
+    //       onChange={(date, dateString) =>
+    //         updateFilter(index, "value", dateString)
+    //       }
+    //     />
+    //   );
+    // }
 
     return (
       <TextInput
@@ -293,14 +296,18 @@ const FilterBuilder = ({ columns }) => {
   };
 
   const COLUMN_ICONS = {
-    date: CalendarIcon,
+    // date: CalendarIcon,
     quantitative: HashIcon,
     categorical: CaseSensitive,
   };
 
   const renderColumnOption = (column) => {
-    const IconComponent =
-      COLUMN_ICONS[column.colType === "date" ? "date" : column.variableType];
+    // Skip date columns
+    if (column.colType === "date") {
+      return null;
+    }
+
+    const IconComponent = COLUMN_ICONS[column.variableType];
     return (
       <Option key={column.dataIndex} value={column.dataIndex}>
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -360,7 +367,9 @@ const FilterBuilder = ({ columns }) => {
                   onChange={(value) => updateFilter(index, "column", value)}
                   placeholder="Select column"
                 >
-                  {columns.map(renderColumnOption)}
+                  {columns
+                    .filter((col) => col.colType !== "date") // Filter out date columns
+                    .map(renderColumnOption)}
                 </Select>
                 <Select
                   style={{ width: "100%" }}
