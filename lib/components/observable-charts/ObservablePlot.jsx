@@ -53,7 +53,7 @@ export default function ObservablePlot() {
         x: selectedColumns.x || null,
         y: selectedColumns.y || null,
         facet: selectedColumns.facet,
-        filter: chartSpecificOptions[selectedChart].filter, // Pass the filter function
+        filter: chartSpecificOptions[selectedChart]?.filter,
 
         xIsDate: xColumn?.isDate,
         dateToUnix,
