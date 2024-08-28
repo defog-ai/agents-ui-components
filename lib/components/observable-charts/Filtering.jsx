@@ -19,7 +19,6 @@ const { Text } = Typography;
 const FilterBuilder = ({ columns }) => {
   const [filters, setFilters] = useState([]);
   const chartState = useContext(ChartStateContext);
-  const { setState } = chartState;
 
   const addFilter = () => {
     setFilters([...filters, { column: "", operator: "==", value: "" }]);
@@ -46,7 +45,7 @@ const FilterBuilder = ({ columns }) => {
 
     if (allFiltersEmpty || currentFilters.length === 0) {
       // If all filters are empty or there are no filters, set the chart filter to null
-      setState(chartState.updateChartSpecificOptions({ filter: null }));
+      chartState.updateChartSpecificOptions({ filter: null }).render();
       return;
     }
 
@@ -107,8 +106,9 @@ const FilterBuilder = ({ columns }) => {
     };
 
     // Update the filter function in the chart container
-    setState(chartState.updateChartSpecificOptions({ filter: filterFunction }));
+    chartState.updateChartSpecificOptions({ filter: filterFunction }).render();
   };
+
   const getOperators = (column) => {
     if (column.variableType === "categorical") {
       return [
@@ -124,7 +124,7 @@ const FilterBuilder = ({ columns }) => {
       column.variableType === "quantitative" ||
       column.variableType === "integer"
     ) {
-      return ["==", "!=", ">", "<", ">=", "<=", "between"];
+      return ["!=", ">", "<", ">=", "<=", "between"];
     } else if (column.colType === "date") {
       return ["==", "!=", "before", "after", "between"];
     }
