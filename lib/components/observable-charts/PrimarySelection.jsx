@@ -152,7 +152,7 @@ export function PrimarySelection({
     }
     return (
       <div>
-        <h3 className="mb-2 input-label">{label} axis</h3>
+        <h3 className="mb-2 input-label">{label} axis {(propSelectedChart || selectedChart) === "histogram" ? "(numerical values only)" : ""}</h3>
         <Select
           style={{ width: "100%" }}
           placeholder={`Select ${label}-Axis`}
@@ -161,7 +161,7 @@ export function PrimarySelection({
           allowClear={axis === "x"}
           mode={mode}
         >
-          {orderedColumns.map(renderColumnOption)}
+          {(propSelectedChart || selectedChart) === "histogram" ? orderedColumns.filter((i) => i.numeric === true && i.key !== "index").map(renderColumnOption) : orderedColumns.map(renderColumnOption)}
         </Select>
         {(propSelectedChart || selectedChart) === "bar" && axis === "y" && (
           <div className="mt-2">
