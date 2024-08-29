@@ -1,3 +1,5 @@
+export { parseData } from "./components/utils/utils.js";
+
 export { Setup } from "./components/context/Setup.jsx";
 
 export { AnalysisTreeViewer } from "./components/agent/analysis-tree-viewer/AnalysisTreeViewer.jsx";
