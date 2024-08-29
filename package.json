@@ -22,10 +22,6 @@
       "types": "./dist/core-ui.d.ts",
       "import": "./dist/core-ui.js"
     },
-    "./tool-editor": {
-      "types": "./dist/tool-editor.d.ts",
-      "import": "./dist/tool-editor.js"
-    },
     "./doc": {
       "types": "./dist/doc.d.ts",
       "import": "./dist/doc.js"
