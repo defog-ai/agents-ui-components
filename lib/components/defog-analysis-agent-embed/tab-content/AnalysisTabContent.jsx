@@ -16,6 +16,7 @@ export function AnalysisTabContent({
   searchBarClasses = "",
   defaultSidebarOpen = null,
 }) {
+  console.log(defaultSidebarOpen);
   return (
     <ErrorBoundary>
       <AnalysisTreeViewer
@@ -34,7 +35,7 @@ export function AnalysisTabContent({
         searchBarDraggable={searchBarDraggable}
         showToggle={!forceSqlOnly}
         defaultSidebarOpen={
-          defaultSidebarOpen || (window.innerWidth < 768 ? false : true)
+          defaultSidebarOpen ?? (window.innerWidth < 768 ? false : true)
         }
         predefinedQuestions={predefinedQuestions}
       />

@@ -23,6 +23,7 @@ export function EmbedInner({
   limitCsvUploadSize = true,
   maxCsvUploadSize = 10,
   uploadedCsvIsSqlOnly = true,
+  defaultSidebarOpen = true,
 }) {
   const messageManager = useContext(MessageManagerContext);
   const agentConfigContext = useContext(AgentConfigContext);
@@ -254,6 +255,7 @@ export function EmbedInner({
               metadata={selectedDbMetadata}
               searchBarDraggable={searchBarDraggable}
               searchBarClasses={searchBarClasses}
+              defaultSidebarOpen={defaultSidebarOpen}
             />
           ),
       },
@@ -397,6 +399,7 @@ export function EmbedInner({
  * @property {String=} csvFileKeyName -  The key name for the csv file.
  * @property {Boolean=} limitCsvUploadSize -  If the file size should be limited to maxCsvUploadSize.
  * @property {Number=} maxCsvUploadSize -  The max file size allowed, in mbs. Default is 10.
+ * @property {Boolean=} defaultSidebarOpen -  If the sidebar should be open by default.
  *
  */
 
@@ -422,6 +425,7 @@ export function DefogAnalysisAgentEmbed({
   csvFileKeyName = null,
   limitCsvUploadSize = true,
   maxCsvUploadSize = 10,
+  defaultSidebarOpen = true,
 }) {
   // use the simple db list
   // and add some extra props to them
@@ -468,6 +472,7 @@ export function DefogAnalysisAgentEmbed({
             }
             limitCsvUploadSize={limitCsvUploadSize}
             maxCsvUploadSize={maxCsvUploadSize}
+            defaultSidebarOpen={defaultSidebarOpen}
           />
         </Setup>
       </div>
