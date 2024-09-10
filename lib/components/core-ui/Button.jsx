@@ -30,10 +30,10 @@ export function Button({
         onClick(ev);
       }}
       className={twMerge(
-        "px-2 py-1 rounded-md text-white bg-blue-500 text-xs hover:bg-blue-600",
+        "py-1 px-2 border bg-gray-50 text-sm text-gray-800 rounded-md",
         disabled
           ? "bg-gray-50 text-gray-300 hover:bg-gray-50 cursor-not-allowed"
-          : "",
+          : "hover:bg-gray-100 hover:text-gray-800",
         className
       )}
     >
