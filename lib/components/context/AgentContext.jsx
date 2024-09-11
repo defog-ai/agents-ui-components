@@ -6,7 +6,6 @@ import { createContext } from "react";
  * @property {string|null} apiEndpoint - API endpoint.
  * @property {Object|null} sqliteConn - SQLite connection. Used when querying CSVs.
  * @property {Array} analyses - List of analyses for this user.
- * @property {Array} toolboxes - List of toolboxes for this user.
  * @property {Array} dashboards - List of dashboards for this user.
  * @property {Object} analysisDataCache - Cache for analysis data. (Only those that have been opened/created in this "Session")
  * @property {Object} toolRunDataCache - Cache for tool run data. (Only those that have been opened/created in this "Session")
@@ -28,7 +27,6 @@ export const defaultAgentConfig = {
   user: null,
   token: null,
   analyses: [],
-  toolboxes: [],
   dashboards: [],
   analysisDataCache: {},
   toolRunDataCache: {},

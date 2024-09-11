@@ -572,7 +572,7 @@ export const AnalysisAgent = ({
                             <p className="text-sm truncate m-0">
                               {trimStringToLength(
                                 toolShortNames[node?.data?.step?.tool_name] ||
-                                  tools[node?.data?.step?.tool_name][
+                                  tools[node?.data?.step?.tool_name]?.[
                                     "tool_name"
                                   ] ||
                                   node?.data?.step?.tool_name,

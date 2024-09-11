@@ -3,11 +3,9 @@ import {
   DialogPanel,
   DialogTitle,
   Description,
-  Transition,
-  TransitionChild,
 } from "@headlessui/react";
 import { XCircleIcon } from "@heroicons/react/20/solid";
-import React, { Fragment, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { twMerge } from "tailwind-merge";
 import { Button } from "./Button";
 
@@ -46,9 +44,7 @@ export function Modal({
   onOk = () => {},
   okLoading = false,
   okText = "Ok",
-  maskClosable = true,
   rootClassNames = "",
-  className = "",
   contentClassNames = "",
 }) {
   let [isOpen, setIsOpen] = useState(open ? true : false);
@@ -58,70 +54,56 @@ export function Modal({
   }, [open]);
 
   return (
-    <Transition appear show={isOpen} as={Fragment}>
-      <Dialog
-        open={isOpen}
-        onClose={() => {
-          setIsOpen(false);
-          onCancel();
-        }}
-        className={twMerge("relative z-[2]", rootClassNames)}
-      >
-        <div className="fixed inset-0 overflow-y-auto w-full h-full p-4 bg-black bg-opacity-30">
-          <TransitionChild
-            as={Fragment}
-            enter="ease-out duration-300"
-            enterFrom="opacity-0"
-            enterTo="opacity-100"
-            leave="ease-in duration-200"
-            leaveFrom="opacity-100"
-            leaveTo="opacity-0"
-          >
-            <DialogPanel
-              className={twMerge(
-                "bg-white w-full max-h-full rounded-md relative p-4 m-auto gap-2 flex flex-col",
-                contentClassNames
-              )}
+    <Dialog
+      open={isOpen}
+      onClose={() => {
+        setIsOpen(false);
+        onCancel();
+      }}
+      className={twMerge("relative z-[2]", rootClassNames)}
+    >
+      <div className="fixed inset-0 overflow-y-auto w-full h-full p-4 bg-black bg-opacity-30">
+        <DialogPanel
+          className={twMerge(
+            "bg-white w-full max-h-full rounded-md relative p-4 m-auto gap-2 flex flex-col",
+            contentClassNames
+          )}
+        >
+          <div className="absolute top-2 right-2">
+            <button
+              onClick={() => {
+                setIsOpen(false);
+                onCancel();
+              }}
+              className="p-1"
             >
-              <div className="absolute top-2 right-2">
-                <button
-                  onClick={() => {
-                    setIsOpen(false);
-                    onCancel();
-                  }}
-                  className="p-1"
-                >
-                  {closeIcon}
-                </button>
-              </div>
+              {closeIcon}
+            </button>
+          </div>
 
-              {title && (
-                <DialogTitle className={"text-xl font-bold"}>
-                  {title}
-                </DialogTitle>
-              )}
-              {description && <Description>{description}</Description>}
+          {title && (
+            <DialogTitle className={"text-xl font-bold"}>{title}</DialogTitle>
+          )}
+          {description && <Description>{description}</Description>}
 
-              <div className="overflow-auto">{children}</div>
+          <div className="overflow-auto">{children}</div>
 
-              {footer === true ? (
-                <div>
-                  <Button
-                    disabled={okLoading}
-                    onClick={() => {
-                      onOk();
-                    }}
-                  >
-                    {okText}
-                  </Button>
-                </div>
-              ) : (
-                footer
-              )}
-            </DialogPanel>
-          </TransitionChild>
-        </div>
-      </Dialog>
-    </Transition>
+          {footer === true ? (
+            <div>
+              <Button
+                disabled={okLoading}
+                onClick={() => {
+                  onOk();
+                }}
+              >
+                {okText}
+              </Button>
+            </div>
+          ) : (
+            footer
+          )}
+        </DialogPanel>
+      </div>
+    </Dialog>
   );
 }
