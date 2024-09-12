@@ -50,7 +50,7 @@ import { StepResults } from "./step-results/StepResults";
  * @property {boolean} initiateAutoSubmit - Whether to initiate auto submit.
  * @property {boolean} hasExternalSearchBar - Whether this is being controlled by an external search bar.
  * @property {Array<{tool_name: string, tool_description: string, input_metadata: object, output_metadata: object}>} extraTools - if this analysis uses any extra tools. Used in the add tool UI.
- * @property {object} plannerPromptSuffix - suffix for the planner model's prompt. Used in the add tool UI.
+ * @property {object} plannerQuestionSuffix - suffix for the planner model's question. Used in the add tool UI.
  * @property {Array.<Object>} previousQuestions - Questions that the user has asked so far before this analysis. has to be an array of Objects.
  * @property {Function} setGlobalLoading - Global loading. Useful if you are handling multiple analysis..
  * @property {Function} onManagerCreated - Callback when analysis manager is created.
@@ -73,7 +73,7 @@ export const AnalysisAgent = ({
   initiateAutoSubmit = false,
   hasExternalSearchBar = null,
   extraTools = [],
-  plannerPromptSuffix = null,
+  plannerQuestionSuffix = null,
   previousQuestions = [], // questions that the user has asked so far in the analysis
   setGlobalLoading = (...args) => {},
   onManagerCreated = (...args) => {},
@@ -173,7 +173,7 @@ export const AnalysisAgent = ({
         isTemp,
         sqlOnly,
         extraTools,
-        plannerPromptSuffix,
+        plannerQuestionSuffix,
         previousQuestions,
         onNewData: onMainSocketMessage,
         onManagerDestroyed: onManagerDestroyed,
