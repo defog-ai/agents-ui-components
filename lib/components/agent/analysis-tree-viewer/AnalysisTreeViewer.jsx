@@ -258,7 +258,7 @@ export function AnalysisTreeViewer({
               setSidebarOpen(false);
             }}
           ></div>
-          <div className="relative grid h-full min-w-0 grid-cols-1 p-2 pt-10 overflow-auto rounded-tr-lg sm:pt-0 auto-cols-max lg:grid-cols-1 grow lg:p-4">
+          <div className="relative w-full h-full min-w-0 p-2 pt-10 overflow-auto rounded-tr-lg sm:pt-0 grow lg:p-4">
             {activeRootAnalysisId &&
               analysisTree?.[activeRootAnalysisId]?.analysisList &&
               analysisTree[activeRootAnalysisId].analysisList.map(
