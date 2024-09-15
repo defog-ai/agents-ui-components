@@ -46,9 +46,11 @@ export function createActionHandlers() {
         selectedChart: payload,
         selectedColumns: { x: null, y: payload === "line" ? [] : null },
         chartStyle: {
-          ...this.chartStyle,
+          ...defaultChartState.chartStyle,
           xLabel: null,
           yLabel: null,
+          xTicks: undefined,
+          yTicks: undefined,
         },
       };
 
@@ -295,9 +297,9 @@ export const defaultChartState = {
     yLabel: null,
     xGrid: false,
     yGrid: true,
-    xTicks: 10,
+    xTicks: undefined,
     dateFormat: "%b %d, %Y",
-    yTicks: 10,
+    yTicks: undefined,
     scheme: "accent",
     yAxisUnitLabel: "",
   },

@@ -50,8 +50,6 @@ export function PrimarySelection({
 
   // Reorder columns when chart type or available columns change
   useEffect(() => {
-    chartState.setAvailableColumns(columns).render();
-
     setOrderedColumns(reorderColumns(columns, selectedChart));
   }, [columns, selectedChart]);
 
@@ -59,7 +57,12 @@ export function PrimarySelection({
   const handleChartChange = (value) => {
     chartState
       .setSelectedChart(value)
-      .updateChartStyle({ xLabel: null, yLabel: null })
+      .updateChartStyle({
+        xLabel: null,
+        yLabel: null,
+        xTicks: null,
+        yTicks: null,
+      })
       .autoSelectVariables()
       .render();
   };
