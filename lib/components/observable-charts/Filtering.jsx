@@ -99,15 +99,19 @@ const FilterBuilder = ({ columns }) => {
             case "ends with":
               return compareValue.endsWith(filterValue);
             case "before":
-              return new Date(dValue) < new Date(filterValue);
+              return (
+                new Date(dValue).getTime() < new Date(filterValue).getTime()
+              );
             case "after":
-              return new Date(dValue) > new Date(filterValue);
+              return (
+                new Date(dValue).getTime() > new Date(filterValue).getTime()
+              );
             case "between":
               const [start, end] = filterValue.split(",");
               if (columnDef.colType === "date") {
                 return (
-                  new Date(dValue) >= new Date(start) &&
-                  new Date(dValue) <= new Date(end)
+                  new Date(dValue).getTime() >= new Date(start).getTime() &&
+                  new Date(dValue).getTime() <= new Date(end).getTime()
                 );
               }
               return compareValue >= start && compareValue <= end;
@@ -163,11 +167,9 @@ const FilterBuilder = ({ columns }) => {
       column.variableType === "integer"
     ) {
       return ["==", "!=", ">", "<", ">=", "<=", "between"];
+    } else if (column.colType === "date") {
+      return ["==", "!=", "before", "after", "between"];
     }
-    // Commenting out date-specific operators
-    // else if (column.colType === "date") {
-    //   return ["==", "!=", "before", "after", "between"];
-    // }
     return ["==", "!="];
   };
 
@@ -265,26 +267,28 @@ const FilterBuilder = ({ columns }) => {
       );
     }
 
-    // Commenting out date-specific input
-    // if (column.colType === "date") {
-    //   return filter.operator === "between" ? (
-    //     <RangePicker
-    //       {...commonInputProps}
-    //       value={filter.value.split(",").map((v) => (v ? new Date(v) : null))}
-    //       onChange={(dates, dateStrings) =>
-    //         updateFilter(index, "value", dateStrings.join(","))
-    //       }
-    //     />
-    //   ) : (
-    //     <DatePicker
-    //       {...commonInputProps}
-    //       value={filter.value ? new Date(filter.value) : null}
-    //       onChange={(date, dateString) =>
-    //         updateFilter(index, "value", dateString)
-    //       }
-    //     />
-    //   );
-    // }
+    if (column.colType === "date") {
+      if (filter.operator === "between") {
+        return (
+          <RangePicker
+            {...commonInputProps}
+            value={filter.value.split(",").map((v) => (v ? new Date(v) : null))}
+            onChange={(dates, dateStrings) =>
+              updateFilter(index, "value", dateStrings.join(","))
+            }
+          />
+        );
+      }
+      return (
+        <DatePicker
+          {...commonInputProps}
+          value={filter.value ? new Date(filter.value) : null}
+          onChange={(date, dateString) =>
+            updateFilter(index, "value", dateString)
+          }
+        />
+      );
+    }
 
     return (
       <TextInput
@@ -296,18 +300,14 @@ const FilterBuilder = ({ columns }) => {
   };
 
   const COLUMN_ICONS = {
-    // date: CalendarIcon,
+    date: CalendarIcon,
     quantitative: HashIcon,
     categorical: CaseSensitive,
   };
 
   const renderColumnOption = (column) => {
-    // Skip date columns
-    if (column.colType === "date") {
-      return null;
-    }
-
-    const IconComponent = COLUMN_ICONS[column.variableType];
+    const IconComponent =
+      COLUMN_ICONS[column.colType === "date" ? "date" : column.variableType];
     return (
       <Option key={column.dataIndex} value={column.dataIndex}>
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -367,9 +367,7 @@ const FilterBuilder = ({ columns }) => {
                   onChange={(value) => updateFilter(index, "column", value)}
                   placeholder="Select column"
                 >
-                  {columns
-                    .filter((col) => col.colType !== "date") // Filter out date columns
-                    .map(renderColumnOption)}
+                  {columns.map(renderColumnOption)}
                 </Select>
                 <Select
                   style={{ width: "100%" }}
