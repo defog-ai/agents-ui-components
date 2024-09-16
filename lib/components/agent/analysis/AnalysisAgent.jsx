@@ -72,12 +72,14 @@ export const AnalysisAgent = ({
   createAnalysisRequestBody = {},
   initiateAutoSubmit = false,
   hasExternalSearchBar = null,
+  searchBarPlaceholder = null,
   extraTools = [],
   plannerQuestionSuffix = null,
   previousQuestions = [], // questions that the user has asked so far in the analysis
   setGlobalLoading = (...args) => {},
   onManagerCreated = (...args) => {},
   onManagerDestroyed = (...args) => {},
+  disabled = false,
   initialConfig = {
     analysisManager: null,
   },
@@ -92,7 +94,6 @@ export const AnalysisAgent = ({
   });
 
   const [reRunningSteps, setRerunningSteps] = useState([]);
-  const reactiveContext = useContext(ReactiveVariablesContext);
   const [activeNode, setActiveNodePrivate] = useState(null);
   const [dag, setDag] = useState(null);
   const [dagLinks, setDagLinks] = useState([]);
@@ -418,8 +419,8 @@ export const AnalysisAgent = ({
                   onPressEnter={(ev) => {
                     handleSubmit(ev.target.value);
                   }}
-                  placeholder="Ask a question"
-                  disabled={analysisBusy}
+                  placeholder={searchBarPlaceholder || "Ask a question"}
+                  disabled={disabled || analysisBusy}
                   inputClassNames="w-full mx-auto shadow-custom hover:border-blue-500 focus:border-blue-500"
                 />
               </div>
