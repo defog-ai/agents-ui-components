@@ -49,12 +49,14 @@ import { StepResults } from "./step-results/StepResults";
  * @property {Object} createAnalysisRequestBody - Object that will be sent as the body of the fetch request to create_analysis.
  * @property {boolean} initiateAutoSubmit - Whether to initiate auto submit.
  * @property {boolean} hasExternalSearchBar - Whether this is being controlled by an external search bar.
+ * @property {string} searchBarPlaceholder - Placeholder for the internal search bar (useful only if hasExternalSearchBar is false).
  * @property {Array<{tool_name: string, tool_description: string, input_metadata: object, output_metadata: object}>} extraTools - if this analysis uses any extra tools. Used in the add tool UI.
  * @property {object} plannerQuestionSuffix - suffix for the planner model's question. Used in the add tool UI.
  * @property {Array.<Object>} previousQuestions - Questions that the user has asked so far before this analysis. has to be an array of Objects.
  * @property {Function} setGlobalLoading - Global loading. Useful if you are handling multiple analysis..
  * @property {Function} onManagerCreated - Callback when analysis manager is created.
  * @property {Function} onManagerDestroyed - Callback when analysis manager is destroyed.
+ * @property {boolean} disabled - Disable the search bar.
  * @property {{analysisManager?: Object}} initialConfig - Initial config if any.
  */
 
