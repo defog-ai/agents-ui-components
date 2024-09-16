@@ -25,6 +25,15 @@ const CHART_TYPES = [
   { value: "boxplot", label: "Box Plot", Icon: ChartCandlestick },
 ];
 
+const AGGREGATE_OPTIONS = [
+  { value: "count", label: "Count" },
+  { value: "sum", label: "Sum" },
+  { value: "proportion", label: "Proportion" },
+  { value: "median", label: "Median" },
+  { value: "mean", label: "Mean" },
+  { value: "variance", label: "Variance" },
+];
+
 // Icons for different column types
 const COLUMN_ICONS = {
   date: CalendarIcon,
@@ -99,6 +108,30 @@ export function PrimarySelection({
 
     newChartState.render();
   };
+
+  const handleAggregateChange = (value) => {
+    chartState
+      .updateChartSpecificOptions({ aggregateFunction: value })
+      .render();
+  };
+
+  // Render aggregate function selection
+  const renderAggregateSelection = () => (
+    <div className="mt-2">
+      <span className="mr-2 input-label">Aggregate</span>
+      <Select
+        style={{ width: "100%" }}
+        value={chartSpecificOptions.bar.aggregateFunction || "count"}
+        onChange={handleAggregateChange}
+      >
+        {AGGREGATE_OPTIONS.map(({ value, label }) => (
+          <Option key={value} value={value}>
+            {label}
+          </Option>
+        ))}
+      </Select>
+    </div>
+  );
 
   // Handle axis label change
   const handleAxisLabelChange = (axis) => (e) => {
@@ -188,21 +221,8 @@ export function PrimarySelection({
         </Select>
         {(propSelectedChart || selectedChart) === "bar" &&
           axis === "x" &&
-          isCategorical && (
-            <div className="mt-2">
-              <span className="mr-2 input-label">Count frequency</span>
-              <Switch
-                checkedChildren="Count"
-                unCheckedChildren="Value"
-                checked={chartSpecificOptions.bar.useCount}
-                onChange={(value) =>
-                  chartState
-                    .updateChartSpecificOptions({ useCount: value })
-                    .render()
-                }
-              />
-            </div>
-          )}
+          isCategorical &&
+          renderAggregateSelection()}
       </div>
     );
   };
