@@ -49,8 +49,8 @@ export function createActionHandlers() {
           ...defaultChartState.chartStyle,
           xLabel: null,
           yLabel: null,
-          xTicks: undefined,
-          yTicks: undefined,
+          xTicks: 100,
+          yTicks: 100,
         },
       };
 
