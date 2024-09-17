@@ -33,7 +33,7 @@ export function Button({
         "py-1 px-2 border bg-gray-50 text-sm text-gray-800 rounded-md",
         className,
         disabled
-          ? "bg-gray-50 text-gray-300 hover:bg-gray-50 cursor-not-allowed"
+          ? "bg-gray-50 text-gray-300 hover:bg-gray-50 hover:text-gray-300 cursor-not-allowed"
           : "hover:bg-gray-100 hover:text-gray-800"
       )}
     >
