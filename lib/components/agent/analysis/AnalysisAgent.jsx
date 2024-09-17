@@ -226,7 +226,8 @@ export const AnalysisAgent = ({
     async function initialiseAnalysis() {
       try {
         const { analysisData = {} } = await analysisManager.init({
-          question: createAnalysisRequestBody?.other_data?.user_question,
+          question:
+            createAnalysisRequestBody?.initialisation_details?.user_question,
           existingData:
             agentConfigContext?.val?.analysisDataCache?.[analysisId] || null,
           sqliteConn: agentConfigContext?.val?.sqliteConn,
