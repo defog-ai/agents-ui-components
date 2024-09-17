@@ -25,6 +25,15 @@ const CHART_TYPES = [
   { value: "boxplot", label: "Box Plot", Icon: ChartCandlestick },
 ];
 
+const AGGREGATE_OPTIONS = [
+  { value: "count", label: "Count" },
+  { value: "sum", label: "Sum" },
+  { value: "proportion", label: "Proportion" },
+  { value: "median", label: "Median" },
+  { value: "mean", label: "Mean" },
+  { value: "variance", label: "Variance" },
+];
+
 // Icons for different column types
 const COLUMN_ICONS = {
   date: CalendarIcon,
@@ -50,6 +59,8 @@ export function PrimarySelection({
 
   // Reorder columns when chart type or available columns change
   useEffect(() => {
+    chartState.setAvailableColumns(columns).render();
+
     setOrderedColumns(reorderColumns(columns, selectedChart));
   }, [columns, selectedChart]);
 
@@ -57,12 +68,7 @@ export function PrimarySelection({
   const handleChartChange = (value) => {
     chartState
       .setSelectedChart(value)
-      .updateChartStyle({
-        xLabel: null,
-        yLabel: null,
-        xTicks: null,
-        yTicks: null,
-      })
+      .updateChartStyle({ xLabel: null, yLabel: null })
       .autoSelectVariables()
       .render();
   };
@@ -102,6 +108,30 @@ export function PrimarySelection({
 
     newChartState.render();
   };
+
+  const handleAggregateChange = (value) => {
+    chartState
+      .updateChartSpecificOptions({ aggregateFunction: value })
+      .render();
+  };
+
+  // Render aggregate function selection
+  const renderAggregateSelection = () => (
+    <div className="mt-2">
+      <span className="mr-2 input-label">Transform</span>
+      <Select
+        style={{ width: "100%" }}
+        value={chartSpecificOptions.bar.aggregateFunction || "sum"}
+        onChange={handleAggregateChange}
+      >
+        {AGGREGATE_OPTIONS.map(({ value, label }) => (
+          <Option key={value} value={value}>
+            {label}
+          </Option>
+        ))}
+      </Select>
+    </div>
+  );
 
   // Handle axis label change
   const handleAxisLabelChange = (axis) => (e) => {
@@ -162,17 +192,12 @@ export function PrimarySelection({
     const selectedColumn = columns.find((col) => col.key === selectedColumnKey);
     const isCategorical =
       selectedColumn && selectedColumn.variableType === "categorical";
-    const disableYAxisForBarChart =
-      chartSpecificOptions.bar.useCount &&
-      axis === "y" &&
-      (propSelectedChart || selectedChart) === "bar";
+
     return (
       <div>
         <h3 className="mb-2 input-label">
-          {label} axis{" "}
-          {(propSelectedChart || selectedChart) === "histogram"
-            ? "(numerical values only)"
-            : ""}
+          Variable{" "}
+          {(propSelectedChart || selectedChart) === "histogram" ? "" : ""}
         </h3>
         <Select
           style={{ width: "100%" }}
@@ -181,7 +206,6 @@ export function PrimarySelection({
           value={selectedColumnKey}
           allowClear={axis === "x"}
           mode={mode}
-          disabled={disableYAxisForBarChart}
         >
           {(propSelectedChart || selectedChart) === "histogram"
             ? orderedColumns
@@ -191,21 +215,8 @@ export function PrimarySelection({
         </Select>
         {(propSelectedChart || selectedChart) === "bar" &&
           axis === "x" &&
-          isCategorical && (
-            <div className="mt-2">
-              <span className="mr-2 input-label">Count frequency</span>
-              <Switch
-                checkedChildren="Count"
-                unCheckedChildren="Value"
-                checked={chartSpecificOptions.bar.useCount}
-                onChange={(value) =>
-                  chartState
-                    .updateChartSpecificOptions({ useCount: value })
-                    .render()
-                }
-              />
-            </div>
-          )}
+          isCategorical &&
+          renderAggregateSelection()}
       </div>
     );
   };
@@ -282,7 +293,7 @@ export function PrimarySelection({
       <div className="flex flex-col gap-4">
         {/* Chart Type Selection */}
         <div>
-          <h3 className="mb-2 input-label">Chart Type</h3>
+          <h3 className="mb-2 font-bold input-label">Chart Type</h3>
           <div className="flex flex-wrap gap-2">
             {CHART_TYPES.map(({ value, label, Icon }) => (
               <Button
@@ -304,13 +315,19 @@ export function PrimarySelection({
           </div>
         </div>
         {/* Horizontal Axis Selection */}
-        <div className="flex flex-col gap-2 pb-6 border-b border-black/20">
+        <h3 className="pb-1 font-bold border-b input-label border-black/20">
+          Horizontal Axis
+        </h3>
+        <div className="grid grid-cols-2 gap-2">
           {renderAxisSelection("x", axisLabel.x)}
           {renderAxisLabel("x")}
         </div>
         {/* Vertical Axis Selection */}
+        <h3 className="pb-1 font-bold border-b input-label border-black/20">
+          Vertical Axis
+        </h3>
         {(propSelectedChart || selectedChart) !== "histogram" ? (
-          <div className="flex flex-col gap-2">
+          <div className="grid grid-cols-2 gap-2">
             {renderAxisSelection(
               "y",
               axisLabel.y,
@@ -330,9 +347,16 @@ export function PrimarySelection({
         )}
       </div>
       {/* Facet Selection and color */}
-      <div className="grid grid-cols-2 gap-4">
-        {renderFacetSelection()}
-        {renderColorBySelection()}
+
+      <div>
+        <h3 className="pb-1 font-bold border-b input-label border-black/20">
+          Groups
+        </h3>
+
+        <div className="grid grid-cols-2 gap-2 pt-4 ">
+          {renderFacetSelection()}
+          {renderColorBySelection()}
+        </div>
       </div>
     </div>
   );
