@@ -1,6 +1,6 @@
 {
   "name": "@defogdotai/agents-ui-components",
-  "version": "0.0.36",
+  "version": "0.0.37",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -21,10 +21,6 @@
     "./core-ui": {
       "types": "./dist/core-ui.d.ts",
       "import": "./dist/core-ui.js"
-    },
-    "./tool-editor": {
-      "types": "./dist/tool-editor.d.ts",
-      "import": "./dist/tool-editor.js"
     },
     "./doc": {
       "types": "./dist/doc.d.ts",

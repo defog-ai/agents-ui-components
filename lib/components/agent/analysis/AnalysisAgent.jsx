@@ -49,10 +49,14 @@ import { StepResults } from "./step-results/StepResults";
  * @property {Object} createAnalysisRequestBody - Object that will be sent as the body of the fetch request to create_analysis.
  * @property {boolean} initiateAutoSubmit - Whether to initiate auto submit.
  * @property {boolean} hasExternalSearchBar - Whether this is being controlled by an external search bar.
+ * @property {string} searchBarPlaceholder - Placeholder for the internal search bar (useful only if hasExternalSearchBar is false).
+ * @property {Array<{code:string, tool_name: string, function_name: string, tool_description: string, input_metadata: object, output_metadata: object}>} extraTools - if this analysis uses any extra tools. Used in the add tool UI.
+ * @property {string} plannerQuestionSuffix - suffix for the planner model's question. Used in the add tool UI.
  * @property {Array.<Object>} previousQuestions - Questions that the user has asked so far before this analysis. has to be an array of Objects.
  * @property {Function} setGlobalLoading - Global loading. Useful if you are handling multiple analysis..
  * @property {Function} onManagerCreated - Callback when analysis manager is created.
  * @property {Function} onManagerDestroyed - Callback when analysis manager is destroyed.
+ * @property {boolean} disabled - Disable the search bar.
  * @property {{analysisManager?: Object}} initialConfig - Initial config if any.
  */
 
@@ -70,10 +74,14 @@ export const AnalysisAgent = ({
   createAnalysisRequestBody = {},
   initiateAutoSubmit = false,
   hasExternalSearchBar = null,
+  searchBarPlaceholder = null,
+  extraTools = [],
+  plannerQuestionSuffix = null,
   previousQuestions = [], // questions that the user has asked so far in the analysis
   setGlobalLoading = (...args) => {},
   onManagerCreated = (...args) => {},
   onManagerDestroyed = (...args) => {},
+  disabled = false,
   initialConfig = {
     analysisManager: null,
   },
@@ -88,7 +96,6 @@ export const AnalysisAgent = ({
   });
 
   const [reRunningSteps, setRerunningSteps] = useState([]);
-  const reactiveContext = useContext(ReactiveVariablesContext);
   const [activeNode, setActiveNodePrivate] = useState(null);
   const [dag, setDag] = useState(null);
   const [dagLinks, setDagLinks] = useState([]);
@@ -168,6 +175,8 @@ export const AnalysisAgent = ({
         metadata,
         isTemp,
         sqlOnly,
+        extraTools,
+        plannerQuestionSuffix,
         previousQuestions,
         onNewData: onMainSocketMessage,
         onManagerDestroyed: onManagerDestroyed,
@@ -217,7 +226,8 @@ export const AnalysisAgent = ({
     async function initialiseAnalysis() {
       try {
         const { analysisData = {} } = await analysisManager.init({
-          question: createAnalysisRequestBody?.other_data?.user_question,
+          question:
+            createAnalysisRequestBody?.initialisation_details?.user_question,
           existingData:
             agentConfigContext?.val?.analysisDataCache?.[analysisId] || null,
           sqliteConn: agentConfigContext?.val?.sqliteConn,
@@ -412,8 +422,8 @@ export const AnalysisAgent = ({
                   onPressEnter={(ev) => {
                     handleSubmit(ev.target.value);
                   }}
-                  placeholder="Ask a question"
-                  disabled={analysisBusy}
+                  placeholder={searchBarPlaceholder || "Ask a question"}
+                  disabled={disabled || analysisBusy}
                   inputClassNames="w-full mx-auto shadow-custom hover:border-blue-500 focus:border-blue-500"
                 />
               </div>
@@ -572,7 +582,7 @@ export const AnalysisAgent = ({
                             <p className="text-sm truncate m-0">
                               {trimStringToLength(
                                 toolShortNames[node?.data?.step?.tool_name] ||
-                                  tools[node?.data?.step?.tool_name][
+                                  tools[node?.data?.step?.tool_name]?.[
                                     "tool_name"
                                   ] ||
                                   node?.data?.step?.tool_name,

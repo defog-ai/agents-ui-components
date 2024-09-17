@@ -1,6 +1,11 @@
-import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
+import {
+  Dialog,
+  DialogPanel,
+  DialogTitle,
+  Description,
+} from "@headlessui/react";
 import { XCircleIcon } from "@heroicons/react/20/solid";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { twMerge } from "tailwind-merge";
 import { Button } from "./Button";
 
@@ -32,15 +37,14 @@ export function Modal({
   onCancel = () => {},
   footer = true,
   title = null,
+  description = null,
   closeIcon = (
     <XCircleIcon className="w-6 h-6 text-gray-300 hover:text-gray-600" />
   ),
   onOk = () => {},
   okLoading = false,
   okText = "Ok",
-  maskClosable = true,
   rootClassNames = "",
-  className = "",
   contentClassNames = "",
 }) {
   let [isOpen, setIsOpen] = useState(open ? true : false);
@@ -56,34 +60,36 @@ export function Modal({
         setIsOpen(false);
         onCancel();
       }}
-      className={twMerge("relative z-50", rootClassNames, className)}
+      className={twMerge("relative z-[2]", rootClassNames)}
     >
-      <div className="fixed inset-0 flex w-screen items-center justify-center p-4 animate-fade-in transition duration-300 ease-out data-[closed]:opacity-0">
-        <div className="absolute w-full h-full bg-gray-800 opacity-50 left-0 top-0 z-[1]"></div>
-        <DialogPanel className="h-[95%] w-10/12 space-y-4 z-[2] relative flex flex-row items-center pointer-events-none">
-          <div
-            className={twMerge(
-              "relative max-h-full overflow-auto p-4 bg-white rounded-md grow pointer-events-auto ",
-              contentClassNames
-            )}
-          >
-            <div className="absolute top-2 right-2 z-[3]">
-              <button
-                onClick={() => {
-                  setIsOpen(false);
-                  onCancel();
-                }}
-                className="p-1"
-              >
-                {closeIcon}
-              </button>
-            </div>
+      <div className="fixed inset-0 overflow-y-auto w-full h-full p-4 bg-black bg-opacity-30">
+        <DialogPanel
+          className={twMerge(
+            "bg-white w-full max-h-full rounded-md relative p-4 m-auto gap-2 flex flex-col",
+            contentClassNames
+          )}
+        >
+          <div className="absolute top-2 right-2 z-10">
+            <button
+              onClick={() => {
+                setIsOpen(false);
+                onCancel();
+              }}
+              className="p-1"
+            >
+              {closeIcon}
+            </button>
+          </div>
 
-            {title && <DialogTitle>{title}</DialogTitle>}
+          {title && (
+            <DialogTitle className={"text-xl font-bold"}>{title}</DialogTitle>
+          )}
+          {description && <Description>{description}</Description>}
 
-            {children}
+          <div className="overflow-auto">{children}</div>
 
-            {footer === true ? (
+          {footer === true ? (
+            <div>
               <Button
                 disabled={okLoading}
                 onClick={() => {
@@ -92,10 +98,10 @@ export function Modal({
               >
                 {okText}
               </Button>
-            ) : (
-              footer
-            )}
-          </div>
+            </div>
+          ) : (
+            footer
+          )}
         </DialogPanel>
       </div>
     </Dialog>

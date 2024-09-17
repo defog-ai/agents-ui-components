@@ -5,7 +5,7 @@ import { useWindowSize } from "../hooks/useWindowSize";
 import { SingleSelect } from "./SingleSelect";
 
 /**
- * @typedef {{name: string, content?: [string], classNames?: string, headerClassNames?: string}} Tab
+ * @typedef {{name: string, content?: [React.ReactNode], classNames?: string, headerClassNames?: string}} Tab
  * @property {string} name - The name of the tab.
  * @property {React.ReactNode} content - The content of the tab.
  * @property {string} [classNames] - Additional classes to be added to the tab content.
@@ -115,7 +115,7 @@ export function Tabs({
         >
           <nav
             className={twMerge(
-              "isolate flex divide-gray-200 rounded-2xl shadow cursor-pointer",
+              "isolate flex divide-gray-200 rounded-2xl shadow",
               showVerticalTabs ? "divide-y flex flex-col" : "divide-x"
             )}
             aria-label="Tabs"
@@ -124,7 +124,7 @@ export function Tabs({
               <div
                 key={tab.name + "-" + tabIdx}
                 className={twMerge(
-                  "flex items-center justify-center",
+                  "flex items-center justify-center cursor-pointer",
                   selectedTab.name === tab.name
                     ? "text-gray-900"
                     : "text-gray-500 hover:text-gray-1000",

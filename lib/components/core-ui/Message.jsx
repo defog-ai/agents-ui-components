@@ -4,7 +4,7 @@ import {
   InformationCircleIcon,
   XCircleIcon,
 } from "@heroicons/react/20/solid";
-import { createContext, useContext, useSyncExternalStore } from "react";
+import React, { createContext, useContext, useSyncExternalStore } from "react";
 import { twMerge } from "tailwind-merge";
 import { v4 } from "uuid";
 

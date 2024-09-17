@@ -5,7 +5,6 @@ import {
   ReactiveVariablesContext,
   RelatedAnalysesContext,
 } from "./AgentContext";
-import { getToolboxes } from "../utils/utils";
 import {
   MessageManager,
   MessageManagerContext,
@@ -101,11 +100,6 @@ export function Setup({
     async function setup() {
       // setup user items
       const userItems = {};
-
-      const toolboxes = await getToolboxes(token, apiEndpoint);
-      if (toolboxes && toolboxes.success) {
-        userItems.toolboxes = toolboxes.toolboxes;
-      }
 
       let conn = null;
       try {
