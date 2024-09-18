@@ -80,14 +80,14 @@ export default function StepResultAnalysis({
   return (
     <div
       style={{ whiteSpace: "pre-wrap" }}
-      className="bg-gray-100 rounded my-3 text-sm text-gray-700 p-4"
+      className="bg-gray-100 rounded my-3 text-sm text-gray-600 p-4"
     >
       {loading === true ? (
         <>
-          <pre>
+          <p className="small code p-2">
             <SpinningLoader />
             Loading Analysis
-          </pre>
+          </p>
         </>
       ) : (
         <p className="">{toolRunAnalysis}</p>
