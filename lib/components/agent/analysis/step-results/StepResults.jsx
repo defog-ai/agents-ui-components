@@ -14,6 +14,7 @@ import { AgentConfigContext } from "../../../context/AgentContext";
 import { SpinningLoader } from "@ui-components";
 import { v4 } from "uuid";
 import SQLFeedback from "./SQLFeedback";
+import StepResultAnalysis from "./StepResultAnalysis"
 
 function parseOutputs(data, analysisData) {
   let parsedOutputs = {};
@@ -282,15 +283,17 @@ export function StepResults({
             </div>
             {step?.sql && (
               // get feedback from user if the sql is good or not
-              <SQLFeedback
-                question={step?.inputs?.question}
-                sql={step?.sql}
-                previous_context={step?.inputs?.previous_context}
-                apiEndpoint={apiEndpoint}
-                token={token}
-                keyName={keyName}
-                analysisId={analysisId}
-              />
+              <>
+                <SQLFeedback
+                  question={step?.inputs?.question}
+                  sql={step?.sql}
+                  previous_context={step?.inputs?.previous_context}
+                  apiEndpoint={apiEndpoint}
+                  token={token}
+                  keyName={keyName}
+                  analysisId={analysisId}
+                />
+              </>
             )}
           </ErrorBoundary>
         ),
@@ -324,6 +327,14 @@ export function StepResults({
                     analysisId={analysisId}
                   />
                 )}
+
+                <StepResultAnalysis
+                  keyName={keyName}
+                  question={step?.inputs?.question}
+                  data_csv={step?.outputs?.answer?.data}
+                  sql={step?.sql}
+                  apiEndpoint={apiEndpoint}
+                />
               </div>
             );
           })

@@ -1,81 +1,67 @@
 import { useEffect, useState } from "react";
-import { setupWebsocketManager } from "../../../utils/websocket-manager";
-import { message } from "antd";
+import { message, Spin } from "antd";
 import setupBaseUrl from "../../../utils/setupBaseUrl";
-import { SpinningLoader } from "@ui-components";
 
 export default function StepResultAnalysis({
+  keyName,
   question,
   data_csv,
   apiEndpoint,
+  sql,
   image = null,
 }) {
   const [toolRunAnalysis, setToolRunAnalysis] = useState("");
-  const [socketManager, setSocketManager] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  function onMessage(event) {
-    try {
-      if (!event.data) {
-        message.error(
-          "Something went wrong. Please try again or contact us if this persists."
-        );
-      }
+  async function analyseData() {
+    const urlToConnect = setupBaseUrl({
+      protocol: "http",
+      path: "analyse_data",
+      apiEndpoint: apiEndpoint,
+    });
+    
+    // send data to the server
+    const data = {
+      question: question,
+      data_csv: data_csv,
+      sql: sql,
+      key_name: keyName,
+    };
 
-      const response = JSON.parse(event.data);
+    setLoading(true);
+    const response = await fetch(urlToConnect, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
 
-      if (response && response.model_analysis) {
-        setToolRunAnalysis((prev) => {
-          return (prev ? prev : "") + response.model_analysis;
-        });
-      }
-    } catch (error) {
-      console.log(error);
+    if (!response.ok) {
+      message.error("Error analysing data");
+      return;
     }
+    const responseJson = await response.json();
+    
+    console.log("Received response from server")
+    console.log(responseJson);
+    setToolRunAnalysis(responseJson.model_analysis);
+    setLoading(false);
   }
 
   useEffect(() => {
-    async function setup() {
-      const urlToConnect = setupBaseUrl({
-        protocol: "ws",
-        path: "analyse_data",
-        apiEndpoint: apiEndpoint,
-      });
-      try {
-        const mgr = await setupWebsocketManager(urlToConnect, onMessage);
-        setSocketManager(mgr);
-        mgr.send({
-          question,
-          data: data_csv,
-          image: image ? image[0]?.path : null,
-        });
-      } catch (error) {
-        console.log(error);
-      }
-    }
-
-    setup();
-
-    return () => {
-      if (socketManager && socketManager.close) {
-        socketManager.close();
-        // also stop the timeout
-        socketManager.clearSocketTimeout();
-      }
-    };
+    analyseData();
   }, []);
 
   return (
-    toolRunAnalysis.slice(0, 4) !== "NONE" && (
-      <div style={{ whiteSpace: "pre-wrap" }} className="max-w-2xl w-full">
-        {!toolRunAnalysis || toolRunAnalysis === "" ? (
-          <div>
-            <SpinningLoader classNames="text-gray-800 mr-0" /> Loading
-            analysis...
-          </div>
-        ) : (
-          <p className="small code p-2">{toolRunAnalysis}</p>
-        )}
-      </div>
-    )
+    <div style={{ whiteSpace: "pre-wrap" }} className="max-w-2xl w-full">
+      {loading === true ?
+        <>
+        <p className="small code p-2">Loading Analysis...</p> <Spin />
+        </>
+        : <p className="small code p-2">{toolRunAnalysis}</p>
+      }
+      
+    </div>
   );
 }
