@@ -27,3 +27,7 @@ dist-ssr
 *storybook.log
 
 .env
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
