@@ -1,7 +1,5 @@
 import ErrorBoundary from "../../common/ErrorBoundary";
 import { twMerge } from "tailwind-merge";
-import { AgentConfigContext } from "../../context/AgentContext";
-import { useContext } from "react";
 import { AnalysisTreeViewer } from "../../agent/analysis-tree-viewer/AnalysisTreeViewer";
 
 export function AnalysisTabContent({
@@ -16,7 +14,6 @@ export function AnalysisTabContent({
   searchBarClasses = "",
   defaultSidebarOpen = null,
 }) {
-  console.log(defaultSidebarOpen);
   return (
     <ErrorBoundary>
       <AnalysisTreeViewer
