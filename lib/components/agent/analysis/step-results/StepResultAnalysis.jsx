@@ -44,7 +44,28 @@ export default function StepResultAnalysis({
         }
 
         const responseJson = await response.json();
-        setToolRunAnalysis(responseJson.model_analysis);
+        
+        const analysis = responseJson.model_analysis;
+        // analysis is currently a giant blob of text that has full stops in the middle of sentences. It is not very readable. we should split into paragraphs
+        // we can split by full stops, but we need to be careful about full stops that are part of numbers, e.g. 1.1
+
+        const paragraphs = analysis.split(". ");
+        let newAnalysis = "";
+        let currentParagraph = "";
+        for (let i = 0; i < paragraphs.length; i++) {
+          currentParagraph += paragraphs[i] + ". ";
+          if (currentParagraph.length > 100) {
+            newAnalysis += currentParagraph + "\n\n";
+            currentParagraph = "";
+          }
+        }
+        
+        // if newAnalysis ends with .., remove the last one
+        if (newAnalysis.endsWith("..")) {
+          newAnalysis = newAnalysis.slice(0, -1);
+        }
+
+        setToolRunAnalysis(newAnalysis);
       } catch (error) {
         console.error(error);
         messageManager.error("Error analysing data");
@@ -59,14 +80,14 @@ export default function StepResultAnalysis({
   return (
     <div
       style={{ whiteSpace: "pre-wrap" }}
-      className="bg-gray-100 rounded my-3 text-xs text-gray-400 p-4"
+      className="bg-gray-100 rounded my-3 text-sm text-gray-700 p-4"
     >
       {loading === true ? (
         <>
-          <p className="">
+          <pre>
             <SpinningLoader />
             Loading Analysis
-          </p>
+          </pre>
         </>
       ) : (
         <p className="">{toolRunAnalysis}</p>
