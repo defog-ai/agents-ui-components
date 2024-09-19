@@ -177,7 +177,7 @@ const FilterBuilder = ({ columns }) => {
 
   const getFilterPreview = (filter, column) => {
     if (!filter.column || !filter.operator || filter.value === "") return "";
-
+    console.log(column);
     const columnName = column ? column.title : filter.column;
     let preview = `${columnName} ${filter.operator} `;
 

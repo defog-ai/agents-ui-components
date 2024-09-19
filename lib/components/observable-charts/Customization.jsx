@@ -67,6 +67,7 @@ export function Customization() {
           min={8}
           max={24}
           value={chartStyle.fontSize}
+          rootClassNames="w-full  h-2"
           onChange={(value) => handleStyleChange("fontSize", value)}
         />
       </div>

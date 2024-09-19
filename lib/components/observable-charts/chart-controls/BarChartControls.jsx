@@ -1,6 +1,11 @@
-import { ColorPicker } from "antd";
+import { ColorPicker, Button } from "antd";
 import { ChartStateContext } from "../ChartStateContext";
 import { useContext } from "react";
+import {
+  ArrowUpNarrowWide,
+  ArrowDownNarrowWide,
+  ArrowUpDown,
+} from "lucide-react";
 
 const BarChartControls = () => {
   const chartState = useContext(ChartStateContext);
@@ -15,23 +20,38 @@ const BarChartControls = () => {
       <div>
         <h3 className="mb-2">Bar Color</h3>
         <ColorPicker
-          value={chartSpecificOptions.bar.barColor}
+          value={chartSpecificOptions.barColor}
           onChange={(color) =>
             handleOptionChange("barColor", color.toHexString())
           }
         />
       </div>
-      {/* <div>
-        <h3 className="mb-2">Bar Width</h3>
-        <Slider
-          min={2}
-          max={20}
-          step={0.1}
-          rootClassNames="w-full  h-2"
-          value={chartSpecificOptions.bar.barWidth}
-          onChange={(value) => handleOptionChange("barWidth", value)}
+      {/* Add a sort button with three states: ascending, descending, and none */}
+      <div>
+        <h3 className="mb-2">Sort</h3>
+        <Button
+          icon={
+            chartSpecificOptions.bar?.sort?.x === "y" ? (
+              <ArrowDownNarrowWide />
+            ) : chartSpecificOptions.bar?.sort?.x === "-y" ? (
+              <ArrowUpNarrowWide />
+            ) : (
+              <ArrowUpDown />
+            )
+          }
+          className={!chartSpecificOptions.bar?.sort?.x ? "text-gray-400" : ""}
+          onClick={() => {
+            const currentSort = chartSpecificOptions.bar?.sort?.x;
+            if (!currentSort) {
+              handleOptionChange("sort", { x: "y" });
+            } else if (currentSort === "y") {
+              handleOptionChange("sort", { x: "-y" });
+            } else {
+              handleOptionChange("sort", null);
+            }
+          }}
         />
-      </div> */}
+      </div>
     </div>
   );
 };

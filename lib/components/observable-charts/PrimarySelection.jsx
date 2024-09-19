@@ -111,7 +111,7 @@ export function PrimarySelection({
 
   const handleAggregateChange = (value) => {
     chartState
-      .updateChartSpecificOptions({ aggregateFunction: value })
+      .updateChartSpecificOptions({ aggregateFunction: value || undefined })
       .render();
   };
 
@@ -121,7 +121,7 @@ export function PrimarySelection({
       <span className="mr-2 input-label">Transform</span>
       <Select
         style={{ width: "100%" }}
-        value={chartSpecificOptions.bar.aggregateFunction || "sum"}
+        value={chartSpecificOptions.bar.aggregateFunction || undefined}
         onChange={handleAggregateChange}
       >
         {AGGREGATE_OPTIONS.map(({ value, label }) => (
