@@ -203,7 +203,7 @@ function deepMergeObjects(obj1, obj2) {
  * @typedef {Object} BarChartOptions
  * @property {string} barColor - Color of the bars
  * @property {number} barWidth - Width of the bars
- * @property {boolean} useCount - Whether to use count instead of values
+ * @property {('sum'|'proportion'|'count'|'median'|'mean'|'variance')} aggregateFunction - Function to aggregate the data
  * @property {string|null} fill - Column to determine bar color
  */
 
@@ -316,7 +316,12 @@ export const defaultChartState = {
       lineOptions: [],
       showLabels: false,
     },
-    bar: { barColor: "#4287f5", barWidth: 0.8, useCount: false, fill: null },
+    bar: {
+      barColor: "#4287f5",
+      barWidth: 0.8,
+      aggregateFunction: "none",
+      fill: null,
+    },
     scatter: { pointColor: "#f54242", pointSize: 5 },
     histogram: {
       binCount: 10,
