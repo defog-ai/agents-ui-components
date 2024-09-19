@@ -1,4 +1,4 @@
-import { useContext, useState, useCallback, useRef } from "react";
+import { useContext, useState, useCallback, useRef, useEffect } from "react";
 import { Select, Button, Space, Card, Tag } from "antd";
 import { Input as TextInput } from "@ui-components";
 import { DeleteOutlined, PlusOutlined } from "@ant-design/icons";
@@ -79,6 +79,16 @@ const FilterBuilder = ({ columns }) => {
     debounce(updateFilterFunction, 200),
     [updateFilterFunction]
   );
+  useEffect(() => {
+    const selectedColumnKeys = Object.values(chartState.selectedColumns).flat();
+    const newFilters = filters.filter((filter) =>
+      selectedColumnKeys.includes(filter.column)
+    );
+
+    if (JSON.stringify(newFilters) !== JSON.stringify(filters)) {
+      setFilters(newFilters);
+    }
+  }, [chartState.selectedColumns, filters]);
 
   const addFilter = () =>
     setFilters([...filters, { column: "", operator: "==", value: "" }]);
