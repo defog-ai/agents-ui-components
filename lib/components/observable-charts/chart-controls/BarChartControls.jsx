@@ -3,7 +3,7 @@ import { ChartStateContext } from "../ChartStateContext";
 import { useContext } from "react";
 import {
   ArrowUpNarrowWide,
-  ArrowDownNarrowWide,
+  ArrowDownWideNarrow,
   ArrowUpDown,
 } from "lucide-react";
 
@@ -32,9 +32,9 @@ const BarChartControls = () => {
         <Button
           icon={
             chartSpecificOptions.bar?.sort?.x === "y" ? (
-              <ArrowDownNarrowWide />
+              <ArrowUpNarrowWide className="rotate-90 " />
             ) : chartSpecificOptions.bar?.sort?.x === "-y" ? (
-              <ArrowUpNarrowWide />
+              <ArrowDownWideNarrow className="rotate-90 " />
             ) : (
               <ArrowUpDown />
             )
