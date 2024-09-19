@@ -36,3 +36,21 @@ Then, run `npm run publish`
 ### Viewing docs
 
 Run `npm run storybook` to see detailed documentation.
+
+### Running tests
+
+**Quick:**
+
+To run all tests in a bagkround browser: `npx playwright test`
+
+**Semi quick:**
+
+To run all tests and also _watch_ them happen in the browser: `npx playwright test --headed`
+
+**Manual:**
+
+To manually run tests: `npx playwright test --ui`
+
+**Debugging:**
+
+To debug tests, I recommend following this guide here which lets you use a VS Code extension. https://playwright.dev/docs/getting-started-vscode
