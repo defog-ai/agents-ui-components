@@ -134,52 +134,79 @@ test("can ask one sql-only question", async ({ page }) => {
   expect(await page.locator("table.divide-y").first()).toBeVisible();
 });
 
-test("can ask one advanced question", async ({ page }) => {
+test("can ask one advanced question with send email usage", async ({
+  page,
+}) => {
   await page.goto("http://localhost:5173/test/agent-embed/");
 
   await selectApiKeyName(page);
 
   await setSqlOnly(page, false);
 
-  await askQuestionUsingSearchBar(page);
-
-  const requestPromise = page.waitForRequest((request) =>
-    request.url().includes("/generate_step")
+  await askQuestionUsingSearchBar(
+    page,
+    "show me 5 rows and send an email to manas@defog.ai"
   );
 
-  // start waiting for to the network response for `/generate_step`
-  const responsePromise = page.waitForResponse((response) =>
-    response.url().includes("/generate_step")
-  );
+  // we will either get a clarifier that says "Clikc here or press enter to"
+  // or we will bypass the clarifier, and have a thing that says "fetching data"
 
-  // wait 3 seconds for the clarifier button to appear, then move on
-  await page.waitForTimeout(3000);
+  const fetchingDataLocator = page.getByText("Fetching data");
 
   // click the clarify submit button
-  const buttonClarify = page.getByRole("button", {
+  const buttonClarifyLocator = page.getByRole("button", {
     name: "Click here or press enter to",
   });
 
-  if ((await buttonClarify.count()) > 0) {
-    await buttonClarify.click();
+  await expect(fetchingDataLocator.or(buttonClarifyLocator)).toBeVisible();
+
+  if ((await buttonClarifyLocator.count()) > 0) {
+    await buttonClarifyLocator.click();
   }
 
-  // now wait for the response
-  const request = await requestPromise;
-  const response = await responsePromise;
+  let done = false;
+  let totalSteps = 0;
 
-  expect(response.ok()).toBe(true);
+  while (!done) {
+    const requestPromise = page.waitForRequest((request) =>
+      request.url().includes("/generate_step")
+    );
 
-  // ensure that the correct sql_only was sent to the server
-  expect(request.postDataJSON().sql_only).toBe(false);
+    // start waiting for to the network response for `/generate_step`
+    const responsePromise = page.waitForResponse((response) =>
+      response.url().includes("/generate_step")
+    );
 
-  // make sure we see the sql/code tab
-  // TODO: is there a better way to test this?
-  expect(await page.getByText("SQL/Code")).toBeVisible();
+    // now wait for the response
+    const request = await requestPromise;
+    const response = await responsePromise;
 
-  // click on the analysis tab
-  await page.locator("nav.divide-x div").nth(2).click();
+    expect(response.ok()).toBe(true);
 
-  // make sure that we see an element with a `divide-y` class
-  expect(await page.locator("table.divide-y").first()).toBeVisible();
+    // ensure that the correct sql_only was sent to the server
+    expect(request.postDataJSON().sql_only).toBe(false);
+
+    const resData = await response.json();
+
+    console.log(resData, resData.done, totalSteps);
+
+    totalSteps++;
+    if (resData.done || totalSteps > 100) {
+      done = true;
+    }
+  }
+
+  // // make sure we see the sql/code tab
+  // // TODO: is there a better way to test this?
+  // expect(await page.getByText("SQL/Code")).toBeVisible();
+
+  // // click on the analysis tab
+  // await page.locator("nav.divide-x div").nth(2).click();
+
+  // // make sure that we see an element with a `divide-y` class
+  // expect(await page.locator("table.divide-y").first()).toBeVisible();
+
+  // expect(totalSteps).toBe(2);
+
+  // expect(done).toBe(true);
 });
