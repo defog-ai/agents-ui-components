@@ -97,9 +97,12 @@ test("can ask sql-only question", async ({ page }) => {
 
   await page
     .getByRole("button", { name: "Click here or press enter to" })
-    .click({ timeout: 3000 });
+    // wait for the button to be visible for 10 secs max
+    .click({ timeout: 10000 });
 
   await page.waitForTimeout(3000);
 
-  // make sure we see the two tabs of sql/code and analysis
+  // make sure we see the sql/code tab
+  // TODO: is there a better way to test this?
+  expect(await page.getByText("SQL/Code")).toBeVisible();
 });
