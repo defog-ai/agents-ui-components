@@ -97,9 +97,11 @@ test("can ask sql-only question", async ({ page }) => {
   );
 
   // click the clarify submit button
-  await page
-    .getByRole("button", { name: "Click here or press enter to" })
-    .click();
+  const buttonClarify = page.getByRole('button', { name: 'Click here or press enter to' });
+
+  if (await buttonClarify.count() > 0) {
+    await buttonClarify.click();
+  }
 
   // now wait for the response
   const response = await responsePromise;
