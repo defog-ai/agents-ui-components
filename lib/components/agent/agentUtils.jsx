@@ -495,7 +495,20 @@ export const reFormatData = (data, columns) => {
       simpleTypeOf: "number",
       mean: (newRows?.length + 1) / 2 || null,
     });
-  } else {
+  } else if (validColumns.length) {
+    newCols = validColumns.map((c) => ({
+      title: c,
+      dataIndex: c,
+      key: c,
+      simpleTypeOf: "string",
+      colType: "string",
+      variableType: "categorical",
+      numeric: false,
+      render: (value) => value,
+    }));
+    newRows = [];
+  }
+  else {
     newCols = [];
     newRows = [];
   }

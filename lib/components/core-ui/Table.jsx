@@ -168,7 +168,7 @@ export function Table({
     return acc;
   }, {});
 
-  const maxPage = Math.ceil(rows.length / pageSize);
+  const maxPage = Math.max(1, Math.ceil(rows.length / pageSize));
 
   function toggleSort(newColumn) {
     let newOrder;

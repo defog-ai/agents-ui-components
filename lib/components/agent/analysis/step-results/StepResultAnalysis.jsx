@@ -40,11 +40,14 @@ export default function StepResultAnalysis({
         });
 
         if (!response.ok) {
-          throw new Error("Error analysing data");
+          setLoading(false);
+          // throw new Error("Error analysing data");
+          // return quitely, for backwards compatibility
+          return
         }
 
         const responseJson = await response.json();
-        
+
         const analysis = responseJson.model_analysis;
         // analysis is currently a giant blob of text that has full stops in the middle of sentences. It is not very readable. we should split into paragraphs
         // we can split by full stops, but we need to be careful about full stops that are part of numbers, e.g. 1.1
@@ -59,7 +62,7 @@ export default function StepResultAnalysis({
             currentParagraph = "";
           }
         }
-        
+
         // if newAnalysis ends with .., remove the last one
         if (newAnalysis.endsWith("..")) {
           newAnalysis = newAnalysis.slice(0, -1);
