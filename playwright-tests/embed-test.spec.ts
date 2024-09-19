@@ -91,19 +91,20 @@ test("can ask sql-only question", async ({ page }) => {
 
   await askQuestionUsingSearchBar(page);
 
-  const buttonClarify = page.getByRole('button', { name: 'Click here or press enter to' });
+  // start waiting for to the network response for `/generate_step`
+  const responsePromise = page.waitForResponse((response) =>
+    response.url().includes("/generate_step")
+  );
 
-  if (await buttonClarify.count() > 0) {
-    await buttonClarify.click();
-  }
+  // click the clarify submit button
+  await page
+    .getByRole("button", { name: "Click here or press enter to" })
+    .click();
 
-  await page.waitForTimeout(3000);
+  // now wait for the response
+  const response = await responsePromise;
 
-// listen to the network response for `/generate_step`, and check if the response is successful
-const response = await page.waitForResponse(
-  response => response.url().includes("/generate_step")
-);
-expect(response.ok()).toBe(true);
+  expect(response.ok()).toBe(true);
 
   // make sure we see the sql/code tab
   // TODO: is there a better way to test this?
@@ -111,8 +112,7 @@ expect(response.ok()).toBe(true);
 
   // click on the analysis tab
   await page.locator("nav.divide-x div").nth(2).click();
-  
-  // make sure that we see an element with a `divide-y` class  
-  expect(await page.locator("table.divide-y").first()).toBeVisible();
 
+  // make sure that we see an element with a `divide-y` class
+  expect(await page.locator("table.divide-y").first()).toBeVisible();
 });
