@@ -26,6 +26,7 @@ const CHART_TYPES = [
 ];
 
 const AGGREGATE_OPTIONS = [
+  { value: "none", label: "None" },
   { value: "count", label: "Count" },
   { value: "sum", label: "Sum" },
   { value: "proportion", label: "Proportion" },
@@ -111,7 +112,7 @@ export function PrimarySelection({
 
   const handleAggregateChange = (value) => {
     chartState
-      .updateChartSpecificOptions({ aggregateFunction: value || undefined })
+      .updateChartSpecificOptions({ aggregateFunction: value || "none" })
       .render();
   };
 
@@ -121,7 +122,7 @@ export function PrimarySelection({
       <span className="mr-2 input-label">Transform</span>
       <Select
         style={{ width: "100%" }}
-        value={chartSpecificOptions.bar.aggregateFunction || undefined}
+        value={chartSpecificOptions.bar.aggregateFunction || "none"}
         onChange={handleAggregateChange}
       >
         {AGGREGATE_OPTIONS.map(({ value, label }) => (
