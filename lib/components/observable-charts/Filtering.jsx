@@ -1,22 +1,11 @@
 import { useContext, useState, useCallback, useRef } from "react";
-import {
-  Select,
-  Input,
-  Button,
-  DatePicker,
-  Space,
-  Card,
-  Typography,
-  Tag,
-} from "antd";
+import { Select, Button, Space, Card, Tag } from "antd";
+import { Input as TextInput } from "@ui-components";
 import { DeleteOutlined, PlusOutlined } from "@ant-design/icons";
 import { ChartStateContext } from "./ChartStateContext";
-import { CalendarIcon, HashIcon, CaseSensitive } from "lucide-react";
-import { Input as TextInput } from "@ui-components";
+import { HashIcon, CaseSensitive } from "lucide-react";
 
 const { Option } = Select;
-const { RangePicker } = DatePicker;
-const { Text } = Typography;
 
 const FilterBuilder = ({ columns }) => {
   const [filters, setFilters] = useState([]);
@@ -25,108 +14,65 @@ const FilterBuilder = ({ columns }) => {
 
   const debounce = (func, delay) => {
     return (...args) => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-      timeoutRef.current = setTimeout(() => {
-        func(...args);
-      }, delay);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      timeoutRef.current = setTimeout(() => func(...args), delay);
     };
   };
 
   const updateFilterFunction = useCallback(
     (currentFilters) => {
-      // Check if all filters are empty or if there are no filters
-      const allFiltersEmpty = currentFilters.every(
-        (filter) => !filter.column || !filter.operator || filter.value === ""
-      );
+      const filterFunction = currentFilters.length
+        ? (d) =>
+            currentFilters.every(({ column, operator, value }) => {
+              if (!column || !operator || value === "") return true;
+              const columnDef = columns.find((c) => c.dataIndex === column);
+              const dValue = d[column];
+              const compareValue =
+                columnDef.variableType === "categorical" &&
+                typeof dValue === "string"
+                  ? dValue.toLowerCase()
+                  : dValue;
+              const filterValue =
+                columnDef.variableType === "categorical" &&
+                typeof value === "string"
+                  ? value.toLowerCase()
+                  : value;
 
-      if (allFiltersEmpty || currentFilters.length === 0) {
-        // If all filters are empty or there are no filters, set the chart filter to null
-        chartState.updateChartSpecificOptions({ filter: null }).render();
-        return;
-      }
+              const operatorFunctions = {
+                "==": (a, b) => a == b,
+                "!=": (a, b) => a != b,
+                ">": (a, b) => a > b,
+                "<": (a, b) => a < b,
+                ">=": (a, b) => a >= b,
+                "<=": (a, b) => a <= b,
+                in: (a, b) =>
+                  b
+                    .split(",")
+                    .map((v) => v.trim().toLowerCase())
+                    .includes(a),
+                "not in": (a, b) =>
+                  !b
+                    .split(",")
+                    .map((v) => v.trim().toLowerCase())
+                    .includes(a),
+                contains: (a, b) => a.includes(b),
+                "starts with": (a, b) => a.startsWith(b),
+                "ends with": (a, b) => a.endsWith(b),
+                between: (a, b) => {
+                  const [min, max] = b.split(",").map(Number);
+                  return a >= min && a <= max;
+                },
+              };
 
-      const filterFunction = (d) => {
-        return currentFilters.every((filter) => {
-          const { column, operator, value } = filter;
-          if (!column || !operator || value === "") return true;
+              return operatorFunctions[operator](compareValue, filterValue);
+            })
+        : null;
 
-          const columnDef = columns.find((c) => c.dataIndex === column);
-          const dValue = d[column];
-
-          // Make string comparisons case-insensitive for categorical data
-          const compareValue =
-            columnDef.variableType === "categorical"
-              ? typeof dValue === "string"
-                ? dValue.toLowerCase()
-                : dValue
-              : dValue;
-          const filterValue =
-            columnDef.variableType === "categorical"
-              ? typeof value === "string"
-                ? value.toLowerCase()
-                : value
-              : value;
-
-          switch (operator) {
-            case "==":
-              return compareValue == filterValue;
-            case "!=":
-              return compareValue != filterValue;
-            case ">":
-              return compareValue > filterValue;
-            case "<":
-              return compareValue < filterValue;
-            case ">=":
-              return compareValue >= filterValue;
-            case "<=":
-              return compareValue <= filterValue;
-            case "in":
-              return filterValue
-                .split(",")
-                .map((v) => v.trim().toLowerCase())
-                .includes(compareValue);
-            case "not in":
-              return !filterValue
-                .split(",")
-                .map((v) => v.trim().toLowerCase())
-                .includes(compareValue);
-            case "contains":
-              return compareValue.includes(filterValue);
-            case "starts with":
-              return compareValue.startsWith(filterValue);
-            case "ends with":
-              return compareValue.endsWith(filterValue);
-            case "before":
-              return (
-                new Date(dValue).getTime() < new Date(filterValue).getTime()
-              );
-            case "after":
-              return (
-                new Date(dValue).getTime() > new Date(filterValue).getTime()
-              );
-            case "between":
-              const [start, end] = filterValue.split(",");
-              if (columnDef.colType === "date") {
-                return (
-                  new Date(dValue).getTime() >= new Date(start).getTime() &&
-                  new Date(dValue).getTime() <= new Date(end).getTime()
-                );
-              }
-              return compareValue >= start && compareValue <= end;
-            default:
-              return true;
-          }
-        });
-      };
-
-      // Update the filter function in the chart container
       chartState
         .updateChartSpecificOptions({ filter: filterFunction })
         .render();
     },
-    [chartState]
+    [chartState, columns]
   );
 
   const debouncedUpdateFilterFunction = useCallback(
@@ -134,9 +80,8 @@ const FilterBuilder = ({ columns }) => {
     [updateFilterFunction]
   );
 
-  const addFilter = () => {
+  const addFilter = () =>
     setFilters([...filters, { column: "", operator: "==", value: "" }]);
-  };
 
   const removeFilter = (index) => {
     const newFilters = filters.filter((_, i) => i !== index);
@@ -152,49 +97,39 @@ const FilterBuilder = ({ columns }) => {
   };
 
   const getOperators = (column) => {
-    if (column.variableType === "categorical") {
-      return [
-        "==",
-        "!=",
-        "in",
-        "not in",
-        "contains",
-        "starts with",
-        "ends with",
-      ];
-    } else if (
-      column.variableType === "quantitative" ||
-      column.variableType === "integer"
-    ) {
-      return ["==", "!=", ">", "<", ">=", "<=", "between"];
-    }
-    // Commenting out date-specific operators
-    // else if (column.colType === "date") {
-    //   return ["==", "!=", "before", "after", "between"];
-    // }
-    return ["==", "!="];
+    const commonOperators = ["==", "!="];
+    const categoricalOperators = [
+      "in",
+      "not in",
+      "contains",
+      "starts with",
+      "ends with",
+    ];
+    const quantitativeOperators = [">", "<", ">=", "<=", "between"];
+
+    return column.variableType === "categorical"
+      ? [...commonOperators, ...categoricalOperators]
+      : column.variableType === "quantitative" ||
+          column.variableType === "integer"
+        ? [...commonOperators, ...quantitativeOperators]
+        : commonOperators;
   };
 
   const getFilterPreview = (filter, column) => {
     if (!filter.column || !filter.operator || filter.value === "") return "";
-    console.log(column);
     const columnName = column ? column.title : filter.column;
     let preview = `${columnName} ${filter.operator} `;
 
-    switch (filter.operator) {
-      case "in":
-      case "not in":
-        preview += filter.value
-          .split(",")
-          .map((v) => `"${v.trim()}"`)
-          .join(", ");
-        break;
-      case "between":
-        const [start, end] = filter.value.split(",");
-        preview += `${start} and ${end}`;
-        break;
-      default:
-        preview += `"${filter.value}"`;
+    if (["in", "not in"].includes(filter.operator)) {
+      preview += filter.value
+        .split(",")
+        .map((v) => `"${v.trim()}"`)
+        .join(", ");
+    } else if (filter.operator === "between") {
+      const [start, end] = filter.value.split(",");
+      preview += `${start} and ${end}`;
+    } else {
+      preview += `"${filter.value}"`;
     }
 
     return preview;
@@ -204,120 +139,76 @@ const FilterBuilder = ({ columns }) => {
     const commonInputProps = {
       className: "w-full",
       placeholder: "Value",
+      value: filter.value,
+      onChange: (e) => updateFilter(index, "value", e.target.value),
     };
 
-    if (column.variableType === "categorical") {
-      return (
-        <TextInput
-          {...commonInputProps}
-          value={filter.value}
-          onChange={(e) => updateFilter(index, "value", e.target.value)}
-          placeholder={
-            ["in", "not in"].includes(filter.operator)
-              ? "Comma-separated values"
-              : "Value"
-          }
-        />
-      );
-    }
+    let inputType = "text";
+    let placeholder = "Value";
 
     if (
-      column.variableType === "quantitative" ||
-      column.variableType === "integer"
+      column.variableType === "categorical" &&
+      ["in", "not in"].includes(filter.operator)
     ) {
-      if (filter.operator === "between") {
-        return (
-          <Input.Group compact>
-            <TextInput
-              {...commonInputProps}
-              style={{ width: "50%" }}
-              type="number"
-              value={filter.value.split(",")[0] || ""}
-              onChange={(e) =>
-                updateFilter(
-                  index,
-                  "value",
-                  `${e.target.value},${filter.value.split(",")[1] || ""}`
-                )
-              }
-              placeholder="From"
-            />
-            <TextInput
-              {...commonInputProps}
-              style={{ width: "50%" }}
-              type="number"
-              value={filter.value.split(",")[1] || ""}
-              onChange={(e) =>
-                updateFilter(
-                  index,
-                  "value",
-                  `${filter.value.split(",")[0] || ""},${e.target.value}`
-                )
-              }
-              placeholder="To"
-            />
-          </Input.Group>
-        );
-      }
-      return (
-        <TextInput
-          {...commonInputProps}
-          type="number"
-          value={filter.value}
-          onChange={(e) => updateFilter(index, "value", e.target.value)}
-        />
-      );
+      placeholder = "Comma-separated values";
+    } else if (
+      (column.variableType === "quantitative" ||
+        column.variableType === "integer") &&
+      filter.operator !== "between"
+    ) {
+      inputType = "number";
     }
 
-    // Commenting out date-specific input
-    // if (column.colType === "date") {
-    //   return filter.operator === "between" ? (
-    //     <RangePicker
-    //       {...commonInputProps}
-    //       value={filter.value.split(",").map((v) => (v ? new Date(v) : null))}
-    //       onChange={(dates, dateStrings) =>
-    //         updateFilter(index, "value", dateStrings.join(","))
-    //       }
-    //     />
-    //   ) : (
-    //     <DatePicker
-    //       {...commonInputProps}
-    //       value={filter.value ? new Date(filter.value) : null}
-    //       onChange={(date, dateString) =>
-    //         updateFilter(index, "value", dateString)
-    //       }
-    //     />
-    //   );
-    // }
+    if (filter.operator === "between") {
+      const [start, end] = filter.value.split(",");
+      return (
+        <div className="flex gap-2">
+          <TextInput
+            {...commonInputProps}
+            type="number"
+            className="w-1/2"
+            placeholder="From"
+            value={start || ""}
+            onChange={(e) =>
+              updateFilter(index, "value", `${e.target.value},${end || ""}`)
+            }
+          />
+          <TextInput
+            {...commonInputProps}
+            type="number"
+            className="w-1/2"
+            placeholder="To"
+            value={end || ""}
+            onChange={(e) =>
+              updateFilter(index, "value", `${start || ""},${e.target.value}`)
+            }
+          />
+        </div>
+      );
+    }
 
     return (
       <TextInput
         {...commonInputProps}
-        value={filter.value}
-        onChange={(e) => updateFilter(index, "value", e.target.value)}
+        type={inputType}
+        placeholder={placeholder}
       />
     );
   };
 
   const COLUMN_ICONS = {
-    // date: CalendarIcon,
     quantitative: HashIcon,
     categorical: CaseSensitive,
   };
 
   const renderColumnOption = (column) => {
-    // Skip date columns
-    if (column.colType === "date") {
-      return null;
-    }
+    if (column.colType === "date") return null;
 
     const IconComponent = COLUMN_ICONS[column.variableType];
     return (
       <Option key={column.dataIndex} value={column.dataIndex}>
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          {IconComponent && (
-            <IconComponent style={{ opacity: 0.5 }} size={14} />
-          )}
+        <div className="flex items-center gap-2">
+          {IconComponent && <IconComponent className="opacity-50" size={14} />}
           <span>{column.title}</span>
         </div>
       </Option>
@@ -325,7 +216,7 @@ const FilterBuilder = ({ columns }) => {
   };
 
   return (
-    <Space direction="vertical" size="middle" style={{ width: "100%" }}>
+    <Space direction="vertical" size="middle" className="w-full">
       {filters.map((filter, index) => {
         const column = columns.find((c) => c.dataIndex === filter.column);
         const filterPreview = getFilterPreview(filter, column);
@@ -339,14 +230,12 @@ const FilterBuilder = ({ columns }) => {
             key={index}
             size="small"
             title={
-              <div
-                style={{ display: "flex", alignItems: "center", gap: "8px" }}
-              >
+              <div className="flex items-center gap-2">
                 {IconComponent && (
-                  <IconComponent style={{ opacity: 0.5 }} size={14} />
+                  <IconComponent className="opacity-50" size={14} />
                 )}
                 {filterPreview ? (
-                  <Tag color="blue" style={{ marginLeft: 8 }}>
+                  <Tag color="blue" className="ml-2">
                     {filterPreview}
                   </Tag>
                 ) : (
@@ -363,20 +252,20 @@ const FilterBuilder = ({ columns }) => {
               />
             }
           >
-            <Space direction="vertical" style={{ width: "100%" }}>
+            <Space direction="vertical" className="w-full">
               <div className="flex gap-2">
                 <Select
-                  style={{ width: "100%" }}
+                  className="w-full"
                   value={filter.column}
                   onChange={(value) => updateFilter(index, "column", value)}
                   placeholder="Select column"
                 >
                   {columns
-                    .filter((col) => col.colType !== "date") // Filter out date columns
+                    .filter((col) => col.colType !== "date")
                     .map(renderColumnOption)}
                 </Select>
                 <Select
-                  style={{ width: "100%" }}
+                  className="w-full"
                   value={filter.operator}
                   onChange={(value) => updateFilter(index, "operator", value)}
                   placeholder="Select operator"
@@ -390,12 +279,16 @@ const FilterBuilder = ({ columns }) => {
                 </Select>
               </div>
               {column && renderFilterInput(filter, index, column)}
-              <Text> </Text>
             </Space>
           </Card>
         );
       })}
-      <Button type="dashed" onClick={addFilter} block icon={<PlusOutlined />}>
+      <Button
+        type="dashed"
+        onClick={addFilter}
+        className="w-full"
+        icon={<PlusOutlined />}
+      >
         Add Filter
       </Button>
     </Space>
