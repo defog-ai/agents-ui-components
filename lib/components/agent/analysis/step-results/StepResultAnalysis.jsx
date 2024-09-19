@@ -13,6 +13,9 @@ export default function StepResultAnalysis({
   const [loading, setLoading] = useState(false);
   const messageManager = useContext(MessageManagerContext);
 
+  const requested = useRef(false);
+
+  console.log(question, data_csv);
   useEffect(() => {
     async function analyseData() {
       try {
@@ -76,7 +79,10 @@ export default function StepResultAnalysis({
       }
     }
 
-    analyseData();
+    if (!requested.current && data_csv) {
+      analyseData();
+      requested.current = true;
+    }
   }, []);
 
   return (
