@@ -81,31 +81,33 @@ const FilterBuilder = ({ columns }) => {
   );
   useEffect(() => {
     const selectedColumnKeys = Object.values(chartState.selectedColumns).flat();
-    const newFilters = filters.filter((filter) =>
-      selectedColumnKeys.includes(filter.column)
+    const newFilters = filters.filter(
+      (filter) =>
+        selectedColumnKeys.includes(filter.column) || filter.column === ""
     );
 
     if (JSON.stringify(newFilters) !== JSON.stringify(filters)) {
       setFilters(newFilters);
+      updateFilterFunction(newFilters);
     }
-  }, [chartState.selectedColumns, filters]);
+  }, [chartState.selectedColumns, filters, updateFilterFunction]);
 
-  const addFilter = () =>
-    setFilters([...filters, { column: "", operator: "==", value: "" }]);
+  const addFilter = () => {
+    const newFilters = [...filters, { column: "", operator: "==", value: "" }];
+    setFilters(newFilters);
+  };
 
   const removeFilter = (index) => {
     const newFilters = filters.filter((_, i) => i !== index);
     setFilters(newFilters);
-    updateFilterFunction(newFilters);
   };
 
   const updateFilter = (index, field, value) => {
     const newFilters = [...filters];
     newFilters[index][field] = value;
     setFilters(newFilters);
-    debouncedUpdateFilterFunction(newFilters);
+    updateFilterFunction(newFilters);
   };
-
   const getOperators = (column) => {
     const commonOperators = ["==", "!="];
     const categoricalOperators = [
