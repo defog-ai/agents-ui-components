@@ -100,4 +100,6 @@ test("can ask sql-only question", async ({ page }) => {
     .click({ timeout: 3000 });
 
   await page.waitForTimeout(3000);
+
+  // make sure we see the two tabs of sql/code and analysis
 });
