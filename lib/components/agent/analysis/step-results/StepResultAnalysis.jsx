@@ -43,7 +43,7 @@ export default function StepResultAnalysis({
           setLoading(false);
           // throw new Error("Error analysing data");
           // return quitely, for backwards compatibility
-          return
+          return;
         }
 
         const responseJson = await response.json();
@@ -71,7 +71,6 @@ export default function StepResultAnalysis({
         setToolRunAnalysis(newAnalysis);
       } catch (error) {
         console.error(error);
-        messageManager.error("Error analysing data");
       } finally {
         setLoading(false);
       }
