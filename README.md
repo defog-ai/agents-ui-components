@@ -53,4 +53,8 @@ To manually run tests: `npx playwright test --ui`
 
 **Debugging:**
 
-To debug tests, I recommend following this guide here which lets you use a VS Code extension. https://playwright.dev/docs/getting-started-vscode
+To debug tests, I recommend following this guide: https://playwright.dev/docs/debug
+
+(Using the VS Code extension might be the best option).
+
+Here's a loom video showing how you can debug your tests: https://www.loom.com/share/a4c05d41dced4855a525634f310b1449

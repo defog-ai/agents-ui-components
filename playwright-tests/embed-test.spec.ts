@@ -39,11 +39,7 @@ async function setSqlOnly(page: Page, sqlOnly: boolean = true) {
       (await page.getByLabel("Advanced").getAttribute("aria-checked")) ===
       "true";
 
-    console.log("Ischecked", isChecked);
-    console.log("sqlOnly", sqlOnly);
-
     if ((sqlOnly && !isChecked) || (!sqlOnly && isChecked)) {
-      console.log("done");
       done = true;
       break;
     }
