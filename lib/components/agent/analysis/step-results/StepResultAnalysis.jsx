@@ -40,7 +40,10 @@ export default function StepResultAnalysis({
         });
 
         if (!response.ok) {
-          throw new Error("Error analysing data");
+          setLoading(false);
+          // throw new Error("Error analysing data");
+          // return quitely, for backwards compatibility
+          return
         }
 
         const responseJson = await response.json();
