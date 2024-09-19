@@ -99,18 +99,18 @@ test("can ask sql-only question", async ({ page }) => {
 
   await page.waitForTimeout(3000);
 
-  // listen to the network response for `/generate_step`, and check if the response is successful
-  const response = await page.waitForResponse(
-    response => response.url().includes("/generate_step")
-  );
-  expect(response.ok()).toBe(true);
+// listen to the network response for `/generate_step`, and check if the response is successful
+const response = await page.waitForResponse(
+  response => response.url().includes("/generate_step")
+);
+expect(response.ok()).toBe(true);
 
   // make sure we see the sql/code tab
   // TODO: is there a better way to test this?
   expect(await page.getByText("SQL/Code")).toBeVisible();
 
   // click on the analysis tab
-  await page.getByText("Analysis").first().click();
+  await page.locator("nav.divide-x div").nth(2).click();
   
   // make sure that we see an element with a `divide-y` class  
   expect(await page.locator("table.divide-y").first()).toBeVisible();
