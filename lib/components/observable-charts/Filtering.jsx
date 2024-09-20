@@ -291,7 +291,7 @@ const FilterBuilder = ({ columns }) => {
                 <Select
                   className="w-full"
                   value={filter.operator}
-                  disabled={!filter.isValid}
+                  disabled={!filter.isValid || !filter.column}
                   onChange={(value) => updateFilter(index, "operator", value)}
                   placeholder="Select operator"
                 >
