@@ -233,7 +233,13 @@ const FilterBuilder = ({ columns }) => {
   };
 
   return (
-    <Space direction="vertical" size="middle" className="w-full">
+    <Space direction="vertical" size="small" className="w-full">
+      <h3 className="pb-1 font-bold border-b input-label border-black/20">
+        Filtering
+      </h3>
+      <p className="text-xs text-gray-500">
+        Filter data based on selected columns
+      </p>
       {filters.map((filter, index) => {
         const column = columns.find((c) => c.dataIndex === filter.column);
         const filterPreview = getFilterPreview(filter, column);
@@ -310,12 +316,7 @@ const FilterBuilder = ({ columns }) => {
           </Card>
         );
       })}
-      <Button
-        type="dashed"
-        onClick={addFilter}
-        className="w-full"
-        icon={<PlusOutlined />}
-      >
+      <Button onClick={addFilter} className="w-full" icon={<PlusOutlined />}>
         Add Filter
       </Button>
     </Space>
