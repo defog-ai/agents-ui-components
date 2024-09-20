@@ -179,6 +179,10 @@ export const AnalysisAgent = ({
         plannerQuestionSuffix,
         previousQuestions,
         onNewData: onMainSocketMessage,
+        onError: (e) => {
+          messageManager.error(e);
+          setGlobalLoading(false);
+        },
         onManagerDestroyed: onManagerDestroyed,
         createAnalysisRequestBody,
         mainSocket: null, // Add mainSocket property
@@ -294,7 +298,13 @@ export const AnalysisAgent = ({
         }
       }
     },
-    [analysisManager, setGlobalLoading, messageManager, sqlOnly]
+    [
+      analysisManager,
+      setGlobalLoading,
+      messageManager,
+      sqlOnly,
+      hasExternalSearchBar,
+    ]
   );
 
   const handleReRun = useCallback(
