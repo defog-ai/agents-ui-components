@@ -104,7 +104,7 @@ export const AnalysisAgent = ({
   // we flush these pending updates to the actual analysis data when:
   // 1. the active node changes
   // 2. the user submits the step for re running
-  const [pendingStepUpdates, setPendingStepUpdates] = useState([]);
+  const pendingStepUpdates = useRef({});
 
   const windowSize = useWindowSize();
   const collapsed = useMemo(() => {
@@ -179,6 +179,10 @@ export const AnalysisAgent = ({
         plannerQuestionSuffix,
         previousQuestions,
         onNewData: onMainSocketMessage,
+        onAbortError: (e) => {
+          messageManager.error(e);
+          setGlobalLoading(false);
+        },
         onManagerDestroyed: onManagerDestroyed,
         createAnalysisRequestBody,
         mainSocket: null, // Add mainSocket property
@@ -215,9 +219,10 @@ export const AnalysisAgent = ({
   const setActiveNode = useCallback(
     (node) => {
       setActiveNodePrivate(node);
-      analysisManager.updateStepData(pendingStepUpdates);
+      analysisManager.updateStepData(pendingStepUpdates.current);
+      pendingStepUpdates.current = {};
     },
-    [setActiveNodePrivate, pendingStepUpdates, analysisManager]
+    [setActiveNodePrivate, analysisManager]
   );
 
   useEffect(() => {
@@ -294,7 +299,13 @@ export const AnalysisAgent = ({
         }
       }
     },
-    [analysisManager, setGlobalLoading, messageManager, sqlOnly]
+    [
+      analysisManager,
+      setGlobalLoading,
+      messageManager,
+      sqlOnly,
+      hasExternalSearchBar,
+    ]
   );
 
   const handleReRun = useCallback(
@@ -308,7 +319,8 @@ export const AnalysisAgent = ({
 
       try {
         // first flush any updates
-        analysisManager.updateStepData(pendingStepUpdates);
+        analysisManager.updateStepData(pendingStepUpdates.current);
+        pendingStepUpdates.current = {};
 
         await analysisManager.reRun(
           stepId,
@@ -324,7 +336,6 @@ export const AnalysisAgent = ({
       JSON.stringify(activeNode),
       dag,
       analysisManager,
-      pendingStepUpdates,
       agentConfigContext?.val?.sqliteConn,
       activeNode,
       messageManager,
@@ -496,15 +507,14 @@ export const AnalysisAgent = ({
                                 if (!analysisManager) return;
                                 if (analysisBusy) return;
 
-                                // analysisManager.updateStepData(updates);
-                                setPendingStepUpdates((prev) => ({
-                                  ...prev,
+                                pendingStepUpdates.current = {
+                                  ...pendingStepUpdates.current,
                                   [stepId]: Object.assign(
                                     {},
-                                    prev[stepId],
+                                    pendingStepUpdates.current[stepId],
                                     updates
                                   ),
-                                }));
+                                };
                               }}
                               tools={tools}
                               analysisBusy={analysisBusy}

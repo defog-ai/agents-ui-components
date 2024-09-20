@@ -11,7 +11,6 @@ export default function StepResultAnalysis({
 }) {
   const [toolRunAnalysis, setToolRunAnalysis] = useState("");
   const [loading, setLoading] = useState(false);
-  const messageManager = useContext(MessageManagerContext);
 
   useEffect(() => {
     async function analyseData() {
@@ -77,7 +76,7 @@ export default function StepResultAnalysis({
     }
 
     analyseData();
-  }, []);
+  }, [data_csv, question]);
 
   return (
     <div
