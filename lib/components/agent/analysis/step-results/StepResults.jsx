@@ -14,7 +14,7 @@ import { AgentConfigContext } from "../../../context/AgentContext";
 import { SpinningLoader } from "@ui-components";
 import { v4 } from "uuid";
 import SQLFeedback from "./SQLFeedback";
-import StepResultAnalysis from "./StepResultAnalysis"
+import StepResultAnalysis from "./StepResultAnalysis";
 
 function parseOutputs(data, analysisData) {
   let parsedOutputs = {};
@@ -328,13 +328,18 @@ export function StepResults({
                   />
                 )}
 
-                <StepResultAnalysis
-                  keyName={keyName}
-                  question={step?.inputs?.question}
-                  data_csv={step?.outputs?.answer?.data}
-                  sql={step?.sql}
-                  apiEndpoint={apiEndpoint}
-                />
+                {parsedOutputs &&
+                  Object.values(parsedOutputs) &&
+                  Object.values(parsedOutputs).length &&
+                  Object.values(parsedOutputs)[0]?.csvString && (
+                    <StepResultAnalysis
+                      keyName={keyName}
+                      question={analysisData?.user_question}
+                      data_csv={Object.values(parsedOutputs)[0]?.csvString}
+                      sql={step?.sql}
+                      apiEndpoint={apiEndpoint}
+                    />
+                  )}
               </div>
             );
           })

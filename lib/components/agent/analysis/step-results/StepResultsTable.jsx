@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo, useRef } from "react";
-import { Tabs, Button, message, Popover } from "antd";
+import { Tabs, message, Popover } from "antd";
 import { chartNames, roundColumns } from "../../agentUtils";
 
 import {
@@ -21,7 +21,7 @@ import "prismjs/components/prism-python";
 import "prismjs/themes/prism.css";
 import { roundNumber } from "../../../utils/utils";
 import setupBaseUrl from "../../../utils/setupBaseUrl";
-import { Table } from "@ui-components";
+import { Button, Table } from "@ui-components";
 import { ChartContainer } from "../../../observable-charts/ChartContainer";
 
 // tabBarLeftContent: extra content for the tab bar on the left side
@@ -305,12 +305,11 @@ export function StepResultsTable({
               onClick={async () => {
                 await saveCsv();
               }}
-              size="small"
               title="Download CSV"
-              loading={csvLoading}
               disabled={csvLoading}
+              variant="primary"
             >
-              <ArrowDownTrayIcon className="w-4 h-4" />
+              Download CSV <ArrowDownTrayIcon className="w-4 h-4" />
             </Button>
           ),
         }}

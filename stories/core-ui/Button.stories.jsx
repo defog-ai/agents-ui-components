@@ -16,8 +16,18 @@ export default {
     },
     onClick: { control: null },
   },
-  render: ({ text, ...args }) => {
-    return <Button {...args}>{text || "Click me"}</Button>;
+  render: ({ text, list = null, ...args }) => {
+    return list ? (
+      <div className="flex flex-row gap-2">
+        {list.map((item, i) => (
+          <Button key={i} {...item.args}>
+            {item.args.text}
+          </Button>
+        ))}
+      </div>
+    ) : (
+      <Button {...args}>{text || "Click me"}</Button>
+    );
   },
 };
 
@@ -29,23 +39,21 @@ export const Disabled = {
   args: { disabled: true, text: "Can't click me" },
 };
 
+export const Variants = {
+  args: {
+    list: [
+      { args: { variant: "normal", text: "normal" } },
+      { args: { variant: "primary", text: "primary" } },
+      { args: { variant: "danger", text: "danger" } },
+    ],
+  },
+};
+
 export const Clicked = {
   name: "With click handler",
   args: {
     onClick: (ev) => {
       alert("clicked!");
     },
-  },
-};
-
-export const Styled = {
-  name: "With some tailwind classes and click handler",
-  args: {
-    onClick: (ev) => {
-      alert("clicked!");
-    },
-    disabled: false,
-    className:
-      "py-1 py-2 border bg-gray-50 text-gray-500 shadow-sm rounded-md hover:bg-gray-100 hover:text-gray-800",
   },
 };
