@@ -179,7 +179,7 @@ export const AnalysisAgent = ({
         plannerQuestionSuffix,
         previousQuestions,
         onNewData: onMainSocketMessage,
-        onError: (e) => {
+        onAbortError: (e) => {
           messageManager.error(e);
           setGlobalLoading(false);
         },
