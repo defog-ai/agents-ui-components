@@ -100,16 +100,19 @@ test("can ask one sql-only question", async ({ page }) => {
     response.url().includes("/generate_step")
   );
 
-  // wait 3 seconds for the clarifier button to appear, then move on
-  await page.waitForTimeout(3000);
+  // we will either get a clarifier that says "Click here or press enter to"
+  // or we will bypass the clarifier, and have a thing that says "fetching data"
+  const fetchingDataLocator = page.getByText("Fetching data");
 
   // click the clarify submit button
-  const buttonClarify = page.getByRole("button", {
+  const buttonClarifyLocator = page.getByRole("button", {
     name: "Click here or press enter to",
   });
 
-  if ((await buttonClarify.count()) > 0) {
-    await buttonClarify.click();
+  await expect(fetchingDataLocator.or(buttonClarifyLocator)).toBeVisible();
+
+  if ((await buttonClarifyLocator.count()) > 0) {
+    await buttonClarifyLocator.click();
   }
 
   // now wait for the response
@@ -148,9 +151,8 @@ test("can ask one advanced question with send email usage", async ({
     "show me 5 rows and send an email to manas@defog.ai"
   );
 
-  // we will either get a clarifier that says "Clikc here or press enter to"
+  // we will either get a clarifier that says "Click here or press enter to"
   // or we will bypass the clarifier, and have a thing that says "fetching data"
-
   const fetchingDataLocator = page.getByText("Fetching data");
 
   // click the clarify submit button
