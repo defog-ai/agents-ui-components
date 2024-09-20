@@ -22,6 +22,7 @@ function parseOutputs(data, analysisData) {
   Object.keys(data?.outputs || {}).forEach((k, i) => {
     parsedOutputs[k] = {};
     // check if this has data, reactive_vars and chart_images
+    parsedOutputs[k].csvString = data.outputs[k].data;
     if (data.outputs[k].data) {
       parsedOutputs[k].data = parseData(data.outputs[k].data);
     }
@@ -328,13 +329,18 @@ export function StepResults({
                   />
                 )}
 
-                <StepResultAnalysis
-                  keyName={keyName}
-                  question={analysisData?.user_question}
-                  data_csv={Object.values(parsedOutputs)[0]?.csvString}
-                  sql={step?.sql}
-                  apiEndpoint={apiEndpoint}
-                />
+                {parsedOutputs &&
+                  Object.values(parsedOutputs) &&
+                  Object.values(parsedOutputs).length &&
+                  Object.values(parsedOutputs)[0]?.csvString && (
+                    <StepResultAnalysis
+                      keyName={keyName}
+                      question={analysisData?.user_question}
+                      data_csv={Object.values(parsedOutputs)[0]?.csvString}
+                      sql={step?.sql}
+                      apiEndpoint={apiEndpoint}
+                    />
+                  )}
               </div>
             );
           })
@@ -348,26 +354,7 @@ export function StepResults({
         ),
       },
     ];
-  }, [
-    step,
-    parsedOutputs,
-    availableOutputNodes,
-    setActiveNode,
-    handleEdit,
-    parentNodeOutputs,
-    agentConfigContext.val.showCode,
-    showDeleteModal,
-    showModal,
-    handleDelete,
-    handleCancel,
-    stepId,
-    analysisId,
-    apiEndpoint,
-    token,
-    keyName,
-    activeNode,
-    handleReRun,
-  ]);
+  }, [step]);
 
   // rerunningstepsis array of object: {id: res.pre_tool_run_message,
   // timeout: funciton
