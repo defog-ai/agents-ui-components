@@ -228,7 +228,7 @@ export function StepResults({
             <div className="tool-action-buttons flex flex-row gap-2">
               {/* {edited && ( */}
               <StepReRun
-                className="font-mono bg-gray-50 border border-gray-200 text-gray-500 hover:bg-blue-500 hover:text-white"
+                className="font-mono bg-gray-50 border border-gray-200 text-gray-500 hover:bg-blue-500 hover:text-white active:hover:text-white hover:border-transparent"
                 onClick={() => {
                   handleReRun(stepId);
                 }}
@@ -237,7 +237,7 @@ export function StepResults({
               <StepReRun
                 onClick={showModal}
                 text="Delete"
-                className="font-mono bg-gray-50 border border-gray-200 text-gray-500 hover:bg-rose-500 hover:text-white"
+                className="font-mono bg-gray-50 border border-gray-200 text-gray-500 hover:bg-rose-500 hover:text-white active:hover:text-white hover:border-transparent"
               ></StepReRun>
               <Modal
                 okText={"Yes, delete"}
