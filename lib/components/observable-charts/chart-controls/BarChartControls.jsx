@@ -32,14 +32,16 @@ const BarChartControls = () => {
         <Button
           icon={
             chartSpecificOptions.bar?.sort?.x === "y" ? (
-              <ArrowUpNarrowWide className="rotate-90 " />
+              <ArrowUpNarrowWide className="rotate-[270deg] " />
             ) : chartSpecificOptions.bar?.sort?.x === "-y" ? (
-              <ArrowDownWideNarrow className="rotate-90 " />
+              <ArrowDownWideNarrow className="rotate-[270deg] " />
             ) : (
               <ArrowUpDown />
             )
           }
-          className={!chartSpecificOptions.bar?.sort?.x ? "text-gray-400" : ""}
+          className={`${
+            !chartSpecificOptions.bar?.sort?.x ? "text-gray-400" : ""
+          } `}
           onClick={() => {
             const currentSort = chartSpecificOptions.bar?.sort?.x;
             if (!currentSort) {
