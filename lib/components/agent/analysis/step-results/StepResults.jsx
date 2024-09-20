@@ -329,13 +329,18 @@ export function StepResults({
                   />
                 )}
 
-                <StepResultAnalysis
-                  keyName={keyName}
-                  question={analysisData?.user_question}
-                  data_csv={Object.values(parsedOutputs)[0]?.csvString}
-                  sql={step?.sql}
-                  apiEndpoint={apiEndpoint}
-                />
+                {parsedOutputs &&
+                  Object.values(parsedOutputs) &&
+                  Object.values(parsedOutputs).length &&
+                  Object.values(parsedOutputs)[0]?.csvString && (
+                    <StepResultAnalysis
+                      keyName={keyName}
+                      question={analysisData?.user_question}
+                      data_csv={Object.values(parsedOutputs)[0]?.csvString}
+                      sql={step?.sql}
+                      apiEndpoint={apiEndpoint}
+                    />
+                  )}
               </div>
             );
           })
