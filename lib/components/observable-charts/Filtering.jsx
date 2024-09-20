@@ -23,8 +23,8 @@ const FilterBuilder = ({ columns }) => {
     (currentFilters) => {
       const filterFunction = currentFilters.length
         ? (d) =>
-            currentFilters.every(({ column, operator, value }) => {
-              if (!column || !operator || value === "") return true;
+            currentFilters.every(({ column, operator, value, isValid }) => {
+              if (!isValid || !column || !operator || value === "") return true;
               const columnDef = columns.find((c) => c.dataIndex === column);
               const dValue = d[column];
               const compareValue =
@@ -81,33 +81,38 @@ const FilterBuilder = ({ columns }) => {
   );
   useEffect(() => {
     const selectedColumnKeys = Object.values(chartState.selectedColumns).flat();
-    const newFilters = filters.filter(
-      (filter) =>
-        selectedColumnKeys.includes(filter.column) || filter.column === ""
-    );
+    const newFilters = filters.map((filter) => ({
+      ...filter,
+      isValid:
+        selectedColumnKeys.includes(filter.column) || filter.column === "",
+    }));
 
     if (JSON.stringify(newFilters) !== JSON.stringify(filters)) {
       setFilters(newFilters);
-      updateFilterFunction(newFilters);
+      debouncedUpdateFilterFunction(newFilters);
     }
-  }, [chartState.selectedColumns, filters, updateFilterFunction]);
+  }, [chartState.selectedColumns, filters, debouncedUpdateFilterFunction]);
 
   const addFilter = () => {
-    const newFilters = [...filters, { column: "", operator: "==", value: "" }];
-    setFilters(newFilters);
+    setFilters([
+      ...filters,
+      { column: "", operator: "==", value: "", isValid: true },
+    ]);
   };
 
   const removeFilter = (index) => {
     const newFilters = filters.filter((_, i) => i !== index);
     setFilters(newFilters);
+    updateFilterFunction(newFilters);
   };
 
   const updateFilter = (index, field, value) => {
     const newFilters = [...filters];
     newFilters[index][field] = value;
     setFilters(newFilters);
-    updateFilterFunction(newFilters);
+    debouncedUpdateFilterFunction(newFilters);
   };
+
   const getOperators = (column) => {
     const commonOperators = ["==", "!="];
     const categoricalOperators = [
@@ -247,7 +252,7 @@ const FilterBuilder = ({ columns }) => {
                   <IconComponent className="opacity-50" size={14} />
                 )}
                 {filterPreview ? (
-                  <Tag color="blue" className="ml-2">
+                  <Tag color={filter.isValid ? "blue" : "red"} className="ml-2">
                     {filterPreview}
                   </Tag>
                 ) : (
@@ -268,6 +273,7 @@ const FilterBuilder = ({ columns }) => {
               <div className="flex gap-2">
                 <Select
                   className="w-full"
+                  disabled={!filter.isValid}
                   value={filter.column}
                   onChange={(value) => updateFilter(index, "column", value)}
                   placeholder="Select column"
@@ -279,6 +285,7 @@ const FilterBuilder = ({ columns }) => {
                 <Select
                   className="w-full"
                   value={filter.operator}
+                  disabled={!filter.isValid}
                   onChange={(value) => updateFilter(index, "operator", value)}
                   placeholder="Select operator"
                 >
@@ -292,6 +299,14 @@ const FilterBuilder = ({ columns }) => {
               </div>
               {column && renderFilterInput(filter, index, column)}
             </Space>
+            <div className="flex justify-end">
+              {/* if invalid, show error message */}
+              {!filter.isValid && (
+                <div className="pt-2 text-xs text-red-500">
+                  Filter may be outdated and not apply to the chart.
+                </div>
+              )}
+            </div>
           </Card>
         );
       })}
