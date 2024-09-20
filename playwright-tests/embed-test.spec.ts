@@ -167,46 +167,43 @@ test("can ask one advanced question with send email usage", async ({
   let done = false;
   let totalSteps = 0;
 
-  while (!done) {
-    const requestPromise = page.waitForRequest((request) =>
-      request.url().includes("/generate_step")
-    );
-
-    // start waiting for to the network response for `/generate_step`
-    const responsePromise = page.waitForResponse((response) =>
-      response.url().includes("/generate_step")
-    );
-
-    // now wait for the response
-    const request = await requestPromise;
-    const response = await responsePromise;
-
-    expect(response.ok()).toBe(true);
-
-    // ensure that the correct sql_only was sent to the server
-    expect(request.postDataJSON().sql_only).toBe(false);
-
-    const resData = await response.json();
-
-    console.log(resData, resData.done, totalSteps);
-
-    totalSteps++;
-    if (resData.done || totalSteps > 100) {
-      done = true;
+  page.on("request", (request) => {
+    if (request.url().includes("/generate_step")) {
+      // ensure that the correct sql_only was sent to the server
+      expect(request.postDataJSON().sql_only).toBe(false);
     }
+  });
+
+  page.on("response", async (response) => {
+    if (response.url().includes("/generate_step")) {
+      const resData = await response.json();
+      totalSteps++;
+      if (resData.done) {
+        done = true;
+      }
+    }
+  });
+
+  // wait for done to become true
+  const startTime = performance.now();
+
+  // wait for 10 seconds for both steps to complete and done to become true
+  while (!done && performance.now() - startTime < 10000) {
+    await page.waitForTimeout(1000);
   }
 
-  // // make sure we see the sql/code tab
-  // // TODO: is there a better way to test this?
-  // expect(await page.getByText("SQL/Code")).toBeVisible();
+  // once out of the while loop,
+  // expect done to be true
+  // and expect steps to be 2
+  expect(totalSteps).toBe(2);
+  expect(done).toBe(true);
 
-  // // click on the analysis tab
-  // await page.locator("nav.divide-x div").nth(2).click();
+  // make sure we see the sql/code tab
+  expect(await page.getByText("SQL/Code")).toBeVisible();
 
-  // // make sure that we see an element with a `divide-y` class
-  // expect(await page.locator("table.divide-y").first()).toBeVisible();
+  // click on the analysis tab
+  await page.locator("nav.divide-x div").nth(2).click();
 
-  // expect(totalSteps).toBe(2);
-
-  // expect(done).toBe(true);
+  // make sure that we see an element with a `divide-y` class
+  expect(await page.locator("table.divide-y").first()).toBeVisible();
 });
