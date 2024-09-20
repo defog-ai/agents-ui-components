@@ -68,7 +68,7 @@ async function setSqlOnly(page: Page, sqlOnly: boolean = true) {
  */
 async function askQuestionUsingSearchBar(
   page: Page,
-  question: string = "what is the total revenue?"
+  question: string = "show me 5 rows from the business table"
 ) {
   await page.getByPlaceholder("Type your question here").click();
   await page.getByPlaceholder("Type your question here").fill(question);
@@ -82,7 +82,7 @@ test("can select api key name", async ({ page }) => {
   await selectApiKeyName(page);
 });
 
-test("can ask sql-only question", async ({ page }) => {
+test("can ask one sql-only question", async ({ page }) => {
   await page.goto("http://localhost:5173/test/agent-embed/");
 
   await selectApiKeyName(page);
@@ -91,25 +91,116 @@ test("can ask sql-only question", async ({ page }) => {
 
   await askQuestionUsingSearchBar(page);
 
+  const requestPromise = page.waitForRequest((request) =>
+    request.url().includes("/generate_step")
+  );
+
   // start waiting for to the network response for `/generate_step`
   const responsePromise = page.waitForResponse((response) =>
     response.url().includes("/generate_step")
   );
 
-  // click the clarify submit button
-  const buttonClarify = page.getByRole('button', { name: 'Click here or press enter to' });
+  // we will either get a clarifier that says "Click here or press enter to"
+  // or we will bypass the clarifier, and have a thing that says "fetching data"
+  const fetchingDataLocator = page.getByText("Fetching data");
 
-  if (await buttonClarify.count() > 0) {
-    await buttonClarify.click();
+  // click the clarify submit button
+  const buttonClarifyLocator = page.getByRole("button", {
+    name: "Click here or press enter to",
+  });
+
+  await expect(fetchingDataLocator.or(buttonClarifyLocator)).toBeVisible();
+
+  if ((await buttonClarifyLocator.count()) > 0) {
+    await buttonClarifyLocator.click();
   }
 
   // now wait for the response
+  const request = await requestPromise;
   const response = await responsePromise;
 
   expect(response.ok()).toBe(true);
 
+  const resData = await response.json();
+
+  // ensure that the correct sql_only was sent to the server
+  expect(request.postDataJSON().sql_only).toBe(true);
+
   // make sure we see the sql/code tab
   // TODO: is there a better way to test this?
+  await expect(page.getByText("SQL/Code")).toBeVisible();
+
+  // click on the analysis tab
+  await page.locator("nav.divide-x div").nth(2).click();
+
+  // make sure that we see an element with a `divide-y` class
+  expect(await page.locator("table.divide-y").first()).toBeVisible();
+});
+
+test("can ask one advanced question with send email usage", async ({
+  page,
+}) => {
+  await page.goto("http://localhost:5173/test/agent-embed/");
+
+  await selectApiKeyName(page);
+
+  await setSqlOnly(page, false);
+
+  await askQuestionUsingSearchBar(
+    page,
+    "show me 5 rows and send an email to manas@defog.ai"
+  );
+
+  // we will either get a clarifier that says "Click here or press enter to"
+  // or we will bypass the clarifier, and have a thing that says "fetching data"
+  const fetchingDataLocator = page.getByText("Fetching data");
+
+  // click the clarify submit button
+  const buttonClarifyLocator = page.getByRole("button", {
+    name: "Click here or press enter to",
+  });
+
+  await expect(fetchingDataLocator.or(buttonClarifyLocator)).toBeVisible();
+
+  if ((await buttonClarifyLocator.count()) > 0) {
+    await buttonClarifyLocator.click();
+  }
+
+  let done = false;
+  let totalSteps = 0;
+
+  page.on("request", (request) => {
+    if (request.url().includes("/generate_step")) {
+      // ensure that the correct sql_only was sent to the server
+      expect(request.postDataJSON().sql_only).toBe(false);
+    }
+  });
+
+  page.on("response", async (response) => {
+    if (response.url().includes("/generate_step")) {
+      const resData = await response.json();
+      totalSteps++;
+      if (resData.done) {
+        done = true;
+      }
+    }
+  });
+
+  // wait for done to become true
+  const startTime = performance.now();
+
+  // wait for 10 seconds for both steps to complete and done to become true
+  while (!done && performance.now() - startTime < 10000) {
+    await page.waitForTimeout(1000);
+  }
+
+  // once out of the while loop,
+  // expect done to be true
+  // and expect steps to be 2
+  expect(totalSteps).toBe(2);
+  expect(done).toBe(true);
+
+  // make sure we see the sql/code tab
   expect(await page.getByText("SQL/Code")).toBeVisible();
 
   // click on the analysis tab
