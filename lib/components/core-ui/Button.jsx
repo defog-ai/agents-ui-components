@@ -3,15 +3,15 @@ import { twMerge } from "tailwind-merge";
 
 const variantStyles = {
   normal:
-    "border bg-gray-50 text-gray-800 hover:bg-gray-100 hover:text-gray-800 active:bg-gray-200 active:text-gray-800",
+    "border bg-gray-50 text-gray-800 hover:bg-gray-100 hover:text-gray-800 active:text-gray-800",
   primary:
-    "bg-blue-500 text-white hover:bg-blue-600 hover:text-white active:bg-blue-700 active:text-white",
+    "bg-blue-500 text-white hover:bg-blue-600 hover:text-white active:text-white",
   danger:
-    "bg-red-500 text-white hover:bg-red-600 hover:text-white active:bg-red-700 active:text-white",
+    "bg-red-500 text-white hover:bg-red-600 hover:text-white active:text-white",
 };
 
 const disabledStyles =
-  "bg-gray-50 text-gray-300 hover:bg-gray-50 hover:text-gray-300 cursor-not-allowed active:bg-gray-50 active:text-gray-300";
+  "bg-gray-50 text-gray-300 hover:bg-gray-50 hover:text-gray-300 cursor-not-allowed active:bg-gray-50 active:text-gray-300 active:brightness-100";
 
 /**
  * @typedef {Object} ButtonProps
@@ -50,8 +50,7 @@ export function Button({
       }}
       className={twMerge(
         variantStyle,
-        "py-1 px-2 rounded-md text-sm flex flex-row items-center gap-1",
-
+        "py-1 px-2 rounded-md text-sm flex flex-row items-center gap-1 active:brightness-[90%]",
         disabled ? disabledStyles : className
       )}
     >
