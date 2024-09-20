@@ -11,11 +11,7 @@ export default function StepResultAnalysis({
 }) {
   const [toolRunAnalysis, setToolRunAnalysis] = useState("");
   const [loading, setLoading] = useState(false);
-  const messageManager = useContext(MessageManagerContext);
 
-  const requested = useRef(false);
-
-  console.log(question, data_csv);
   useEffect(() => {
     async function analyseData() {
       try {
@@ -79,11 +75,8 @@ export default function StepResultAnalysis({
       }
     }
 
-    if (!requested.current && data_csv) {
-      analyseData();
-      requested.current = true;
-    }
-  }, []);
+    analyseData();
+  }, [data_csv, question]);
 
   return (
     <div
