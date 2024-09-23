@@ -137,7 +137,7 @@ export default function StepResultAnalysis({
               <button
                 key={index}
                 data-testid="follow-on-question"
-                className="text-sm max-w-64 bg-blue-300 text-gray-600 hover:bg-blue-400 hover:text-white active:text-white py-1 px-2 rounded-md"
+                className="cursor-pointer text-sm p-2 m-1 border border-gray-200 rounded-md shadow-sm hover:bg-gray-50 hover:border"
                 onClick={() => {
                   console.log("clicked on follow on question", followOnQuestion);
                   setCurrentQuestion(followOnQuestion);
