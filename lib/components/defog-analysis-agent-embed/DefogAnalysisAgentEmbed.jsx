@@ -224,6 +224,17 @@ export function EmbedInner({
         onSelectDb={(selectedDbName) => setSelectedDbName(selectedDbName)}
         fileUploading={fileUploading}
         onParseCsv={addCsvToDbListAndSqlite}
+        onParseExcel={async ({ file, sheetCsvs }) => {
+          console.log(file, sheetCsvs);
+          for (const sheetName in sheetCsvs) {
+            const { columns, rows } = sheetCsvs[sheetName];
+            await addCsvToDbListAndSqlite({
+              file: { name: `${sheetName}.csv`, size: file?.size || 0 },
+              columns,
+              rows,
+            });
+          }
+        }}
       />
     ),
     [availableDbs, fileUploading]
