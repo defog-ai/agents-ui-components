@@ -130,6 +130,7 @@ export function DraggableInput({
               rootClassNames="grow border-none bg-transparent py-1.5 text-gray-900 px-2 placeholder:text-gray-400 sm:leading-6 text-sm break-all focus:ring-0 focus:outline-none"
               textAreaClassNames="resize-none"
               ref={searchRef}
+              id="main-searchbar"
               disabled={loading}
               defaultRows={1}
               onKeyDown={(ev) => {
