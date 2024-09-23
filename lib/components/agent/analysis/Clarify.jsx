@@ -153,8 +153,8 @@ export default function Clarify({
         <Input
           onChange={(ev) => updateAnswer(ev.target.value, i)}
           defaultValue={q.response}
-          placeholder="Your response"
-          inputClassNames="ring-0 bg-transparent rounded-none border-b border-dotted border-gray-300 focus:border-blue-500 focus:border-solid focus:ring-0 focus:border-b-primary-highlight shadow-none pl-0"
+          placeholder="Your response. Leave blank if the question above is not relevant"
+          inputClassNames="ring-0 bg-transparent rounded-none border-b border-dotted border-gray-300 focus:border-blue-500 focus:border-solid focus:ring-0 focus:border-b-primary-highlight shadow-none pl-0 w-full"
         ></Input>
       );
     },
@@ -196,16 +196,21 @@ export default function Clarify({
               {clarification_questions.map((q, i) => (
                 <div
                   key={q.question}
-                  className="w-full flex place-content-start"
+                  className="w-full"
                 >
-                  <Writer s={q.question} animate={!stageDone}>
-                    <div className="w-full mb-4">
+                  {/* <Writer s={q.question} animate={!stageDone}> */}
+                  <div>
+                    <p className="q-desc m-0 mb-2 text-primary-text">
+                      {q.question}
+                    </p>
+                    <div className="w-full mb-4 min-w-64">
                       <p className="q-desc writer-target m-0 mb-2 text-primary-text"></p>
                       <div className="writer-children">
                         {UIs[q.ui_tool](q, i, q.ui_tool_options)}
                       </div>
                     </div>
-                  </Writer>
+                  </div>
+                  {/* </Writer> */}
                 </div>
               ))}
             </>
@@ -235,7 +240,7 @@ export default function Clarify({
           onClick={() => onSubmit(true)}
           disabled={globalLoading}
         >
-          Press Enter or click here to submit
+          Click here or press enter to submit
         </button>
       )}
     </div>

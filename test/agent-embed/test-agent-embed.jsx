@@ -13,16 +13,16 @@ function QueryDataPage() {
       showAnalysisUnderstanding={true}
       dbs={[
         {
-          keyName: "Sales",
-          name: "Sales",
+          keyName: "Yelp",
+          name: "Yelp",
           predefinedQuestions: [
             "Show me any 5 rows from the dataset",
             "Show me any 40 rows from the dataset",
           ],
         },
         {
-          keyName: "Manufacturing",
-          name: "Manufacturing",
+          keyName: "Restaurants",
+          name: "Restaurants",
           predefinedQuestions: ["Show me any 5 rows from the dataset"],
         },
       ]}
@@ -31,6 +31,4 @@ function QueryDataPage() {
   );
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(
-  <QueryDataPage />
-);
+ReactDOM.createRoot(document.getElementById("root")).render(<QueryDataPage />);

@@ -1,6 +1,6 @@
 {
   "name": "@defogdotai/agents-ui-components",
-  "version": "0.0.35",
+  "version": "0.0.42",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -21,10 +21,6 @@
     "./core-ui": {
       "types": "./dist/core-ui.d.ts",
       "import": "./dist/core-ui.js"
-    },
-    "./tool-editor": {
-      "types": "./dist/tool-editor.d.ts",
-      "import": "./dist/tool-editor.js"
     },
     "./doc": {
       "types": "./dist/doc.d.ts",
@@ -80,6 +76,7 @@
   "devDependencies": {
     "@chromatic-com/storybook": "^1.6.1",
     "@microlink/react-json-view": "^1.23.1",
+    "@playwright/test": "^1.47.1",
     "@storybook/addon-essentials": "^8.2.6",
     "@storybook/addon-interactions": "^8.2.6",
     "@storybook/addon-links": "^8.2.6",
@@ -89,6 +86,7 @@
     "@storybook/react-vite": "^8.2.6",
     "@storybook/test": "^8.2.6",
     "@tailwindcss/forms": "^0.5.7",
+    "@types/node": "^22.5.5",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",

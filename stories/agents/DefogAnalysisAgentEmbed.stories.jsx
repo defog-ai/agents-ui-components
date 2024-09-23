@@ -3,16 +3,16 @@ import "../../lib/styles/index.scss";
 
 const dbs = [
   {
-    keyName: "Manufacturing",
-    name: "Manufacturing",
+    keyName: "Restaurants",
+    name: "Restaurants",
     predefinedQuestions: [
-      "What is the average rejection rate by lot?",
+      "Show me 5 rows",
       "Is there a difference in the plasticity of components that are rejected vs accepted?",
     ],
   },
   {
-    keyName: "Sales",
-    name: "Sales",
+    keyName: "Yelp",
+    name: "Yelp",
     predefinedQuestions: [
       "Who are our top 5 customers by revenue?",
       "What was the month on month change in revenue?",

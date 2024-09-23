@@ -16,7 +16,15 @@ export default {
     },
   },
   tags: ["autodocs"],
-  argTypes: {},
+  argTypes: {
+    disabled: {
+      control: "boolean",
+    },
+    searchBarPlaceholder: {
+      control: "text",
+    },
+    onClick: { control: null },
+  },
   render: (args) => {
     return (
       <Setup

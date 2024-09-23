@@ -1,81 +1,98 @@
-import { useEffect, useState } from "react";
-import { setupWebsocketManager } from "../../../utils/websocket-manager";
-import { message } from "antd";
+import { useContext, useEffect, useRef, useState } from "react";
 import setupBaseUrl from "../../../utils/setupBaseUrl";
-import { SpinningLoader } from "@ui-components";
+import { MessageManagerContext, SpinningLoader } from "@ui-components";
 
 export default function StepResultAnalysis({
+  keyName,
   question,
   data_csv,
   apiEndpoint,
-  image = null,
+  sql,
 }) {
   const [toolRunAnalysis, setToolRunAnalysis] = useState("");
-  const [socketManager, setSocketManager] = useState(null);
-
-  function onMessage(event) {
-    try {
-      if (!event.data) {
-        message.error(
-          "Something went wrong. Please try again or contact us if this persists."
-        );
-      }
-
-      const response = JSON.parse(event.data);
-
-      if (response && response.model_analysis) {
-        setToolRunAnalysis((prev) => {
-          return (prev ? prev : "") + response.model_analysis;
-        });
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  }
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    async function setup() {
-      const urlToConnect = setupBaseUrl({
-        protocol: "ws",
-        path: "analyse_data",
-        apiEndpoint: apiEndpoint,
-      });
+    async function analyseData() {
       try {
-        const mgr = await setupWebsocketManager(urlToConnect, onMessage);
-        setSocketManager(mgr);
-        mgr.send({
-          question,
-          data: data_csv,
-          image: image ? image[0]?.path : null,
+        const urlToConnect = setupBaseUrl({
+          protocol: "http",
+          path: "analyse_data",
+          apiEndpoint: apiEndpoint,
         });
+
+        // send data to the server
+        const data = {
+          question: question,
+          data_csv: data_csv,
+          sql: sql,
+          key_name: keyName,
+        };
+
+        setLoading(true);
+        const response = await fetch(urlToConnect, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        });
+
+        if (!response.ok) {
+          setLoading(false);
+          // throw new Error("Error analysing data");
+          // return quitely, for backwards compatibility
+          return;
+        }
+
+        const responseJson = await response.json();
+
+        const analysis = responseJson.model_analysis;
+        // analysis is currently a giant blob of text that has full stops in the middle of sentences. It is not very readable. we should split into paragraphs
+        // we can split by full stops, but we need to be careful about full stops that are part of numbers, e.g. 1.1
+
+        const paragraphs = analysis.split(". ");
+        let newAnalysis = "";
+        let currentParagraph = "";
+        for (let i = 0; i < paragraphs.length; i++) {
+          currentParagraph += paragraphs[i] + ". ";
+          if (currentParagraph.length > 100) {
+            newAnalysis += currentParagraph + "\n\n";
+            currentParagraph = "";
+          }
+        }
+
+        // if newAnalysis ends with .., remove the last one
+        if (newAnalysis.endsWith("..")) {
+          newAnalysis = newAnalysis.slice(0, -1);
+        }
+
+        setToolRunAnalysis(newAnalysis);
       } catch (error) {
-        console.log(error);
+        console.error(error);
+      } finally {
+        setLoading(false);
       }
     }
 
-    setup();
-
-    return () => {
-      if (socketManager && socketManager.close) {
-        socketManager.close();
-        // also stop the timeout
-        socketManager.clearSocketTimeout();
-      }
-    };
-  }, []);
+    analyseData();
+  }, [data_csv, question]);
 
   return (
-    toolRunAnalysis.slice(0, 4) !== "NONE" && (
-      <div style={{ whiteSpace: "pre-wrap" }} className="max-w-2xl w-full">
-        {!toolRunAnalysis || toolRunAnalysis === "" ? (
-          <div>
-            <SpinningLoader classNames="text-gray-800 mr-0" /> Loading
-            analysis...
-          </div>
-        ) : (
-          <p className="small code p-2">{toolRunAnalysis}</p>
-        )}
-      </div>
-    )
+    <div
+      style={{ whiteSpace: "pre-wrap" }}
+      className="bg-gray-100 rounded my-3 text-sm text-gray-600 p-4"
+    >
+      {loading === true ? (
+        <>
+          <p className="small code p-2">
+            <SpinningLoader />
+            Loading Analysis
+          </p>
+        </>
+      ) : (
+        <p className="">{toolRunAnalysis}</p>
+      )}
+    </div>
   );
 }

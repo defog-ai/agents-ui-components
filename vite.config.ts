@@ -28,7 +28,6 @@ export default ({ mode }) => {
           agent: resolve(__dirname, "lib/agent.ts"),
           doc: resolve(__dirname, "lib/doc.ts"),
           "core-ui": resolve(__dirname, "lib/core-ui.ts"),
-          "tool-editor": resolve(__dirname, "lib/tool-editor.ts"),
           styles: resolve(__dirname, "lib/styles.ts"),
         },
         formats: ["es"],

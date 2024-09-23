@@ -1,4 +1,4 @@
-import { useContext, useEffect, useMemo, useState } from "react";
+import React, { useContext, useEffect, useMemo, useState } from "react";
 import { twMerge } from "tailwind-merge";
 import { SingleSelect } from "./SingleSelect";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/20/solid";
@@ -168,7 +168,7 @@ export function Table({
     return acc;
   }, {});
 
-  const maxPage = Math.ceil(rows.length / pageSize);
+  const maxPage = Math.max(1, Math.ceil(rows.length / pageSize));
 
   function toggleSort(newColumn) {
     let newOrder;

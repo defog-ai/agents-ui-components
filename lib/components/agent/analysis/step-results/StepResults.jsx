@@ -14,6 +14,7 @@ import { AgentConfigContext } from "../../../context/AgentContext";
 import { SpinningLoader } from "@ui-components";
 import { v4 } from "uuid";
 import SQLFeedback from "./SQLFeedback";
+import StepResultAnalysis from "./StepResultAnalysis";
 
 function parseOutputs(data, analysisData) {
   let parsedOutputs = {};
@@ -21,6 +22,7 @@ function parseOutputs(data, analysisData) {
   Object.keys(data?.outputs || {}).forEach((k, i) => {
     parsedOutputs[k] = {};
     // check if this has data, reactive_vars and chart_images
+    parsedOutputs[k].csvString = data.outputs[k].data;
     if (data.outputs[k].data) {
       parsedOutputs[k].data = parseData(data.outputs[k].data);
     }
@@ -227,7 +229,7 @@ export function StepResults({
             <div className="tool-action-buttons flex flex-row gap-2">
               {/* {edited && ( */}
               <StepReRun
-                className="font-mono bg-gray-50 border border-gray-200 text-gray-500 hover:bg-blue-500 hover:text-white"
+                className="font-mono bg-gray-50 border border-gray-200 text-gray-500 hover:bg-blue-500 hover:text-white active:hover:text-white hover:border-transparent"
                 onClick={() => {
                   handleReRun(stepId);
                 }}
@@ -236,7 +238,7 @@ export function StepResults({
               <StepReRun
                 onClick={showModal}
                 text="Delete"
-                className="font-mono bg-gray-50 border border-gray-200 text-gray-500 hover:bg-rose-500 hover:text-white"
+                className="font-mono bg-gray-50 border border-gray-200 text-gray-500 hover:bg-rose-500 hover:text-white active:hover:text-white hover:border-transparent"
               ></StepReRun>
               <Modal
                 okText={"Yes, delete"}
@@ -282,15 +284,17 @@ export function StepResults({
             </div>
             {step?.sql && (
               // get feedback from user if the sql is good or not
-              <SQLFeedback
-                question={step?.inputs?.question}
-                sql={step?.sql}
-                previous_context={step?.inputs?.previous_context}
-                apiEndpoint={apiEndpoint}
-                token={token}
-                keyName={keyName}
-                analysisId={analysisId}
-              />
+              <>
+                <SQLFeedback
+                  question={step?.inputs?.question}
+                  sql={step?.sql}
+                  previous_context={step?.inputs?.previous_context}
+                  apiEndpoint={apiEndpoint}
+                  token={token}
+                  keyName={keyName}
+                  analysisId={analysisId}
+                />
+              </>
             )}
           </ErrorBoundary>
         ),
@@ -324,6 +328,19 @@ export function StepResults({
                     analysisId={analysisId}
                   />
                 )}
+
+                {parsedOutputs &&
+                  Object.values(parsedOutputs) &&
+                  Object.values(parsedOutputs).length &&
+                  Object.values(parsedOutputs)[0]?.csvString && (
+                    <StepResultAnalysis
+                      keyName={keyName}
+                      question={analysisData?.user_question}
+                      data_csv={Object.values(parsedOutputs)[0]?.csvString}
+                      sql={step?.sql}
+                      apiEndpoint={apiEndpoint}
+                    />
+                  )}
               </div>
             );
           })
@@ -337,26 +354,7 @@ export function StepResults({
         ),
       },
     ];
-  }, [
-    step,
-    parsedOutputs,
-    availableOutputNodes,
-    setActiveNode,
-    handleEdit,
-    parentNodeOutputs,
-    agentConfigContext.val.showCode,
-    showDeleteModal,
-    showModal,
-    handleDelete,
-    handleCancel,
-    stepId,
-    analysisId,
-    apiEndpoint,
-    token,
-    keyName,
-    activeNode,
-    handleReRun,
-  ]);
+  }, [step]);
 
   // rerunningstepsis array of object: {id: res.pre_tool_run_message,
   // timeout: funciton
