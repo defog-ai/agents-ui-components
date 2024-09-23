@@ -17,10 +17,17 @@ export function DraggableInput({
   forceSqlOnly = false,
   setSqlOnly,
   sqlOnly,
+  question,
 }) {
   const searchCtr = useRef(null);
   const searchRef = useRef(null);
   const isDragging = useRef(false);
+
+  useEffect(() => {
+    if (question) {
+      searchRef.current.value = question;
+    }
+  }, [question]);
 
   useEffect(() => {
     if (!searchBarDraggable) return;
@@ -123,6 +130,7 @@ export function DraggableInput({
               rootClassNames="grow border-none bg-transparent py-1.5 text-gray-900 px-2 placeholder:text-gray-400 sm:leading-6 text-sm break-all focus:ring-0 focus:outline-none"
               textAreaClassNames="resize-none"
               ref={searchRef}
+              id="main-searchbar"
               disabled={loading}
               defaultRows={1}
               onKeyDown={(ev) => {

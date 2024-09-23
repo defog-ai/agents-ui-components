@@ -85,6 +85,7 @@ export const AnalysisAgent = ({
   initialConfig = {
     analysisManager: null,
   },
+  setCurrentQuestion = (...args) => {},
 }) => {
   const agentConfigContext = useContext(AgentConfigContext);
   const { devMode, apiEndpoint, token } = agentConfigContext.val;
@@ -526,6 +527,7 @@ export const AnalysisAgent = ({
                                   console.log(e.stack);
                                 }
                               }}
+                              setCurrentQuestion={setCurrentQuestion}
                             ></StepResults>
                           )}
                         </div>

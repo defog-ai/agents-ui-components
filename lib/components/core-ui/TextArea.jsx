@@ -71,6 +71,7 @@ let TextArea = forwardRef(function TextArea(
       <div className="relative rounded-md shadow-sm">
         <div className="">
           <textarea
+            data-testid={id}
             ref={ref}
             disabled={disabled}
             rows={defaultRows}
