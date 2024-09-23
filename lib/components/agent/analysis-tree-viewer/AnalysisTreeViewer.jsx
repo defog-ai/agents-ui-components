@@ -10,12 +10,11 @@ import {
 import { AnalysisAgent } from "../analysis/AnalysisAgent";
 import { AnalysisTreeItem } from "./AnalysisTreeItem";
 import { PlusIcon } from "@heroicons/react/20/solid";
-import { sentenceCase, useGhostImage } from "../../utils/utils";
+import { sentenceCase } from "../../utils/utils";
 import { twMerge } from "tailwind-merge";
 import {
   Sidebar,
   MessageManagerContext,
-  useWindowSize,
   breakpoints,
 } from "@ui-components";
 import ErrorBoundary from "../../common/ErrorBoundary";
@@ -48,8 +47,8 @@ export function AnalysisTreeViewer({
 
   const [loading, setLoading] = useState(false);
   const [sqlOnly, setSqlOnly] = useState(true);
+  const [currentQuestion, setCurrentQuestion] = useState("");
 
-  const searchRef = useRef(null);
   const [addToDashboardSelection, setAddToDashboardSelection] = useState(false);
   const [selectedDashboards, setSelectedDashboards] = useState([]);
 
@@ -136,7 +135,6 @@ export function AnalysisTreeViewer({
     });
   }
 
-  window.ref = searchRef;
   // w-0
   return (
     <ErrorBoundary>
@@ -326,6 +324,7 @@ export function AnalysisTreeViewer({
                       initialConfig={{
                         analysisManager: analysis.analysisManager || null,
                       }}
+                      setCurrentQuestion={setCurrentQuestion}
                     />
                   );
                 }
@@ -378,6 +377,7 @@ export function AnalysisTreeViewer({
               forceSqlOnly={forceSqlOnly}
               setSqlOnly={setSqlOnly}
               sqlOnly={sqlOnly}
+              question={currentQuestion}
             />
           </div>
         </div>

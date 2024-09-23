@@ -17,10 +17,17 @@ export function DraggableInput({
   forceSqlOnly = false,
   setSqlOnly,
   sqlOnly,
+  question,
 }) {
   const searchCtr = useRef(null);
   const searchRef = useRef(null);
   const isDragging = useRef(false);
+
+  useEffect(() => {
+    if (question) {
+      searchRef.current.value = question;
+    }
+  }, [question]);
 
   useEffect(() => {
     if (!searchBarDraggable) return;
