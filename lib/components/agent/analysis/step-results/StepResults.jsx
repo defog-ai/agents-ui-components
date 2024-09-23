@@ -66,6 +66,7 @@ export function StepResults({
   handleDeleteSteps = async (...args) => {},
   tools = {},
   analysisBusy = false,
+  setCurrentQuestion=(...args)=>{}
 }) {
   const agentConfigContext = useContext(AgentConfigContext);
   const parsedOutputs = useMemo(() => {
@@ -335,10 +336,11 @@ export function StepResults({
                   Object.values(parsedOutputs)[0]?.csvString && (
                     <StepResultAnalysis
                       keyName={keyName}
-                      question={analysisData?.user_question}
+                      question={step?.inputs?.question}
                       data_csv={Object.values(parsedOutputs)[0]?.csvString}
                       sql={step?.sql}
                       apiEndpoint={apiEndpoint}
+                      setCurrentQuestion={setCurrentQuestion}
                     />
                   )}
               </div>
