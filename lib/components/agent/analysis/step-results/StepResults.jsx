@@ -336,7 +336,7 @@ export function StepResults({
                   Object.values(parsedOutputs)[0]?.csvString && (
                     <StepResultAnalysis
                       keyName={keyName}
-                      question={analysisData?.user_question}
+                      question={step?.inputs?.question}
                       data_csv={Object.values(parsedOutputs)[0]?.csvString}
                       sql={step?.sql}
                       apiEndpoint={apiEndpoint}
