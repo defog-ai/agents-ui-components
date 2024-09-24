@@ -25,13 +25,34 @@ export function EmbedInner({
   uploadedCsvIsSqlOnly = true,
   defaultSidebarOpen = true,
 }) {
-  console.log(dbs);
   const messageManager = useContext(MessageManagerContext);
   const agentConfigContext = useContext(AgentConfigContext);
 
   const { sqliteConn, token, apiEndpoint } = agentConfigContext.val;
 
   const [availableDbs, setAvailableDbs] = useState(dbs);
+
+  useEffect(() => {
+    // to handle edge case where the network request to getApiKeyNames resolves
+    // after first render
+    // we solved this with a loader on query-data, but still keeping this useEffect here
+    // to reflect a prop change
+    // we also can't convert the above availableDbs to a useMemo
+    // because we want to maintain state if there are temp dbs that have been added
+
+    // if the dbs prop changes
+    // we know that everything in the new dbs array is non temp
+    // so we will replace
+    // all non temp dbs with whatever is in the new dbs array
+    // and keep the temp dbs as is
+    setAvailableDbs((prev) => {
+      // get old temp dbs
+      const tempDbs = prev.filter((d) => d.isTemp);
+
+      // keep the new dbs + old temp dbs
+      return [...dbs, ...tempDbs];
+    });
+  }, [dbs]);
 
   const [selectedDbName, setSelectedDbName] = useState(
     dbs.length === 1 ? dbs[0].name : null
