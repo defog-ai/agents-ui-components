@@ -25,6 +25,7 @@ export function EmbedInner({
   uploadedCsvIsSqlOnly = true,
   defaultSidebarOpen = true,
 }) {
+  console.log(dbs);
   const messageManager = useContext(MessageManagerContext);
   const agentConfigContext = useContext(AgentConfigContext);
 

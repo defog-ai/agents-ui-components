@@ -1,9 +1,37 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom/client";
 import "../../lib/styles/index.scss";
 import { DefogAnalysisAgentEmbed } from "../../lib/agent";
 
 function QueryDataPage() {
+  const [apiKeyNames, setApiKeyNames] = useState(["Default DB"]);
+
+  const getApiKeyNames = async (token) => {
+    const res = await fetch(
+      (import.meta.env.VITE_API_ENDPOINT || "") + "/get_api_key_names",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          token: token,
+        }),
+      }
+    );
+    if (!res.ok) {
+      throw new Error(
+        "Failed to get api key names - are you sure your network is working?"
+      );
+    }
+    const data = await res.json();
+    setApiKeyNames(data.api_key_names);
+  };
+
+  useEffect(() => {
+    getApiKeyNames(import.meta.env.VITE_TOKEN);
+  }, []);
+
   return (
     <DefogAnalysisAgentEmbed
       token={import.meta.env.VITE_TOKEN}
@@ -11,21 +39,11 @@ function QueryDataPage() {
       // these are the ones that will be shown for new csvs uploaded
       uploadedCsvPredefinedQuestions={["Show me any 5 rows from the dataset"]}
       showAnalysisUnderstanding={true}
-      dbs={[
-        {
-          keyName: "Yelp",
-          name: "Yelp",
-          predefinedQuestions: [
-            "Show me any 5 rows from the dataset",
-            "Show me any 40 rows from the dataset",
-          ],
-        },
-        {
-          keyName: "Restaurants",
-          name: "Restaurants",
-          predefinedQuestions: ["Show me any 5 rows from the dataset"],
-        },
-      ]}
+      dbs={apiKeyNames.map((name) => ({
+        name: name,
+        keyName: name,
+        predefinedQuestions: [],
+      }))}
       disableMessages={false}
     />
   );
