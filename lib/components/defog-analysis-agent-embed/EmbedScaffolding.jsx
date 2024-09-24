@@ -4,7 +4,12 @@ import {
   MessageManagerContext,
   DropFilesHeadless,
 } from "@ui-components";
-import { isValidFileType, parseCsvFile, parseExcelFile } from "../utils/utils";
+import {
+  FILE_TYPES,
+  isValidFileType,
+  parseCsvFile,
+  parseExcelFile,
+} from "../utils/utils";
 import { twMerge } from "tailwind-merge";
 import { ArrowDownTrayIcon } from "@heroicons/react/20/solid";
 
@@ -78,6 +83,13 @@ export function EmbedScaffolding({
         <div className="self-end ml-auto pl-3">
           {allowUploadFile && (
             <DropFilesHeadless
+              accept={
+                FILE_TYPES.EXCEL +
+                "," +
+                FILE_TYPES.CSV +
+                "," +
+                FILE_TYPES.OLD_EXCEL
+              }
               rootClassNames="flex items-center cursor-pointer group ml-auto self-end"
               disabled={fileUploading}
               onDragEnter={(ev) => {

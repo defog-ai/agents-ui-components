@@ -18,6 +18,7 @@ import React from "react";
  * */
 export function DropFilesHeadless({
   children,
+  accept = "text/csv",
   disabled = false,
   onDrop = (...args) => {},
   onFileSelect = (...args) => {},
@@ -62,7 +63,7 @@ export function DropFilesHeadless({
       >
         <input
           aria-label=""
-          accept="text/csv"
+          accept={accept}
           className="w-full h-full z-[1] opacity-0 absolute left-0 top-0 cursor-pointer"
           type="file"
           disabled={disabled}

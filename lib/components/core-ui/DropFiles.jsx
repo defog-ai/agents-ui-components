@@ -24,6 +24,7 @@ import { twMerge } from "tailwind-merge";
  */
 export function DropFiles({
   label = "Drop files here",
+  accept = "text/csv",
   onDrop = (...args) => {},
   onFileSelect = (...args) => {},
   onDragOver = (...args) => {},
@@ -83,7 +84,7 @@ export function DropFiles({
           </p>
           <input
             aria-label=""
-            accept="text/csv"
+            accept={accept}
             className="cursor-pointer w-full h-full z-[1] opacity-0 absolute left-0 top-0"
             type="file"
             disabled={disabled}

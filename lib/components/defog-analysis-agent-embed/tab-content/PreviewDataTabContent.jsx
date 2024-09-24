@@ -154,6 +154,7 @@ export function PreviewDataTabContent({
               {/* table selector */}
               <div className="flex flex-row items-center mb-4 sticky top-4 z-[20] bg-white p-2 border-b">
                 <SingleSelect
+                  key={keyName}
                   value={selectedTableIdx}
                   onChange={(val) => setSelectedTableIdx(val)}
                   options={tables.map((d, i) => ({

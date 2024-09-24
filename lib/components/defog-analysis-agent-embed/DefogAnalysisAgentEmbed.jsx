@@ -259,7 +259,6 @@ export function EmbedInner({
   };
 
   const addExcelToDbListAndSqlite = async ({ file, sheetCsvs }) => {
-    console.log(file, sheetCsvs);
     const xlsData = {};
     let xlsMetadata = [];
 
@@ -341,6 +340,7 @@ export function EmbedInner({
             nullTab
           ) : (
             <AnalysisTabContent
+              key={selectedDbKeyName}
               predefinedQuestions={selectedDbPredefinedQuestions}
               isTemp={selectedDbIsTemp}
               keyName={selectedDbKeyName}
