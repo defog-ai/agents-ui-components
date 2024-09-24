@@ -7,20 +7,11 @@ import {
   SpinningLoader,
 } from "@ui-components";
 import { ArrowDownTrayIcon } from "@heroicons/react/20/solid";
-import { parseCsvFile, parseExcelFile } from "../../utils/utils";
-
-const FILE_TYPES = {
-  EXCEL: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-  OLD_EXCEL: "application/vnd.ms-excel",
-  CSV: "text/csv",
-};
-
-/**
- * SImple function to check if given gile type exists in the FILE_TYPES object
- */
-function isValidFileType(fileType) {
-  return Object.values(FILE_TYPES).includes(fileType);
-}
+import {
+  isValidFileType,
+  parseCsvFile,
+  parseExcelFile,
+} from "../../utils/utils";
 
 export function TabNullState({
   availableDbs = [],
@@ -57,7 +48,7 @@ export function TabNullState({
           // this is when the user selects a file from the file dialog
           try {
             let file = ev.target.files[0];
-            if (!file || isValidFileType(file.type)) {
+            if (!file || !isValidFileType(file.type)) {
               throw new Error("Only CSV or Excel files are accepted");
             }
 
@@ -67,6 +58,7 @@ export function TabNullState({
               parseExcelFile(file, onParseExcel);
             }
           } catch (e) {
+            console.error(e);
             messageManager.error("Failed to parse the file");
           }
         }}

@@ -10,7 +10,11 @@ import { AnalysisTabContent } from "./tab-content/AnalysisTabContent";
 import { PreviewDataTabContent } from "./tab-content/PreviewDataTabContent";
 import { TabNullState } from "./tab-content/TabNullState";
 import { getColumnDescriptionsForCsv } from "../utils/utils";
-import { addParsedCsvToSqlite, validateTableName } from "../utils/sqlite";
+import {
+  addParsedCsvToSqlite,
+  cleanTableNameForSqlite,
+  runQueryOnDb,
+} from "../utils/sqlite";
 import { AgentConfigContext } from "../context/AgentContext";
 import { Setup } from "../context/Setup";
 
@@ -96,7 +100,23 @@ export function EmbedInner({
 
   const [fileUploading, setFileUploading] = useState(false);
 
-  const addCsvToDbListAndSqlite = async ({ file, columns, rows }) => {
+  /**
+   * Adds a csv to sqlite db + maybe to the availableDbs list.
+   *
+   * If addToAvailableDbs is true, it will also add the csv to the availableDbs list.
+   *
+   * If the file size is >10mb, it will raise an error.
+   *
+   * @param {Object} param0
+   * @param {File} param0.file - The file object.
+   * @param {{dataIndex: string, title: string, key: string}[]} param0.columns - The columns of the csv.
+   * @param {{[column_name: string]: any}[]} param0.rows - The rows of the csv.
+   *
+   */
+  const addCsvToDbListAndSqlite = async (
+    { file, columns, rows },
+    addToAvailableDbs = true
+  ) => {
     try {
       if (!sqliteConn) {
         throw new Error(
@@ -114,7 +134,7 @@ export function EmbedInner({
       if (availableDbs.find((d) => d.name === newDbName)) {
         newDbName = newDbName + "_" + Math.floor(Math.random() * 1000);
       }
-      const sqliteTableName = validateTableName("csv_" + newDbName);
+      const sqliteTableName = cleanTableNameForSqlite("csv_" + newDbName);
 
       let tableData = null;
       let metadata = null;
@@ -132,7 +152,7 @@ export function EmbedInner({
             });
 
           messageManager.info(
-            "CSV parsed, now generating descriptions for columns!"
+            `Table ${newDbName} parsed, now generating descriptions for columns!`
           );
 
           // reformat to a format that PreviewDataTabContent expects
@@ -198,45 +218,96 @@ export function EmbedInner({
         }
       }
 
-      // now add it to our db list
-      setAvailableDbs((prev) => {
-        const newDbs = [...prev];
-        // if there's a temp one, replace it
-        const tempDb = {
-          name: newDbName,
-          keyName: csvFileKeyName,
-          isTemp: true,
-          sqlOnly: uploadedCsvIsSqlOnly && true,
-          metadata: metadata ? metadata : null,
-          data: Object.assign({}, tableData || {}),
-          columns: columns,
-          sqliteTableName,
-          metadataFetchingError: metadata ? false : "Error fetching metadata",
-          predefinedQuestions: uploadedCsvPredefinedQuestions,
-          analysisTreeManager: AnalysisTreeManager(
-            {},
-            "csv_" + Math.floor(Math.random() * 1000)
-          ),
-        };
+      if (addToAvailableDbs) {
+        // now add it to our db list
+        setAvailableDbs((prev) => {
+          const newDbs = [...prev];
+          // if there's a temp one, replace it
+          const tempDb = {
+            name: newDbName,
+            keyName: csvFileKeyName,
+            isTemp: true,
+            sqlOnly: uploadedCsvIsSqlOnly && true,
+            metadata: metadata ? metadata : null,
+            data: Object.assign({}, tableData || {}),
+            columns: columns,
+            sqliteTableName,
+            metadataFetchingError: metadata ? false : "Error fetching metadata",
+            predefinedQuestions: uploadedCsvPredefinedQuestions,
+            analysisTreeManager: AnalysisTreeManager(
+              {},
+              "csv_" + Math.floor(Math.random() * 1000)
+            ),
+          };
 
-        // const existingTempIdx = prev.findIndex((d) => d.isTemp);
-        // if (existingTempIdx >= 0) {
-        //   newDbs[existingTempIdx] = tempDb;
-        // } else {
-        newDbs.push(tempDb);
-        // }
+          newDbs.push(tempDb);
 
-        return newDbs;
-      });
+          return newDbs;
+        });
 
-      // set this to selected db
-      setSelectedDbName(newDbName);
+        // set this to selected db
+        setSelectedDbName(newDbName);
+      }
+      return { metadata, tableData, sqliteTableName };
     } catch (e) {
       console.log(e.stack);
       messageManager.error(e.message);
+      return {};
     } finally {
       setFileUploading(false);
     }
+  };
+
+  const addExcelToDbListAndSqlite = async ({ file, sheetCsvs }) => {
+    console.log(file, sheetCsvs);
+    const xlsData = {};
+    let xlsMetadata = [];
+
+    for (const sheetName in sheetCsvs) {
+      const { columns, rows } = sheetCsvs[sheetName];
+      // add all these to the sqlite db
+      // without adding them db list (we don't want them to show up as separate dbs)
+
+      const { metadata, tableData, sqliteTableName } =
+        await addCsvToDbListAndSqlite(
+          {
+            file: { name: `${sheetName}.csv`, size: file?.size || 0 },
+            columns,
+            rows,
+          },
+          false
+        );
+
+      xlsData[sqliteTableName] = tableData[sqliteTableName];
+      xlsMetadata = xlsMetadata.concat(metadata);
+    }
+
+    const newDbName = file.name.split(".")[0];
+
+    setAvailableDbs((prev) => {
+      const newDbs = [...prev];
+      // if there's a temp one, replace it
+      const tempDb = {
+        name: newDbName,
+        keyName: csvFileKeyName,
+        isTemp: true,
+        sqlOnly: uploadedCsvIsSqlOnly && true,
+        metadata: xlsMetadata ? xlsMetadata : null,
+        data: Object.assign({}, xlsData || {}),
+        columns: xlsMetadata,
+        sqliteTableName: newDbName,
+        metadataFetchingError: xlsMetadata ? false : "Error fetching metadata",
+        predefinedQuestions: uploadedCsvPredefinedQuestions,
+        analysisTreeManager: AnalysisTreeManager(
+          {},
+          "csv_" + Math.floor(Math.random() * 1000)
+        ),
+      };
+
+      newDbs.push(tempDb);
+
+      return newDbs;
+    });
   };
 
   const nullTab = useMemo(
@@ -246,17 +317,7 @@ export function EmbedInner({
         onSelectDb={(selectedDbName) => setSelectedDbName(selectedDbName)}
         fileUploading={fileUploading}
         onParseCsv={addCsvToDbListAndSqlite}
-        onParseExcel={async ({ file, sheetCsvs }) => {
-          console.log(file, sheetCsvs);
-          for (const sheetName in sheetCsvs) {
-            const { columns, rows } = sheetCsvs[sheetName];
-            await addCsvToDbListAndSqlite({
-              file: { name: `${sheetName}.csv`, size: file?.size || 0 },
-              columns,
-              rows,
-            });
-          }
-        }}
+        onParseExcel={addExcelToDbListAndSqlite}
       />
     ),
     [availableDbs, fileUploading]
@@ -391,6 +452,7 @@ export function EmbedInner({
       availableDbs={availableDbs.map((d) => d.name)}
       onDbChange={(selectedDbName) => setSelectedDbName(selectedDbName)}
       onParseCsv={addCsvToDbListAndSqlite}
+      onParseExcel={addExcelToDbListAndSqlite}
       rootClassNames={(selectedDbName) => {
         return (
           "flex flex-col " +

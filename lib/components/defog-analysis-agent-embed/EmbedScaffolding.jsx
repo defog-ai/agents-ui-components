@@ -4,7 +4,7 @@ import {
   MessageManagerContext,
   DropFilesHeadless,
 } from "@ui-components";
-import { parseCsvFile } from "../utils/utils";
+import { isValidFileType, parseCsvFile, parseExcelFile } from "../utils/utils";
 import { twMerge } from "tailwind-merge";
 import { ArrowDownTrayIcon } from "@heroicons/react/20/solid";
 
@@ -28,6 +28,7 @@ export function EmbedScaffolding({
   children = null,
   fileUploading = false,
   onParseCsv = (...args) => {},
+  onParseExcel = (...args) => {},
 }) {
   const [selectedDb, setSelectedDb] = useState(defaultSelectedDb);
   const [dropping, setDropping] = useState(false);
@@ -98,13 +99,17 @@ export function EmbedScaffolding({
                 try {
                   let file = ev.target.files[0];
                   if (!file) return;
-                  if (file.type !== "text/csv") {
-                    throw new Error("Only CSV files are accepted");
+                  if (!isValidFileType(file.type)) {
+                    throw new Error("Only CSV or Excel files are accepted");
                   }
-                  parseCsvFile(file, onParseCsv);
+                  if (file.type === "text/csv") {
+                    parseCsvFile(file, onParseCsv);
+                  } else {
+                    parseExcelFile(file, onParseExcel);
+                  }
                 } catch (e) {
                   messageManager.error(
-                    e.message || "Only CSV files are accepted."
+                    e.message || "Only CSV or Excel files are accepted."
                   );
                   setDropping(false);
                 }
@@ -119,14 +124,18 @@ export function EmbedScaffolding({
                   if (
                     !file.kind ||
                     file.kind !== "file" ||
-                    file.type !== "text/csv"
+                    !isValidFileType(file.type)
                   ) {
-                    throw new Error("Only CSV files are accepted");
+                    throw new Error("Only CSV or Excel files are accepted");
                   }
 
                   file = file.getAsFile();
 
-                  parseCsvFile(file, onParseCsv);
+                  if (file.type === "text/csv") {
+                    parseCsvFile(file, onParseCsv);
+                  } else {
+                    parseExcelFile(file, onParseExcel);
+                  }
                 } catch (e) {
                   messageManager.error(e.message || "Failed to parse the file");
                   console.log(e.stack);
