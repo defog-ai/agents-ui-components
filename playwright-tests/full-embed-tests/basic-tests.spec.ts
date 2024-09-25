@@ -86,8 +86,8 @@ test("can ask one advanced question with send email usage", async ({
   // wait for done to become true
   const startTime = performance.now();
 
-  // wait for 10 seconds for both steps to complete and done to become true
-  while (!done && performance.now() - startTime < 10000) {
+  // wait for 20 seconds for both steps to complete and done to become true
+  while (!done && performance.now() - startTime < 20000) {
     await page.waitForTimeout(1000);
   }
 

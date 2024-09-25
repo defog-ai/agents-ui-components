@@ -14,16 +14,30 @@ export const FILE_TYPES = {
  * await selectApiKeyName(page);
  */
 export async function selectApiKeyName(page: Page) {
-  await page.getByPlaceholder("Select an option").first().click();
+  // either we see the dropdown, or we have a selector with data-db-selected-db=true
+  const selectedDb = page.locator("[data-selected-db=true]");
+  const dropdown = page.getByPlaceholder("Select an option");
+  const tab = page.getByTestId("db-tab");
 
-  const numKeys = await page.getByRole("option").count();
+  await dropdown.or(selectedDb).first().click();
 
-  expect(numKeys).toBeGreaterThan(0);
+  // get number of keys by getting count of tabs
+  const keyCount = await tab.count();
 
-  // select the first one
-  await page.getByRole("option").first().click();
+  expect(keyCount).toBeGreaterThan(0);
 
-  expect(await page.getByText("Quickstart")).toBeVisible();
+  // if there is no selected db, select the first one
+  if ((await selectedDb.count()) === 0) {
+    // select the first key
+    // somehow .click() doesn't work here. dispatchEvent does.
+    // relevant github issue:
+    // https://github.com/microsoft/playwright/issues/13576
+    await tab.first().dispatchEvent("click");
+  }
+
+  expect(await page.getByText("Quickstart")).toBeVisible({ timeout: 2000 });
+
+  await page.waitForTimeout(1000);
 }
 
 /**
