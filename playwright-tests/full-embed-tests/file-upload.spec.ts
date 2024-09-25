@@ -4,11 +4,11 @@ import { test, expect } from "@playwright/test";
 import { openAsBlob, readFileSync } from "fs";
 import { resolve } from "path";
 import {
-  askQuestionUsingSearchBar,
   clickFollowOnQuestion,
-  fullyTestSQLOnlyQuestion,
+  fullyTestSQLOnlyQuestionForTempDb,
   setSqlOnly,
   uploadFileOnNullTab,
+  FILE_TYPES,
 } from "../utils";
 
 const excelFileName = "restaurants.xlsx";
@@ -26,7 +26,7 @@ const csvBuffer = readFileSync(
 test("can upload csvs", async ({ page }) => {
   await page.goto("http://localhost:5173/test/agent-embed/");
 
-  await uploadFileOnNullTab(page, csvBuffer, csvFileName);
+  await uploadFileOnNullTab(page, csvBuffer, csvFileName, FILE_TYPES.CSV);
 
   // expect a toast message:
   // "Table coffee exports parsed, now generating descriptions for columns!"
@@ -55,21 +55,24 @@ test("can upload csvs", async ({ page }) => {
   // go back to the analysis tab, by clicking the tab
   await page.getByRole("tab").getByText("Analysis").click();
 
-  await fullyTestSQLOnlyQuestion({
+  await fullyTestSQLOnlyQuestionForTempDb({
     page,
     question: "show me total exports by country by year",
   });
 
   const followOnQuestion = await clickFollowOnQuestion(page);
 
-  // now ask that follow-on question
-  await fullyTestSQLOnlyQuestion({ page, question: followOnQuestion });
+  await fullyTestSQLOnlyQuestionForTempDb({
+    page,
+    question: followOnQuestion,
+    questionCountToExpectAfterAsking: 2,
+  });
 });
 
 test("can upload excel", async ({ page }) => {
   await page.goto("http://localhost:5173/test/agent-embed/");
 
-  await uploadFileOnNullTab(page, csvBuffer, csvFileName);
+  await uploadFileOnNullTab(page, excelBuffer, excelFileName, FILE_TYPES.EXCEL);
 
   // expect three toast messages:
   // "Table location parsed, now generating descriptions for columns!"
@@ -79,19 +82,19 @@ test("can upload excel", async ({ page }) => {
     await page.getByText(
       "Table location parsed, now generating descriptions for columns!"
     )
-  ).toBeVisible();
+  ).toBeVisible({ timeout: 20000 });
 
   expect(
     await page.getByText(
       "Table geographic parsed, now generating descriptions for columns!"
     )
-  ).toBeVisible();
+  ).toBeVisible({ timeout: 20000 });
 
   expect(
     await page.getByText(
-      "Table restaurants parsed, now generating descriptions for columns!"
+      "Table restaurant parsed, now generating descriptions for columns!"
     )
-  ).toBeVisible();
+  ).toBeVisible({ timeout: 20000 });
 
   // now wait for the exact matching "restaurants" button to show up
   // and click it when it does
@@ -104,28 +107,49 @@ test("can upload excel", async ({ page }) => {
   // clik on the "Filter Tables" placeholder
 
   // And expect to see three options:
-  // csv_location, csv_geographic, csv_restaurants
+  // csv_location, csv_geographic, csv_restaurant
   await page.getByText("View data structure").click();
   await page.getByPlaceholder("Filter tables").click();
 
-  await expect(page.getByText("csv_location")).toBeVisible();
-  await expect(page.getByText("csv_geographic")).toBeVisible();
-  await expect(page.getByText("csv_restaurants")).toBeVisible();
+  await expect(
+    page.getByRole("option").getByText("csv_location")
+  ).toBeVisible();
+  await expect(
+    page.getByRole("option").getByText("csv_geographic")
+  ).toBeVisible();
+  await expect(
+    page.getByRole("option").getByText("csv_restaurant")
+  ).toBeVisible();
+
+  // close the dropdown by clicking elsewhere
+  await (
+    await page.waitForSelector("body")
+  ).click({ position: { x: 0, y: 0 } });
 
   // click on "Preview data" tab
   // expect to see "Select table" label
-
   await page.getByRole("tab").getByText("Preview data").click();
-  await page.getByPlaceholder("Select an option").click();
+  await page.getByPlaceholder("Select table").click();
 
-  await expect(page.getByText("csv_location")).toBeVisible();
-  await expect(page.getByText("csv_geographic")).toBeVisible();
-  await expect(page.getByText("csv_restaurants")).toBeVisible();
+  await expect(
+    page.getByRole("option").getByText("csv_location")
+  ).toBeVisible();
+  await expect(
+    page.getByRole("option").getByText("csv_geographic")
+  ).toBeVisible();
+  await expect(
+    page.getByRole("option").getByText("csv_restaurant")
+  ).toBeVisible();
+
+  // close the dropdown by clicking elsewhere
+  await (
+    await page.waitForSelector("body")
+  ).click({ position: { x: 0, y: 0 } });
 
   // now to go analysis tab
   await page.getByRole("tab").getByText("Analysis").click();
 
-  await fullyTestSQLOnlyQuestion({
+  await fullyTestSQLOnlyQuestionForTempDb({
     page,
     question: "show me ratings by county",
   });

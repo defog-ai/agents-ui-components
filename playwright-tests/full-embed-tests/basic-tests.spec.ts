@@ -3,7 +3,7 @@ import {
   selectApiKeyName,
   setSqlOnly,
   askQuestionUsingSearchBar,
-  fullyTestSQLOnlyQuestion,
+  fullyTestSQLOnlyQuestionForNonTempDb,
   clickFollowOnQuestion,
 } from "../utils";
 
@@ -22,12 +22,12 @@ test("can ask one sql-only question, then follow-on question", async ({
 
   await setSqlOnly(page, true);
 
-  await fullyTestSQLOnlyQuestion({ page });
+  await fullyTestSQLOnlyQuestionForNonTempDb({ page });
 
   const selectedFollowOnQuestion = await clickFollowOnQuestion(page);
 
   // now ask the above question using the search bar
-  await fullyTestSQLOnlyQuestion({
+  await fullyTestSQLOnlyQuestionForNonTempDb({
     page,
     question: selectedFollowOnQuestion,
     questionCountToExpectAfterAsking: 2,

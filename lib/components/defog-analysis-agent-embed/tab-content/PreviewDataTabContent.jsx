@@ -163,6 +163,7 @@ export function PreviewDataTabContent({
                   }))}
                   allowClear={false}
                   label="Select table"
+                  placeholder="Select table"
                   allowCreateNewOption={false}
                 />
               </div>
