@@ -66,7 +66,7 @@ export function StepResults({
   handleDeleteSteps = async (...args) => {},
   tools = {},
   analysisBusy = false,
-  setCurrentQuestion=(...args)=>{}
+  setCurrentQuestion = (...args) => {},
 }) {
   const agentConfigContext = useContext(AgentConfigContext);
   const parsedOutputs = useMemo(() => {
@@ -295,6 +295,47 @@ export function StepResults({
                   keyName={keyName}
                   analysisId={analysisId}
                 />
+                {step?.reference_queries?.length > 0 ? (
+                  <>
+                    <p className="mt-8 mb-2 text-sm font-mono">
+                      <span className="font-bold">Reference Queries</span>:
+                      amongst the golden queries you uploaded, these queries
+                      were selected as reference queries. If there are no
+                      related golden queries, then what you see below might be
+                      irrelevant
+                    </p>
+                    <Tabs
+                      disableSingleSelect={true}
+                      size="small"
+                      defaultSelected="Question 1"
+                      tabs={step.reference_queries.map((query, i) => ({
+                        name: `Question ${i + 1}`,
+                        content: (
+                          <pre
+                            key={i}
+                            className="text-sm text-gray-600 p-2 bg-gray-100 rounded mb-4 whitespace-break-spaces"
+                          >
+                            <div>Question: {query.question}</div>
+                            <br />
+                            <div>{query.sql}</div>
+                          </pre>
+                        ),
+                      }))}
+                    />
+                  </>
+                ) : null}
+
+                {step.instructions_used && (
+                  <>
+                    <p className="mt-8 mb-2 text-sm font-mono">
+                      <span className="font-bold">Relevant Instructions</span>:
+                      these instructions were selected to create this SQL query
+                    </p>
+                    <pre className="text-sm mb-2 text-gray-600 p-2 bg-gray-100 rounded whitespace-break-spaces max-h-64 overflow-auto">
+                      {step.instructions_used}
+                    </pre>
+                  </>
+                )}
               </>
             )}
           </ErrorBoundary>
