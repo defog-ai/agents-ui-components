@@ -1,7 +1,6 @@
 import { ArrowRightIcon, ChevronRightIcon } from "@heroicons/react/20/solid";
 import { CodeEditor } from "./CodeEditor";
 import { useRef, useState } from "react";
-import { Tabs } from "@ui-components";
 
 export function StepOutputs({
   analysisId,
@@ -68,7 +67,7 @@ export function StepOutputs({
       <div className="tool-code mt-8">
         {sql && (
           <>
-            <p className="mb-2 font-bold">SQL</p>
+            <p className="mb-2 font-bold text-sm">SQL</p>
             <CodeEditor
               key={sql}
               className="tool-code-ctr"
@@ -78,42 +77,6 @@ export function StepOutputs({
               handleEdit={handleEdit}
               updateProp={"sql"}
             ></CodeEditor>
-
-            {
-            step?.reference_queries?.length > 0 ?
-            <>
-              <p className="mt-8">
-                <span className="font-bold">Reference Queries</span>: amongst the golden queries you uploaded, these queries were selected as reference queries. If there are no related golden queries, then what you see below might be irrelevant</p>
-              <Tabs
-                disableSingleSelect={true}
-                defaultSelected="Question 1"
-                tabs={step.reference_queries.map((query, i) => (
-                  {
-                    name: `Question ${i + 1}`,
-                    content: (
-                      <pre key={i} className="text-xs text-gray-600 p-2 bg-gray-100 rounded mb-4 whitespace-break-spaces">
-                        <div>Question: {query.question}</div>
-                        <br/>
-                        <div>{query.sql}</div>
-                      </pre>
-                    )
-                  }
-                ))}
-              />
-            </>: null
-            }
-
-            {
-              step.instructions_used &&
-              <>
-                <p className="mt-8">
-                  <span className="font-bold">Relevant Instructions</span>: these instructions were selected to create this SQL query
-                </p>
-                <pre className="text-xs text-gray-600 p-2 bg-gray-100 rounded whitespace-break-spaces max-h-64 overflow-auto">
-                  {step.instructions_used}
-                </pre>
-              </>
-            }
           </>
         )}
         {codeStr && showCode && (
