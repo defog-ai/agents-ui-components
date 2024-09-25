@@ -8,6 +8,7 @@ import {
 } from "@ui-components";
 import { ArrowDownTrayIcon } from "@heroicons/react/20/solid";
 import {
+  FILE_TYPES,
   isValidFileType,
   parseCsvFile,
   parseExcelFile,
@@ -38,6 +39,7 @@ export function TabNullState({
         }}
       />
       <DropFiles
+        acceptedFileTypes={[FILE_TYPES.CSV, FILE_TYPES.EXCEL, FILE_TYPES]}
         label="Or drop a CSV"
         rootClassNames="w-96 max-w-[90%] border p-4 rounded-md text-gray-400"
         disabled={fileUploading}

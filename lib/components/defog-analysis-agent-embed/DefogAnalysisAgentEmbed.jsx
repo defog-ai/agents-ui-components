@@ -97,9 +97,7 @@ export function EmbedInner({
   const [fileUploading, setFileUploading] = useState(false);
 
   /**
-   * Adds a csv to sqlite db + maybe to the availableDbs list.
-   *
-   * If addToAvailableDbs is true, it will also add the csv to the availableDbs list.
+   * Adds a csv to sqlite db.
    *
    * If the file size is >10mb, it will raise an error.
    *
@@ -108,14 +106,9 @@ export function EmbedInner({
    * @param {{dataIndex: string, title: string, key: string}[]} param0.columns - The columns of the csv.
    * @param {{[column_name: string]: any}[]} param0.rows - The rows of the csv.
    *
+   * @returns {{columns: {dataIndex: string, title: string, key: string}[], csvFileKeyName: string, metadata: {column_name: string, table_name: string, data_type: string, column_description?: string}[], tableData: {sqlite_table_name: {data: any[], columns: string[]}}, sqliteTableName: string, newDbName: string}}
    */
-  const addCsvToDbListAndSqlite = async (
-    { file, columns, rows },
-    addToAvailableDbs = true
-  ) => {
-    console.log(file);
-    console.log(columns);
-    console.log(rows);
+  const addCsvToSqlite = async ({ file, columns, rows }) => {
     try {
       if (!sqliteConn) {
         throw new Error(
@@ -217,37 +210,12 @@ export function EmbedInner({
         }
       }
 
-      if (addToAvailableDbs) {
-        // now add it to our db list
-        setAvailableDbs((prev) => {
-          const newDbs = [...prev];
-          // if there's a temp one, replace it
-          const tempDb = {
-            name: newDbName,
-            keyName: csvFileKeyName,
-            isTemp: true,
-            sqlOnly: uploadedCsvIsSqlOnly && true,
-            metadata: metadata ? metadata : null,
-            data: Object.assign({}, tableData || {}),
-            columns: columns,
-            sqliteTableName,
-            metadataFetchingError: metadata ? false : "Error fetching metadata",
-            predefinedQuestions: uploadedCsvPredefinedQuestions,
-            analysisTreeManager: AnalysisTreeManager(
-              {},
-              "csv_" + Math.floor(Math.random() * 1000)
-            ),
-          };
-
-          newDbs.push(tempDb);
-
-          return newDbs;
-        });
-
-        // set this to selected db
-        setSelectedDbName(newDbName);
-      }
-      return { metadata, tableData, sqliteTableName };
+      return {
+        metadata,
+        tableData,
+        sqliteTableName,
+        newDbName,
+      };
     } catch (e) {
       console.log(e.stack);
       messageManager.error(e.message);
@@ -257,31 +225,14 @@ export function EmbedInner({
     }
   };
 
-  const addExcelToDbListAndSqlite = async ({ file, sheetCsvs }) => {
-    const xlsData = {};
-    let xlsMetadata = [];
-
-    for (const sheetName in sheetCsvs) {
-      const { columns, rows } = sheetCsvs[sheetName];
-      // add all these to the sqlite db
-      // without adding them db list (we don't want them to show up as separate dbs)
-
-      const { metadata, tableData, sqliteTableName } =
-        await addCsvToDbListAndSqlite(
-          {
-            file: { name: `${sheetName}.csv`, size: file?.size || 0 },
-            columns,
-            rows,
-          },
-          false
-        );
-
-      xlsData[sqliteTableName] = tableData[sqliteTableName];
-      xlsMetadata = xlsMetadata.concat(metadata);
-    }
-
-    const newDbName = file.name.split(".")[0];
-
+  const addNewDbToAvailableDbs = async ({
+    newDbName,
+    metadata,
+    tableData,
+    sqliteTableName,
+    columns,
+  }) => {
+    // now add it to our db list
     setAvailableDbs((prev) => {
       const newDbs = [...prev];
       // if there's a temp one, replace it
@@ -290,11 +241,11 @@ export function EmbedInner({
         keyName: csvFileKeyName,
         isTemp: true,
         sqlOnly: uploadedCsvIsSqlOnly && true,
-        metadata: xlsMetadata ? xlsMetadata : null,
-        data: Object.assign({}, xlsData || {}),
-        columns: xlsMetadata,
-        sqliteTableName: newDbName,
-        metadataFetchingError: xlsMetadata ? false : "Error fetching metadata",
+        metadata: metadata ? metadata : null,
+        data: Object.assign({}, tableData || {}),
+        columns: columns,
+        sqliteTableName,
+        metadataFetchingError: metadata ? false : "Error fetching metadata",
         predefinedQuestions: uploadedCsvPredefinedQuestions,
         analysisTreeManager: AnalysisTreeManager(
           {},
@@ -306,6 +257,31 @@ export function EmbedInner({
 
       return newDbs;
     });
+
+    // set this to selected db
+    setSelectedDbName(newDbName);
+  };
+
+  const addExcelToSqlite = async ({ file, sheetCsvs }) => {
+    const xlsData = {};
+    let xlsMetadata = [];
+
+    for (const sheetName in sheetCsvs) {
+      const { columns, rows } = sheetCsvs[sheetName];
+      // add all these to the sqlite db
+      // without adding them db list (we don't want them to show up as separate dbs)
+
+      const { metadata, tableData, sqliteTableName } = await addCsvToSqlite({
+        file: { name: `${sheetName}.csv`, size: file?.size || 0 },
+        columns,
+        rows,
+      });
+
+      xlsData[sqliteTableName] = tableData[sqliteTableName];
+      xlsMetadata = xlsMetadata.concat(metadata);
+    }
+
+    return { xlsMetadata, xlsData };
   };
 
   const nullTab = useMemo(
@@ -314,8 +290,34 @@ export function EmbedInner({
         availableDbs={availableDbs}
         onSelectDb={(selectedDbName) => setSelectedDbName(selectedDbName)}
         fileUploading={fileUploading}
-        onParseCsv={addCsvToDbListAndSqlite}
-        onParseExcel={addExcelToDbListAndSqlite}
+        onParseCsv={async ({ file, columns, rows }) => {
+          const { metadata, tableData, sqliteTableName, newDbName } =
+            await addCsvToSqlite({ file, columns, rows });
+
+          await addNewDbToAvailableDbs({
+            newDbName,
+            metadata,
+            tableData,
+            sqliteTableName,
+            columns,
+          });
+        }}
+        onParseExcel={async ({ file, sheetCsvs }) => {
+          const { xlsData, xlsMetadata } = await addExcelToSqlite({
+            file,
+            sheetCsvs,
+          });
+
+          const newDbName = file.name.split(".")[0];
+
+          await addNewDbToAvailableDbs({
+            newDbName,
+            metadata: xlsMetadata,
+            tableData: xlsData,
+            sqliteTableName: newDbName,
+            columns: xlsMetadata,
+          });
+        }}
       />
     ),
     [availableDbs, fileUploading]
@@ -450,8 +452,6 @@ export function EmbedInner({
       defaultSelectedDb={selectedDbName}
       availableDbs={availableDbs.map((d) => d.name)}
       onDbChange={(selectedDbName) => setSelectedDbName(selectedDbName)}
-      onParseCsv={addCsvToDbListAndSqlite}
-      onParseExcel={addExcelToDbListAndSqlite}
       rootClassNames={(selectedDbName) => {
         return (
           "flex flex-col " +
