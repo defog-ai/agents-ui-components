@@ -32,6 +32,10 @@ export function EmbedInner({
 
   const [availableDbs, setAvailableDbs] = useState(dbs);
 
+  const [selectedDbName, setSelectedDbName] = useState(
+    dbs.length === 1 ? dbs[0].name : null
+  );
+
   useEffect(() => {
     // to handle edge case where the network request to getApiKeyNames resolves
     // after first render
@@ -52,11 +56,12 @@ export function EmbedInner({
       // keep the new dbs + old temp dbs
       return [...dbs, ...tempDbs];
     });
-  }, [dbs]);
 
-  const [selectedDbName, setSelectedDbName] = useState(
-    dbs.length === 1 ? dbs[0].name : null
-  );
+    // also set selected db if there's only one
+    if (dbs.length === 1) {
+      setSelectedDbName(dbs[0].name);
+    }
+  }, [dbs]);
 
   const selectedDb = useMemo(() => {
     return availableDbs.find((d) => d.name === selectedDbName);
