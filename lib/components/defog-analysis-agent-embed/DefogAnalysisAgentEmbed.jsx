@@ -114,120 +114,107 @@ export function EmbedInner({
    * @returns {{columns: {dataIndex: string, title: string, key: string}[], csvFileKeyName: string, metadata: {column_name: string, table_name: string, data_type: string, column_description?: string}[], tableData: {sqlite_table_name: {data: any[], columns: string[]}}, sqliteTableName: string, newDbName: string}}
    */
   const addCsvToSqlite = async ({ file, columns, rows }) => {
-    try {
-      if (!sqliteConn) {
-        throw new Error(
-          "SQLite connection not initialized. Please refresh the page and try again. If the error persists, please reach out to us."
+    if (!sqliteConn) {
+      throw new Error(
+        "SQLite connection not initialized. Please refresh the page and try again. If the error persists, please reach out to us."
+      );
+    }
+    // if file size is >10mb, raise error
+    if (limitCsvUploadSize && file.size > maxCsvUploadSize * 1024 * 1024) {
+      throw new Error("File size is too large. Max size allowed is 10MB.");
+    }
+
+    let newDbName = file.name.split(".")[0];
+    // if this already exists, add a random number to the end
+    if (availableDbs.find((d) => d.name === newDbName)) {
+      newDbName = newDbName + "_" + Math.floor(Math.random() * 1000);
+    }
+    const sqliteTableName = cleanTableNameForSqlite("csv_" + newDbName);
+
+    let tableData = null;
+    let metadata = null;
+
+    // also add to sqlite
+    // once done uploading, also add it to sqlite db
+    if (sqliteConn) {
+      const { columnMetadata, fiveRowsAsArraysOfValues } = addParsedCsvToSqlite(
+        {
+          conn: sqliteConn,
+          tableName: sqliteTableName,
+          rows: rows,
+          columns,
+        }
+      );
+
+      messageManager.info(
+        `Table ${newDbName} parsed, now generating descriptions for columns!`
+      );
+
+      // reformat to a format that PreviewDataTabContent expects
+      // this is also the format we get back from integration/preview_table endpoint
+      tableData = {
+        [sqliteTableName]: {
+          data: fiveRowsAsArraysOfValues,
+          columns: columnMetadata.map((d) => d["dataIndex"]),
+        },
+      };
+
+      // if any columns have hasMultipleTypes true, then we need to show a warning
+      const multipleTypesColumns = columnMetadata.filter(
+        (d) => d.hasMultipleTypes
+      );
+
+      if (multipleTypesColumns.length > 0) {
+        messageManager.warning(
+          `Columns ${multipleTypesColumns.map((d) => `'${d.title}'`).join(",")} have values of multiple data types. This might cause issues.`
         );
       }
-      setFileUploading(true);
-      // if file size is >10mb, raise error
-      if (limitCsvUploadSize && file.size > maxCsvUploadSize * 1024 * 1024) {
-        throw new Error("File size is too large. Max size allowed is 10MB.");
+
+      // re shape metadata into something defog servers expect
+      // this will be stored internally and sent inr request bodies
+      // we don't have column descriptions yet
+      metadata = columnMetadata.map((d) => ({
+        column_name: d.dataIndex,
+        table_name: sqliteTableName,
+        data_type: d.dataType,
+      }));
+
+      // get column descriptions.
+      // we do this at the end to have *some metadata* in case we error out here
+      const res = await getColumnDescriptionsForCsv({
+        apiEndpoint: apiEndpoint,
+        keyName: csvFileKeyName,
+        metadata: metadata,
+        tableName: sqliteTableName,
+      });
+
+      if (!res.success || res.error_message || !res.descriptions) {
+        throw new Error(
+          res.error_message ||
+            "Failed to get column descriptions. Queries might be less precise."
+        );
       }
 
-      let newDbName = file.name.split(".")[0];
-      // if this already exists, add a random number to the end
-      if (availableDbs.find((d) => d.name === newDbName)) {
-        newDbName = newDbName + "_" + Math.floor(Math.random() * 1000);
-      }
-      const sqliteTableName = cleanTableNameForSqlite("csv_" + newDbName);
+      const columnDescriptions = res.descriptions;
 
-      let tableData = null;
-      let metadata = null;
+      // if we got them successfully, merge them into the metadata object above
+      metadata.forEach((m) => {
+        const colDesc = columnDescriptions.find(
+          (d) => d.column_name === m.column_name
+        );
 
-      // also add to sqlite
-      // once done uploading, also add it to sqlite db
-      if (sqliteConn) {
-        try {
-          const { columnMetadata, fiveRowsAsArraysOfValues } =
-            addParsedCsvToSqlite({
-              conn: sqliteConn,
-              tableName: sqliteTableName,
-              rows: rows,
-              columns,
-            });
-
-          messageManager.info(
-            `Table ${newDbName} parsed, now generating descriptions for columns!`
-          );
-
-          // reformat to a format that PreviewDataTabContent expects
-          // this is also the format we get back from integration/preview_table endpoint
-          tableData = {
-            [sqliteTableName]: {
-              data: fiveRowsAsArraysOfValues,
-              columns: columnMetadata.map((d) => d["dataIndex"]),
-            },
-          };
-
-          // if any columns have hasMultipleTypes true, then we need to show a warning
-          const multipleTypesColumns = columnMetadata.filter(
-            (d) => d.hasMultipleTypes
-          );
-
-          if (multipleTypesColumns.length > 0) {
-            messageManager.warning(
-              `Columns ${multipleTypesColumns.map((d) => `'${d.title}'`).join(",")} have values of multiple data types. This might cause issues.`
-            );
-          }
-
-          // re shape metadata into something defog servers expect
-          // this will be stored internally and sent inr request bodies
-          // we don't have column descriptions yet
-          metadata = columnMetadata.map((d) => ({
-            column_name: d.dataIndex,
-            table_name: sqliteTableName,
-            data_type: d.dataType,
-          }));
-
-          // get column descriptions.
-          // we do this at the end to have *some metadata* in case we error out here
-          const res = await getColumnDescriptionsForCsv({
-            apiEndpoint: apiEndpoint,
-            keyName: csvFileKeyName,
-            metadata: metadata,
-            tableName: sqliteTableName,
-          });
-
-          if (!res.success || res.error_message || !res.descriptions) {
-            throw new Error(
-              res.error_message ||
-                "Failed to get column descriptions. Queries might be less precise."
-            );
-          }
-
-          const columnDescriptions = res.descriptions;
-
-          // if we got them successfully, merge them into the metadata object above
-          metadata.forEach((m) => {
-            const colDesc = columnDescriptions.find(
-              (d) => d.column_name === m.column_name
-            );
-
-            if (colDesc) {
-              m.column_description = colDesc.column_description;
-            }
-          });
-        } catch (e) {
-          console.log(e.stack);
-          messageManager.error(e.message);
+        if (colDesc) {
+          m.column_description = colDesc.column_description;
         }
-      }
-
-      return {
-        metadata,
-        tableData,
-        sqliteTableName,
-        newDbName,
-      };
-    } catch (e) {
-      console.log(e.stack);
-      messageManager.error(e.message);
-      return {};
-    } finally {
-      setFileUploading(false);
+      });
     }
+
+    return {
+      metadata,
+      tableData,
+      sqliteTableName,
+      newDbName,
+    };
   };
 
   const addNewDbToAvailableDbs = async ({
@@ -296,32 +283,48 @@ export function EmbedInner({
         onSelectDb={(selectedDbName) => setSelectedDbName(selectedDbName)}
         fileUploading={fileUploading}
         onParseCsv={async ({ file, columns, rows }) => {
-          const { metadata, tableData, sqliteTableName, newDbName } =
-            await addCsvToSqlite({ file, columns, rows });
+          try {
+            setFileUploading(true);
+            const { metadata, tableData, sqliteTableName, newDbName } =
+              await addCsvToSqlite({ file, columns, rows });
 
-          await addNewDbToAvailableDbs({
-            newDbName,
-            metadata,
-            tableData,
-            sqliteTableName,
-            columns,
-          });
+            await addNewDbToAvailableDbs({
+              newDbName,
+              metadata,
+              tableData,
+              sqliteTableName,
+              columns,
+            });
+          } catch (e) {
+            messageManager.error("Could not parse your file.");
+            console.trace(e);
+          } finally {
+            setFileUploading(false);
+          }
         }}
         onParseExcel={async ({ file, sheetCsvs }) => {
-          const { xlsData, xlsMetadata } = await addExcelToSqlite({
-            file,
-            sheetCsvs,
-          });
+          try {
+            setFileUploading(true);
+            const { xlsData, xlsMetadata } = await addExcelToSqlite({
+              file,
+              sheetCsvs,
+            });
 
-          const newDbName = file.name.split(".")[0];
+            const newDbName = file.name.split(".")[0];
 
-          await addNewDbToAvailableDbs({
-            newDbName,
-            metadata: xlsMetadata,
-            tableData: xlsData,
-            sqliteTableName: newDbName,
-            columns: xlsMetadata,
-          });
+            await addNewDbToAvailableDbs({
+              newDbName,
+              metadata: xlsMetadata,
+              tableData: xlsData,
+              sqliteTableName: newDbName,
+              columns: xlsMetadata,
+            });
+          } catch (e) {
+            messageManager.error("Could not parse your file.");
+            console.trace(e);
+          } finally {
+            setFileUploading(false);
+          }
         }}
       />
     ),

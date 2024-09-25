@@ -54,29 +54,27 @@ export function EmbedScaffolding({
         <div className="overflow-auto flex flex-row gap-2 px-2 items-center rounded-md">
           {availableDbs.map((db, i) => {
             return (
-              <>
-                <span
-                  data-testid="db-tab"
-                  key={db + "-" + i}
-                  onClick={() => {
-                    if (fileUploading) return;
+              <span
+                data-testid="db-tab"
+                key={db + "-" + i}
+                onClick={() => {
+                  if (fileUploading) return;
 
-                    setSelectedDb(db);
-                    onDbChange(db);
-                  }}
-                  className={twMerge(
-                    "p-2 bg-gray-200 border border-gray-300 rounded-full cursor-pointer whitespace-nowrap",
-                    selectedDb === db
-                      ? "bg-gray-600 border-transparent text-white"
-                      : "hover:bg-gray-300",
-                    fileUploading
-                      ? "cursor-not-allowed bg-gray-200 text-gray-400 hover:bg-gray-200"
-                      : ""
-                  )}
-                >
-                  {db}
-                </span>
-              </>
+                  setSelectedDb(db);
+                  onDbChange(db);
+                }}
+                className={twMerge(
+                  "p-2 bg-gray-200 border border-gray-300 rounded-full cursor-pointer whitespace-nowrap",
+                  selectedDb === db
+                    ? "bg-gray-600 border-transparent text-white"
+                    : "hover:bg-gray-300",
+                  fileUploading
+                    ? "cursor-not-allowed bg-gray-200 text-gray-400 hover:bg-gray-200"
+                    : ""
+                )}
+              >
+                {db}
+              </span>
             );
           })}
         </div>
