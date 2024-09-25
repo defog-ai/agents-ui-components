@@ -103,7 +103,6 @@ export default function StepResultAnalysis({
       } else {
         const responseJson = await response.json();
         setFollowOnQuestions(responseJson["follow_on_questions"] || []);
-        console.log("follow on questions", responseJson["follow_on_questions"]);
       }
     } catch (error) {
       console.error(error);
