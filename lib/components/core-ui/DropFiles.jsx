@@ -39,6 +39,7 @@ export function DropFiles({
 }) {
   return (
     <div
+      data-testid="file-drop"
       className={twMerge("relative text-gray-600", rootClassNames)}
       onDrop={(e) => {
         e.preventDefault();

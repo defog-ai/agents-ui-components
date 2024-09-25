@@ -1,80 +1,9 @@
 import { test, expect } from "@playwright/test";
-import type { Page } from "playwright";
-
-/**
- * Selects the first api key name in the dropdown. Errors if no api key names are found.
- *
- * @example
- * await selectApiKeyName(page);
- */
-async function selectApiKeyName(page: Page) {
-  await page.getByPlaceholder("Select an option").first().click();
-
-  const numKeys = await page.getByRole("option").count();
-
-  expect(numKeys).toBeGreaterThan(0);
-
-  // select the first one
-  await page.getByRole("option").first().click();
-
-  expect(await page.getByText("Quickstart")).toBeVisible();
-}
-
-/**
- * Sets the sql-only toggle to the target state.
- * Errors if the toggle cannot be set to the target state after 2 click attempts.
- *
- * @example
- * await setSqlOnly(page, true);
- */
-async function setSqlOnly(page: Page, sqlOnly: boolean = true) {
-  let done = false;
-  // ideally we should be able to get to any state in <= 2 clicks
-  let attempts = 0;
-
-  while (!done && attempts <= 2) {
-    // if sqlOnly boolean is true, then the button's aria-checked should be false
-    // if sqlOnly boolean is false, then the button's aria-checked should be true
-    const isChecked =
-      (await page.getByLabel("Advanced").getAttribute("aria-checked")) ===
-      "true";
-
-    if ((sqlOnly && !isChecked) || (!sqlOnly && isChecked)) {
-      done = true;
-      break;
-    }
-
-    await page.getByLabel("Advanced").click();
-
-    attempts++;
-
-    if (attempts >= 2) {
-      // ideally we should be able to get to any state in <= 2 clicks
-      throw new Error(
-        `Could not set toggle to target state. Check if the button is visible and clickable. Target state was sqlOnly = ${sqlOnly} so the toggle's target checked state was ${!sqlOnly}`
-      );
-    }
-  }
-}
-
-/**
- * Asks a question using the search bar.
- *
- * @example
- * await askQuestionUsingSearchBar(page);
- *
- * await askQuestionUsingSearchBar(page, "show me my sales data");
- *
- */
-async function askQuestionUsingSearchBar(
-  page: Page,
-  question: string = "show me 5 rows from the business table"
-) {
-  await page.getByPlaceholder("Type your question here").click();
-  await page.getByPlaceholder("Type your question here").fill(question);
-
-  await page.getByRole("button", { name: "Ask" }).click();
-}
+import {
+  selectApiKeyName,
+  setSqlOnly,
+  askQuestionUsingSearchBar,
+} from "../utils";
 
 test("can select api key name", async ({ page }) => {
   await page.goto("http://localhost:5173/test/agent-embed/");
@@ -82,7 +11,9 @@ test("can select api key name", async ({ page }) => {
   await selectApiKeyName(page);
 });
 
-test("can ask one sql-only question, then follow-on question", async ({ page }) => {
+test("can ask one sql-only question, then follow-on question", async ({
+  page,
+}) => {
   await page.goto("http://localhost:5173/test/agent-embed/");
 
   await selectApiKeyName(page);
@@ -158,12 +89,11 @@ test("can ask one sql-only question, then follow-on question", async ({ page }) 
   // click on the first button with the class `follow-on-question`
   await page.getByTestId("follow-on-question").first().click();
 
-  const selectedQuestionValue = await page.getByTestId("follow-on-question").first().textContent() || "";
+  const selectedQuestionValue =
+    (await page.getByTestId("follow-on-question").first().textContent()) || "";
 
   // expect the text in the search bar (id `main-searchbar`) to be the same as the button selected
-  expect(page.getByTestId("main-searchbar")).toHaveValue(
-    selectedQuestionValue
-  );
+  expect(page.getByTestId("main-searchbar")).toHaveValue(selectedQuestionValue);
 
   // click the ask button
   await page.getByRole("button", { name: "Ask" }).click();
@@ -188,10 +118,14 @@ test("can ask one sql-only question, then follow-on question", async ({ page }) 
   const requestGenerate2 = await requestPromiseGenerate2;
   const responseGenerate2 = await responsePromiseGenerate2;
 
-  expect(requestGenerate2.postDataJSON().user_question).toBe(selectedQuestionValue);
-  
+  expect(requestGenerate2.postDataJSON().user_question).toBe(
+    selectedQuestionValue
+  );
+
   // ensure that previous_questions is not empty, and has a length of more than 0
-  expect(requestGenerate2.postDataJSON().previous_questions.length).toBeGreaterThan(0);
+  expect(
+    requestGenerate2.postDataJSON().previous_questions.length
+  ).toBeGreaterThan(0);
 
   expect(responseGenerate.ok()).toBe(true);
 

@@ -58,6 +58,7 @@ export function EmbedScaffolding({
           {availableDbs.map((db, i) => {
             return (
               <span
+                data-testid="db-selection"
                 key={db + "-" + i}
                 onClick={() => {
                   if (fileUploading) return;

@@ -10,11 +10,7 @@ import { AnalysisTabContent } from "./tab-content/AnalysisTabContent";
 import { PreviewDataTabContent } from "./tab-content/PreviewDataTabContent";
 import { TabNullState } from "./tab-content/TabNullState";
 import { getColumnDescriptionsForCsv } from "../utils/utils";
-import {
-  addParsedCsvToSqlite,
-  cleanTableNameForSqlite,
-  runQueryOnDb,
-} from "../utils/sqlite";
+import { addParsedCsvToSqlite, cleanTableNameForSqlite } from "../utils/sqlite";
 import { AgentConfigContext } from "../context/AgentContext";
 import { Setup } from "../context/Setup";
 
@@ -117,6 +113,9 @@ export function EmbedInner({
     { file, columns, rows },
     addToAvailableDbs = true
   ) => {
+    console.log(file);
+    console.log(columns);
+    console.log(rows);
     try {
       if (!sqliteConn) {
         throw new Error(

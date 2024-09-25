@@ -28,7 +28,7 @@ export function DropFilesHeadless({
   rootClassNames = "",
 }) {
   return (
-    <div className={rootClassNames}>
+    <div className={rootClassNames} data-testid="file-drop-headless">
       <div
         className="relative cursor-pointer"
         onDrop={(e) => {
