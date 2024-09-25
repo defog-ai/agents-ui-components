@@ -5,6 +5,7 @@ import { twMerge } from "tailwind-merge";
 /**
  * @typedef {Object} DropFilesProps
  * @property {string} [label] - Label for the dropzone.
+ * @property {string[]} [acceptedFileTypes] - Array of file types to be accepted.
  * @property {function} [onDrop] - Function to be called when files are dropped.
  * @property {function} [onFileSelect] - Function to be called when a file is selected.
  * @property {function} [onDragOver] - Function to be called when a file is dragged over the dropzone.
@@ -24,6 +25,7 @@ import { twMerge } from "tailwind-merge";
  */
 export function DropFiles({
   label = "Drop files here",
+  acceptedFileTypes = ["text/csv"],
   onDrop = (...args) => {},
   onFileSelect = (...args) => {},
   onDragOver = (...args) => {},
@@ -38,6 +40,7 @@ export function DropFiles({
 }) {
   return (
     <div
+      data-testid="file-drop"
       className={twMerge("relative text-gray-600", rootClassNames)}
       onDrop={(e) => {
         e.preventDefault();
@@ -83,7 +86,7 @@ export function DropFiles({
           </p>
           <input
             aria-label=""
-            accept="text/csv"
+            accept={acceptedFileTypes.join(",")}
             className="cursor-pointer w-full h-full z-[1] opacity-0 absolute left-0 top-0"
             type="file"
             disabled={disabled}

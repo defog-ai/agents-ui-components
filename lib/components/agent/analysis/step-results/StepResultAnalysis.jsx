@@ -1,6 +1,6 @@
-import { useContext, useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import setupBaseUrl from "../../../utils/setupBaseUrl";
-import { MessageManagerContext, SpinningLoader } from "@ui-components";
+import { SpinningLoader } from "@ui-components";
 
 export default function StepResultAnalysis({
   keyName,
@@ -8,7 +8,7 @@ export default function StepResultAnalysis({
   data_csv,
   apiEndpoint,
   sql,
-  setCurrentQuestion=(...args)=>{},
+  setCurrentQuestion = (...args) => {},
 }) {
   const [toolRunAnalysis, setToolRunAnalysis] = useState("");
   const [loading, setLoading] = useState(false);
@@ -139,7 +139,10 @@ export default function StepResultAnalysis({
                 data-testid="follow-on-question"
                 className="cursor-pointer text-sm p-2 m-1 border border-gray-200 rounded-md shadow-sm hover:bg-gray-50 hover:border"
                 onClick={() => {
-                  console.log("clicked on follow on question", followOnQuestion);
+                  console.log(
+                    "clicked on follow on question",
+                    followOnQuestion
+                  );
                   setCurrentQuestion(followOnQuestion);
                 }}
               >

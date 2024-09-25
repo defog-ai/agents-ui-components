@@ -80,6 +80,7 @@ export function Tabs({
       )}
     >
       <div
+        role="tablist"
         className={twMerge(
           "tab-group",
           showVerticalTabs
@@ -128,6 +129,8 @@ export function Tabs({
           >
             {tabs.map((tab, tabIdx) => (
               <div
+                aria-roledescription="tab"
+                role="tab"
                 key={tab.name + "-" + tabIdx}
                 className={twMerge(
                   "flex items-center justify-center cursor-pointer",
