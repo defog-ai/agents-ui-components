@@ -29,7 +29,7 @@ export function MetadataTabContent({
       let fetchedMetadata;
       try {
         const resp = await fetch(`${apiEndpoint}/integration/get_metadata`, {
-          signal: AbortSignal.timeout(10000),
+          signal: AbortSignal.timeout(60000),
           method: "POST",
           headers: {
             "Content-Type": "application/json",
