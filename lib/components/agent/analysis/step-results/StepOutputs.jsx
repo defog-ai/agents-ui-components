@@ -80,7 +80,7 @@ export function StepOutputs({
             ></CodeEditor>
 
             {
-            step.reference_queries.length > 0 ?
+            step?.reference_queries?.length > 0 ?
             <>
               <p className="mt-8">
                 <span className="font-bold">Reference Queries</span>: amongst the golden queries you uploaded, these queries were selected as reference queries. If there are no related golden queries, then what you see below might be irrelevant</p>
@@ -103,12 +103,17 @@ export function StepOutputs({
             </>: null
             }
 
-            <p className="mt-8">
-              <span className="font-bold">Relevant Instructions</span>: these instructions were selected to create this SQL query
-            </p>
-            <pre className="text-xs text-gray-600 p-2 bg-gray-100 rounded whitespace-break-spaces max-h-64 overflow-auto">
-              {step.instructions_used}
-            </pre>
+            {
+              step.instructions_used &&
+              <>
+                <p className="mt-8">
+                  <span className="font-bold">Relevant Instructions</span>: these instructions were selected to create this SQL query
+                </p>
+                <pre className="text-xs text-gray-600 p-2 bg-gray-100 rounded whitespace-break-spaces max-h-64 overflow-auto">
+                  {step.instructions_used}
+                </pre>
+              </>
+            }
           </>
         )}
         {codeStr && showCode && (
