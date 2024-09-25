@@ -39,7 +39,7 @@ export function TabNullState({
       />
       <DropFiles
         acceptedFileTypes={[FILE_TYPES.CSV, FILE_TYPES.EXCEL, FILE_TYPES]}
-        label="Or drop a CSV"
+        label="Or drop a CSV/Excel file"
         rootClassNames="w-96 max-w-[90%] border p-4 rounded-md text-gray-400"
         disabled={fileUploading}
         onFileSelect={async (ev) => {
