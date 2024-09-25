@@ -22,12 +22,16 @@ test("can ask one sql-only question, then follow-on question", async ({
 
   await setSqlOnly(page, true);
 
-  await fullyTestSQLOnlyQuestion(page);
+  await fullyTestSQLOnlyQuestion({ page });
 
   const selectedFollowOnQuestion = await clickFollowOnQuestion(page);
 
   // now ask the above question using the search bar
-  await fullyTestSQLOnlyQuestion(page, selectedFollowOnQuestion);
+  await fullyTestSQLOnlyQuestion({
+    page,
+    question: selectedFollowOnQuestion,
+    questionCountToExpectAfterAsking: 2,
+  });
 });
 
 test("can ask one advanced question with send email usage", async ({

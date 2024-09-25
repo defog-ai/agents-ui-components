@@ -55,13 +55,78 @@ test("can upload csvs", async ({ page }) => {
   // go back to the analysis tab, by clicking the tab
   await page.getByRole("tab").getByText("Analysis").click();
 
-  await fullyTestSQLOnlyQuestion(
+  await fullyTestSQLOnlyQuestion({
     page,
-    "show me total exports by country by year"
-  );
+    question: "show me total exports by country by year",
+  });
 
   const followOnQuestion = await clickFollowOnQuestion(page);
 
   // now ask that follow-on question
-  await fullyTestSQLOnlyQuestion(page, followOnQuestion);
+  await fullyTestSQLOnlyQuestion({ page, question: followOnQuestion });
+});
+
+test("can upload excel", async ({ page }) => {
+  await page.goto("http://localhost:5173/test/agent-embed/");
+
+  await uploadFileOnNullTab(page, csvBuffer, csvFileName);
+
+  // expect three toast messages:
+  // "Table location parsed, now generating descriptions for columns!"
+  // "Table geographic parsed, now generating descriptions for columns!"
+  // "Table restaurant parsed, now generating descriptions for columns!"
+  expect(
+    await page.getByText(
+      "Table location parsed, now generating descriptions for columns!"
+    )
+  ).toBeVisible();
+
+  expect(
+    await page.getByText(
+      "Table geographic parsed, now generating descriptions for columns!"
+    )
+  ).toBeVisible();
+
+  expect(
+    await page.getByText(
+      "Table restaurants parsed, now generating descriptions for columns!"
+    )
+  ).toBeVisible();
+
+  // now wait for the exact matching "restaurants" button to show up
+  // and click it when it does
+  await page
+    .getByTestId("db-tab")
+    .getByText("restaurants", { exact: true })
+    .click({ timeout: 20000 });
+
+  // click view data structure tab
+  // clik on the "Filter Tables" placeholder
+
+  // And expect to see three options:
+  // csv_location, csv_geographic, csv_restaurants
+  await page.getByText("View data structure").click();
+  await page.getByPlaceholder("Filter tables").click();
+
+  await expect(page.getByText("csv_location")).toBeVisible();
+  await expect(page.getByText("csv_geographic")).toBeVisible();
+  await expect(page.getByText("csv_restaurants")).toBeVisible();
+
+  // click on "Preview data" tab
+  // expect to see "Select table" label
+
+  await page.getByRole("tab").getByText("Preview data").click();
+  await page.getByPlaceholder("Select an option").click();
+
+  await expect(page.getByText("csv_location")).toBeVisible();
+  await expect(page.getByText("csv_geographic")).toBeVisible();
+  await expect(page.getByText("csv_restaurants")).toBeVisible();
+
+  // now to go analysis tab
+  await page.getByRole("tab").getByText("Analysis").click();
+
+  await fullyTestSQLOnlyQuestion({
+    page,
+    question: "show me ratings by county",
+  });
 });

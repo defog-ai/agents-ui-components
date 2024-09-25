@@ -64,8 +64,13 @@ export async function askQuestionUsingSearchBar(
   page: Page,
   question: string = "show me 5 rows from the business table"
 ) {
-  await page.getByPlaceholder("Type your question here").click();
-  await page.getByPlaceholder("Type your question here").fill(question);
+  const searchBar = page
+    .getByPlaceholder("Type your question here")
+    // for follow on questions, the search bar has a different placeholder
+    .or(page.getByPlaceholder("Type your next question here"));
+
+  await searchBar.click();
+  await searchBar.fill(question);
 
   await page.getByRole("button", { name: "Ask" }).click();
 }
@@ -81,12 +86,19 @@ export async function askQuestionUsingSearchBar(
  * await testSQLQuestionFull(page);
  *
  * await testSQLQuestionFull(page, "show me my sales data");
- *
  */
-export async function fullyTestSQLOnlyQuestion(
-  page: Page,
-  question: string = "show me 5 rows from the business table"
-) {
+export async function fullyTestSQLOnlyQuestion({
+  page,
+  question = "show me 5 rows from the business table",
+  questionCountToExpectAfterAsking = 1,
+}: {
+  /** the playwright page object */
+  page: Page;
+  /** the question to ask */
+  question?: string;
+  /** the number of questions to expect after we have asked this question */
+  questionCountToExpectAfterAsking?: number;
+}) {
   await askQuestionUsingSearchBar(page, question);
 
   const requestPromiseGenerate = page.waitForRequest((request) =>
@@ -130,7 +142,8 @@ export async function fullyTestSQLOnlyQuestion(
 
   // make sure we see the sql/code tab
   // TODO: is there a better way to test this?
-  await expect(page.getByText("SQL/Code")).toBeVisible();
+  const questionCountsOnPage = await page.getByText("SQL/Code").count();
+  await expect(questionCountsOnPage).toBe(questionCountToExpectAfterAsking);
 
   // click on the analysis tab
   await page.locator("nav.divide-x div").nth(2).click();
