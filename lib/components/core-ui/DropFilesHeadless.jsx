@@ -3,6 +3,7 @@ import React from "react";
 /**
  * @typedef {Object} Props
  * @property {React.ReactNode} children - The content of the dropzone.
+ * @property {string[]} [acceptedFileTypes] - File types to be accepted.
  * @property {boolean} [disabled] - If true, the dropzone will be disabled.
  * @property {function} [onDrop] - Function to be called when files are dropped.
  * @property {function} [onFileSelect] - Function to be called when a file is selected.
@@ -18,7 +19,7 @@ import React from "react";
  * */
 export function DropFilesHeadless({
   children,
-  accept = "text/csv",
+  acceptedFileTypes = ["text/csv"],
   disabled = false,
   onDrop = (...args) => {},
   onFileSelect = (...args) => {},
@@ -28,7 +29,7 @@ export function DropFilesHeadless({
   rootClassNames = "",
 }) {
   return (
-    <div className={rootClassNames} data-testid="file-drop-headless">
+    <div className={rootClassNames}>
       <div
         className="relative cursor-pointer"
         onDrop={(e) => {
@@ -63,7 +64,7 @@ export function DropFilesHeadless({
       >
         <input
           aria-label=""
-          accept={accept}
+          accept={acceptedFileTypes.join(",")}
           className="w-full h-full z-[1] opacity-0 absolute left-0 top-0 cursor-pointer"
           type="file"
           disabled={disabled}
