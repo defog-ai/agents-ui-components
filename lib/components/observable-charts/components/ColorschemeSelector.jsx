@@ -95,16 +95,18 @@ const ColorSchemeSelector = ({ value, onChange }) => {
 
   return (
     <div>
-      <Space className="w-full mb-2" align="center">
-        <h3 className="m-0 input-label">Color Scheme</h3>
+      <Space className="w-full mb-2" align="center" justify="space-between">
+        <h3 className="w-full m-0 input-label">Color Scheme</h3>
 
         {!colorBySelected && (
           <Tooltip
             title="Select a 'Color By' column in the Primary tab"
             className="flex items-center gap-1"
           >
-            <InfoCircleOutlined style={{ color: "#f75555" }} />
-            <p className="text-xs text-red-500">Select 'Color By' column</p>
+            <InfoCircleOutlined className="text-gray-500" />
+            <p className="text-xs text-gray-500 underline underline-offset-2">
+              Select &apos;Color By&apos; column
+            </p>
           </Tooltip>
         )}
       </Space>
