@@ -276,7 +276,7 @@ const FilterBuilder = ({ columns }) => {
             }
           >
             <Space direction="vertical" className="w-full">
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2 md:flex-nowrap">
                 <Select
                   className="w-full"
                   disabled={!filter.isValid}
