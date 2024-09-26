@@ -1,5 +1,8 @@
-import { Select } from "antd";
+import { Select, Tooltip, Space } from "antd";
 import * as d3 from "d3";
+import { ChartStateContext } from "../ChartStateContext";
+import { useContext } from "react";
+import { InfoCircleOutlined } from "@ant-design/icons";
 
 const { Option, OptGroup } = Select;
 
@@ -30,6 +33,10 @@ const COLOR_SCHEMES = {
 };
 
 const ColorSchemeSelector = ({ value, onChange }) => {
+  const chartState = useContext(ChartStateContext);
+  const { selectedColumns } = chartState;
+  const colorBySelected = selectedColumns.fill || selectedColumns.stroke;
+
   const getColorScheme = (scheme) => {
     const schemeKey = `scheme${scheme.charAt(0).toUpperCase() + scheme.slice(1)}`;
     const interpolatorKey = `interpolate${scheme.charAt(0).toUpperCase() + scheme.slice(1)}`;
@@ -88,8 +95,25 @@ const ColorSchemeSelector = ({ value, onChange }) => {
 
   return (
     <div>
-      <h3 className="mb-2 input-label">Color Scheme</h3>
-      <Select value={value} style={{ width: "100%" }} onChange={onChange}>
+      <Space className="w-full mb-2" align="center">
+        <h3 className="m-0 input-label">Color Scheme</h3>
+
+        {!colorBySelected && (
+          <Tooltip
+            title="Select a 'Color By' column in the Primary tab"
+            className="flex items-center gap-1"
+          >
+            <InfoCircleOutlined style={{ color: "#f75555" }} />
+            <p className="text-xs text-red-500">Select 'Color By' column</p>
+          </Tooltip>
+        )}
+      </Space>
+      <Select
+        value={value}
+        style={{ width: "100%" }}
+        onChange={onChange}
+        disabled={!colorBySelected}
+      >
         <OptGroup label="Categorical">
           {COLOR_SCHEMES.categorical.map((scheme) => (
             <Option key={scheme} value={scheme}>

@@ -16,10 +16,11 @@ const BarChartControls = () => {
   };
 
   return (
-    <div className="flex flex-col gap-4 text-xs">
+    <div className="flex gap-4 text-xs">
       <div>
         <h3 className="mb-2">Bar Color</h3>
         <ColorPicker
+          defaultValue={"#4287F5"}
           value={chartSpecificOptions.barColor}
           onChange={(color) =>
             handleOptionChange("barColor", color.toHexString())
