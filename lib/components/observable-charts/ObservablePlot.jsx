@@ -94,24 +94,26 @@ export default function ObservablePlot() {
   }, [observableOptions]);
 
   return (
-    <div className="bg-white">
+    <div className="grow bg-white">
       <div className="flex justify-end mb-2">
         <Button
-          className="flex flex-row items-center text-sm text-gray-800 border bg-gray-50 hover:bg-gray-200"
+          className="flex flex-row items-center text-sm text-gray-800 border bg-gray-50 hover:bg-gray-200 z-[10]"
           onClick={() => {
-            if (containerRef.current)
-              saveAsPNG(
-                containerRef.current,
-                observableOptions.backgroundColor
-              );
+            if (containerRef.current) {
+              // get the first child inside container because container has overflow scroll
+              const chart = containerRef.current.children[0];
+              if (chart) {
+                saveAsPNG(chart, observableOptions.backgroundColor);
+              }
+            }
           }}
         >
           <Download size={16} className="mr-2" /> Save as PNG
         </Button>
       </div>
-      <div style={{ width: "100%", height: "460px" }}>
+      <div className="w-full h-[460px]">
         <div
-          className="flex items-center justify-center w-full h-full text-gray-500 bg-white observable-plot"
+          className="w-full h-full text-gray-500 bg-white observable-plot overflow-auto"
           ref={containerRef}
         ></div>
       </div>

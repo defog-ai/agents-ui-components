@@ -300,7 +300,11 @@ export function StepResults({
                   <>
                     <p className="mt-8 mb-2 text-sm font-mono">
                       <span className="font-bold">Reference Queries</span>:
-                      these queries were selected as reference queries, among all the golden queries you uploaded. If the query generated above is not correct, consider adding some related golden queries to help Defog answer your questions correctly.
+                      these queries were selected as reference queries, among
+                      all the golden queries you uploaded. If the query
+                      generated above is not correct, consider adding some
+                      related golden queries to help Defog answer your questions
+                      correctly.
                     </p>
                     <Tabs
                       disableSingleSelect={true}
@@ -310,7 +314,9 @@ export function StepResults({
                         name: `Question ${i + 1}`,
                         content: (
                           <div>
-                            <p className="text-sm my-4 ml-2 font-semibold">{query.question}</p>
+                            <p className="text-sm my-4 ml-2 font-semibold">
+                              {query.question}
+                            </p>
                             <CodeEditor
                               className="tool-code-ctr"
                               code={query.sql}

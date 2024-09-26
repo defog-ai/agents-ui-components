@@ -22,8 +22,6 @@ export function ChartContainer({ columns, rows }) {
 
   chartState.setStateCallback = setChartState;
 
-  console.log(chartState);
-
   const agentConfigContext = useContext(AgentConfigContext);
   const { apiEndpoint } = agentConfigContext.val;
 
