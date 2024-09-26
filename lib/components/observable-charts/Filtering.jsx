@@ -255,15 +255,23 @@ const FilterBuilder = ({ columns }) => {
             title={
               <div className="flex items-center gap-2">
                 {IconComponent && (
-                  <IconComponent className="opacity-50" size={14} />
+                  <IconComponent
+                    className="flex-shrink-0 opacity-50"
+                    size={14}
+                  />
                 )}
-                {filterPreview ? (
-                  <Tag color={filter.isValid ? "blue" : "red"} className="ml-2">
-                    {filterPreview}
-                  </Tag>
-                ) : (
-                  `Filter ${index + 1}`
-                )}
+                <div className="flex-grow">
+                  {filterPreview ? (
+                    <Tag
+                      color={filter.isValid ? "blue" : "red"}
+                      className="my-2 ml-2 text-wrap"
+                    >
+                      {filterPreview}
+                    </Tag>
+                  ) : (
+                    `Filter ${index + 1}`
+                  )}
+                </div>
               </div>
             }
             extra={
