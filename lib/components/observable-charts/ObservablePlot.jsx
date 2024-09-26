@@ -94,7 +94,7 @@ export default function ObservablePlot() {
   }, [observableOptions]);
 
   return (
-    <div className="flex-grow p-4 bg-white">
+    <div className="bg-white">
       <div className="flex justify-end mb-2">
         <Button
           className="flex flex-row items-center text-sm text-gray-800 border bg-gray-50 hover:bg-gray-200"

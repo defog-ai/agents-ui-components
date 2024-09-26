@@ -22,6 +22,8 @@ export function ChartContainer({ columns, rows }) {
 
   chartState.setStateCallback = setChartState;
 
+  console.log(chartState);
+
   const agentConfigContext = useContext(AgentConfigContext);
   const { apiEndpoint } = agentConfigContext.val;
 
@@ -33,7 +35,7 @@ export function ChartContainer({ columns, rows }) {
 
   const messageManager = useContext(MessageManagerContext);
 
-  const { selectedChart, selectedColumns } = chartState;
+  const { selectedColumns } = chartState;
 
   const [userQuestion, setUserQuestion] = useState("");
   const [loading, setLoading] = useState(false);
@@ -59,15 +61,7 @@ export function ChartContainer({ columns, rows }) {
         label: <ChartNoAxesCombined size={24} />,
         children: (
           <TabPaneWrapper className="overflow-x-hidden">
-            <PrimarySelection
-              columns={columns}
-              propSelectedChart={selectedChart || "Bar"}
-              propSelectedColumns={{
-                x: selectedColumns && selectedColumns.x,
-                y: selectedColumns && selectedColumns.y,
-                fill: selectedColumns && selectedColumns.fill,
-              }}
-            />
+            <PrimarySelection columns={columns} />
           </TabPaneWrapper>
         ),
       },
@@ -94,7 +88,7 @@ export function ChartContainer({ columns, rows }) {
         ),
       },
     ],
-    [selectedChart, selectedColumns, columns]
+    [selectedColumns, columns]
   );
 
   return (
@@ -152,8 +146,8 @@ export function ChartContainer({ columns, rows }) {
           }}
         />
 
-        <div className="flex flex-grow gap-3">
-          <div className="w-2/3 max-w-[350px] h-full border-r">
+        <div className="flex flex-row gap-3">
+          <div className="min-w-[350px] max-w-[350px] h-full border-r">
             <Tabs
               tabPosition="left"
               className="h-full pl-0"

@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { Select, Switch } from "antd";
 import {
   CalendarIcon,
@@ -42,11 +42,7 @@ const COLUMN_ICONS = {
   categorical: CaseSensitive,
 };
 
-export function PrimarySelection({
-  columns,
-  propSelectedChart,
-  propSelectedColumns,
-}) {
+export function PrimarySelection({ columns }) {
   const chartState = useContext(ChartStateContext);
 
   const { selectedChart, selectedColumns, chartStyle, chartSpecificOptions } =
@@ -77,38 +73,41 @@ export function PrimarySelection({
   // if we have a vertically oriented boxplot, we need to switch the x and y axis labels
   useEffect(() => {
     if (
-      (propSelectedChart || selectedChart) === "boxplot" &&
+      selectedChart === "boxplot" &&
       chartSpecificOptions.boxplotOrientation === "vertical"
     ) {
       setAxisLabel({ x: "Vertical", y: "Horizontal" });
     } else {
       setAxisLabel({ x: "Horizontal", y: "Vertical" });
     }
-  }, [propSelectedChart, selectedChart, chartSpecificOptions, chartState]);
+  }, [selectedChart, chartSpecificOptions, chartState]);
 
   // Handle axis selection change
-  const handleAxisChange = (axis) => (value) => {
-    let newChartState = chartState.setSelectedColumns({
-      ...selectedColumns,
-      [axis]: value,
-    });
+  const handleAxisChange = useCallback(
+    (axis) => (value) => {
+      let newChartState = chartState.setSelectedColumns({
+        ...selectedColumns,
+        [axis]: value,
+      });
 
-    // Enable use count by default if the y selection is categorical in bar chart
-    if ((propSelectedChart || selectedChart) === "bar" && axis === "y") {
-      const selectedColumn = columns.find((col) => col.key === value);
-      if (selectedColumn && selectedColumn.variableType === "categorical") {
-        newChartState = newChartState.updateChartSpecificOptions({
-          useCount: true,
-        });
-      } else {
-        newChartState = newChartState.updateChartSpecificOptions({
-          useCount: false,
-        });
+      // Enable use count by default if the y selection is categorical in bar chart
+      if (selectedChart === "bar" && axis === "y") {
+        const selectedColumn = columns.find((col) => col.key === value);
+        if (selectedColumn && selectedColumn.variableType === "categorical") {
+          newChartState = newChartState.updateChartSpecificOptions({
+            useCount: true,
+          });
+        } else {
+          newChartState = newChartState.updateChartSpecificOptions({
+            useCount: false,
+          });
+        }
       }
-    }
 
-    newChartState.render();
-  };
+      newChartState.render();
+    },
+    [chartState, selectedColumns, selectedChart, columns]
+  );
 
   const handleAggregateChange = (value) => {
     chartState
@@ -185,11 +184,11 @@ export function PrimarySelection({
 
   // Render axis selection dropdown
   const renderAxisSelection = (axis, label, mode) => {
-    if ((propSelectedChart || selectedChart) === "histogram" && axis === "y") {
+    if (selectedChart === "histogram" && axis === "y") {
       return null;
     }
 
-    const selectedColumnKey = (propSelectedColumns || selectedColumns)[axis];
+    const selectedColumnKey = selectedColumns[axis];
     const selectedColumn = columns.find((col) => col.key === selectedColumnKey);
     const isCategorical =
       selectedColumn && selectedColumn.variableType === "categorical";
@@ -197,8 +196,7 @@ export function PrimarySelection({
     return (
       <div>
         <h3 className="mb-2 input-label">
-          Variable{" "}
-          {(propSelectedChart || selectedChart) === "histogram" ? "" : ""}
+          Variable {selectedChart === "histogram" ? "" : ""}
         </h3>
         <Select
           style={{ width: "100%" }}
@@ -208,13 +206,13 @@ export function PrimarySelection({
           allowClear={axis === "x"}
           mode={mode}
         >
-          {(propSelectedChart || selectedChart) === "histogram"
+          {selectedChart === "histogram"
             ? orderedColumns
                 .filter((i) => i.numeric === true && i.key !== "index")
                 .map(renderColumnOption)
             : orderedColumns.map(renderColumnOption)}
         </Select>
-        {(propSelectedChart || selectedChart) === "bar" &&
+        {selectedChart === "bar" &&
           axis === "x" &&
           isCategorical &&
           renderAggregateSelection()}
@@ -223,58 +221,60 @@ export function PrimarySelection({
   };
 
   // Render facet selection dropdown
-  const renderFacetSelection = () => (
-    <div>
-      <h3 className="mb-2 input-label">Facet by</h3>
-      <Select
-        style={{ width: "100%" }}
-        placeholder="Select Facet Column"
-        onChange={(value) => handleAxisChange("facet")(value)}
-        value={(propSelectedColumns || selectedColumns).facet}
-        allowClear
-      >
-        {orderedColumns
-          .filter((col) => col.variableType === "categorical")
-          .map(renderColumnOption)}
-      </Select>
-    </div>
-  );
+  const FacetSelection = useMemo(() => {
+    return (
+      <div>
+        <h3 className="mb-2 input-label">Facet by</h3>
+        <Select
+          style={{ width: "100%" }}
+          placeholder="Select Facet Column"
+          onChange={(value) => handleAxisChange("facet")(value)}
+          value={selectedColumns.facet}
+          allowClear
+        >
+          {orderedColumns
+            .filter((col) => col.variableType === "categorical")
+            .map(renderColumnOption)}
+        </Select>
+      </div>
+    );
+  }, [selectedColumns, orderedColumns, handleAxisChange]);
 
-  const colorSchemeSelection = (value) => {
-    if ((propSelectedChart || selectedChart) !== "line") {
-      chartState
-        .updateChartSpecificOptions({ fill: value })
-        .setSelectedColumns({
-          ...selectedColumns,
-          fill: value,
-        })
-        .render();
-    } else if ((propSelectedChart || selectedChart) === "line") {
-      chartState
-        .updateChartSpecificOptions({ stroke: value })
-        .setSelectedColumns({
-          ...selectedColumns,
-          stroke: value,
-        })
-        .render();
-    } else {
-      chartState
-        .updateChartSpecificOptions({ fill: value })
-        .setSelectedColumns({
-          ...selectedColumns,
-          fill: value,
-        })
-        .render();
-    }
-  };
+  const ColorBySelection = useMemo(() => {
+    const colorSchemeSelection = (value) => {
+      if (selectedChart !== "line") {
+        chartState
+          .updateChartSpecificOptions({ fill: value })
+          .setSelectedColumns({
+            ...selectedColumns,
+            fill: value,
+          })
+          .render();
+      } else if (selectedChart === "line") {
+        chartState
+          .updateChartSpecificOptions({ stroke: value })
+          .setSelectedColumns({
+            ...selectedColumns,
+            stroke: value,
+          })
+          .render();
+      } else {
+        chartState
+          .updateChartSpecificOptions({ fill: value })
+          .setSelectedColumns({
+            ...selectedColumns,
+            fill: value,
+          })
+          .render();
+      }
+    };
 
-  const renderColorBySelection = () => {
     return (
       <div>
         <h3 className="mb-2 input-label">Color By</h3>
         <Select
           placeholder="Color Column"
-          value={(propSelectedColumns || selectedColumns).fill}
+          value={selectedColumns.fill}
           style={{ width: "100%" }}
           onChange={(value) => {
             colorSchemeSelection(value);
@@ -287,7 +287,7 @@ export function PrimarySelection({
         </Select>
       </div>
     );
-  };
+  }, [chartState, selectedColumns, orderedColumns, selectedChart]);
 
   return (
     <div className="grid grid-rows-[auto_1fr_auto] h-full gap-4 pl-1">
@@ -303,7 +303,7 @@ export function PrimarySelection({
                 className={`
                   p-2 rounded-sm min-w-20 border-[1px] flex items-center justify-center font-semibold transition-colors duration-200 text-[11px] font-sans ease-in-out
                   ${
-                    (propSelectedChart || selectedChart) === value
+                    selectedChart === value
                       ? "bg-blue-500 border-blue-600 text-white"
                       : "bg-blue-100 text-blue-600/50 border-blue-200 hover:bg-blue-300"
                   }
@@ -327,14 +327,12 @@ export function PrimarySelection({
         <h3 className="pb-1 font-bold border-b input-label border-black/20">
           Vertical Axis
         </h3>
-        {(propSelectedChart || selectedChart) !== "histogram" ? (
+        {selectedChart !== "histogram" ? (
           <div className="grid grid-cols-2 gap-2">
             {renderAxisSelection(
               "y",
               axisLabel.y,
-              (propSelectedChart || selectedChart) === "line"
-                ? "multiple"
-                : undefined
+              selectedChart === "line" ? "multiple" : undefined
             )}
             <div className="flex items-center gap-4">
               {renderAxisLabel("y")}
@@ -355,8 +353,8 @@ export function PrimarySelection({
         </h3>
 
         <div className="grid grid-cols-2 gap-2 pt-4 ">
-          {renderFacetSelection()}
-          {renderColorBySelection()}
+          {FacetSelection}
+          {ColorBySelection}
         </div>
       </div>
     </div>
