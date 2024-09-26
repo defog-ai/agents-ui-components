@@ -46,9 +46,11 @@ export function createActionHandlers() {
         selectedChart: payload,
         selectedColumns: { x: null, y: payload === "line" ? [] : null },
         chartStyle: {
-          ...this.chartStyle,
+          ...defaultChartState.chartStyle,
           xLabel: null,
           yLabel: null,
+          xTicks: undefined,
+          yTicks: undefined,
         },
       };
 
@@ -201,7 +203,7 @@ function deepMergeObjects(obj1, obj2) {
  * @typedef {Object} BarChartOptions
  * @property {string} barColor - Color of the bars
  * @property {number} barWidth - Width of the bars
- * @property {boolean} useCount - Whether to use count instead of values
+ * @property {('sum'|'proportion'|'count'|'median'|'mean'|'variance')} aggregateFunction - Function to aggregate the data
  * @property {string|null} fill - Column to determine bar color
  */
 
@@ -291,13 +293,13 @@ export const defaultChartState = {
     title: "",
     fontSize: 12,
     backgroundColor: "#ffffff",
-    xLabel: "",
-    yLabel: "",
+    xLabel: null,
+    yLabel: null,
     xGrid: false,
     yGrid: true,
-    xTicks: 10,
+    xTicks: undefined,
     dateFormat: "%b %d, %Y",
-    yTicks: 10,
+    yTicks: undefined,
     scheme: "accent",
     yAxisUnitLabel: "",
   },
@@ -314,7 +316,12 @@ export const defaultChartState = {
       lineOptions: [],
       showLabels: false,
     },
-    bar: { barColor: "#4287f5", barWidth: 0.8, useCount: false, fill: null },
+    bar: {
+      barColor: "#4287f5",
+      barWidth: 0.8,
+      aggregateFunction: "none",
+      fill: null,
+    },
     scatter: { pointColor: "#f54242", pointSize: 5 },
     histogram: {
       binCount: 10,

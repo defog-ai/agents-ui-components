@@ -32,8 +32,8 @@ const defaultColumnHeaderRender = ({
           toggleSort(column);
         }}
       >
-        <p className="grow pointer-events-none">{column.title}</p>
-        <div className="sorter-arrows ml-5 flex flex-col items-center w-4 overflow-hidden">
+        <p className="pointer-events-none grow">{column.title}</p>
+        <div className="flex flex-col items-center w-4 ml-5 overflow-hidden sorter-arrows">
           <button className="h-3">
             <div
               className={twMerge(
@@ -217,8 +217,8 @@ export function Table({
           pagerClassNames
         )}
       >
-        <div className="w-full flex flex-row justify-end items-center">
-          <div className="flex flex-row w-50 items-center">
+        <div className="flex flex-row items-center justify-end w-full">
+          <div className="flex flex-row items-center w-50">
             <div className="text-gray-600">
               Page
               <span className="mx-1 font-semibold">{currentPage}</span>/
@@ -252,7 +252,7 @@ export function Table({
           {(pagination.showSizeChanger === undefined
             ? true
             : pagination.showSizeChanger) && (
-            <div className="w-full flex">
+            <div className="flex w-full">
               <SingleSelect
                 rootClassNames="w-24"
                 options={allowedPageSizes.map((d) => ({ value: d, label: d }))}
@@ -270,8 +270,8 @@ export function Table({
   return (
     <div className={twMerge("overflow-auto", rootClassNames)}>
       {paginationPosition === "top" && pager}
-      <div className="overflow-auto max-w-6xl py-2 flex flex-row">
-        <table className="divide-y w-full divide-gray-300">
+      <div className="flex flex-row py-2 mx-auto overflow-auto max-w-7xl">
+        <table className="w-full divide-y divide-gray-300">
           <thead className="bg-gray-50">
             <tr>
               {columnsToDisplay.map((column, i) => {
@@ -298,7 +298,7 @@ export function Table({
               })}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200 bg-white">
+          <tbody className="bg-white divide-y divide-gray-200">
             {sortedRows
               .slice((currentPage - 1) * pageSize, currentPage * pageSize)
               .map((row, rowIdx) => {

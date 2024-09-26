@@ -14,6 +14,7 @@ export function AnalysisTabContent({
   searchBarClasses = "",
   defaultSidebarOpen = null,
 }) {
+  console.log(defaultSidebarOpen);
   return (
     <ErrorBoundary>
       <AnalysisTreeViewer

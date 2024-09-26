@@ -120,7 +120,11 @@ export function Tabs({
           <nav
             className={twMerge(
               "isolate flex divide-gray-200 shadow max-w-full overflow-scroll",
-              size === "small" ? "rounded-t-2xl" : "rounded-2xl",
+              size === "small"
+                ? showVerticalTabs
+                  ? ""
+                  : "rounded-t-2xl"
+                : "rounded-2xl",
               showVerticalTabs
                 ? "divide-y flex flex-col rounded-r-none rounded-l-2xl"
                 : "divide-x"
@@ -154,7 +158,7 @@ export function Tabs({
                   size === "small"
                     ? showVerticalTabs
                       ? "py-2"
-                      : "whitespace-nowrap rounded-b-none py-2"
+                      : "whitespace-nowrap !rounded-b-none py-2"
                     : "",
                   typeof tab?.headerClassNames === "function"
                     ? tab?.headerClassNames?.(
