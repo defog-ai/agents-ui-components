@@ -15,6 +15,7 @@ import { SpinningLoader } from "@ui-components";
 import { v4 } from "uuid";
 import SQLFeedback from "./SQLFeedback";
 import StepResultAnalysis from "./StepResultAnalysis";
+import { CodeEditor } from "./CodeEditor";
 
 function parseOutputs(data, analysisData) {
   let parsedOutputs = {};
@@ -66,7 +67,7 @@ export function StepResults({
   handleDeleteSteps = async (...args) => {},
   tools = {},
   analysisBusy = false,
-  setCurrentQuestion=(...args)=>{}
+  setCurrentQuestion = (...args) => {},
 }) {
   const agentConfigContext = useContext(AgentConfigContext);
   const parsedOutputs = useMemo(() => {
@@ -295,6 +296,45 @@ export function StepResults({
                   keyName={keyName}
                   analysisId={analysisId}
                 />
+                {step?.reference_queries?.length > 0 ? (
+                  <>
+                    <p className="mt-8 mb-2 text-sm font-mono">
+                      <span className="font-bold">Reference Queries</span>:
+                      these queries were selected as reference queries, among all the golden queries you uploaded. If the query generated above is not correct, consider adding some related golden queries to help Defog answer your questions correctly.
+                    </p>
+                    <Tabs
+                      disableSingleSelect={true}
+                      size="small"
+                      defaultSelected="Question 1"
+                      tabs={step.reference_queries.map((query, i) => ({
+                        name: `Question ${i + 1}`,
+                        content: (
+                          <div>
+                            <p className="text-sm my-4 ml-2 font-semibold">{query.question}</p>
+                            <CodeEditor
+                              className="tool-code-ctr"
+                              code={query.sql}
+                              language="sql"
+                              editable={false}
+                            />
+                          </div>
+                        ),
+                      }))}
+                    />
+                  </>
+                ) : null}
+
+                {step.instructions_used && (
+                  <>
+                    <p className="mt-8 mb-2 text-sm font-mono">
+                      <span className="font-bold">Relevant Instructions</span>:
+                      these instructions were selected to create this SQL query
+                    </p>
+                    <p className="text-sm mt-2 pl-4 rounded whitespace-break-spaces leading-relaxed">
+                      {step.instructions_used}
+                    </p>
+                  </>
+                )}
               </>
             )}
           </ErrorBoundary>

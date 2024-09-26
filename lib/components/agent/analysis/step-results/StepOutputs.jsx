@@ -64,10 +64,10 @@ export function StepOutputs({
           })}
         </div>
       </div>
-      <div className="tool-code mt-4">
+      <div className="tool-code mt-8">
         {sql && (
           <>
-            <p className="mb-2 text-gray-400">SQL</p>
+            <p className="mb-2 font-bold text-sm">SQL</p>
             <CodeEditor
               key={sql}
               className="tool-code-ctr"

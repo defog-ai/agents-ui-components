@@ -15,6 +15,7 @@ import { SingleSelect } from "./SingleSelect";
  * @property {Array<Tab>} [tabs] - The tabs to be displayed.
  * @property {string} [defaultSelected] - The default selected tab.
  * @property {string} [selected] - The selected tab.
+ * @property {"small" | "normal"} [size] - The tab size
  * @property {string} [rootClassNames] - Additional classes to be added to the root div.
  * @property {string} [defaultTabClassNames] - Additional classes to be added to all tabs.
  * @property {string} [contentClassNames] - Additional classes to be added to the tab content.
@@ -39,6 +40,7 @@ export function Tabs({
   tabs = [],
   defaultSelected = null,
   selected = null,
+  size = "normal",
   rootClassNames = "",
   defaultTabClassNames = "",
   contentClassNames = "",
@@ -78,10 +80,11 @@ export function Tabs({
       )}
     >
       <div
+        role="tablist"
         className={twMerge(
           "tab-group",
           showVerticalTabs
-            ? " sm:relative sm:left-0 origin-right z-10"
+            ? "sm:relative sm:left-0 origin-right z-10"
             : "flex flex-row"
         )}
       >
@@ -109,19 +112,25 @@ export function Tabs({
         )}
         <div
           className={twMerge(
-            " grow",
+            "max-w-full",
+            size === "small" ? "" : "grow",
             disableSingleSelect ? "block" : "hidden sm:block"
           )}
         >
           <nav
             className={twMerge(
-              "isolate flex divide-gray-200 rounded-2xl shadow",
-              showVerticalTabs ? "divide-y flex flex-col" : "divide-x"
+              "isolate flex divide-gray-200 shadow max-w-full overflow-scroll",
+              size === "small" ? "rounded-t-2xl" : "rounded-2xl",
+              showVerticalTabs
+                ? "divide-y flex flex-col rounded-r-none rounded-l-2xl"
+                : "divide-x"
             )}
             aria-label="Tabs"
           >
             {tabs.map((tab, tabIdx) => (
               <div
+                aria-roledescription="tab"
+                role="tab"
                 key={tab.name + "-" + tabIdx}
                 className={twMerge(
                   "flex items-center justify-center cursor-pointer",
@@ -138,10 +147,15 @@ export function Tabs({
                       ? "rounded-bl-2xl"
                       : "rounded-r-2xl"
                     : "",
-                  "group relative min-w-0 overflow-hidden flex-1 bg-white text-center text-sm font-medium hover:bg-gray-50 focus:z-10",
+                  "group relative min-w-fit overflow-hidden flex-1 bg-white text-center text-sm font-medium hover:bg-gray-50 focus:z-10",
                   showVerticalTabs
                     ? "px-2 py-4 min-h-28 max-h-32"
                     : "py-4 px-4",
+                  size === "small"
+                    ? showVerticalTabs
+                      ? "py-2"
+                      : "whitespace-nowrap rounded-b-none py-2"
+                    : "",
                   typeof tab?.headerClassNames === "function"
                     ? tab?.headerClassNames?.(
                         selectedTab.name === tab.name,

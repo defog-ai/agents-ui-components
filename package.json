@@ -1,6 +1,6 @@
 {
   "name": "@defogdotai/agents-ui-components",
-  "version": "0.0.43",
+  "version": "0.0.44",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -70,6 +70,7 @@
     "styled-components": "^6.1.11",
     "tailwind-merge": "^2.4.0",
     "uuid": "^10.0.0",
+    "xlsx": "^0.18.5",
     "y-partykit": "^0.0.29",
     "yjs": "^13.6.18"
   },

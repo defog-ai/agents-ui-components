@@ -67,7 +67,7 @@ export function MessageManager() {
       {
         type: type,
         id,
-        message: typeof message === "string" ? message : message.message,
+        message: typeof message === "string" ? message : message?.message,
         time,
         deleteInterval: setTimeout(() => {
           deleteMessage(id);

@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext } from "react";
 import {
   DropFiles,
   MessageManagerContext,
@@ -6,12 +6,18 @@ import {
   SpinningLoader,
 } from "@ui-components";
 import { ArrowDownTrayIcon } from "@heroicons/react/20/solid";
-import { parseCsvFile } from "../../utils/utils";
+import {
+  FILE_TYPES,
+  isValidFileType,
+  parseCsvFile,
+  parseExcelFile,
+} from "../../utils/utils";
 
 export function TabNullState({
   availableDbs = [],
   onSelectDb = (...args) => {},
   onParseCsv = (...args) => {},
+  onParseExcel = (...args) => {},
   fileUploading = false,
 }) {
   const messageManager = useContext(MessageManagerContext);
@@ -32,44 +38,53 @@ export function TabNullState({
         }}
       />
       <DropFiles
-        label="Or drop a CSV"
+        acceptedFileTypes={[FILE_TYPES.CSV, FILE_TYPES.EXCEL, FILE_TYPES]}
+        label="Or drop a CSV/Excel file"
         rootClassNames="w-96 max-w-[90%] border p-4 rounded-md text-gray-400"
         disabled={fileUploading}
-        onFileSelect={(ev) => {
+        onFileSelect={async (ev) => {
           ev.preventDefault();
           ev.stopPropagation();
 
           // this is when the user selects a file from the file dialog
           try {
             let file = ev.target.files[0];
-            if (!file || file.type !== "text/csv") {
-              throw new Error("Only CSV files are accepted");
+            if (!file || !isValidFileType(file.type)) {
+              throw new Error("Only CSV or Excel files are accepted");
             }
 
-            parseCsvFile(file, onParseCsv);
+            if (file.type === "text/csv") {
+              parseCsvFile(file, onParseCsv);
+            } else {
+              parseExcelFile(file, onParseExcel);
+            }
           } catch (e) {
+            console.error(e);
             messageManager.error("Failed to parse the file");
           }
         }}
-        onDrop={(ev) => {
+        onDrop={async (ev) => {
           ev.preventDefault();
           ev.stopPropagation();
           try {
             let file = ev?.dataTransfer?.items?.[0];
-            if (
-              !file ||
-              !file.kind ||
-              file.kind !== "file" ||
-              file.type !== "text/csv"
-            ) {
-              throw new Error("Only CSV files are accepted");
+            if (!file || !file.kind || file.kind !== "file") {
+              throw new Error("Invalid file");
+            }
+
+            if (!isValidFileType(file.type)) {
+              throw new Error("Only CSV or Excel files are accepted");
             }
 
             file = file.getAsFile();
 
-            parseCsvFile(file, onParseCsv);
+            if (file.type === "text/csv") {
+              parseCsvFile(file, onParseCsv);
+            } else {
+              parseExcelFile(file, onParseExcel);
+            }
           } catch (e) {
-            messageManager.error("Failed to parse the file");
+            messageManager.error(e.message || "Failed to parse the file");
             console.log(e.stack);
           }
         }}
