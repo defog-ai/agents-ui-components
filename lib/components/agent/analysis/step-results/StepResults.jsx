@@ -15,6 +15,7 @@ import { SpinningLoader } from "@ui-components";
 import { v4 } from "uuid";
 import SQLFeedback from "./SQLFeedback";
 import StepResultAnalysis from "./StepResultAnalysis";
+import { CodeEditor } from "./CodeEditor";
 
 function parseOutputs(data, analysisData) {
   let parsedOutputs = {};
@@ -299,10 +300,7 @@ export function StepResults({
                   <>
                     <p className="mt-8 mb-2 text-sm font-mono">
                       <span className="font-bold">Reference Queries</span>:
-                      amongst the golden queries you uploaded, these queries
-                      were selected as reference queries. If there are no
-                      related golden queries, then what you see below might be
-                      irrelevant
+                      these queries were selected as reference queries, among all the golden queries you uploaded. If the query generated above is not correct, consider adding some related golden queries to help Defog answer your questions correctly.
                     </p>
                     <Tabs
                       disableSingleSelect={true}
@@ -311,14 +309,15 @@ export function StepResults({
                       tabs={step.reference_queries.map((query, i) => ({
                         name: `Question ${i + 1}`,
                         content: (
-                          <pre
-                            key={i}
-                            className="text-sm text-gray-600 p-2 bg-gray-100 rounded mb-4 whitespace-break-spaces"
-                          >
-                            <div>Question: {query.question}</div>
-                            <br />
-                            <div>{query.sql}</div>
-                          </pre>
+                          <div>
+                            <p className="text-sm my-4 ml-2 font-semibold">{query.question}</p>
+                            <CodeEditor
+                              className="tool-code-ctr"
+                              code={query.sql}
+                              language="sql"
+                              editable={false}
+                            />
+                          </div>
                         ),
                       }))}
                     />
@@ -331,9 +330,9 @@ export function StepResults({
                       <span className="font-bold">Relevant Instructions</span>:
                       these instructions were selected to create this SQL query
                     </p>
-                    <pre className="text-sm mb-2 text-gray-600 p-2 bg-gray-100 rounded whitespace-break-spaces max-h-64 overflow-auto">
+                    <p className="text-sm mt-2 pl-4 rounded whitespace-break-spaces leading-relaxed">
                       {step.instructions_used}
-                    </pre>
+                    </p>
                   </>
                 )}
               </>

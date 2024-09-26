@@ -241,7 +241,7 @@ export const AnalysisAgent = ({
 
         const response = await fetch(getToolsEndpoint, {
           method: "POST",
-          signal: AbortSignal.timeout(10000),
+          signal: AbortSignal.timeout(60000),
         });
 
         const tools = (await response.json())["tools"];
