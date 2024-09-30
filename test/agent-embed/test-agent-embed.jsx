@@ -42,7 +42,7 @@ function QueryDataPage() {
       dbs={apiKeyNames.map((name) => ({
         name: name,
         keyName: name,
-        predefinedQuestions: [],
+        predefinedQuestions: ["show me any 5 rows"],
       }))}
       disableMessages={false}
     />

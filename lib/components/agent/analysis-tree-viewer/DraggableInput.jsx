@@ -143,6 +143,7 @@ export function DraggableInput({
                     !activeRootAnalysisId,
                     activeAnalysisId
                   );
+                  searchRef.current.value = "";
                 }
               }}
               placeholder={
