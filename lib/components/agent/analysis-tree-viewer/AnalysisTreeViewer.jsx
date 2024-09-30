@@ -144,7 +144,7 @@ export function AnalysisTreeViewer({
   // w-0
   return (
     <ErrorBoundary>
-      <div className="relative h-full max-h-screen">
+      <div className="relative h-full">
         {/* top and bottom fades if we are on small screens and if we have some analyses going */}
         {activeAnalysisId && activeRootAnalysisId && (
           <div className="lg:hidden absolute bottom-0 left-0 w-full h-[10%] pointer-events-none bg-gradient-to-b from-transparent to-gray-300 z-10"></div>
