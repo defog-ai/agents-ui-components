@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import ReactDOM from "react-dom/client";
 import "../../lib/styles/index.scss";
 import { DefogAnalysisAgentEmbed } from "../../lib/agent";
@@ -32,6 +32,17 @@ function QueryDataPage() {
     getApiKeyNames(import.meta.env.VITE_TOKEN);
   }, []);
 
+  const initialTrees = useMemo(() => {
+    try {
+      const storedTrees = localStorage.getItem("analysisTrees");
+      if (storedTrees) {
+        return JSON.parse(storedTrees);
+      }
+    } catch (e) {
+      return null;
+    }
+  }, []);
+
   return (
     <DefogAnalysisAgentEmbed
       token={import.meta.env.VITE_TOKEN}
@@ -46,6 +57,23 @@ function QueryDataPage() {
         predefinedQuestions: ["show me any 5 rows"],
       }))}
       disableMessages={false}
+      initialTrees={initialTrees}
+      onTreeChange={(keyName, tree) => {
+        try {
+          // save in local storage in an object called analysisTrees
+          let trees = localStorage.getItem("analysisTrees");
+          if (!trees) {
+            trees = localStorage.setItem("analysisTrees", "{}");
+          } else {
+            trees = JSON.parse(trees);
+          }
+
+          trees[keyName] = tree;
+          localStorage.setItem("analysisTrees", JSON.stringify(trees));
+        } catch (e) {
+          console.error(e);
+        }
+      }}
     />
   );
 }
