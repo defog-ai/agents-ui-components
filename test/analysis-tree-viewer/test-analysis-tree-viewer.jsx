@@ -52,19 +52,21 @@ function QueryDataPage() {
       showAnalysisUnderstanding={true}
       disableMessages={false}
     >
-      <AnalysisTreeViewer
-        keyName={keyName}
-        metadata={metadata}
-        isTemp={isTemp}
-        forceSqlOnly={false}
-        analysisTreeManager={analysisTreeManager}
-        autoScroll={true}
-        sideBarClasses={""}
-        searchBarDraggable={false}
-        showToggle={true}
-        defaultSidebarOpen={true || (window.innerWidth < 768 ? false : true)}
-        predefinedQuestions={predefinedQuestions}
-      />
+      <div className="h-screen">
+        <AnalysisTreeViewer
+          keyName={keyName}
+          metadata={metadata}
+          isTemp={isTemp}
+          forceSqlOnly={false}
+          analysisTreeManager={analysisTreeManager}
+          autoScroll={true}
+          sideBarClasses={""}
+          searchBarDraggable={false}
+          showToggle={true}
+          defaultSidebarOpen={true || (window.innerWidth < 768 ? false : true)}
+          predefinedQuestions={predefinedQuestions}
+        />
+      </div>
     </Setup>
   );
 }
