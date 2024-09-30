@@ -60,7 +60,7 @@ function QueryDataPage() {
         analysisTreeManager={analysisTreeManager}
         autoScroll={true}
         sideBarClasses={""}
-        searchBarDraggable={true}
+        searchBarDraggable={false}
         showToggle={true}
         defaultSidebarOpen={true || (window.innerWidth < 768 ? false : true)}
         predefinedQuestions={predefinedQuestions}
@@ -69,6 +69,4 @@ function QueryDataPage() {
   );
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(
-  <QueryDataPage />
-);
+ReactDOM.createRoot(document.getElementById("root")).render(<QueryDataPage />);

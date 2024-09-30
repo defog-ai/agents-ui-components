@@ -25,11 +25,7 @@ export function AnalysisTabContent({
         analysisTreeManager={treeManager}
         autoScroll={true}
         sideBarClasses={sideBarClasses}
-        searchBarClasses={twMerge(
-          searchBarDraggable ? "" : "sticky bottom-1",
-          "[&_textarea]:pl-2",
-          searchBarClasses
-        )}
+        searchBarClasses={searchBarClasses}
         searchBarDraggable={searchBarDraggable}
         showToggle={!forceSqlOnly}
         defaultSidebarOpen={
