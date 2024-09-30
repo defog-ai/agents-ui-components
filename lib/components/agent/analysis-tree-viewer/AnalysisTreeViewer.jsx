@@ -37,6 +37,7 @@ export function AnalysisTreeViewer({
   searchBarDraggable = true,
   defaultSidebarOpen = false,
   showToggle = true,
+  onTreeChange = () => {},
 }) {
   const messageManager = useContext(MessageManagerContext);
 
@@ -79,6 +80,10 @@ export function AnalysisTreeViewer({
     setAddToDashboardSelection(false);
     analysisDomRefs.current = {};
   }, [analysisTreeManager]);
+
+  useEffect(() => {
+    onTreeChange(keyName, analysisTree);
+  }, [onTreeChange, keyName, analysisTree]);
 
   const handleSubmit = useCallback(
     async function (
