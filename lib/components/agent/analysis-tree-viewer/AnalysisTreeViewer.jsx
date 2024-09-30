@@ -3,6 +3,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
   useSyncExternalStore,
@@ -12,11 +13,7 @@ import { AnalysisTreeItem } from "./AnalysisTreeItem";
 import { PlusIcon } from "@heroicons/react/20/solid";
 import { sentenceCase } from "../../utils/utils";
 import { twMerge } from "tailwind-merge";
-import {
-  Sidebar,
-  MessageManagerContext,
-  breakpoints,
-} from "@ui-components";
+import { Sidebar, MessageManagerContext, breakpoints } from "@ui-components";
 import ErrorBoundary from "../../common/ErrorBoundary";
 import { AnalysisTreeViewerLinks } from "./AnalysisTreeViewerLinks";
 import { AgentConfigContext } from "../../context/AgentContext";
@@ -135,10 +132,19 @@ export function AnalysisTreeViewer({
     });
   }
 
+  const activeAnalysisList = useMemo(() => {
+    return (
+      (activeRootAnalysisId &&
+        analysisTree?.[activeRootAnalysisId]?.analysisList &&
+        analysisTree[activeRootAnalysisId].analysisList) ||
+      null
+    );
+  }, [analysisTree, activeRootAnalysisId]);
+
   // w-0
   return (
     <ErrorBoundary>
-      <div className="relative h-full">
+      <div className="relative h-full max-h-screen">
         {/* top and bottom fades if we are on small screens and if we have some analyses going */}
         {activeAnalysisId && activeRootAnalysisId && (
           <div className="lg:hidden absolute bottom-0 left-0 w-full h-[10%] pointer-events-none bg-gradient-to-b from-transparent to-gray-300 z-10"></div>
@@ -256,82 +262,88 @@ export function AnalysisTreeViewer({
               setSidebarOpen(false);
             }}
           ></div>
-          <div className="relative w-full h-full min-w-0 p-2 pt-10 overflow-auto rounded-tr-lg sm:pt-0 grow lg:p-4">
-            {activeRootAnalysisId &&
-              analysisTree?.[activeRootAnalysisId]?.analysisList &&
-              analysisTree[activeRootAnalysisId].analysisList.map(
-                (analysis) => {
-                  const rootAnalysisId = analysis.rootAnalysisId;
-                  const analysisChildList =
-                    analysisTree?.[rootAnalysisId]?.analysisList || [];
-                  return (
-                    <AnalysisAgent
-                      key={analysis.analysisId}
-                      metadata={metadata}
-                      rootClassNames={
-                        "w-full mb-4 [&_.analysis-content]:min-h-96 shadow-md analysis-" +
-                        analysis.analysisId
+          <div
+            className={twMerge(
+              "relative w-full h-full min-w-0 p-2 pt-10 overflow-auto rounded-tr-lg sm:pt-0 grow lg:p-4",
+              // if there are no active analysis, we will make this a flex box so that the "quickstart" section grows
+              // and pushes the search bar down
+              activeAnalysisList && activeAnalysisList.length
+                ? ""
+                : "flex flex-col"
+            )}
+          >
+            {activeAnalysisList &&
+              activeAnalysisList.map((analysis) => {
+                const rootAnalysisId = analysis.rootAnalysisId;
+                const analysisChildList =
+                  analysisTree?.[rootAnalysisId]?.analysisList || [];
+                return (
+                  <AnalysisAgent
+                    key={analysis.analysisId}
+                    metadata={metadata}
+                    rootClassNames={
+                      "w-full mb-4 [&_.analysis-content]:min-h-96 shadow-md analysis-" +
+                      analysis.analysisId
+                    }
+                    analysisId={analysis.analysisId}
+                    createAnalysisRequestBody={
+                      analysis.createAnalysisRequestBody
+                    }
+                    initiateAutoSubmit={true}
+                    hasExternalSearchBar={true}
+                    setGlobalLoading={setLoading}
+                    // we store this at the time of creation of the analysis
+                    // and don't change it for this specific analysis afterwards.
+                    sqlOnly={analysis.sqlOnly}
+                    isTemp={analysis.isTemp}
+                    keyName={analysis.keyName}
+                    previousQuestions={analysisChildList.map((i) => ({
+                      ...i,
+                    }))}
+                    onManagerCreated={(analysisManager, id, ctr) => {
+                      analysisDomRefs.current[id] = {
+                        ctr,
+                        analysisManager,
+                        id,
+                      };
+                      if (autoScroll) {
+                        // scroll to ctr
+                        scrollTo(id);
                       }
-                      analysisId={analysis.analysisId}
-                      createAnalysisRequestBody={
-                        analysis.createAnalysisRequestBody
+
+                      analysisTreeManager.updateAnalysis({
+                        analysisId: analysis.analysisId,
+                        isRoot: analysis.isRoot,
+                        updateObj: {
+                          analysisManager: analysisManager,
+                        },
+                      });
+                    }}
+                    onManagerDestroyed={(analysisManager, id) => {
+                      // remove the analysis from the analysisTree
+                      analysisTreeManager.removeAnalysis({
+                        analysisId: analysis.analysisId,
+                        isRoot: analysis.isRoot,
+                        rootAnalysisId: analysis.rootAnalysisId,
+                      });
+
+                      analysisTreeManager.setActiveAnalysisId(null);
+                      if (activeRootAnalysisId === id) {
+                        analysisTreeManager.setActiveRootAnalysisId(null);
                       }
-                      initiateAutoSubmit={true}
-                      hasExternalSearchBar={true}
-                      setGlobalLoading={setLoading}
-                      // we store this at the time of creation of the analysis
-                      // and don't change it for this specific analysis afterwards.
-                      sqlOnly={analysis.sqlOnly}
-                      isTemp={analysis.isTemp}
-                      keyName={analysis.keyName}
-                      previousQuestions={analysisChildList.map((i) => ({
-                        ...i,
-                      }))}
-                      onManagerCreated={(analysisManager, id, ctr) => {
-                        analysisDomRefs.current[id] = {
-                          ctr,
-                          analysisManager,
-                          id,
-                        };
-                        if (autoScroll) {
-                          // scroll to ctr
-                          scrollTo(id);
-                        }
 
-                        analysisTreeManager.updateAnalysis({
-                          analysisId: analysis.analysisId,
-                          isRoot: analysis.isRoot,
-                          updateObj: {
-                            analysisManager: analysisManager,
-                          },
-                        });
-                      }}
-                      onManagerDestroyed={(analysisManager, id) => {
-                        // remove the analysis from the analysisTree
-                        analysisTreeManager.removeAnalysis({
-                          analysisId: analysis.analysisId,
-                          isRoot: analysis.isRoot,
-                          rootAnalysisId: analysis.rootAnalysisId,
-                        });
-
-                        analysisTreeManager.setActiveAnalysisId(null);
-                        if (activeRootAnalysisId === id) {
-                          analysisTreeManager.setActiveRootAnalysisId(null);
-                        }
-
-                        setLoading(false);
-                      }}
-                      initialConfig={{
-                        analysisManager: analysis.analysisManager || null,
-                      }}
-                      setCurrentQuestion={setCurrentQuestion}
-                    />
-                  );
-                }
-              )}
+                      setLoading(false);
+                    }}
+                    initialConfig={{
+                      analysisManager: analysis.analysisManager || null,
+                    }}
+                    setCurrentQuestion={setCurrentQuestion}
+                  />
+                );
+              })}
 
             {!activeAnalysisId && (
-              <div className=" grow flex flex-col place-content-center m-auto max-w-full relative z-[1]">
+              <div className="grow flex flex-col place-content-center m-auto max-w-full relative z-[1]">
                 <div className="text-center text-gray-400 rounded-md">
                   <p className="block mb-4 text-sm font-bold cursor-default">
                     Quickstart
@@ -366,19 +378,21 @@ export function AnalysisTreeViewer({
                 </div>
               </div>
             )}
-            <DraggableInput
-              searchBarClasses={searchBarClasses}
-              searchBarDraggable={searchBarDraggable}
-              loading={loading}
-              handleSubmit={handleSubmit}
-              activeRootAnalysisId={activeRootAnalysisId}
-              activeAnalysisId={activeAnalysisId}
-              showToggle={showToggle}
-              forceSqlOnly={forceSqlOnly}
-              setSqlOnly={setSqlOnly}
-              sqlOnly={sqlOnly}
-              question={currentQuestion}
-            />
+            <div className={searchBarDraggable ? "" : "sticky bottom-1"}>
+              <DraggableInput
+                searchBarClasses={searchBarClasses}
+                searchBarDraggable={searchBarDraggable}
+                loading={loading}
+                handleSubmit={handleSubmit}
+                activeRootAnalysisId={activeRootAnalysisId}
+                activeAnalysisId={activeAnalysisId}
+                showToggle={showToggle}
+                forceSqlOnly={forceSqlOnly}
+                setSqlOnly={setSqlOnly}
+                sqlOnly={sqlOnly}
+                question={currentQuestion}
+              />
+            </div>
           </div>
         </div>
       </div>

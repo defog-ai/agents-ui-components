@@ -35,6 +35,7 @@ function QueryDataPage() {
   return (
     <DefogAnalysisAgentEmbed
       token={import.meta.env.VITE_TOKEN}
+      searchBarDraggable={false}
       apiEndpoint={import.meta.env.VITE_API_ENDPOINT}
       // these are the ones that will be shown for new csvs uploaded
       uploadedCsvPredefinedQuestions={["Show me any 5 rows from the dataset"]}
