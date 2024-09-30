@@ -433,6 +433,7 @@ export const AnalysisAgent = ({
                   ref={independentAnalysisSearchRef}
                   onPressEnter={(ev) => {
                     handleSubmit(ev.target.value);
+                    ev.target.value = "";
                   }}
                   placeholder={searchBarPlaceholder || "Ask a question"}
                   disabled={disabled || analysisBusy}
