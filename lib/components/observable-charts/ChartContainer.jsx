@@ -140,6 +140,7 @@ export function ChartContainer({ columns, rows }) {
               console.error(e);
             } finally {
               setLoading(false);
+              e.target.value = "";
             }
           }}
         />
