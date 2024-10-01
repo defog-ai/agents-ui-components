@@ -18,6 +18,7 @@ import ErrorBoundary from "../../common/ErrorBoundary";
 import { AnalysisTreeViewerLinks } from "./AnalysisTreeViewerLinks";
 import { AgentConfigContext } from "../../context/AgentContext";
 import { DraggableInput } from "./DraggableInput";
+import { v4 } from "uuid";
 
 /**
  *
@@ -102,9 +103,12 @@ export function AnalysisTreeViewer({
 
         setLoading(true);
 
-        const { newId, newAnalysis } = await analysisTreeManager.submit({
+        const newId = "analysis-" + v4();
+
+        const { newAnalysis } = await analysisTreeManager.submit({
           question,
-          rootAnalysisId,
+          analysisId: newId,
+          rootAnalysisId: isRoot ? newId : rootAnalysisId,
           keyName,
           isRoot,
           directParentId,
