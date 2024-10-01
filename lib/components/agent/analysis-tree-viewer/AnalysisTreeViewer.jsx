@@ -18,9 +18,13 @@ import ErrorBoundary from "../../common/ErrorBoundary";
 import { AnalysisTreeViewerLinks } from "./AnalysisTreeViewerLinks";
 import { AgentConfigContext } from "../../context/AgentContext";
 import { DraggableInput } from "./DraggableInput";
+
 /**
+ *
  * Analysis tree viewer component
  * @param {Object} props
+ * @param {ReturnType<import('./analysisTreeManager').AnalysisTreeManager>} props.analysisTreeManager
+ *
  */
 export function AnalysisTreeViewer({
   analysisTreeManager,
@@ -162,7 +166,20 @@ export function AnalysisTreeViewer({
               onChange={(open) => {
                 setSidebarOpen(open);
               }}
-              title={<span className="font-bold">History</span>}
+              title={
+                <span className="font-bold">
+                  History{" "}
+                  <span
+                    title="Clear history"
+                    className="text-xs font-light underline text-gray-400 inline hover:text-blue-500 cursor-pointer"
+                    onClick={() => {
+                      analysisTreeManager.reset();
+                    }}
+                  >
+                    Clear
+                  </span>
+                </span>
+              }
               rootClassNames={twMerge(
                 "transition-all z-20 h-[calc(100%-1rem)] rounded-md rounded-l-none lg:rounded-none lg:rounded-tr-md lg:rounded-br-md bg-gray-100 border-r sticky top-0 lg:relative",
                 sideBarClasses

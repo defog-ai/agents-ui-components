@@ -93,6 +93,9 @@ export async function askQuestionUsingSearchBar(
   await searchBar.fill(question);
 
   await page.getByRole("button", { name: "Ask" }).click();
+
+  // ensure that the search bar has been emptied after the click
+  expect(await searchBar.inputValue()).toBeFalsy();
 }
 
 /**
