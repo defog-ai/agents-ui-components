@@ -213,7 +213,7 @@ export function AnalysisTreeViewer({
                     analysisTree?.[rootAnalysisId]?.analysisList || [];
 
                   return (
-                    <div key={root.analysisId} className="">
+                    <div key={root.analysisId}>
                       {analysisChildList.map((tree, i) => {
                         return (
                           <AnalysisTreeItem
