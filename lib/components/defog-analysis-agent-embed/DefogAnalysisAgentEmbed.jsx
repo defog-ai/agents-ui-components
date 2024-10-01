@@ -590,7 +590,7 @@ export function DefogAnalysisAgentEmbed({
                 const treeCopy = JSON.parse(JSON.stringify(tree));
                 // remove all analysisManagers
                 // we do this because analysisManagers have functions as properties
-                // which can't be stringified (for now that is the major use case)
+                // which can't be stringified (for now that is the major use case as we're storing to localStorage)
                 // so to avoid the parent component handling this, this is
                 Object.keys(treeCopyWithoutManagers).forEach((analysisId) => {
                   delete treeCopyWithoutManagers[analysisId].root

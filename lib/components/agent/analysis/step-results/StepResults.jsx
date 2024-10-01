@@ -336,7 +336,7 @@ export function StepResults({
                       <span className="font-bold">Relevant Instructions</span>:
                       these instructions were selected to create this SQL query
                     </p>
-                    <p className="text-sm mt-2 pl-4 rounded whitespace-break-spaces leading-relaxed">
+                    <p className="text-sm mt-2 mb-4 pl-4 rounded whitespace-break-spaces leading-relaxed">
                       {step.instructions_used}
                     </p>
                   </>

@@ -87,8 +87,12 @@ export function AnalysisTreeViewer({
   }, [analysisTreeManager]);
 
   useEffect(() => {
+    // don't store isTemp histories because currently the keyName of temp dbs is
+    // just the first keyName
+    // this will cause an overwrite of the history
+    if (isTemp) return;
     onTreeChange(keyName, analysisTree);
-  }, [onTreeChange, keyName, analysisTree]);
+  }, [onTreeChange, keyName, analysisTree, isTemp]);
 
   const handleSubmit = useCallback(
     async function (
