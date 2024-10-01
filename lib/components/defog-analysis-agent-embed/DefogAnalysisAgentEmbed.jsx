@@ -591,7 +591,8 @@ export function DefogAnalysisAgentEmbed({
                 // remove all analysisManagers
                 // we do this because analysisManagers have functions as properties
                 // which can't be stringified (for now that is the major use case as we're storing to localStorage)
-                // so to avoid the parent component handling this, this is
+                // so to avoid the parent component handling this, this is placed here.
+                // we still return the full tree including all properties as the third argument
                 Object.keys(treeCopyWithoutManagers).forEach((analysisId) => {
                   delete treeCopyWithoutManagers[analysisId].root
                     .analysisManager;
