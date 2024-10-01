@@ -63,7 +63,8 @@ function QueryDataPage() {
           // save in local storage in an object called analysisTrees
           let trees = localStorage.getItem("analysisTrees");
           if (!trees) {
-            trees = localStorage.setItem("analysisTrees", "{}");
+            trees = {};
+            localStorage.setItem("analysisTrees", "{}");
           } else {
             trees = JSON.parse(trees);
           }

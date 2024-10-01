@@ -76,7 +76,7 @@ export function Sidebar({
   return (
     <div
       className={twMerge(
-        "relative flex flex-row border-r",
+        "sidebar relative flex flex-row border-r",
         rootClassNames,
         sidebarOpen ? openClassNames : closedClassNames
       )}

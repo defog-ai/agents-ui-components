@@ -105,6 +105,8 @@ export async function askQuestionUsingSearchBar(
  *
  * Then also monitors the follow on question generation.
  *
+ * @returns object with the question asked, and follow on questions
+ *
  * @example
  * await testSQLQuestionFull(page);
  *
@@ -121,7 +123,10 @@ export async function fullyTestSQLOnlyQuestionForNonTempDb({
   question?: string;
   /** the number of questions to expect after we have asked this question */
   questionCountToExpectAfterAsking?: number;
-}) {
+}): Promise<{
+  question: string;
+  followOnQuestions: string[];
+}> {
   const requestPromiseGenerate = page.waitForRequest((request) =>
     request.url().includes("/generate_step")
   );
@@ -188,6 +193,11 @@ export async function fullyTestSQLOnlyQuestionForNonTempDb({
   // ensure that the backend responded with a success, and that a non-empty list of follow-on questions was returned
   expect(resFollowOnData.success).toBe(true);
   expect(resFollowOnData.follow_on_questions.length).toBeGreaterThan(0);
+
+  return {
+    question: question,
+    followOnQuestions: resFollowOnData.follow_on_questions,
+  };
 }
 
 /**

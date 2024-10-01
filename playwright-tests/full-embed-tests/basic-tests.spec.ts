@@ -34,6 +34,66 @@ test("can ask one sql-only question, then follow-on question", async ({
   });
 });
 
+test("check history management. can store history in local storage, and can clear it. sql-only. asks follow-on question", async ({
+  page,
+}) => {
+  await page.goto("http://localhost:5173/test/agent-embed/");
+
+  await selectApiKeyName(page);
+
+  await setSqlOnly(page, true);
+
+  const { question } = await fullyTestSQLOnlyQuestionForNonTempDb({ page });
+
+  const selectedFollowOnQuestion = await clickFollowOnQuestion(page);
+
+  // now ask the above question using the search bar
+  await fullyTestSQLOnlyQuestionForNonTempDb({
+    page,
+    question: selectedFollowOnQuestion,
+    questionCountToExpectAfterAsking: 2,
+  });
+
+  // now refresh the page
+  // and re select api key
+  // and look for side bar
+
+  await page.reload();
+
+  await selectApiKeyName(page);
+
+  // find items inside .sidebar which match the question and selectedFollowOnQuestion
+  // and expect them to be visible
+  const sidebar = await page.locator(".sidebar");
+  expect(await sidebar.getByText(question)).toBeVisible();
+  expect(await sidebar.getByText(selectedFollowOnQuestion)).toBeVisible();
+
+  // count of .history-items to be 2
+  expect(
+    await sidebar.locator(".history-item:not(.dummy-analysis)").count()
+  ).toBe(2);
+
+  // find the clear button
+  await page.getByTitle("Clear history").click();
+
+  // expect history to have disappeared
+  // count of .history-items to be 0
+  expect(
+    await sidebar.locator(".history-item:not(.dummy-analysis)").count()
+  ).toBe(0);
+
+  // page refresh to ensure that local storage was also deleted
+  await page.reload();
+
+  await selectApiKeyName(page);
+
+  // expect history to have disappeared
+  // count of .history-items to be 0
+  expect(
+    await sidebar.locator(".history-item:not(.dummy-analysis)").count()
+  ).toBe(0);
+});
+
 test("can ask one advanced question with send email usage", async ({
   page,
 }) => {
