@@ -504,7 +504,7 @@ export function EmbedInner({
  * @property {Boolean=} limitCsvUploadSize -  If the file size should be limited to maxCsvUploadSize.
  * @property {Number=} maxCsvUploadSize -  The max file size allowed, in mbs. Default is 10.
  * @property {Boolean=} defaultSidebarOpen -  If the sidebar should be open by default.
- * @property {(keyName, treeWithoutManagers, fullTree) => void} onTreeChange - Callback for when the analysis tree changes for a particular key. Will be called on addition or removal of analyses.
+ * @property {(keyName, treeWithoutManagers, fullTree) => void=} onTreeChange - Callback for when the analysis tree changes for a particular key. Will be called on addition or removal of analyses.
  * @property {{[apiKeyName: string]: {}}=} initialTrees - An object of initial trees to populate the UI with.
  *
  */
