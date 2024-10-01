@@ -87,32 +87,45 @@ export default function ObservablePlot() {
 
     if (observableOptions) {
       containerRef.current.innerHTML = "";
-
-      // reset the padding bottom or it messes with boundclient calculation below
+      // always reset the padding bottom or it messes with boundclient calculation below
       containerRef.current.style.paddingBottom = 0;
+
+      // append the chart
       containerRef.current.appendChild(
         Plot.plot({
           ...observableOptions,
         })
       );
 
-      // figure out the x axis labels height
-      // and increase if we need to if it is overflowing the container
+      /**
+       * Now that we have added rotation to the ticks, some of them might overflow the bottom of the svg and get cut off if they are too long.
+       * Observable will not handle this on it's own so
+       * The below code handles those ticks, and adds the required amount of padding to the container to make the ticks visible
+       * We don't directly increase the height of the svg because Observable will react to it and goes into an infinite loop.
+       */
+
+      // get the bottom of the container
       const ctrBottom = containerRef.current.getBoundingClientRect().bottom;
 
       // get the x axis
       const xAxisCtr = containerRef.current.querySelector(
         "[aria-label^='x-axis tick label']"
       );
+      // get the bottom of the x axis (this is the bottom of the ticks + label)
       const xAxisBottom = xAxisCtr.getBoundingClientRect().bottom;
+
+      // the svg <g> element that stores the labels
+      // we will later move this down
       const xAxisLabelCtr = containerRef.current.querySelector(
         "[aria-label^='x-axis label']"
       );
 
       if (ctrBottom && xAxisBottom) {
         try {
-          // add the difference in height to ctrBottom as a padding bottom
-          // the +20 here is because we will also move the x axis label forcefully to below the ticks
+          // if the xAxisBottom is more than ctrBottom, means the ticks are overflowing
+          // add the difference in height to the container as padding-bottom
+
+          // the +20 here is because we will also forcefully move the x axis *label* to below the ticks
           let padding = xAxisBottom - ctrBottom + 20;
           padding = padding > 0 ? padding : 0;
 
@@ -127,6 +140,7 @@ export default function ObservablePlot() {
               .split(",")
               .map((val) => parseFloat(val));
 
+            // add the padding to the y. this will move it down in the svg
             const newY = y + padding;
             xAxisLabelCtr.setAttribute("transform", `translate(${x}, ${newY})`);
           }
@@ -134,7 +148,6 @@ export default function ObservablePlot() {
           // silently fail
         }
       }
-      // const xAxisY =
     } else {
       containerRef.current.innerHTML =
         "<div class='flex items-center justify-center h-full w-full'>Please select X and Y axes to display the chart.</div>";
