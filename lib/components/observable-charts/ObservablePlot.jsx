@@ -12,6 +12,8 @@ import { saveAsPNG } from "./utils/saveChart";
 import { Button } from "@ui-components";
 import { Download } from "lucide-react";
 import { ChartStateContext } from "./ChartStateContext";
+import { unix } from "dayjs";
+import { checkIfDate } from "../agent/agentUtils";
 
 export default function ObservablePlot() {
   const containerRef = useRef(null);
@@ -98,7 +100,7 @@ export default function ObservablePlot() {
           y: "value",
           facetX: selectedColumns.x || null,
           filter: chartSpecificOptions[selectedChart]?.filter,
-          xIsDate: false,
+          xIsDate: xColumn?.isDate,
           dateToUnix,
           ...chartStyle,
           ...chartSpecificOptions[selectedChart],
@@ -134,12 +136,43 @@ export default function ObservablePlot() {
       // always reset the padding or it messes with boundclient calculation below
       containerRef.current.style.padding = "0 0 0 0";
 
+      console.log(observableOptions);
+
       // append the chart
-      containerRef.current.appendChild(
-        Plot.plot({
-          ...observableOptions,
-        })
-      );
+      // if chart is not bar chart
+
+      if (observableOptions.type !== "bar") {
+        containerRef.current.appendChild(
+          Plot.plot({
+            ...observableOptions,
+            fx: {
+              tickRotate: -70,
+              tickFormat: (d) => {
+                // if date, format it
+                if (checkIfDate(d)) {
+                  // convert from unix to date
+                  const date = unix(d).format("YYYY-MM-DD");
+                  return date;
+                } else {
+                  return d;
+                }
+              },
+              axis: "bottom",
+            },
+            x: {
+              axis: null,
+              label: ""
+            }
+          })
+        );
+      } else {
+        // if chart is bar chart
+        containerRef.current.appendChild(
+          Plot.plot({
+            ...observableOptions,
+          })
+        );
+      }
 
       /**
        * Now that we have added rotation to the ticks, some of them might overflow the bottom of the svg and get cut off if they are too long.
