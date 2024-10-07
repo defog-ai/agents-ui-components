@@ -13,7 +13,7 @@ import { Button } from "@ui-components";
 import { Download } from "lucide-react";
 import { ChartStateContext } from "./ChartStateContext";
 import { unix } from "dayjs";
-import { checkIfDate } from "../agent/agentUtils";
+import dayjs from "dayjs";
 
 export default function ObservablePlot() {
   const containerRef = useRef(null);
@@ -46,30 +46,29 @@ export default function ObservablePlot() {
         [selectedColumns.x]:
           dateToUnix(item[selectedColumns.x]) || item[selectedColumns.x],
       }));
+    }
 
-      // if the selectedChart is bar, then we want to transform the data from a long format to a wide format
-      // this is because bar chart expects the data to be in wide format
-      function convertWideToLong(wideArray, xColumn, yColumns) {
-        const longArray = [];
-        
-        wideArray.forEach(row => {
-          yColumns.forEach(yColumn => {
-            longArray.push({
-              [xColumn]: row[xColumn],
-              value: row[yColumn],
-              label: yColumn,
-            });
+    // if the selectedChart is bar, then we want to transform the data from a long format to a wide format
+    // this is because bar chart expects the data to be in wide format
+    function convertWideToLong(wideArray, xColumn, yColumns) {
+      const longArray = [];
+      
+      wideArray.forEach(row => {
+        yColumns.forEach(yColumn => {
+          longArray.push({
+            [xColumn]: row[xColumn],
+            value: row[yColumn],
+            label: yColumn,
           });
         });
-        
-        return longArray;
-      }
-
-      if (selectedChart === "bar") {
-        const yColumns = selectedColumns.y;
-        processedData = convertWideToLong(processedData, selectedColumns.x, yColumns);
-      }
+      });
       
+      return longArray;
+    }
+
+    if (selectedChart === "bar") {
+      const yColumns = selectedColumns.y;
+      processedData = convertWideToLong(processedData, selectedColumns.x, yColumns);
     }
 
     if (selectedChart !== "bar") {
@@ -136,12 +135,10 @@ export default function ObservablePlot() {
       // always reset the padding or it messes with boundclient calculation below
       containerRef.current.style.padding = "0 0 0 0";
 
-      console.log(observableOptions);
-
       // append the chart
       // if chart is not bar chart
 
-      if (observableOptions.type !== "bar") {
+      if (chartState.selectedChart === "bar") {
         containerRef.current.appendChild(
           Plot.plot({
             ...observableOptions,
@@ -149,7 +146,7 @@ export default function ObservablePlot() {
               tickRotate: -70,
               tickFormat: (d) => {
                 // if date, format it
-                if (checkIfDate(d)) {
+                if (dayjs(d).isValid()) {
                   // convert from unix to date
                   const date = unix(d).format("YYYY-MM-DD");
                   return date;
