@@ -35,6 +35,7 @@ export function StepResultsTable({
   sql = null,
   chartImages = null,
   reactiveVars = null,
+  initialQuestion = null,
   handleEdit = () => {},
 }) {
   const downloadCsvEndpoint = setupBaseUrl({
@@ -232,6 +233,7 @@ export function StepResultsTable({
               <ChartContainer
                 rows={tableData.data}
                 columns={tableData.columns}
+                initialQuestion={initialQuestion}
               />
             </ErrorBoundary>
           ),
