@@ -66,12 +66,17 @@ export default function ObservablePlot() {
       return longArray;
     }
 
-    if (selectedChart === "bar") {
-      const yColumns = selectedColumns.y;
-      processedData = convertWideToLong(processedData, selectedColumns.x, yColumns);
+    if (selectedChart === "bar" || selectedChart === "line") {
+      try {
+        processedData = convertWideToLong(processedData, selectedColumns.x, selectedColumns.y);
+      } catch (e) {
+        console.error("Error converting wide to long format", e);
+      }
     }
 
-    if (selectedChart !== "bar") {
+    console.log("processedData", processedData);
+
+    if (selectedChart !== "bar" && selectedChart !== "line") {
       return getObservableOptions(
         dimensions,
         {
@@ -89,15 +94,32 @@ export default function ObservablePlot() {
         },
         processedData
       );
-    } else {
+    } else if (selectedChart === "bar") {
       return getObservableOptions(
         dimensions,
         {
           ...defaultOptions,
-          type: selectedChart || "Bar",
+          type: selectedChart,
           x: "label",
           y: "value",
           facetX: selectedColumns.x || null,
+          filter: chartSpecificOptions[selectedChart]?.filter,
+          xIsDate: xColumn?.isDate,
+          dateToUnix,
+          ...chartStyle,
+          ...chartSpecificOptions[selectedChart],
+        },
+        processedData
+      );
+    } else if (selectedChart == "line") {
+      return getObservableOptions(
+        dimensions,
+        {
+          ...defaultOptions,
+          type: selectedChart,
+          x: selectedColumns.x || null,
+          y: "value",
+          stroke: "label",
           filter: chartSpecificOptions[selectedChart]?.filter,
           xIsDate: xColumn?.isDate,
           dateToUnix,
