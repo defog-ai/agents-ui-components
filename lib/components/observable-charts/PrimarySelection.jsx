@@ -26,7 +26,6 @@ const CHART_TYPES = [
 ];
 
 const AGGREGATE_OPTIONS = [
-  { value: "none", label: "None" },
   { value: "count", label: "Count" },
   { value: "sum", label: "Sum" },
   { value: "proportion", label: "Proportion" },
@@ -111,7 +110,7 @@ export function PrimarySelection({ columns }) {
 
   const handleAggregateChange = (value) => {
     chartState
-      .updateChartSpecificOptions({ aggregateFunction: value || "none" })
+      .updateChartSpecificOptions({ aggregateFunction: value || "sum" })
       .render();
   };
 
@@ -121,7 +120,7 @@ export function PrimarySelection({ columns }) {
       <span className="mr-2 input-label">Transform</span>
       <Select
         style={{ width: "100%" }}
-        value={chartSpecificOptions.bar.aggregateFunction || "none"}
+        value={chartSpecificOptions.bar.aggregateFunction || "sum"}
         onChange={handleAggregateChange}
       >
         {AGGREGATE_OPTIONS.map(({ value, label }) => (
@@ -212,7 +211,7 @@ export function PrimarySelection({ columns }) {
                 .map(renderColumnOption)
             : orderedColumns.map(renderColumnOption)}
         </Select>
-        {selectedChart === "bar" &&
+        {(selectedChart === "bar" || selectedChart === "line") &&
           axis === "x" &&
           isCategorical &&
           renderAggregateSelection()}
@@ -347,16 +346,18 @@ export function PrimarySelection({ columns }) {
       </div>
       {/* Facet Selection and color */}
 
-      <div>
-        <h3 className="pb-1 font-bold border-b input-label border-black/20">
-          Groups
-        </h3>
+      {selectedChart !== "bar" ? 
+        <div>
+          <h3 className="pb-1 font-bold border-b input-label border-black/20">
+            Groups
+          </h3>
 
-        <div className="grid grid-cols-2 gap-2 pt-4 ">
-          {FacetSelection}
-          {ColorBySelection}
+          <div className="grid grid-cols-2 gap-2 pt-4 ">
+            {FacetSelection}
+            {ColorBySelection}
+          </div>
         </div>
-      </div>
+      : null}
     </div>
   );
 }
