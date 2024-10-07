@@ -154,7 +154,7 @@ export default function ObservablePlot() {
               .split(",")
               .map((val) => parseFloat(val));
 
-            // add the padding to the y. this will move it down in the svg
+            // add the padding to the y position. this will move it down in the svg
             const newY = y + padding;
             xAxisLabelCtr.setAttribute("transform", `translate(${x}, ${newY})`);
           }
@@ -186,7 +186,7 @@ export default function ObservablePlot() {
               .split(",")
               .map((val) => parseFloat(val));
 
-            // add the padding to the y. this will move it down in the svg
+            // add the padding to the x position. this will move it right in the svg
             const newX = x + padding;
 
             yAxisLabelCtr.setAttribute("transform", `translate(${newX}, ${y})`);
