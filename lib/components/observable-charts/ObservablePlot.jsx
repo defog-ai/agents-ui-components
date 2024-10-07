@@ -50,17 +50,28 @@ export default function ObservablePlot() {
 
     // if the selectedChart is bar, then we want to transform the data from a long format to a wide format
     // this is because bar chart expects the data to be in wide format
-    function convertWideToLong(wideArray, xColumn, yColumns) {
+    function convertWideToLong(wideArray, xColumn, yColumns, facet) {
       const longArray = [];
       
       wideArray.forEach(row => {
-        yColumns.forEach(yColumn => {
-          longArray.push({
-            [xColumn]: row[xColumn],
-            value: row[yColumn],
-            label: yColumn,
+        if (facet) {
+          yColumns.forEach(yColumn => {
+            longArray.push({
+              [xColumn]: row[xColumn],
+              value: row[yColumn],
+              label: yColumn,
+              facet: row[facet],
+            });
           });
-        });
+        } else {
+          yColumns.forEach(yColumn => {
+            longArray.push({
+              [xColumn]: row[xColumn],
+              value: row[yColumn],
+              label: yColumn,
+            });
+          });
+        }
       });
       
       return longArray;
@@ -68,13 +79,11 @@ export default function ObservablePlot() {
 
     if (selectedChart === "bar" || selectedChart === "line") {
       try {
-        processedData = convertWideToLong(processedData, selectedColumns.x, selectedColumns.y);
+        processedData = convertWideToLong(processedData, selectedColumns.x, selectedColumns.y, selectedColumns.facet);
       } catch (e) {
         console.error("Error converting wide to long format", e);
       }
     }
-
-    console.log("processedData", processedData);
 
     if (selectedChart !== "bar" && selectedChart !== "line") {
       return getObservableOptions(
@@ -84,7 +93,7 @@ export default function ObservablePlot() {
           type: selectedChart || "Bar",
           x: selectedColumns.x || null,
           y: selectedColumns.y || null,
-          facetX: selectedColumns.facet,
+          facet: selectedColumns.facet,
           filter: chartSpecificOptions[selectedChart]?.filter,
   
           xIsDate: xColumn?.isDate,
@@ -120,6 +129,7 @@ export default function ObservablePlot() {
           x: selectedColumns.x || null,
           y: "value",
           stroke: "label",
+          facet: selectedColumns.facet ? "facet" : null,
           filter: chartSpecificOptions[selectedChart]?.filter,
           xIsDate: xColumn?.isDate,
           dateToUnix,
