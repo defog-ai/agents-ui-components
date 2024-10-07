@@ -262,15 +262,6 @@ function deepMergeObjects(obj1, obj2) {
  */
 
 /**
- * Clone chart state. Removes function properties and skipKeys if passed
- *
- * @name CloneChartState
- * @function
- * @param {string[]} skipKeys - Keys to skip
- * @returns {Object}
- */
-
-/**
  * @typedef {Object} ChartConfig
  * @property {string} selectedChart - Currently selected chart type
  * @property {SelectedColumns} selectedColumns - Selected columns for the chart
