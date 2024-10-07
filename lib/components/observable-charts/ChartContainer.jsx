@@ -15,11 +15,7 @@ import { Input, MessageManagerContext, SpinningLoader } from "@ui-components";
 import setupBaseUrl from "../utils/setupBaseUrl";
 import { AgentConfigContext } from "../context/AgentContext";
 
-export function ChartContainer({
-    columns,
-    rows,
-    initialQuestion,
-  }) {
+export function ChartContainer({ columns, rows, initialQuestion }) {
   const [chartState, setChartState] = useState(
     createChartState({ data: rows, availableColumns: columns })
   );
@@ -58,10 +54,7 @@ export function ChartContainer({
         body: JSON.stringify({
           user_request: userQuestion,
           // we only want to send non function properties
-          current_chart_state: chartState.clone([
-            "data",
-            "availableColumns",
-          ]),
+          current_chart_state: chartState.clone(["data", "availableColumns"]),
           columns: chartState.availableColumns.map((col) => ({
             title: col.title,
             col_type: col.colType,
@@ -141,6 +134,8 @@ export function ChartContainer({
     [selectedColumns, columns]
   );
 
+  console.log(chartState);
+
   return (
     <ChartStateContext.Provider value={{ ...chartState, setChartState }}>
       <div className="relative">
@@ -176,11 +171,13 @@ export function ChartContainer({
               items={tabItems}
             />
           </div>
-          {
-            loading ?
-            <SpinningLoader classNames="ml-2 w-15 h-15 text-gray-400"></SpinningLoader> :
+          {loading ? (
+            <div className="w-full flex items-center justify-center">
+              <SpinningLoader classNames="ml-2 w-8 h-8 text-gray-400"></SpinningLoader>
+            </div>
+          ) : (
             <ObservablePlot />
-          }
+          )}
         </div>
       </div>
     </ChartStateContext.Provider>
