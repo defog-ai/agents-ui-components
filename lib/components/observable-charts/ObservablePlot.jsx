@@ -41,7 +41,8 @@ export default function ObservablePlot() {
     if (xColumn?.isDate && dateToUnix) {
       processedData = data.map((item) => ({
         ...item,
-        [selectedColumns.x]: dateToUnix(item[selectedColumns.x]),
+        [selectedColumns.x]:
+          dateToUnix(item[selectedColumns.x]) || item[selectedColumns.x],
       }));
     }
 

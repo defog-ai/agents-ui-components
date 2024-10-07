@@ -134,8 +134,6 @@ export function ChartContainer({ columns, rows, initialQuestion }) {
     [selectedColumns, columns]
   );
 
-  console.log(chartState);
-
   return (
     <ChartStateContext.Provider value={{ ...chartState, setChartState }}>
       <div className="relative">
