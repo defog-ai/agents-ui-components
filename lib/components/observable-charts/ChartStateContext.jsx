@@ -49,8 +49,6 @@ export function createActionHandlers() {
           ...defaultChartState.chartStyle,
           xLabel: null,
           yLabel: null,
-          xTicks: undefined,
-          yTicks: undefined,
         },
       };
 
@@ -264,6 +262,15 @@ function deepMergeObjects(obj1, obj2) {
  */
 
 /**
+ * Clone chart state. Removes function properties and skipKeys if passed
+ *
+ * @name CloneChartState
+ * @function
+ * @param {string[]} skipKeys - Keys to skip
+ * @returns {Object}
+ */
+
+/**
  * @typedef {Object} ChartConfig
  * @property {string} selectedChart - Currently selected chart type
  * @property {SelectedColumns} selectedColumns - Selected columns for the chart
@@ -273,7 +280,7 @@ function deepMergeObjects(obj1, obj2) {
  * @property {Array<Column>} availableColumns - Available columns in the dataset
  * @property {function(Object): ChartState} mergeStateUpdates - Deep merge state updates into current state, and return the merged state.
  * @property {function(ChartState): void} setStateCallback - Callback function to set the state
- * @property {function(): ChartState} clone - Clone the current state. Returns the state without any function properties.
+ * @property {(skipKeys: string[]) => Object} clone - Clone the current state. Returns the state without any function properties and `skipKeys` if passed.
  */
 
 /**
@@ -297,9 +304,9 @@ export const defaultChartState = {
     yLabel: null,
     xGrid: false,
     yGrid: true,
-    xTicks: undefined,
+    xTicks: 10,
     dateFormat: "%b %d, %Y",
-    yTicks: undefined,
+    yTicks: 10,
     scheme: "accent",
     yAxisUnitLabel: "",
   },

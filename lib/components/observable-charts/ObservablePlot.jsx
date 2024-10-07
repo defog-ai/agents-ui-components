@@ -111,6 +111,8 @@ export default function ObservablePlot() {
       const xAxisCtr = containerRef.current.querySelector(
         "[aria-label^='x-axis tick label']"
       );
+      if (!xAxisCtr) return;
+
       // get the bottom of the x axis (this is the bottom of the ticks + label)
       const xAxisBottom = xAxisCtr.getBoundingClientRect().bottom;
 
@@ -119,6 +121,8 @@ export default function ObservablePlot() {
       const xAxisLabelCtr = containerRef.current.querySelector(
         "[aria-label^='x-axis label']"
       );
+
+      if (!xAxisLabelCtr) return;
 
       if (ctrBottom && xAxisBottom) {
         try {
