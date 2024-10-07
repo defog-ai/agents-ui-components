@@ -97,7 +97,8 @@ export function DraggableInput({
   return (
     <div
       className={twMerge(
-        "w-full lg:w-8/12 m-auto fixed z-20 bg-white rounded-lg shadow-custom border border-gray-400 hover:border-blue-500 focus:border-blue-500 flex flex-row",
+        "w-full lg:w-8/12 m-auto [&_textarea]:pl-2 bg-white rounded-lg shadow-custom border border-gray-400 hover:border-blue-500 focus:border-blue-500 flex flex-row",
+        searchBarDraggable ? "fixed z-40" : "",
         searchBarClasses
       )}
       style={{
@@ -143,6 +144,7 @@ export function DraggableInput({
                     !activeRootAnalysisId,
                     activeAnalysisId
                   );
+                  searchRef.current.value = "";
                 }
               }}
               placeholder={
@@ -176,6 +178,8 @@ export function DraggableInput({
                 !activeRootAnalysisId,
                 activeAnalysisId
               );
+
+              searchRef.current.value = "";
             }}
           >
             <ArrowRightEndOnRectangleIcon

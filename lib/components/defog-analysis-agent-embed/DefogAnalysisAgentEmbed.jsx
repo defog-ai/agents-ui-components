@@ -24,6 +24,7 @@ export function EmbedInner({
   maxCsvUploadSize = 10,
   uploadedCsvIsSqlOnly = true,
   defaultSidebarOpen = true,
+  onTreeChange,
 }) {
   const messageManager = useContext(MessageManagerContext);
   const agentConfigContext = useContext(AgentConfigContext);
@@ -359,6 +360,7 @@ export function EmbedInner({
               searchBarDraggable={searchBarDraggable}
               searchBarClasses={searchBarClasses}
               defaultSidebarOpen={defaultSidebarOpen}
+              onTreeChange={onTreeChange}
             />
           ),
       },
@@ -502,6 +504,8 @@ export function EmbedInner({
  * @property {Boolean=} limitCsvUploadSize -  If the file size should be limited to maxCsvUploadSize.
  * @property {Number=} maxCsvUploadSize -  The max file size allowed, in mbs. Default is 10.
  * @property {Boolean=} defaultSidebarOpen -  If the sidebar should be open by default.
+ * @property {(keyName, treeWithoutManagers, fullTree) => void=} onTreeChange - Callback for when the analysis tree changes for a particular key. Will be called on addition or removal of analyses.
+ * @property {{[apiKeyName: string]: {}}=} initialTrees - An object of initial trees to populate the UI with.
  *
  */
 
@@ -528,6 +532,8 @@ export function DefogAnalysisAgentEmbed({
   limitCsvUploadSize = true,
   maxCsvUploadSize = 10,
   defaultSidebarOpen = true,
+  onTreeChange = () => {},
+  initialTrees = null,
 }) {
   // use the simple db list
   // and add some extra props to them
@@ -540,13 +546,13 @@ export function DefogAnalysisAgentEmbed({
       data: {},
       metadataFetchingError: false,
       analysisTreeManager: AnalysisTreeManager(
-        {},
+        (initialTrees && initialTrees[d.keyName]) || {},
         d.keyName + "_" + Math.floor(Math.random() * 1000)
       ),
       // do this after so that sqlOnly, and isTemp can be overwritten if defined by the user
       ...d,
     }));
-  }, [dbs]);
+  }, [dbs, initialTrees]);
 
   return (
     <div className="w-full bg-gradient-to-br from-[#6E00A2]/10 to-[#FFA20D]/10 px-2 lg:px-0 py-8 h-screen flex items-center shadow-inner relative">
@@ -575,6 +581,33 @@ export function DefogAnalysisAgentEmbed({
             limitCsvUploadSize={limitCsvUploadSize}
             maxCsvUploadSize={maxCsvUploadSize}
             defaultSidebarOpen={defaultSidebarOpen}
+            onTreeChange={(keyName, tree) => {
+              try {
+                // make a copy of the tree
+                const treeCopyWithoutManagers = JSON.parse(
+                  JSON.stringify(tree)
+                );
+                const treeCopy = JSON.parse(JSON.stringify(tree));
+                // remove all analysisManagers
+                // we do this because analysisManagers have functions as properties
+                // which can't be stringified (for now that is the major use case as we're storing to localStorage)
+                // so to avoid the parent component handling this, this is placed here.
+                // we still return the full tree including all properties as the third argument
+                Object.keys(treeCopyWithoutManagers).forEach((analysisId) => {
+                  delete treeCopyWithoutManagers[analysisId].root
+                    .analysisManager;
+                  treeCopyWithoutManagers[analysisId].analysisList.forEach(
+                    (item) => {
+                      delete item.analysisManager;
+                    }
+                  );
+                });
+
+                onTreeChange(keyName, treeCopyWithoutManagers, treeCopy);
+              } catch (e) {
+                console.error(e);
+              }
+            }}
           />
         </Setup>
       </div>

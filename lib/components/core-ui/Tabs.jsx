@@ -218,7 +218,7 @@ export function Tabs({
               defaultTabClassNames,
               selectedTab?.classNames,
               selectedTab.name === tab.name
-                ? "relative z-10"
+                ? "relative"
                 : "fixed left-[-1000px] top-[-1000px] z-[-1] pointer-events-none *:pointer-events-none opacity-0"
             )}
           >

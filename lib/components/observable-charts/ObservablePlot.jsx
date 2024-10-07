@@ -84,12 +84,73 @@ export default function ObservablePlot() {
 
   useEffect(() => {
     if (!containerRef.current) return;
+
     if (observableOptions) {
       containerRef.current.innerHTML = "";
-      containerRef.current.appendChild(Plot.plot(observableOptions));
+      // always reset the padding bottom or it messes with boundclient calculation below
+      containerRef.current.style.paddingBottom = 0;
+
+      // append the chart
+      containerRef.current.appendChild(
+        Plot.plot({
+          ...observableOptions,
+        })
+      );
+
+      /**
+       * Now that we have added rotation to the ticks, some of them might overflow the bottom of the svg and get cut off if they are too long.
+       * Observable will not handle this on it's own so
+       * The below code handles those ticks, and adds the required amount of padding to the container to make the ticks visible
+       * We don't directly increase the height of the svg because Observable will react to it and goes into an infinite loop.
+       */
+
+      // get the bottom of the container
+      const ctrBottom = containerRef.current.getBoundingClientRect().bottom;
+
+      // get the x axis
+      const xAxisCtr = containerRef.current.querySelector(
+        "[aria-label^='x-axis tick label']"
+      );
+      // get the bottom of the x axis (this is the bottom of the ticks + label)
+      const xAxisBottom = xAxisCtr.getBoundingClientRect().bottom;
+
+      // the svg <g> element that stores the labels
+      // we will later move this down
+      const xAxisLabelCtr = containerRef.current.querySelector(
+        "[aria-label^='x-axis label']"
+      );
+
+      if (ctrBottom && xAxisBottom) {
+        try {
+          // if the xAxisBottom is more than ctrBottom, means the ticks are overflowing
+          // add the difference in height to the container as padding-bottom
+
+          // the +20 here is because we will also forcefully move the x axis *label* to below the ticks
+          let padding = xAxisBottom - ctrBottom + 20;
+          padding = padding > 0 ? padding : 0;
+
+          containerRef.current.style.paddingBottom = `${padding}px`;
+
+          if (xAxisLabelCtr) {
+            // parse the transform of this g tag
+            const transform = xAxisLabelCtr.getAttribute("transform");
+            const [x, y] = transform
+              .split("(")[1]
+              .slice(0, -1)
+              .split(",")
+              .map((val) => parseFloat(val));
+
+            // add the padding to the y. this will move it down in the svg
+            const newY = y + padding;
+            xAxisLabelCtr.setAttribute("transform", `translate(${x}, ${newY})`);
+          }
+        } catch (e) {
+          // silently fail
+        }
+      }
     } else {
       containerRef.current.innerHTML =
-        "Please select X and Y axes to display the chart.";
+        "<div class='flex items-center justify-center h-full w-full'>Please select X and Y axes to display the chart.</div>";
     }
   }, [observableOptions]);
 
@@ -111,12 +172,10 @@ export default function ObservablePlot() {
           <Download size={16} className="mr-2" /> Save as PNG
         </Button>
       </div>
-      <div className="w-full h-[460px]">
-        <div
-          className="w-full h-full text-gray-500 bg-white observable-plot overflow-auto"
-          ref={containerRef}
-        ></div>
-      </div>
+      <div
+        className="w-full h-[560px] text-gray-500 bg-white observable-plot overflow-auto"
+        ref={containerRef}
+      ></div>
     </div>
   );
 }

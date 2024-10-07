@@ -180,7 +180,7 @@ export function MessageMonitor({ disabled = false, rootClassNames = "" }) {
         >
           {messages.map((message, i) => (
             <div
-              key={message.time}
+              key={message.id}
               className={twMerge(
                 `my-2 flex flex-row gap-2 items-center max-w-[80%] p-2 shadow-md bg-white text-gray-800 mx-auto rounded-lg max-w-10/12 border animate-fade-in-down`,
                 message.type === "success" && "border-lime-500",
