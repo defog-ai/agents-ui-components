@@ -56,23 +56,30 @@ export function checkIfDate(s, colIdx, colName, rows) {
       }
     }
 
-    // Set up parsing based on determined date type
-    switch (dateType) {
-      case "week":
-        dateToUnix = (val) => dayjs().week(+val).unix();
-        parseFormat = "W-YYYY";
-        break;
-      case "year":
-        dateToUnix = (val) => dayjs("1-" + +val, "M-YYYY").unix();
-        parseFormat = "M-YYYY";
-        break;
-      case "month":
-        // Existing month logic remains the same
-        for (let i = 0; i < rows.length; i++) {
-          let val = rows[i][colIdx];
-          if (!val) continue;
+    for (let i = 0; i < rows.length; i++) {
+      let val = rows[i][colIdx];
+      if (!val) continue;
 
-          if (typeof val === "number") {
+      if (!isNumber(val) && dateType !== "month") {
+        // force set dateType to "date" so dayjs can auto detect in the below switch stmt
+        // EXCEPT when it is a month. months might be month names. we have some extra parsing below for it
+        dateType = "date";
+      }
+
+      // Set up parsing based on determined date type
+      switch (dateType) {
+        case "week":
+          dateToUnix = (val) => dayjs().week(+val).unix();
+          parseFormat = "W-YYYY";
+          break;
+        case "year":
+          // Existing month logic remains the same
+          dateToUnix = (val) => dayjs("1-" + +val, "M-YYYY").unix();
+          parseFormat = "M-YYYY";
+          break;
+        case "month":
+          // Existing month logic remains the same
+          if (isNumber(val)) {
             dateToUnix = (val) =>
               dayjs(val + "-" + new Date().getFullYear(), "M-YYYY").unix();
             parseFormat = "M-YYYY";
@@ -87,24 +94,23 @@ export function checkIfDate(s, colIdx, colName, rows) {
                 parseFormat = "MMM";
               }
             } else {
-              dateToUnix = (val) =>
-                dayjs(val + "-" + new Date().getFullYear(), "M-YYYY").unix();
-              parseFormat = "M-YYYY";
+              dateToUnix = (val) => dayjs(val, dateFormats).unix();
+              parseFormat = null; // Let dayjs auto-detect the format
             }
+            break;
           }
           break;
-        }
-        break;
-      case "date":
-      case "datetime":
-        dateToUnix = (val) => dayjs(val, dateFormats).unix();
-        parseFormat = null; // Let dayjs auto-detect the format
-        break;
-      default:
-        dateToUnix = (val) => val;
-        parseFormat = null;
-        dateType = null;
-        isDate = false;
+        case "date":
+        case "datetime":
+          dateToUnix = (val) => dayjs(val, dateFormats).unix();
+          parseFormat = null; // Let dayjs auto-detect the format
+          break;
+        default:
+          dateToUnix = (val) => val;
+          parseFormat = null;
+          dateType = null;
+          isDate = false;
+      }
     }
   }
 
@@ -507,8 +513,7 @@ export const reFormatData = (data, columns) => {
       render: (value) => value,
     }));
     newRows = [];
-  }
-  else {
+  } else {
     newCols = [];
     newRows = [];
   }
