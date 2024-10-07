@@ -158,7 +158,11 @@ function deepMergeObjects(obj1, obj2) {
   const merged = { ...obj1 };
 
   for (const key in obj2) {
-    if (typeof obj2[key] === "object") {
+    if (
+      typeof obj2[key] === "object" &&
+      !Array.isArray(obj2[key]) &&
+      obj2[key] !== null
+    ) {
       merged[key] = deepMergeObjects(obj1[key], obj2[key]);
     } else {
       merged[key] = obj2[key];
@@ -343,6 +347,25 @@ export const defaultChartState = {
   data: [],
   availableColumns: [],
   mergeStateUpdates: function (stateUpdates) {
+    // if state updates have selectedChart === "line"
+    // make sure that selectedColumns.y is an Array
+    if (stateUpdates.selectedChart === "line") {
+      if (stateUpdates.selectedColumns && stateUpdates.selectedColumns.y) {
+        if (!Array.isArray(stateUpdates.selectedColumns.y)) {
+          stateUpdates.selectedColumns.y = [stateUpdates.selectedColumns.y];
+        }
+      }
+    } else {
+      // if this isn't a line, make sure y is NOT an array
+      if (stateUpdates.selectedColumns && stateUpdates.selectedColumns.y) {
+        if (
+          Array.isArray(stateUpdates.selectedColumns.y) &&
+          stateUpdates.selectedColumns.y.length > 0
+        ) {
+          stateUpdates.selectedColumns.y = stateUpdates.selectedColumns.y[0];
+        }
+      }
+    }
     // because these state updates can have nested objects
     // for example: user question: "plot ratings onthe x axis"
     // if currently the selectedColumns are { x: "date", y: "value" }
