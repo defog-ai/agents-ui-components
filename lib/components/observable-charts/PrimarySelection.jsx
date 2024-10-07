@@ -332,7 +332,7 @@ export function PrimarySelection({ columns }) {
             {renderAxisSelection(
               "y",
               axisLabel.y,
-              selectedChart === "line" ? "multiple" : undefined
+              (selectedChart === "line" || selectedChart == "bar") ? "multiple" : undefined
             )}
             <div className="flex items-center gap-4">
               {renderAxisLabel("y")}

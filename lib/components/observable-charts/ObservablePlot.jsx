@@ -44,25 +44,68 @@ export default function ObservablePlot() {
         [selectedColumns.x]:
           dateToUnix(item[selectedColumns.x]) || item[selectedColumns.x],
       }));
+
+      // if the selectedChart is bar, then we want to transform the data from a long format to a wide format
+      // this is because bar chart expects the data to be in wide format
+      function convertWideToLong(wideArray, xColumn, yColumns) {
+        const longArray = [];
+        
+        wideArray.forEach(row => {
+          yColumns.forEach(yColumn => {
+            longArray.push({
+              [xColumn]: row[xColumn],
+              value: row[yColumn],
+              label: yColumn,
+            });
+          });
+        });
+        
+        return longArray;
+      }
+
+      if (selectedChart === "bar") {
+        const yColumns = selectedColumns.y;
+        processedData = convertWideToLong(processedData, selectedColumns.x, yColumns);
+      }
+      
     }
 
-    return getObservableOptions(
-      dimensions,
-      {
-        ...defaultOptions,
-        type: selectedChart || "Bar",
-        x: selectedColumns.x || null,
-        y: selectedColumns.y || null,
-        facet: selectedColumns.facet,
-        filter: chartSpecificOptions[selectedChart]?.filter,
-
-        xIsDate: xColumn?.isDate,
-        dateToUnix,
-        ...chartStyle,
-        ...chartSpecificOptions[selectedChart],
-      },
-      processedData
-    );
+    if (selectedChart !== "bar") {
+      return getObservableOptions(
+        dimensions,
+        {
+          ...defaultOptions,
+          type: selectedChart || "Bar",
+          x: selectedColumns.x || null,
+          y: selectedColumns.y || null,
+          facetX: selectedColumns.facet,
+          filter: chartSpecificOptions[selectedChart]?.filter,
+  
+          xIsDate: xColumn?.isDate,
+          dateToUnix,
+          ...chartStyle,
+          ...chartSpecificOptions[selectedChart],
+        },
+        processedData
+      );
+    } else {
+      return getObservableOptions(
+        dimensions,
+        {
+          ...defaultOptions,
+          type: selectedChart || "Bar",
+          x: "label",
+          y: "value",
+          facetX: selectedColumns.x || null,
+          filter: chartSpecificOptions[selectedChart]?.filter,
+          xIsDate: false,
+          dateToUnix,
+          ...chartStyle,
+          ...chartSpecificOptions[selectedChart],
+        },
+        processedData
+      );
+    }
   }, [dimensions, chartState]);
 
   const updateDimensions = useCallback(() => {

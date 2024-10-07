@@ -44,7 +44,7 @@ export function createActionHandlers() {
       const newState = {
         ...this,
         selectedChart: payload,
-        selectedColumns: { x: null, y: payload === "line" ? [] : null },
+        selectedColumns: { x: null, y: (payload === "line" || payload === "bar") ? [] : null },
         chartStyle: {
           ...defaultChartState.chartStyle,
           xLabel: null,
@@ -143,7 +143,7 @@ export function createActionHandlers() {
         ...this,
         selectedColumns: {
           x: xAxis,
-          y: selectedChart === "line" ? [yAxis] : yAxis,
+          y: (selectedChart === "line" || selectedChart == "bar") ? [yAxis] : yAxis,
         },
       };
 
@@ -349,7 +349,7 @@ export const defaultChartState = {
   mergeStateUpdates: function (stateUpdates) {
     // if state updates have selectedChart === "line"
     // make sure that selectedColumns.y is an Array
-    if (stateUpdates.selectedChart === "line") {
+    if (stateUpdates.selectedChart === "line" || stateUpdates.selectedChart === "bar") {
       if (stateUpdates.selectedColumns && stateUpdates.selectedColumns.y) {
         if (!Array.isArray(stateUpdates.selectedColumns.y)) {
           stateUpdates.selectedColumns.y = [stateUpdates.selectedColumns.y];
