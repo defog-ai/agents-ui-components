@@ -87,8 +87,8 @@ export default function ObservablePlot() {
 
     if (observableOptions) {
       containerRef.current.innerHTML = "";
-      // always reset the padding bottom or it messes with boundclient calculation below
-      containerRef.current.style.paddingBottom = 0;
+      // always reset the padding or it messes with boundclient calculation below
+      containerRef.current.style.padding = "0 0 0 0";
 
       // append the chart
       containerRef.current.appendChild(
@@ -104,28 +104,37 @@ export default function ObservablePlot() {
        * We don't directly increase the height of the svg because Observable will react to it and goes into an infinite loop.
        */
 
-      // get the bottom of the container
-      const ctrBottom = containerRef.current.getBoundingClientRect().bottom;
-
       // get the x axis
       const xAxisCtr = containerRef.current.querySelector(
         "[aria-label^='x-axis tick label']"
       );
-      if (!xAxisCtr) return;
 
-      // get the bottom of the x axis (this is the bottom of the ticks + label)
-      const xAxisBottom = xAxisCtr.getBoundingClientRect().bottom;
+      // get the y axis
+      const yAxisCtr = containerRef.current.querySelector(
+        "[aria-label^='y-axis tick label']"
+      );
 
-      // the svg <g> element that stores the labels
+      // the svg <g> element that stores the x axis labels
       // we will later move this down
       const xAxisLabelCtr = containerRef.current.querySelector(
         "[aria-label^='x-axis label']"
       );
 
-      if (!xAxisLabelCtr) return;
+      // the svg <g> element that stores the y axis labels
+      // we will later move this left
+      const yAxisLabelCtr = containerRef.current.querySelector(
+        "[aria-label^='y-axis label']"
+      );
 
-      if (ctrBottom && xAxisBottom) {
+      let paddingBottom = 0;
+      let paddingLeft = 0;
+
+      if (xAxisCtr) {
         try {
+          // get the bottom of the container
+          const ctrBottom = containerRef.current.getBoundingClientRect().bottom;
+          // get the bottom of the x axis (this is the bottom of the ticks + label)
+          const xAxisBottom = xAxisCtr.getBoundingClientRect().bottom;
           // if the xAxisBottom is more than ctrBottom, means the ticks are overflowing
           // add the difference in height to the container as padding-bottom
 
@@ -133,7 +142,7 @@ export default function ObservablePlot() {
           let padding = xAxisBottom - ctrBottom + 20;
           padding = padding > 0 ? padding : 0;
 
-          containerRef.current.style.paddingBottom = `${padding}px`;
+          paddingBottom = padding;
 
           if (xAxisLabelCtr) {
             // parse the transform of this g tag
@@ -152,6 +161,41 @@ export default function ObservablePlot() {
           // silently fail
         }
       }
+      if (yAxisCtr) {
+        try {
+          // get the left edge of the container
+          const ctrLeft = containerRef.current.getBoundingClientRect().left;
+          // get the left edge of the y axis (this is the left of the ticks + label)
+          const yAxisLeft = yAxisCtr.getBoundingClientRect().left;
+
+          // if the yAxisLeft is more than ctrLeft, means the ticks are overflowing
+          // add the difference in x position to the container as padding-left
+          let padding = yAxisLeft - ctrLeft - 10;
+
+          // negative padding = y axis is to the left of the ctr
+          // keep if negative padding
+          paddingLeft = padding < 0 ? Math.abs(padding) : 0;
+
+          if (yAxisLabelCtr) {
+            // parse the transform of this g tag
+            const transform = yAxisLabelCtr.getAttribute("transform");
+            const [x, y] = transform
+              .split("(")[1]
+              .slice(0, -1)
+              .split(",")
+              .map((val) => parseFloat(val));
+
+            // add the padding to the y. this will move it down in the svg
+            const newX = x + padding;
+
+            yAxisLabelCtr.setAttribute("transform", `translate(${newX}, ${y})`);
+          }
+        } catch (e) {
+          // silently fail
+        }
+      }
+
+      containerRef.current.style.padding = `0 0 ${paddingBottom}px ${paddingLeft}px`;
     } else {
       containerRef.current.innerHTML =
         "<div class='flex items-center justify-center h-full w-full'>Please select X and Y axes to display the chart.</div>";
