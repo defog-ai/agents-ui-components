@@ -90,7 +90,7 @@ export function PrimarySelection({ columns }) {
       });
 
       // Enable use count by default if the y selection is categorical in bar chart
-      if (selectedChart === "bar" && axis === "y") {
+      if ((selectedChart === "bar" || selectedChart == "line") && axis === "y") {
         const selectedColumn = columns.find((col) => col.key === value);
         if (selectedColumn && selectedColumn.variableType === "categorical") {
           newChartState = newChartState.updateChartSpecificOptions({
@@ -120,7 +120,7 @@ export function PrimarySelection({ columns }) {
       <span className="mr-2 input-label">Transform</span>
       <Select
         style={{ width: "100%" }}
-        value={chartSpecificOptions.bar.aggregateFunction || "sum"}
+        value={chartSpecificOptions[selectedChart].aggregateFunction || "sum"}
         onChange={handleAggregateChange}
       >
         {AGGREGATE_OPTIONS.map(({ value, label }) => (
