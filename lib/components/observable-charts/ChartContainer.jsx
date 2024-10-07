@@ -11,11 +11,15 @@ import ObservablePlot from "./ObservablePlot";
 import TabPaneWrapper from "./utils/TabPaneWrapper";
 import FilterBuilder from "./Filtering";
 import { ChartStateContext, createChartState } from "./ChartStateContext";
-import { Input, MessageManagerContext } from "@ui-components";
+import { Input, MessageManagerContext, SpinningLoader } from "@ui-components";
 import setupBaseUrl from "../utils/setupBaseUrl";
 import { AgentConfigContext } from "../context/AgentContext";
 
-export function ChartContainer({ columns, rows }) {
+export function ChartContainer({
+    columns,
+    rows,
+    initialQuestion,
+  }) {
   const [chartState, setChartState] = useState(
     createChartState({ data: rows, availableColumns: columns })
   );
@@ -35,8 +39,50 @@ export function ChartContainer({ columns, rows }) {
 
   const { selectedColumns } = chartState;
 
-  const [userQuestion, setUserQuestion] = useState("");
+  const [userQuestion, setUserQuestion] = useState(initialQuestion);
   const [loading, setLoading] = useState(false);
+
+  const submitUserQuestion = async () => {
+    try {
+      setLoading(true);
+
+      if (!userQuestion || userQuestion === "") {
+        throw new Error("Please enter a question");
+      }
+
+      const res = await fetch(chartEditUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          user_request: userQuestion,
+          // we only want to send non function properties
+          current_chart_state: chartState.clone([
+            "data",
+            "availableColumns",
+          ]),
+          columns: chartState.availableColumns.map((col) => ({
+            title: col.title,
+            col_type: col.colType,
+          })),
+        }),
+      }).then((res) => res.json());
+
+      if (!res.success) {
+        throw new Error(res.error_message || "Failed to edit chart");
+      }
+
+      const chartStateEdits = res["chart_state_edits"];
+
+      chartState.mergeStateUpdates(chartStateEdits).render();
+    } catch (e) {
+      messageManager.error(e.message);
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // if rows or columns change, update the chart state
   useEffect(() => {
@@ -51,6 +97,12 @@ export function ChartContainer({ columns, rows }) {
       return newState;
     });
   }, [rows, columns]);
+
+  useEffect(() => {
+    if (initialQuestion) {
+      submitUserQuestion();
+    }
+  }, [initialQuestion]);
 
   const tabItems = useMemo(
     () => [
@@ -101,47 +153,8 @@ export function ChartContainer({ columns, rows }) {
           onPressEnter={async (e) => {
             e.preventDefault();
             e.stopPropagation();
-
-            try {
-              setLoading(true);
-
-              if (!userQuestion || userQuestion === "") {
-                throw new Error("Please enter a question");
-              }
-
-              const res = await fetch(chartEditUrl, {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  user_request: userQuestion,
-                  // we only want to send non function properties
-                  current_chart_state: chartState.clone([
-                    "data",
-                    "availableColumns",
-                  ]),
-                  columns: chartState.availableColumns.map((col) => ({
-                    title: col.title,
-                    col_type: col.colType,
-                  })),
-                }),
-              }).then((res) => res.json());
-
-              if (!res.success) {
-                throw new Error(res.error_message || "Failed to edit chart");
-              }
-
-              const chartStateEdits = res["chart_state_edits"];
-
-              chartState.mergeStateUpdates(chartStateEdits).render();
-            } catch (e) {
-              messageManager.error(e.message);
-              console.error(e);
-            } finally {
-              setLoading(false);
-              e.target.value = "";
-            }
+            await submitUserQuestion();
+            e.target.value = "";
           }}
         />
 
@@ -163,7 +176,11 @@ export function ChartContainer({ columns, rows }) {
               items={tabItems}
             />
           </div>
-          <ObservablePlot />
+          {
+            loading ?
+            <SpinningLoader classNames="ml-2 w-15 h-15 text-gray-400"></SpinningLoader> :
+            <ObservablePlot />
+          }
         </div>
       </div>
     </ChartStateContext.Provider>

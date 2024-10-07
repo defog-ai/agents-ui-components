@@ -362,6 +362,7 @@ export function StepResults({
                   reactiveVars={output["reactive_vars"]}
                   nodeId={activeNode.data.id}
                   analysisId={analysisId}
+                  initialQuestion={step?.inputs?.question}
                 />
                 {step?.sql && (
                   // get feedback from user if the sql is good or not
