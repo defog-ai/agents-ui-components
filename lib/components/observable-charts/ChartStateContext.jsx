@@ -317,11 +317,12 @@ export const defaultChartState = {
       stroke: "",
       lineOptions: [],
       showLabels: false,
+      aggregateFunction: "sum",
     },
     bar: {
       barColor: "#4287f5",
       barWidth: 0.8,
-      aggregateFunction: "none",
+      aggregateFunction: "sum",
       fill: null,
     },
     scatter: { pointColor: "#f54242", pointSize: 5 },
