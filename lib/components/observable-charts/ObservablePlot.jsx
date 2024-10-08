@@ -14,6 +14,7 @@ import { Download } from "lucide-react";
 import { ChartStateContext } from "./ChartStateContext";
 import { unix } from "dayjs";
 import dayjs from "dayjs";
+import { convertWideToLong } from "../utils/utils";
 
 export default function ObservablePlot() {
   const containerRef = useRef(null);
@@ -48,38 +49,14 @@ export default function ObservablePlot() {
       }));
     }
 
-    // if the selectedChart is bar, then we want to transform the data from a long format to a wide format
-    // this is because bar chart expects the data to be in wide format
-    function convertWideToLong(wideArray, xColumn, yColumns, facet) {
-      const longArray = [];
-      
-      wideArray.forEach(row => {
-        if (facet) {
-          yColumns.forEach(yColumn => {
-            longArray.push({
-              [xColumn]: row[xColumn],
-              value: row[yColumn],
-              label: yColumn,
-              facet: row[facet],
-            });
-          });
-        } else {
-          yColumns.forEach(yColumn => {
-            longArray.push({
-              [xColumn]: row[xColumn],
-              value: row[yColumn],
-              label: yColumn,
-            });
-          });
-        }
-      });
-      
-      return longArray;
-    }
-
     if (selectedChart === "bar" || selectedChart === "line") {
       try {
-        processedData = convertWideToLong(processedData, selectedColumns.x, selectedColumns.y, selectedColumns.facet);
+        processedData = convertWideToLong(
+          processedData,
+          selectedColumns.x,
+          selectedColumns.y,
+          selectedColumns.facet
+        );
       } catch (e) {
         console.error("Error converting wide to long format", e);
       }
@@ -95,7 +72,6 @@ export default function ObservablePlot() {
           y: selectedColumns.y || null,
           facet: selectedColumns.facet,
           filter: chartSpecificOptions[selectedChart]?.filter,
-  
           xIsDate: xColumn?.isDate,
           dateToUnix,
           ...chartStyle,
@@ -110,8 +86,9 @@ export default function ObservablePlot() {
           ...defaultOptions,
           type: selectedChart,
           x: "label",
-          y: "value",
-          facetX: selectedColumns.x || null,
+          // check to ensure we don't render a blank chart if no axis is selected
+          y: selectedColumns?.y?.length ? "value" : null,
+          facet: selectedColumns.x || null,
           filter: chartSpecificOptions[selectedChart]?.filter,
           xIsDate: xColumn?.isDate,
           dateToUnix,
@@ -127,9 +104,11 @@ export default function ObservablePlot() {
           ...defaultOptions,
           type: selectedChart,
           x: selectedColumns.x || null,
-          y: "value",
+          // check to ensure we don't render a blank chart if no axis is selected
+          y: selectedColumns.y.length ? "value" : null,
           stroke: "label",
-          facet: selectedColumns.facet ? "facet" : null,
+          // disable facetting for line charts for now
+          // facet: selectedColumns.facet || null,
           filter: chartSpecificOptions[selectedChart]?.filter,
           xIsDate: xColumn?.isDate,
           dateToUnix,
@@ -168,14 +147,14 @@ export default function ObservablePlot() {
       containerRef.current.style.padding = "0 0 0 0";
 
       // append the chart
-      // if chart is not bar chart
 
       if (chartState.selectedChart === "bar") {
         containerRef.current.appendChild(
           Plot.plot({
             ...observableOptions,
             fx: {
-              tickRotate: -70,
+              grid: false,
+              tickRotate: -90,
               tickFormat: (d) => {
                 // if date, format it
                 if (dayjs(d).isValid()) {
@@ -190,12 +169,12 @@ export default function ObservablePlot() {
             },
             x: {
               axis: null,
-              label: ""
-            }
+              label: "",
+            },
           })
         );
       } else {
-        // if chart is bar chart
+        // if chart is not a bar chart
         containerRef.current.appendChild(
           Plot.plot({
             ...observableOptions,

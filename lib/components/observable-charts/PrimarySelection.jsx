@@ -90,7 +90,10 @@ export function PrimarySelection({ columns }) {
       });
 
       // Enable use count by default if the y selection is categorical in bar chart
-      if ((selectedChart === "bar" || selectedChart == "line") && axis === "y") {
+      if (
+        (selectedChart === "bar" || selectedChart == "line") &&
+        axis === "y"
+      ) {
         const selectedColumn = columns.find((col) => col.key === value);
         if (selectedColumn && selectedColumn.variableType === "categorical") {
           newChartState = newChartState.updateChartSpecificOptions({
@@ -117,7 +120,7 @@ export function PrimarySelection({ columns }) {
   // Render aggregate function selection
   const renderAggregateSelection = () => (
     <div className="mt-2">
-      <span className="mr-2 input-label">Transform</span>
+      <span className="mr-2 input-label">Aggregation</span>
       <Select
         style={{ width: "100%" }}
         value={chartSpecificOptions[selectedChart].aggregateFunction || "sum"}
@@ -331,7 +334,9 @@ export function PrimarySelection({ columns }) {
             {renderAxisSelection(
               "y",
               axisLabel.y,
-              (selectedChart === "line" || selectedChart == "bar") ? "multiple" : undefined
+              selectedChart === "line" || selectedChart == "bar"
+                ? "multiple"
+                : undefined
             )}
             <div className="flex items-center gap-4">
               {renderAxisLabel("y")}
@@ -346,7 +351,7 @@ export function PrimarySelection({ columns }) {
       </div>
       {/* Facet Selection and color */}
 
-      {selectedChart !== "bar" ? 
+      {selectedChart !== "bar" && selectedChart !== "line" ? (
         <div>
           <h3 className="pb-1 font-bold border-b input-label border-black/20">
             Groups
@@ -357,7 +362,7 @@ export function PrimarySelection({ columns }) {
             {ColorBySelection}
           </div>
         </div>
-      : null}
+      ) : null}
     </div>
   );
 }
