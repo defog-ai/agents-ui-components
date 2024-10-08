@@ -10,6 +10,8 @@ const ScatterPlotControls = () => {
     chartState.updateChartSpecificOptions({ [key]: value }).render();
   };
 
+  console.log(chartSpecificOptions);
+
   return (
     <div className="flex flex-col gap-4 p-2 text-xs">
       <div>

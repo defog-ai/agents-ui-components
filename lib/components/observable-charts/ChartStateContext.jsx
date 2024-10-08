@@ -324,7 +324,7 @@ export const defaultChartState = {
       aggregateFunction: "sum",
       fill: null,
     },
-    scatter: { pointColor: "#f54242", pointSize: 5 },
+    scatter: { pointColor: "#f54242", pointSize: 3 },
     histogram: {
       binCount: 10,
       fillColor: "#4287f5",
