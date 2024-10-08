@@ -54,8 +54,7 @@ export default function ObservablePlot() {
         processedData = convertWideToLong(
           processedData,
           selectedColumns.x,
-          selectedColumns.y,
-          selectedColumns.facet
+          selectedColumns.y
         );
       } catch (e) {
         console.error("Error converting wide to long format", e);
@@ -85,7 +84,8 @@ export default function ObservablePlot() {
         {
           ...defaultOptions,
           type: selectedChart,
-          x: "label",
+          // we do this only if an x column and some y columns are selected
+          x: selectedColumns.x && selectedColumns?.y?.length && "label",
           // check to ensure we don't render a blank chart if no axis is selected
           y: selectedColumns?.y?.length ? "value" : null,
           facet: selectedColumns.x || null,
@@ -145,8 +145,9 @@ export default function ObservablePlot() {
       containerRef.current.innerHTML = "";
       // always reset the padding or it messes with boundclient calculation below
       containerRef.current.style.padding = "0 0 0 0";
-
-      // append the chart
+      const xColumn = chartState.availableColumns.find(
+        (col) => col.key === chartState.selectedColumns.x
+      );
 
       if (chartState.selectedChart === "bar") {
         containerRef.current.appendChild(
@@ -156,8 +157,8 @@ export default function ObservablePlot() {
               grid: false,
               tickRotate: -90,
               tickFormat: (d) => {
-                // if date, format it
-                if (dayjs(d).isValid()) {
+                if (xColumn.isDate && dayjs(d).isValid()) {
+                  // if date, format it
                   // convert from unix to date
                   const date = unix(d).format("YYYY-MM-DD");
                   return date;
