@@ -12,6 +12,9 @@ import { saveAsPNG } from "./utils/saveChart";
 import { Button } from "@ui-components";
 import { Download } from "lucide-react";
 import { ChartStateContext } from "./ChartStateContext";
+import { unix } from "dayjs";
+import dayjs from "dayjs";
+import { convertWideToLong } from "../utils/utils";
 
 export default function ObservablePlot() {
   const containerRef = useRef(null);
@@ -46,23 +49,75 @@ export default function ObservablePlot() {
       }));
     }
 
-    return getObservableOptions(
-      dimensions,
-      {
-        ...defaultOptions,
-        type: selectedChart || "Bar",
-        x: selectedColumns.x || null,
-        y: selectedColumns.y || null,
-        facet: selectedColumns.facet,
-        filter: chartSpecificOptions[selectedChart]?.filter,
+    if (selectedChart === "bar" || selectedChart === "line") {
+      try {
+        processedData = convertWideToLong(
+          processedData,
+          selectedColumns.x,
+          selectedColumns.y
+        );
+      } catch (e) {
+        console.error("Error converting wide to long format", e);
+      }
+    }
 
-        xIsDate: xColumn?.isDate,
-        dateToUnix,
-        ...chartStyle,
-        ...chartSpecificOptions[selectedChart],
-      },
-      processedData
-    );
+    if (selectedChart !== "bar" && selectedChart !== "line") {
+      return getObservableOptions(
+        dimensions,
+        {
+          ...defaultOptions,
+          type: selectedChart || "Bar",
+          x: selectedColumns.x || null,
+          y: selectedColumns.y || null,
+          facet: selectedColumns.facet,
+          filter: chartSpecificOptions[selectedChart]?.filter,
+          xIsDate: xColumn?.isDate,
+          dateToUnix,
+          ...chartStyle,
+          ...chartSpecificOptions[selectedChart],
+        },
+        processedData
+      );
+    } else if (selectedChart === "bar") {
+      return getObservableOptions(
+        dimensions,
+        {
+          ...defaultOptions,
+          type: selectedChart,
+          // we do this only if an x column and some y columns are selected
+          x: selectedColumns.x && selectedColumns?.y?.length && "label",
+          // check to ensure we don't render a blank chart if no axis is selected
+          y: selectedColumns?.y?.length ? "value" : null,
+          facet: selectedColumns.x || null,
+          filter: chartSpecificOptions[selectedChart]?.filter,
+          xIsDate: xColumn?.isDate,
+          dateToUnix,
+          ...chartStyle,
+          ...chartSpecificOptions[selectedChart],
+        },
+        processedData
+      );
+    } else if (selectedChart == "line") {
+      return getObservableOptions(
+        dimensions,
+        {
+          ...defaultOptions,
+          type: selectedChart,
+          x: selectedColumns.x || null,
+          // check to ensure we don't render a blank chart if no axis is selected
+          y: selectedColumns.y.length ? "value" : null,
+          stroke: "label",
+          // disable facetting for line charts for now
+          // facet: selectedColumns.facet || null,
+          filter: chartSpecificOptions[selectedChart]?.filter,
+          xIsDate: xColumn?.isDate,
+          dateToUnix,
+          ...chartStyle,
+          ...chartSpecificOptions[selectedChart],
+        },
+        processedData
+      );
+    }
   }, [dimensions, chartState]);
 
   const updateDimensions = useCallback(() => {
@@ -90,13 +145,43 @@ export default function ObservablePlot() {
       containerRef.current.innerHTML = "";
       // always reset the padding or it messes with boundclient calculation below
       containerRef.current.style.padding = "0 0 0 0";
-
-      // append the chart
-      containerRef.current.appendChild(
-        Plot.plot({
-          ...observableOptions,
-        })
+      const xColumn = chartState.availableColumns.find(
+        (col) => col.key === chartState.selectedColumns.x
       );
+
+      if (chartState.selectedChart === "bar") {
+        containerRef.current.appendChild(
+          Plot.plot({
+            ...observableOptions,
+            fx: {
+              grid: false,
+              tickRotate: -90,
+              tickFormat: (d) => {
+                if (xColumn.isDate && dayjs(d).isValid()) {
+                  // if date, format it
+                  // convert from unix to date
+                  const date = unix(d).format("YYYY-MM-DD");
+                  return date;
+                } else {
+                  return d;
+                }
+              },
+              axis: "bottom",
+            },
+            x: {
+              axis: null,
+              label: "",
+            },
+          })
+        );
+      } else {
+        // if chart is not a bar chart
+        containerRef.current.appendChild(
+          Plot.plot({
+            ...observableOptions,
+          })
+        );
+      }
 
       /**
        * Now that we have added rotation to the ticks, some of them might overflow the bottom of the svg and get cut off if they are too long.

@@ -108,9 +108,9 @@ export async function askQuestionUsingSearchBar(
  * @returns object with the question asked, and follow on questions
  *
  * @example
- * await testSQLQuestionFull(page);
+ * await fullyTestSQLOnlyQuestionForNonTempDb(page);
  *
- * await testSQLQuestionFull(page, "show me my sales data");
+ * await fullyTestSQLOnlyQuestionForNonTempDb(page, "show me my sales data");
  */
 export async function fullyTestSQLOnlyQuestionForNonTempDb({
   page,
@@ -132,8 +132,9 @@ export async function fullyTestSQLOnlyQuestionForNonTempDb({
   );
 
   // start waiting for to the network response for `/generate_step`
-  const responsePromiseGenerate = page.waitForResponse((response) =>
-    response.url().includes("/generate_step")
+  const responsePromiseGenerate = page.waitForResponse(
+    (response) => response.url().includes("/generate_step"),
+    { timeout: 10000 }
   );
 
   await askQuestionUsingSearchBar(page, question);
@@ -180,8 +181,9 @@ export async function fullyTestSQLOnlyQuestionForNonTempDb({
   expect(await page.locator("table.divide-y").first()).toBeVisible();
 
   // monitor responses sent to the /generate_follow_on_questions endpoint
-  const responsePromiseFollowOn = page.waitForResponse((response) =>
-    response.url().includes("/generate_follow_on_questions")
+  const responsePromiseFollowOn = page.waitForResponse(
+    (response) => response.url().includes("/generate_follow_on_questions"),
+    { timeout: 10000 }
   );
 
   const responseFollowOn = await responsePromiseFollowOn;
@@ -210,9 +212,9 @@ export async function fullyTestSQLOnlyQuestionForNonTempDb({
  * Then also monitors the follow on question generation.
  *
  * @example
- * await testSQLQuestionFull(page);
+ * await fullyTestSQLOnlyQuestionForTempDb(page);
  *
- * await testSQLQuestionFull(page, "show me my sales data");
+ * await fullyTestSQLOnlyQuestionForTempDb(page, "show me my sales data");
  */
 export async function fullyTestSQLOnlyQuestionForTempDb({
   page,
@@ -227,8 +229,9 @@ export async function fullyTestSQLOnlyQuestionForTempDb({
   questionCountToExpectAfterAsking?: number;
 }) {
   // start waiting for to the network response for `/generate_query_csv`
-  const responsePromiseGenerateCsvQuery = page.waitForResponse((response) =>
-    response.url().includes("/generate_query_csv")
+  const responsePromiseGenerateCsvQuery = page.waitForResponse(
+    (response) => response.url().includes("/generate_query_csv"),
+    { timeout: 10000 }
   );
 
   const requestPromiseGenerateCsvQuery = page.waitForRequest((request) =>
@@ -268,8 +271,9 @@ export async function fullyTestSQLOnlyQuestionForTempDb({
   expect(await page.locator("table.divide-y").first()).toBeVisible();
 
   // monitor responses sent to the /generate_follow_on_questions endpoint
-  const responsePromiseFollowOn = page.waitForResponse((response) =>
-    response.url().includes("/generate_follow_on_questions")
+  const responsePromiseFollowOn = page.waitForResponse(
+    (response) => response.url().includes("/generate_follow_on_questions"),
+    { timeout: 10000 }
   );
 
   const responseFollowOn = await responsePromiseFollowOn;

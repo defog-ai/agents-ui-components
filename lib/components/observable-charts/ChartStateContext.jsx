@@ -44,7 +44,10 @@ export function createActionHandlers() {
       const newState = {
         ...this,
         selectedChart: payload,
-        selectedColumns: { x: null, y: payload === "line" ? [] : null },
+        selectedColumns: {
+          x: null,
+          y: payload === "line" || payload === "bar" ? [] : null,
+        },
         chartStyle: {
           ...defaultChartState.chartStyle,
           xLabel: null,
@@ -143,7 +146,10 @@ export function createActionHandlers() {
         ...this,
         selectedColumns: {
           x: xAxis,
-          y: selectedChart === "line" ? [yAxis] : yAxis,
+          y:
+            selectedChart === "line" || selectedChart == "bar"
+              ? [yAxis]
+              : yAxis,
         },
       };
 
@@ -234,19 +240,12 @@ function deepMergeObjects(obj1, obj2) {
  */
 
 /**
- * @typedef {Object} DotplotOptions
- * @property {string} pointColor - Color of the points
- * @property {number} pointSize - Size of the points
- */
-
-/**
  * @typedef {Object} ChartSpecificOptions
  * @property {LineChartOptions} line - Options for line charts
  * @property {BarChartOptions} bar - Options for bar charts
  * @property {ScatterChartOptions} scatter - Options for scatter plots
  * @property {HistogramOptions} histogram - Options for histograms
  * @property {BoxplotOptions} boxplot - Options for boxplots
- * @property {DotplotOptions} dotplot - Options for dotplots
  */
 
 /**
@@ -317,14 +316,15 @@ export const defaultChartState = {
       stroke: "",
       lineOptions: [],
       showLabels: false,
+      aggregateFunction: "sum",
     },
     bar: {
       barColor: "#4287f5",
       barWidth: 0.8,
-      aggregateFunction: "none",
+      aggregateFunction: "sum",
       fill: null,
     },
-    scatter: { pointColor: "#f54242", pointSize: 5 },
+    scatter: { pointColor: "#f54242", pointSize: 3 },
     histogram: {
       binCount: 10,
       fillColor: "#4287f5",
@@ -339,17 +339,24 @@ export const defaultChartState = {
       opacity: 1,
       boxplotOrientation: "vertical",
     },
-    dotplot: {
-      pointColor: "#f54242",
-      pointSize: 5,
-    },
   },
   data: [],
   availableColumns: [],
   mergeStateUpdates: function (stateUpdates) {
     // if state updates have selectedChart === "line"
+    // or if the active chart is line or bar
     // make sure that selectedColumns.y is an Array
-    if (stateUpdates.selectedChart === "line") {
+    let isLineOrBar;
+    if (stateUpdates.selectedChart) {
+      isLineOrBar =
+        stateUpdates.selectedChart === "line" ||
+        stateUpdates.selectedChart === "bar";
+    } else {
+      isLineOrBar =
+        this.selectedChart === "line" || this.selectedChart === "bar";
+    }
+
+    if (isLineOrBar) {
       if (stateUpdates.selectedColumns && stateUpdates.selectedColumns.y) {
         if (!Array.isArray(stateUpdates.selectedColumns.y)) {
           stateUpdates.selectedColumns.y = [stateUpdates.selectedColumns.y];

@@ -555,8 +555,8 @@ export function DefogAnalysisAgentEmbed({
   }, [dbs, initialTrees]);
 
   return (
-    <div className="w-full bg-gradient-to-br from-[#6E00A2]/10 to-[#FFA20D]/10 px-2 lg:px-0 py-8 h-screen flex items-center shadow-inner relative">
-      <div className="w-full lg:w-10/12 min-h-96 h-[95%] overflow-y-hidden mx-auto">
+    <div className="w-full bg-gradient-to-br from-[#6E00A2]/10 to-[#FFA20D]/10 p-2 lg:px-0 py-2 h-screen flex items-center shadow-inner relative">
+      <div className="w-full lg:w-full min-h-96 h-full overflow-y-hidden mx-auto">
         <Setup
           token={token}
           user={user}

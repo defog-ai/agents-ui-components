@@ -26,7 +26,6 @@ const CHART_TYPES = [
 ];
 
 const AGGREGATE_OPTIONS = [
-  { value: "none", label: "None" },
   { value: "count", label: "Count" },
   { value: "sum", label: "Sum" },
   { value: "proportion", label: "Proportion" },
@@ -91,7 +90,10 @@ export function PrimarySelection({ columns }) {
       });
 
       // Enable use count by default if the y selection is categorical in bar chart
-      if (selectedChart === "bar" && axis === "y") {
+      if (
+        (selectedChart === "bar" || selectedChart == "line") &&
+        axis === "y"
+      ) {
         const selectedColumn = columns.find((col) => col.key === value);
         if (selectedColumn && selectedColumn.variableType === "categorical") {
           newChartState = newChartState.updateChartSpecificOptions({
@@ -111,17 +113,17 @@ export function PrimarySelection({ columns }) {
 
   const handleAggregateChange = (value) => {
     chartState
-      .updateChartSpecificOptions({ aggregateFunction: value || "none" })
+      .updateChartSpecificOptions({ aggregateFunction: value || "sum" })
       .render();
   };
 
   // Render aggregate function selection
   const renderAggregateSelection = () => (
     <div className="mt-2">
-      <span className="mr-2 input-label">Transform</span>
+      <span className="mr-2 input-label">Aggregation</span>
       <Select
         style={{ width: "100%" }}
-        value={chartSpecificOptions.bar.aggregateFunction || "none"}
+        value={chartSpecificOptions[selectedChart].aggregateFunction || "sum"}
         onChange={handleAggregateChange}
       >
         {AGGREGATE_OPTIONS.map(({ value, label }) => (
@@ -205,6 +207,7 @@ export function PrimarySelection({ columns }) {
           value={selectedColumnKey}
           allowClear={axis === "x"}
           mode={mode}
+          rootClassName={`${axis}-axis-selector`}
         >
           {selectedChart === "histogram"
             ? orderedColumns
@@ -212,7 +215,7 @@ export function PrimarySelection({ columns }) {
                 .map(renderColumnOption)
             : orderedColumns.map(renderColumnOption)}
         </Select>
-        {selectedChart === "bar" &&
+        {(selectedChart === "bar" || selectedChart === "line") &&
           axis === "x" &&
           isCategorical &&
           renderAggregateSelection()}
@@ -332,7 +335,9 @@ export function PrimarySelection({ columns }) {
             {renderAxisSelection(
               "y",
               axisLabel.y,
-              selectedChart === "line" ? "multiple" : undefined
+              selectedChart === "line" || selectedChart == "bar"
+                ? "multiple"
+                : undefined
             )}
             <div className="flex items-center gap-4">
               {renderAxisLabel("y")}
@@ -347,16 +352,18 @@ export function PrimarySelection({ columns }) {
       </div>
       {/* Facet Selection and color */}
 
-      <div>
-        <h3 className="pb-1 font-bold border-b input-label border-black/20">
-          Groups
-        </h3>
+      {selectedChart !== "bar" && selectedChart !== "line" ? (
+        <div>
+          <h3 className="pb-1 font-bold border-b input-label border-black/20">
+            Groups
+          </h3>
 
-        <div className="grid grid-cols-2 gap-2 pt-4 ">
-          {FacetSelection}
-          {ColorBySelection}
+          <div className="grid grid-cols-2 gap-2 pt-4 ">
+            {FacetSelection}
+            {ColorBySelection}
+          </div>
         </div>
-      </div>
+      ) : null}
     </div>
   );
 }
