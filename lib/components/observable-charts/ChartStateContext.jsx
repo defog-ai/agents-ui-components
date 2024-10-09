@@ -356,8 +356,6 @@ export const defaultChartState = {
         this.selectedChart === "line" || this.selectedChart === "bar";
     }
 
-    console.log(isLineOrBar, stateUpdates);
-
     if (isLineOrBar) {
       if (stateUpdates.selectedColumns && stateUpdates.selectedColumns.y) {
         if (!Array.isArray(stateUpdates.selectedColumns.y)) {
