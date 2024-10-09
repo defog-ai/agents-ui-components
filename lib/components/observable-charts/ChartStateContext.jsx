@@ -346,11 +346,17 @@ export const defaultChartState = {
     // if state updates have selectedChart === "line"
     // or if the active chart is line or bar
     // make sure that selectedColumns.y is an Array
-    const isLineOrBar =
-      stateUpdates.selectedChart === "line" ||
-      stateUpdates.selectedChart === "bar" ||
-      this.selectedChart === "line" ||
-      this.selectedChart === "bar";
+    let isLineOrBar;
+    if (stateUpdates.selectedChart) {
+      isLineOrBar =
+        stateUpdates.selectedChart === "line" ||
+        stateUpdates.selectedChart === "bar";
+    } else {
+      isLineOrBar =
+        this.selectedChart === "line" || this.selectedChart === "bar";
+    }
+
+    console.log(isLineOrBar, stateUpdates);
 
     if (isLineOrBar) {
       if (stateUpdates.selectedColumns && stateUpdates.selectedColumns.y) {
