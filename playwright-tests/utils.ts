@@ -132,8 +132,9 @@ export async function fullyTestSQLOnlyQuestionForNonTempDb({
   );
 
   // start waiting for to the network response for `/generate_step`
-  const responsePromiseGenerate = page.waitForResponse((response) =>
-    response.url().includes("/generate_step")
+  const responsePromiseGenerate = page.waitForResponse(
+    (response) => response.url().includes("/generate_step"),
+    { timeout: 10000 }
   );
 
   await askQuestionUsingSearchBar(page, question);
@@ -180,8 +181,9 @@ export async function fullyTestSQLOnlyQuestionForNonTempDb({
   expect(await page.locator("table.divide-y").first()).toBeVisible();
 
   // monitor responses sent to the /generate_follow_on_questions endpoint
-  const responsePromiseFollowOn = page.waitForResponse((response) =>
-    response.url().includes("/generate_follow_on_questions")
+  const responsePromiseFollowOn = page.waitForResponse(
+    (response) => response.url().includes("/generate_follow_on_questions"),
+    { timeout: 10000 }
   );
 
   const responseFollowOn = await responsePromiseFollowOn;
@@ -227,8 +229,9 @@ export async function fullyTestSQLOnlyQuestionForTempDb({
   questionCountToExpectAfterAsking?: number;
 }) {
   // start waiting for to the network response for `/generate_query_csv`
-  const responsePromiseGenerateCsvQuery = page.waitForResponse((response) =>
-    response.url().includes("/generate_query_csv")
+  const responsePromiseGenerateCsvQuery = page.waitForResponse(
+    (response) => response.url().includes("/generate_query_csv"),
+    { timeout: 10000 }
   );
 
   const requestPromiseGenerateCsvQuery = page.waitForRequest((request) =>
@@ -268,8 +271,9 @@ export async function fullyTestSQLOnlyQuestionForTempDb({
   expect(await page.locator("table.divide-y").first()).toBeVisible();
 
   // monitor responses sent to the /generate_follow_on_questions endpoint
-  const responsePromiseFollowOn = page.waitForResponse((response) =>
-    response.url().includes("/generate_follow_on_questions")
+  const responsePromiseFollowOn = page.waitForResponse(
+    (response) => response.url().includes("/generate_follow_on_questions"),
+    { timeout: 10000 }
   );
 
   const responseFollowOn = await responsePromiseFollowOn;
