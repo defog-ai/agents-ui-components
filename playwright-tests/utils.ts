@@ -108,9 +108,9 @@ export async function askQuestionUsingSearchBar(
  * @returns object with the question asked, and follow on questions
  *
  * @example
- * await testSQLQuestionFull(page);
+ * await fullyTestSQLOnlyQuestionForNonTempDb(page);
  *
- * await testSQLQuestionFull(page, "show me my sales data");
+ * await fullyTestSQLOnlyQuestionForNonTempDb(page, "show me my sales data");
  */
 export async function fullyTestSQLOnlyQuestionForNonTempDb({
   page,
@@ -212,9 +212,9 @@ export async function fullyTestSQLOnlyQuestionForNonTempDb({
  * Then also monitors the follow on question generation.
  *
  * @example
- * await testSQLQuestionFull(page);
+ * await fullyTestSQLOnlyQuestionForTempDb(page);
  *
- * await testSQLQuestionFull(page, "show me my sales data");
+ * await fullyTestSQLOnlyQuestionForTempDb(page, "show me my sales data");
  */
 export async function fullyTestSQLOnlyQuestionForTempDb({
   page,
