@@ -207,6 +207,7 @@ export function PrimarySelection({ columns }) {
           value={selectedColumnKey}
           allowClear={axis === "x"}
           mode={mode}
+          rootClassName={`${axis}-axis-selector`}
         >
           {selectedChart === "histogram"
             ? orderedColumns
