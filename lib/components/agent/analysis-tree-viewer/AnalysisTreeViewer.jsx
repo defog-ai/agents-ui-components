@@ -333,6 +333,10 @@ export function AnalysisTreeViewer({
                       }))
                       .filter((d) => {
                         try {
+                          // if this is the current analysis, send it
+                          // this is to prevent regression on the backend. we were sending all (including this one) earlier.
+                          if (d.analysisId === analysis.analysisId) return true;
+
                           // only use this as a previous question if gen_steps is true
                           // or if this is this question itself
                           // first get the data
