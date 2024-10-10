@@ -32,6 +32,16 @@ export default function ObservablePlot() {
       data,
     } = chartState;
 
+    // if selected.x or selected.y is null, return null here
+    // or if selectedColumns.y.length is 0, also return null
+    if (
+      !selectedColumns.x ||
+      !selectedColumns.y ||
+      !selectedColumns?.y?.length
+    ) {
+      return null;
+    }
+
     const xColumn = availableColumns.find(
       (col) => col.key === selectedColumns.x
     );
