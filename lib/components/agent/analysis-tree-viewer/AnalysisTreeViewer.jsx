@@ -213,8 +213,7 @@ export function AnalysisTreeViewer({
               openClassNames={"border-gray-300 shadow-md"}
               closedClassNames={"border-transparent bg-transparent shadow-none"}
               contentClassNames={
-                // need to add pl-4 here to make the links visible
-                "w-72 px-4 pt-5 pb-4 rounded-tl-lg relative sm:blockmin-h-96 h-full overflow-y-auto"
+                "w-72 px-4 mt-5 pb-4 rounded-tl-lg relative sm:block min-h-96 h-full overflow-y-auto "
               }
             >
               <div className="relative flex flex-col text-sm history-list">
