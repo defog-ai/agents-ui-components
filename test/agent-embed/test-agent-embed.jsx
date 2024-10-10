@@ -44,7 +44,7 @@ function QueryDataPage() {
   }, []);
 
   return (
-    <div className="max-h-screen flex flex-col">
+    <div className="h-screen flex flex-col">
       <nav className="bg-gray-800 p-2 text-white h-12">
         <h1 className="text-2xl font-bold">Query Data</h1>
       </nav>
