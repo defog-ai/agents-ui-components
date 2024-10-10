@@ -33,7 +33,7 @@ export function AnalysisTreeItem({
       <div className="grow">
         {isDummy ? "New analysis" : sentenceCase(analysis?.user_question)}
       </div>
-      {!isDummy && agentContext.val.allowDashboardAdd && (
+      {/* {!isDummy && agentContext.val.allowDashboardAdd && (
         <div
           className="rounded-sm hover:bg-blue-500 p-1 flex justify-center group "
           onClick={() => {
@@ -44,7 +44,7 @@ export function AnalysisTreeItem({
         >
           <PlusIcon className="h-4 w-4 text-gray-400 group-hover:text-white" />
         </div>
-      )}
+      )} */}
     </div>
   );
 }
