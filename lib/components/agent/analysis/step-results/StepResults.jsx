@@ -404,7 +404,7 @@ export function StepResults({
         ),
       },
     ];
-  }, [step]);
+  }, [step, showDeleteModal]);
 
   // rerunningstepsis array of object: {id: res.pre_tool_run_message,
   // timeout: funciton
