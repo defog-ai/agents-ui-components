@@ -21,7 +21,9 @@ export function AnalysisTreeItem({
       className={twMerge(
         "flex flex-row items-center py-1 px-2 mb-2 hover:cursor-pointer hover:bg-gray-200 history-item",
         isActive ? "font-bold bg-gray-200 " : "",
-        isDummy ? "dummy-analysis" : analysis.analysisId,
+        isDummy
+          ? "dummy-analysis mb-3 bg-blue-500 hover:bg-blue-500 text-white p-2 shadow-md border border-blue-500"
+          : analysis.analysisId,
         extraClasses
       )}
       onClick={() => {

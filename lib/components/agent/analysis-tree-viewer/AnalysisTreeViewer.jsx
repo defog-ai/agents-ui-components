@@ -64,6 +64,23 @@ export function AnalysisTreeViewer({
     analysisTreeManager.getTree
   );
 
+  // reverse chronological sorted tree
+  // based on the timestamp property of root analysis
+  const analysisIdsSorted = useMemo(() => {
+    try {
+      const sorted = Object.keys(analysisTree).sort((a, b) => {
+        return (
+          (analysisTree?.[b]?.root?.timestamp || 0) -
+          (analysisTree?.[a]?.root?.timestamp || 0)
+        );
+      });
+      return sorted;
+    } catch (e) {
+      console.warn("Error in sorting keys");
+      return Object.keys(analysisTree);
+    }
+  }, [analysisTree]);
+
   const allAnalyses = useSyncExternalStore(
     analysisTreeManager.subscribeToDataChanges,
     analysisTreeManager.getAll
@@ -197,7 +214,7 @@ export function AnalysisTreeViewer({
               closedClassNames={"border-transparent bg-transparent shadow-none"}
               contentClassNames={
                 // need to add pl-4 here to make the links visible
-                "w-72 px-2 pt-5 pb-14 rounded-tl-lg relative sm:block pl-4 min-h-96 h-full overflow-y-auto"
+                "w-72 px-4 pt-5 pb-4 rounded-tl-lg relative sm:blockmin-h-96 h-full overflow-y-auto"
               }
             >
               <div className="relative flex flex-col text-sm history-list">
@@ -207,14 +224,50 @@ export function AnalysisTreeViewer({
                     allAnalyses?.[activeAnalysisId] ? activeAnalysisId : null
                   }
                 />
-                {Object.keys(analysisTree).map((rootAnalysisId, i) => {
+                {!activeRootAnalysisId ? (
+                  <AnalysisTreeItem
+                    isDummy={true}
+                    setActiveRootAnalysisId={
+                      analysisTreeManager.setActiveRootAnalysisId
+                    }
+                    setActiveAnalysisId={
+                      analysisTreeManager.setActiveAnalysisId
+                    }
+                    isActive={!activeRootAnalysisId}
+                  />
+                ) : (
+                  <div className="sticky w-full top-0 mb-3 bg-gray-200">
+                    <div
+                      data-enabled={!loading}
+                      className={twMerge(
+                        "flex items-center cursor-pointer z-20 relative",
+                        "bg-blue-500 hover:bg-blue-500 text-white p-2 shadow-md border border-blue-500"
+                        // "data-[enabled=false]:bg-gray-100 data-[enabled=false]:hover:bg-gray-100 data-[enabled=false]:hover:text-gray-400 data-[enabled=false]:text-gray-400 data-[enabled=false]:cursor-not-allowed"
+                      )}
+                      onClick={() => {
+                        if (loading) return;
+                        // start a new root analysis
+                        analysisTreeManager.setActiveRootAnalysisId(null);
+                        analysisTreeManager.setActiveAnalysisId(null);
+
+                        // on ipad/phone, close sidebar when new button is clicked
+                        if (window.innerWidth < breakpoints.lg)
+                          setSidebarOpen(false);
+                      }}
+                    >
+                      Start new thread{" "}
+                      <PlusIcon className="inline w-4 h-4 ml-2" />
+                    </div>
+                  </div>
+                )}
+                {analysisIdsSorted.map((rootAnalysisId, i) => {
                   const root = analysisTree[rootAnalysisId].root;
                   const analysisChildList =
                     analysisTree?.[rootAnalysisId]?.analysisList || [];
 
                   return (
                     <div key={root.analysisId}>
-                      {analysisChildList.map((tree, i) => {
+                      {analysisChildList.map((tree) => {
                         return (
                           <AnalysisTreeItem
                             key={tree.analysisId}
@@ -237,49 +290,13 @@ export function AnalysisTreeViewer({
                               if (window.innerWidth < breakpoints.lg)
                                 setSidebarOpen(false);
                             }}
-                            extraClasses={tree.isRoot ? "" : "ml-2 border-l-2"}
+                            extraClasses={tree.isRoot ? "" : "ml-4 border-l-2"}
                           />
                         );
                       })}
                     </div>
                   );
                 })}
-                {!activeRootAnalysisId ? (
-                  <AnalysisTreeItem
-                    isDummy={true}
-                    setActiveRootAnalysisId={
-                      analysisTreeManager.setActiveRootAnalysisId
-                    }
-                    setActiveAnalysisId={
-                      analysisTreeManager.setActiveAnalysisId
-                    }
-                    isActive={!activeRootAnalysisId}
-                  />
-                ) : (
-                  <div className="sticky w-full mt-5 bottom-5">
-                    <div
-                      data-enabled={!loading}
-                      className={twMerge(
-                        "flex items-center cursor-pointer z-20 relative",
-                        "data-[enabled=true]:bg-blue-200 data-[enabled=true]:hover:bg-blue-500 data-[enabled=true]:hover:text-white p-2 data-[enabled=true]:text-blue-400 data-[enabled=true]:shadow-custom ",
-                        "data-[enabled=false]:bg-gray-100 data-[enabled=false]:hover:bg-gray-100 data-[enabled=false]:hover:text-gray-400 data-[enabled=false]:text-gray-400 data-[enabled=false]:cursor-not-allowed"
-                      )}
-                      onClick={() => {
-                        if (loading) return;
-                        // start a new root analysis
-                        analysisTreeManager.setActiveRootAnalysisId(null);
-                        analysisTreeManager.setActiveAnalysisId(null);
-
-                        // on ipad/phone, close sidebar when new button is clicked
-                        if (window.innerWidth < breakpoints.lg)
-                          setSidebarOpen(false);
-                      }}
-                    >
-                      New <PlusIcon className="inline w-4 h-4 ml-2" />
-                    </div>
-                    <div className="absolute z-0 w-full h-10 bg-gray-100"></div>
-                  </div>
-                )}
               </div>
             </Sidebar>
           </div>
