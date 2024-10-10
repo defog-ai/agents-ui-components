@@ -87,7 +87,7 @@ export default function ObservablePlot() {
           // we do this only if an x column and some y columns are selected
           x: selectedColumns.x && selectedColumns?.y?.length && "label",
           // check to ensure we don't render a blank chart if no axis is selected
-          y: selectedColumns?.y?.length ? "value" : null,
+          y: selectedColumns.x && selectedColumns?.y?.length ? "value" : null,
           facet: selectedColumns.x || null,
           filter: chartSpecificOptions[selectedChart]?.filter,
           xIsDate: xColumn?.isDate,
@@ -105,7 +105,7 @@ export default function ObservablePlot() {
           type: selectedChart,
           x: selectedColumns.x || null,
           // check to ensure we don't render a blank chart if no axis is selected
-          y: selectedColumns.y.length ? "value" : null,
+          y: selectedColumns.x && selectedColumns.y.length ? "value" : null,
           stroke: "label",
           // disable facetting for line charts for now
           // facet: selectedColumns.facet || null,
