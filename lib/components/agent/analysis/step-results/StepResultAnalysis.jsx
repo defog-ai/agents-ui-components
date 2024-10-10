@@ -1,8 +1,13 @@
 import { useEffect, useState } from "react";
 import setupBaseUrl from "../../../utils/setupBaseUrl";
 import { SpinningLoader } from "@ui-components";
+import {
+  addStepAnalysisToLocalStorage,
+  getStepAnalysisFromLocalStorage,
+} from "../../../utils/utils";
 
 export default function StepResultAnalysis({
+  stepId,
   keyName,
   question,
   data_csv,
@@ -16,39 +21,47 @@ export default function StepResultAnalysis({
 
   async function analyseData() {
     try {
-      const urlToConnect = setupBaseUrl({
-        protocol: "http",
-        path: "analyse_data",
-        apiEndpoint: apiEndpoint,
-      });
+      let analysis = getStepAnalysisFromLocalStorage(stepId);
 
-      // send data to the server
-      const data = {
-        question: question,
-        data_csv: data_csv,
-        sql: sql,
-        key_name: keyName,
-      };
+      if (!analysis) {
+        // fetch from backend
+        const urlToConnect = setupBaseUrl({
+          protocol: "http",
+          path: "analyse_data",
+          apiEndpoint: apiEndpoint,
+        });
 
-      setLoading(true);
-      const response = await fetch(urlToConnect, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
+        // send data to the server
+        const data = {
+          question: question,
+          data_csv: data_csv,
+          sql: sql,
+          key_name: keyName,
+        };
 
-      if (!response.ok) {
-        setLoading(false);
-        // throw new Error("Error analysing data");
-        // return quitely, for backwards compatibility
-        return;
+        setLoading(true);
+        const response = await fetch(urlToConnect, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        });
+
+        if (!response.ok) {
+          setLoading(false);
+          // throw new Error("Error analysing data");
+          // return quitely, for backwards compatibility
+          return;
+        }
+
+        const responseJson = await response.json();
+
+        analysis = responseJson.model_analysis;
+
+        addStepAnalysisToLocalStorage(stepId, analysis);
       }
 
-      const responseJson = await response.json();
-
-      const analysis = responseJson.model_analysis;
       // analysis is currently a giant blob of text that has full stops in the middle of sentences. It is not very readable. we should split into paragraphs
       // we can split by full stops, but we need to be careful about full stops that are part of numbers, e.g. 1.1
 

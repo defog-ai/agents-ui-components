@@ -32,6 +32,19 @@ export default function ObservablePlot() {
       data,
     } = chartState;
 
+    // if selected.x or selected.y is null, return null here
+    // or if selectedColumns.y.length is 0, also return null
+    if (
+      // if x is null
+      !selectedColumns.x ||
+      // if y is null
+      !selectedColumns.y ||
+      // if y is array but has length 0
+      (Array.isArray(selectedColumns.y) && !selectedColumns?.y?.length)
+    ) {
+      return null;
+    }
+
     const xColumn = availableColumns.find(
       (col) => col.key === selectedColumns.x
     );
@@ -87,7 +100,7 @@ export default function ObservablePlot() {
           // we do this only if an x column and some y columns are selected
           x: selectedColumns.x && selectedColumns?.y?.length && "label",
           // check to ensure we don't render a blank chart if no axis is selected
-          y: selectedColumns?.y?.length ? "value" : null,
+          y: selectedColumns.x && selectedColumns?.y?.length ? "value" : null,
           facet: selectedColumns.x || null,
           filter: chartSpecificOptions[selectedChart]?.filter,
           xIsDate: xColumn?.isDate,
@@ -105,7 +118,7 @@ export default function ObservablePlot() {
           type: selectedChart,
           x: selectedColumns.x || null,
           // check to ensure we don't render a blank chart if no axis is selected
-          y: selectedColumns.y.length ? "value" : null,
+          y: selectedColumns.x && selectedColumns.y.length ? "value" : null,
           stroke: "label",
           // disable facetting for line charts for now
           // facet: selectedColumns.facet || null,

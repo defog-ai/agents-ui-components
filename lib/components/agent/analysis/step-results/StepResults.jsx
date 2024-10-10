@@ -382,6 +382,7 @@ export function StepResults({
                   Object.values(parsedOutputs).length &&
                   Object.values(parsedOutputs)[0]?.csvString && (
                     <StepResultAnalysis
+                      stepId={stepId}
                       keyName={keyName}
                       question={step?.inputs?.question}
                       data_csv={Object.values(parsedOutputs)[0]?.csvString}
@@ -403,7 +404,7 @@ export function StepResults({
         ),
       },
     ];
-  }, [step]);
+  }, [step, showDeleteModal]);
 
   // rerunningstepsis array of object: {id: res.pre_tool_run_message,
   // timeout: funciton
