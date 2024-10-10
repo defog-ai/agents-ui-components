@@ -327,9 +327,33 @@ export function AnalysisTreeViewer({
                     sqlOnly={analysis.sqlOnly}
                     isTemp={analysis.isTemp}
                     keyName={analysis.keyName}
-                    previousQuestions={analysisChildList.map((i) => ({
-                      ...i,
-                    }))}
+                    previousQuestions={analysisChildList
+                      .map((i) => ({
+                        ...i,
+                      }))
+                      .filter((d) => {
+                        try {
+                          // only use this as a previous question if gen_steps is true
+                          // or if this is this question itself
+                          // first get the data
+                          const analysisData =
+                            d?.analysisManager?.getAnalysisData?.();
+
+                          // only pass this if we generated steps successfully
+                          if (
+                            analysisData &&
+                            analysisData?.gen_steps &&
+                            analysisData?.gen_steps?.success
+                          ) {
+                            return true;
+                          } else {
+                            return false;
+                          }
+                        } catch (e) {
+                          // return true to be safe
+                          return true;
+                        }
+                      })}
                     onManagerCreated={(analysisManager, id, ctr) => {
                       analysisDomRefs.current[id] = {
                         ctr,
