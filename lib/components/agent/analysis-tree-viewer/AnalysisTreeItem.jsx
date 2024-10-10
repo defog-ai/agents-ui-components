@@ -22,7 +22,7 @@ export function AnalysisTreeItem({
         "flex flex-row items-center py-1 px-2 mb-2 hover:cursor-pointer hover:bg-gray-200 history-item",
         isActive ? "font-bold bg-gray-200 " : "",
         isDummy
-          ? "dummy-analysis mb-3 bg-blue-500 hover:bg-blue-500 text-white p-2 shadow-md border border-blue-500"
+          ? "dummy-analysis mb-3 border-l-4 bg-gray-100 border-l-blue-500 text-blue-500 p-2"
           : analysis.analysisId,
         extraClasses
       )}
@@ -33,7 +33,7 @@ export function AnalysisTreeItem({
       }}
     >
       <div className="grow">
-        {isDummy ? "New analysis" : sentenceCase(analysis?.user_question)}
+        {isDummy ? "New" : sentenceCase(analysis?.user_question)}
       </div>
       {/* {!isDummy && agentContext.val.allowDashboardAdd && (
         <div

@@ -184,7 +184,7 @@ export function AnalysisTreeViewer({
           <div className="lg:hidden absolute bottom-0 left-0 w-full h-[10%] pointer-events-none bg-gradient-to-b from-transparent to-gray-300 z-10"></div>
         )}
         <div className="flex flex-row w-full h-full max-w-full text-gray-600 bg-white analysis-tree-viewer">
-          <div className="absolute left-0 top-0 z-[20] lg:sticky">
+          <div className="absolute left-0 top-0 z-[20] lg:sticky h-full">
             <Sidebar
               location="left"
               open={sidebarOpen}
@@ -290,7 +290,10 @@ export function AnalysisTreeViewer({
                               if (window.innerWidth < breakpoints.lg)
                                 setSidebarOpen(false);
                             }}
-                            extraClasses={tree.isRoot ? "" : "ml-4 border-l-2"}
+                            extraClasses={twMerge(
+                              // activeAnalysisId === null ? "" : "",
+                              tree.isRoot ? "" : "ml-4 border-l-2"
+                            )}
                           />
                         );
                       })}
