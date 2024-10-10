@@ -192,7 +192,7 @@ export function DraggableInput({
           </div>
         </div>
       </div>
-      <div className="w-full text-xs p-2 text-gray-400">
+      <div className="w-full text-xs p-1 px-2 pt-0 text-gray-400">
         Tip: If you prefer to start a new conversation, click the "Start new
         thread" button in the sidebar.
       </div>
