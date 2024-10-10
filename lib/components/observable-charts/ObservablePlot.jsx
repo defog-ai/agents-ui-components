@@ -35,9 +35,12 @@ export default function ObservablePlot() {
     // if selected.x or selected.y is null, return null here
     // or if selectedColumns.y.length is 0, also return null
     if (
+      // if x is null
       !selectedColumns.x ||
+      // if y is null
       !selectedColumns.y ||
-      !selectedColumns?.y?.length
+      // if y is array but has length 0
+      (Array.isArray(selectedColumns.y) && !selectedColumns?.y?.length)
     ) {
       return null;
     }
