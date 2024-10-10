@@ -426,7 +426,7 @@ export function AnalysisTreeViewer({
           </div>
         </div>
       </div>
-      <Modal
+      {/* <Modal
         title="Select the dashboards to add this analysis to"
         open={addToDashboardSelection}
         onOk={() => {
@@ -473,7 +473,7 @@ export function AnalysisTreeViewer({
             </div>
           ))}
         </div>
-      </Modal>
+      </Modal> */}
     </ErrorBoundary>
   );
 }
