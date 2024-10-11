@@ -83,7 +83,7 @@ export function Sidebar({
     >
       <div
         ref={contentContainerRef}
-        className="transition-all overflow-hidden grow"
+        className="transition-all overflow-y-auto grow"
       >
         <div
           className={twMerge("w-80 block", contentClassNames)}

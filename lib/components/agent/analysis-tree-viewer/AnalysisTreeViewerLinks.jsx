@@ -75,14 +75,14 @@ export const AnalysisTreeViewerLinks = ({ analyses, activeAnalysisId }) => {
       };
 
       const parentAnalysisCenter = {
-        x: parentAnalysisRect.left - listCtrRect.left - 8,
+        x: parentAnalysisRect.left - listCtrRect.left + 2,
         y:
           parentAnalysisRect.top -
           listCtrRect.top +
           parentAnalysisRect.height / 2,
       };
 
-      const deltaX1 = -10;
+      const deltaX1 = -12;
       const deltaY1 = 0;
 
       const deltaX2 = 0;
@@ -107,9 +107,10 @@ export const AnalysisTreeViewerLinks = ({ analyses, activeAnalysisId }) => {
 
     setPaths(newPaths);
   }, [analyses, activeAnalysisId]);
+
   return (
     <div
-      className="absolute l-0 t-0 pointer-events-none overflow-visible"
+      className="absolute l-0 t-0 pointer-events-none overflow-visible z-20"
       ref={ctr}
     >
       <svg width="100%" height="100%" className="overflow-visible">

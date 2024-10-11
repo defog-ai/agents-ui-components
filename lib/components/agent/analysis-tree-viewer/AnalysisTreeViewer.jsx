@@ -64,6 +64,71 @@ export function AnalysisTreeViewer({
     analysisTreeManager.getTree
   );
 
+  // reverse chronological sorted tree
+  // grouped into today, yesterday, previous week, past month, and then earlier
+  // based on the timestamp property of root analysis
+  const analysisIdsGrouped = useMemo(() => {
+    try {
+      const sorted = Object.keys(analysisTree).sort((a, b) => {
+        return (
+          (analysisTree?.[b]?.root?.timestamp || 0) -
+          (analysisTree?.[a]?.root?.timestamp || 0)
+        );
+      });
+
+      const grouped = {
+        Today: [],
+        Yesterday: [],
+        "Past week": [],
+        "Past month": [],
+        Earlier: [],
+      };
+
+      const today = new Date();
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const week = new Date();
+      week.setDate(week.getDate() - 7);
+      const month = new Date();
+      month.setMonth(month.getMonth() - 1);
+
+      sorted.forEach((id) => {
+        const root = analysisTree[id].root;
+        const timestamp = root.timestamp;
+        const date = new Date(timestamp);
+
+        if (date.toDateString() === today.toDateString()) {
+          grouped["Today"].push(id);
+        } else if (date.toDateString() === yesterday.toDateString()) {
+          grouped["Yesterday"].push(id);
+        } else if (date >= week) {
+          grouped["Past week"].push(id);
+        } else if (date >= month) {
+          grouped["Past month"].push(id);
+        } else {
+          grouped["Earlier"].push(id);
+        }
+      });
+
+      // sort within each group
+      Object.keys(grouped).forEach((key) => {
+        grouped[key].sort((a, b) => {
+          return (
+            (analysisTree?.[b]?.root?.timestamp || 0) -
+            (analysisTree?.[a]?.root?.timestamp || 0)
+          );
+        });
+      });
+
+      return grouped;
+    } catch (e) {
+      console.warn("Error in sorting keys. Returning as is.");
+      return {
+        Earlier: Object.keys(analysisTree),
+      };
+    }
+  }, [analysisTree]);
+
   const allAnalyses = useSyncExternalStore(
     analysisTreeManager.subscribeToDataChanges,
     analysisTreeManager.getAll
@@ -164,10 +229,10 @@ export function AnalysisTreeViewer({
       <div className="relative h-full">
         {/* top and bottom fades if we are on small screens and if we have some analyses going */}
         {activeAnalysisId && activeRootAnalysisId && (
-          <div className="lg:hidden absolute bottom-0 left-0 w-full h-[10%] pointer-events-none bg-gradient-to-b from-transparent to-gray-300 z-10"></div>
+          <div className="lg:hidden absolute bottom-0 left-0 w-full h-[5%] pointer-events-none bg-gradient-to-b from-transparent to-gray-300 z-10"></div>
         )}
         <div className="flex flex-row w-full h-full max-w-full text-gray-600 bg-white analysis-tree-viewer">
-          <div className="absolute left-0 top-0 z-[20] lg:sticky">
+          <div className="absolute left-0 top-0 z-[20] lg:sticky h-full">
             <Sidebar
               location="left"
               open={sidebarOpen}
@@ -196,8 +261,7 @@ export function AnalysisTreeViewer({
               openClassNames={"border-gray-300 shadow-md"}
               closedClassNames={"border-transparent bg-transparent shadow-none"}
               contentClassNames={
-                // need to add pl-4 here to make the links visible
-                "w-72 px-2 pt-5 pb-14 rounded-tl-lg relative sm:block pl-4 min-h-96 h-full overflow-y-auto"
+                "w-72 p-4 rounded-tl-lg relative sm:block min-h-96 h-full"
               }
             >
               <div className="relative flex flex-col text-sm history-list">
@@ -207,62 +271,27 @@ export function AnalysisTreeViewer({
                     allAnalyses?.[activeAnalysisId] ? activeAnalysisId : null
                   }
                 />
-                {Object.keys(analysisTree).map((rootAnalysisId, i) => {
-                  const root = analysisTree[rootAnalysisId].root;
-                  const analysisChildList =
-                    analysisTree?.[rootAnalysisId]?.analysisList || [];
-
-                  return (
-                    <div key={root.analysisId}>
-                      {analysisChildList.map((tree, i) => {
-                        return (
-                          <AnalysisTreeItem
-                            key={tree.analysisId}
-                            analysis={tree}
-                            isActive={activeAnalysisId === tree.analysisId}
-                            setActiveRootAnalysisId={
-                              analysisTreeManager.setActiveRootAnalysisId
-                            }
-                            setActiveAnalysisId={
-                              analysisTreeManager.setActiveAnalysisId
-                            }
-                            setAddToDashboardSelection={
-                              setAddToDashboardSelection
-                            }
-                            onClick={() => {
-                              if (autoScroll) {
-                                scrollTo(tree.analysisId);
-                              }
-
-                              if (window.innerWidth < breakpoints.lg)
-                                setSidebarOpen(false);
-                            }}
-                            extraClasses={tree.isRoot ? "" : "ml-2 border-l-2"}
-                          />
-                        );
-                      })}
-                    </div>
-                  );
-                })}
                 {!activeRootAnalysisId ? (
-                  <AnalysisTreeItem
-                    isDummy={true}
-                    setActiveRootAnalysisId={
-                      analysisTreeManager.setActiveRootAnalysisId
-                    }
-                    setActiveAnalysisId={
-                      analysisTreeManager.setActiveAnalysisId
-                    }
-                    isActive={!activeRootAnalysisId}
-                  />
+                  <div className="py-3 ">
+                    <AnalysisTreeItem
+                      isDummy={true}
+                      setActiveRootAnalysisId={
+                        analysisTreeManager.setActiveRootAnalysisId
+                      }
+                      setActiveAnalysisId={
+                        analysisTreeManager.setActiveAnalysisId
+                      }
+                      isActive={!activeRootAnalysisId}
+                    />
+                  </div>
                 ) : (
-                  <div className="sticky w-full mt-5 bottom-5">
+                  <div className="sticky w-full top-0 py-3 bg-gray-100">
                     <div
                       data-enabled={!loading}
                       className={twMerge(
                         "flex items-center cursor-pointer z-20 relative",
-                        "data-[enabled=true]:bg-blue-200 data-[enabled=true]:hover:bg-blue-500 data-[enabled=true]:hover:text-white p-2 data-[enabled=true]:text-blue-400 data-[enabled=true]:shadow-custom ",
-                        "data-[enabled=false]:bg-gray-100 data-[enabled=false]:hover:bg-gray-100 data-[enabled=false]:hover:text-gray-400 data-[enabled=false]:text-gray-400 data-[enabled=false]:cursor-not-allowed"
+                        "bg-blue-500 hover:bg-blue-500 text-white p-2 shadow-md border border-blue-500"
+                        // "data-[enabled=false]:bg-gray-100 data-[enabled=false]:hover:bg-gray-100 data-[enabled=false]:hover:text-gray-400 data-[enabled=false]:text-gray-400 data-[enabled=false]:cursor-not-allowed"
                       )}
                       onClick={() => {
                         if (loading) return;
@@ -275,11 +304,65 @@ export function AnalysisTreeViewer({
                           setSidebarOpen(false);
                       }}
                     >
-                      New <PlusIcon className="inline w-4 h-4 ml-2" />
+                      Start new thread{" "}
+                      <PlusIcon className="inline w-4 h-4 ml-2" />
                     </div>
-                    <div className="absolute z-0 w-full h-10 bg-gray-100"></div>
                   </div>
                 )}
+                {Object.keys(analysisIdsGrouped).map((groupName) => {
+                  const analysesInGroup = analysisIdsGrouped[groupName];
+                  if (!analysesInGroup.length) return null;
+
+                  return (
+                    <div key={groupName}>
+                      <h3 className="text-xs font-bold text-gray-400 mt-4 mb-2">
+                        {groupName}
+                      </h3>
+                      {analysesInGroup.map((rootAnalysisId, i) => {
+                        const root = analysisTree[rootAnalysisId].root;
+                        const analysisChildList =
+                          analysisTree?.[rootAnalysisId]?.analysisList || [];
+
+                        return (
+                          <div key={root.analysisId}>
+                            {analysisChildList.map((tree) => {
+                              return (
+                                <AnalysisTreeItem
+                                  key={tree.analysisId}
+                                  analysis={tree}
+                                  isActive={
+                                    activeAnalysisId === tree.analysisId
+                                  }
+                                  setActiveRootAnalysisId={
+                                    analysisTreeManager.setActiveRootAnalysisId
+                                  }
+                                  setActiveAnalysisId={
+                                    analysisTreeManager.setActiveAnalysisId
+                                  }
+                                  setAddToDashboardSelection={
+                                    setAddToDashboardSelection
+                                  }
+                                  onClick={() => {
+                                    if (autoScroll) {
+                                      scrollTo(tree.analysisId);
+                                    }
+
+                                    if (window.innerWidth < breakpoints.lg)
+                                      setSidebarOpen(false);
+                                  }}
+                                  extraClasses={twMerge(
+                                    // activeAnalysisId === null ? "" : "",
+                                    tree.isRoot ? "" : "ml-4 border-l-2"
+                                  )}
+                                />
+                              );
+                            })}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })}
               </div>
             </Sidebar>
           </div>
@@ -449,6 +532,15 @@ export function AnalysisTreeViewer({
                 setSqlOnly={setSqlOnly}
                 sqlOnly={sqlOnly}
                 question={currentQuestion}
+                onNewConversationTextClick={() => {
+                  if (loading) return;
+                  // start a new root analysis
+                  analysisTreeManager.setActiveRootAnalysisId(null);
+                  analysisTreeManager.setActiveAnalysisId(null);
+
+                  // on ipad/phone, close sidebar when new button is clicked
+                  if (window.innerWidth < breakpoints.lg) setSidebarOpen(false);
+                }}
               />
             </div>
           </div>
