@@ -275,7 +275,7 @@ export function MultiSelect({
           <ComboboxOptions
             anchor="bottom"
             className={twMerge(
-              "w-[var(--input-width)] z-10 mt-1 max-h-60 overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm absolute",
+              "w-[var(--input-width)] z-50 mt-3 max-h-60 overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm absolute",
               popupSizeClasses[size] || popupSizeClasses["default"],
               popupClassName
             )}
