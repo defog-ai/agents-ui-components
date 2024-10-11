@@ -24,9 +24,7 @@ VITE_API_ENDPOINT="API_ENDPOINT"
 
 Open `http://localhost:5173` in your browser, and select one of the components to see it in action.
 
-Now open `http://localhost:6006/` in your browser (if it doesn't open automatically).
-
-You will get several options in the left sidebar. Pick and and play around. Corresponding code for all those pages is inside `test/` folder.
+Corresponding code for all those pages is inside `test/` folder.
 
 ### Publishing to npm
 

@@ -1,4 +1,5 @@
 **Checklist:**
+
 - **Breaking changes:** Do you have any breaking changes?
 - **Regression:** Are there any regressions?
 
@@ -7,12 +8,18 @@
 ### PUT YOUR PR DETAILS HERE
 
 --
+
 <details open>
   <summary>Instructions for reviewers</summary>
 
 **For testing components:**
-- Run `npm run storybook` in your terminal
-- go to [localhost:6006](http://localhost:6006/?path=/docs/) in your browser.
+
+- Run `npm run dev` in your terminal
+- Open `http://localhost:5173` in your browser, and select one of the components to see it in action.
+
+Corresponding code for all those pages is inside `test/` folder.
+
+Docs can be accessed via `npm run storybook` and visiting `http://localhost:6006`.
 
 NOTE: Make sure to change the email to yours if testing the advanced mode. Look in basic-tests.spec.ts and replace manas@defog.ai with your email.
 
