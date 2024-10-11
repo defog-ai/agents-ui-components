@@ -14,8 +14,6 @@ export function AnalysisTreeItem({
   isDummy = false,
   onClick = () => {},
 }) {
-  const agentContext = useContext(AgentConfigContext);
-
   return (
     <div
       className={twMerge(

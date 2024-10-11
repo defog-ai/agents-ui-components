@@ -65,8 +65,9 @@ export function AnalysisTreeViewer({
   );
 
   // reverse chronological sorted tree
+  // grouped into today, yesterday, previous 7 days and then months
   // based on the timestamp property of root analysis
-  const analysisIdsSorted = useMemo(() => {
+  const analysisIdsGrouped = useMemo(() => {
     try {
       const sorted = Object.keys(analysisTree).sort((a, b) => {
         return (
@@ -74,10 +75,47 @@ export function AnalysisTreeViewer({
           (analysisTree?.[a]?.root?.timestamp || 0)
         );
       });
-      return sorted;
+
+      const grouped = {
+        Today: [],
+        Yesterday: [],
+        "Past week": [],
+        "Past month": [],
+        Earlier: [],
+      };
+
+      const today = new Date();
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const week = new Date();
+      week.setDate(week.getDate() - 7);
+      const month = new Date();
+      month.setMonth(month.getMonth() - 1);
+
+      sorted.forEach((id) => {
+        const root = analysisTree[id].root;
+        const timestamp = root.timestamp;
+        const date = new Date(timestamp);
+
+        if (date.toDateString() === today.toDateString()) {
+          grouped["Today"].push(id);
+        } else if (date.toDateString() === yesterday.toDateString()) {
+          grouped["Yesterday"].push(id);
+        } else if (date >= week) {
+          grouped["Past week"].push(id);
+        } else if (date >= month) {
+          grouped["Past month"].push(id);
+        } else {
+          grouped["Earlier"].push(id);
+        }
+      });
+
+      return grouped;
     } catch (e) {
       console.warn("Error in sorting keys");
-      return Object.keys(analysisTree);
+      return {
+        Earlier: Object.keys(analysisTree),
+      };
     }
   }, [analysisTree]);
 
@@ -261,41 +299,55 @@ export function AnalysisTreeViewer({
                     </div>
                   </div>
                 )}
-                {analysisIdsSorted.map((rootAnalysisId, i) => {
-                  const root = analysisTree[rootAnalysisId].root;
-                  const analysisChildList =
-                    analysisTree?.[rootAnalysisId]?.analysisList || [];
+                {Object.keys(analysisIdsGrouped).map((groupName) => {
+                  const analysesInGroup = analysisIdsGrouped[groupName];
+                  if (!analysesInGroup.length) return null;
 
                   return (
-                    <div key={root.analysisId}>
-                      {analysisChildList.map((tree) => {
-                        return (
-                          <AnalysisTreeItem
-                            key={tree.analysisId}
-                            analysis={tree}
-                            isActive={activeAnalysisId === tree.analysisId}
-                            setActiveRootAnalysisId={
-                              analysisTreeManager.setActiveRootAnalysisId
-                            }
-                            setActiveAnalysisId={
-                              analysisTreeManager.setActiveAnalysisId
-                            }
-                            setAddToDashboardSelection={
-                              setAddToDashboardSelection
-                            }
-                            onClick={() => {
-                              if (autoScroll) {
-                                scrollTo(tree.analysisId);
-                              }
+                    <div key={groupName}>
+                      <h3 className="text-xs font-bold text-gray-400 mt-4 mb-2">
+                        {groupName}
+                      </h3>
+                      {analysesInGroup.map((rootAnalysisId, i) => {
+                        const root = analysisTree[rootAnalysisId].root;
+                        const analysisChildList =
+                          analysisTree?.[rootAnalysisId]?.analysisList || [];
 
-                              if (window.innerWidth < breakpoints.lg)
-                                setSidebarOpen(false);
-                            }}
-                            extraClasses={twMerge(
-                              // activeAnalysisId === null ? "" : "",
-                              tree.isRoot ? "" : "ml-4 border-l-2"
-                            )}
-                          />
+                        return (
+                          <div key={root.analysisId}>
+                            {analysisChildList.map((tree) => {
+                              return (
+                                <AnalysisTreeItem
+                                  key={tree.analysisId}
+                                  analysis={tree}
+                                  isActive={
+                                    activeAnalysisId === tree.analysisId
+                                  }
+                                  setActiveRootAnalysisId={
+                                    analysisTreeManager.setActiveRootAnalysisId
+                                  }
+                                  setActiveAnalysisId={
+                                    analysisTreeManager.setActiveAnalysisId
+                                  }
+                                  setAddToDashboardSelection={
+                                    setAddToDashboardSelection
+                                  }
+                                  onClick={() => {
+                                    if (autoScroll) {
+                                      scrollTo(tree.analysisId);
+                                    }
+
+                                    if (window.innerWidth < breakpoints.lg)
+                                      setSidebarOpen(false);
+                                  }}
+                                  extraClasses={twMerge(
+                                    // activeAnalysisId === null ? "" : "",
+                                    tree.isRoot ? "" : "ml-4 border-l-2"
+                                  )}
+                                />
+                              );
+                            })}
+                          </div>
                         );
                       })}
                     </div>
