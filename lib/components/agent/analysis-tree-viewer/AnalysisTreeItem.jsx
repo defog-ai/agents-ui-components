@@ -22,7 +22,7 @@ export function AnalysisTreeItem({
         "flex flex-row items-center py-1 px-2 mb-2 hover:cursor-pointer hover:bg-gray-200 history-item",
         isActive ? "font-bold bg-gray-200 " : "",
         isDummy
-          ? "dummy-analysis mb-3 border-l-4 bg-gray-100 border-l-blue-500 text-blue-500 p-2"
+          ? "dummy-analysis border-l-4 bg-gray-100 border-l-blue-500 text-blue-500 p-2 m-0"
           : analysis.analysisId,
         extraClasses
       )}

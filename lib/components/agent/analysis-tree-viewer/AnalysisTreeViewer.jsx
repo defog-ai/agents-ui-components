@@ -213,7 +213,7 @@ export function AnalysisTreeViewer({
               openClassNames={"border-gray-300 shadow-md"}
               closedClassNames={"border-transparent bg-transparent shadow-none"}
               contentClassNames={
-                "w-72 px-4 mt-5 pb-4 rounded-tl-lg relative sm:block min-h-96 h-full overflow-y-auto "
+                "w-72 p-4 rounded-tl-lg relative sm:block min-h-96 h-full"
               }
             >
               <div className="relative flex flex-col text-sm history-list">
@@ -224,18 +224,20 @@ export function AnalysisTreeViewer({
                   }
                 />
                 {!activeRootAnalysisId ? (
-                  <AnalysisTreeItem
-                    isDummy={true}
-                    setActiveRootAnalysisId={
-                      analysisTreeManager.setActiveRootAnalysisId
-                    }
-                    setActiveAnalysisId={
-                      analysisTreeManager.setActiveAnalysisId
-                    }
-                    isActive={!activeRootAnalysisId}
-                  />
+                  <div className="py-3 ">
+                    <AnalysisTreeItem
+                      isDummy={true}
+                      setActiveRootAnalysisId={
+                        analysisTreeManager.setActiveRootAnalysisId
+                      }
+                      setActiveAnalysisId={
+                        analysisTreeManager.setActiveAnalysisId
+                      }
+                      isActive={!activeRootAnalysisId}
+                    />
+                  </div>
                 ) : (
-                  <div className="sticky w-full top-0 mb-3 bg-gray-200">
+                  <div className="sticky w-full top-0 py-3 bg-gray-100">
                     <div
                       data-enabled={!loading}
                       className={twMerge(

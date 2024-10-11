@@ -12,7 +12,7 @@ First, do:
 
 ```
 npm i
-npm run storybook
+npm run dev
 ```
 
 Now, create a `.env` file in your root directory with the following content, where `HASHED_PASSWORD` and `API_ENDPOINT` are replaced by actual values.
@@ -22,7 +22,7 @@ VITE_TOKEN="HASHED_PASSWORD?"
 VITE_API_ENDPOINT="API_ENDPOINT"
 ```
 
-To quickly see what the different form of our agents look like, run `npm run storybook`.
+Open `http://localhost:5173` in your browser, and select one of the components to see it in action.
 
 Now open `http://localhost:6006/` in your browser (if it doesn't open automatically).
 
