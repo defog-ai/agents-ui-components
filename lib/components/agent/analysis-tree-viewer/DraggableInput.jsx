@@ -18,6 +18,7 @@ export function DraggableInput({
   setSqlOnly,
   sqlOnly,
   question,
+  onNewConversationTextClick = () => {},
 }) {
   const searchCtr = useRef(null);
   const searchRef = useRef(null);
@@ -192,9 +193,11 @@ export function DraggableInput({
           </div>
         </div>
       </div>
-      <div className="w-full text-xs p-1 px-2 pt-0 text-gray-400">
-        Tip: If you prefer to start a new conversation, click the "Start new
-        thread" button in the sidebar.
+      <div
+        className="w-full text-xs p-1 px-2 pt-0 text-gray-400 hover:underline underline-offset-2 group hover:decoration-blue-500 cursor-pointer hover:text-blue-500"
+        onClick={onNewConversationTextClick}
+      >
+        Or click here to start a new conversation instead
       </div>
     </div>
   );

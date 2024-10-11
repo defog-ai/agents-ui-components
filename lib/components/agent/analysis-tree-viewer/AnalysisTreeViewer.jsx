@@ -110,9 +110,19 @@ export function AnalysisTreeViewer({
         }
       });
 
+      // sort within each group
+      Object.keys(grouped).forEach((key) => {
+        grouped[key].sort((a, b) => {
+          return (
+            (analysisTree?.[b]?.root?.timestamp || 0) -
+            (analysisTree?.[a]?.root?.timestamp || 0)
+          );
+        });
+      });
+
       return grouped;
     } catch (e) {
-      console.warn("Error in sorting keys");
+      console.warn("Error in sorting keys. Returning as is.");
       return {
         Earlier: Object.keys(analysisTree),
       };
@@ -522,6 +532,15 @@ export function AnalysisTreeViewer({
                 setSqlOnly={setSqlOnly}
                 sqlOnly={sqlOnly}
                 question={currentQuestion}
+                onNewConversationTextClick={() => {
+                  if (loading) return;
+                  // start a new root analysis
+                  analysisTreeManager.setActiveRootAnalysisId(null);
+                  analysisTreeManager.setActiveAnalysisId(null);
+
+                  // on ipad/phone, close sidebar when new button is clicked
+                  if (window.innerWidth < breakpoints.lg) setSidebarOpen(false);
+                }}
               />
             </div>
           </div>
