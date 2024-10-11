@@ -65,7 +65,7 @@ export function AnalysisTreeViewer({
   );
 
   // reverse chronological sorted tree
-  // grouped into today, yesterday, previous 7 days and then months
+  // grouped into today, yesterday, previous week, past month, and then earlier
   // based on the timestamp property of root analysis
   const analysisIdsGrouped = useMemo(() => {
     try {
