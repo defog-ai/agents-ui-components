@@ -14,11 +14,6 @@ export const FILE_TYPES = {
  * await selectApiKeyName(page);
  */
 export async function selectApiKeyName(page: Page) {
-  await page.waitForResponse(
-    (response) => response.url().includes("/get_api_key_names"),
-    { timeout: 10000 }
-  );
-
   // either we see the dropdown, or we have a selector with data-db-selected-db=true
   const selectedDb = page.locator("[data-selected-db=true]");
   const dropdown = page.getByPlaceholder("Select an option");
@@ -365,22 +360,14 @@ export async function visitPage(
     timeout = 10000,
   } = options;
 
-  try {
-    if (waitForRequest) {
-      await Promise.all([
-        page.waitForResponse(
-          (response) => response.url().includes(waitForRequest),
-          { timeout }
-        ),
-        page.goto(url),
-      ]);
-    } else {
-      await page.goto(url);
-    }
+  await page.goto(url);
 
-    await selectApiKeyName(page);
-  } catch (error) {
-    console.error(`Failed to visit page ${url}:`, error);
-    throw error;
+  if (waitForRequest !== null) {
+    await page.waitForResponse(
+      (response) => response.url().includes(waitForRequest),
+      { timeout }
+    );
   }
+
+  await selectApiKeyName(page);
 }
