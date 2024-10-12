@@ -5,10 +5,14 @@ import {
   askQuestionUsingSearchBar,
   fullyTestSQLOnlyQuestionForNonTempDb,
   clickFollowOnQuestion,
+  visitPage,
 } from "../utils";
 
 test("can select api key name", async ({ page }) => {
-  await page.goto("http://localhost:5173/test/agent-embed/");
+  await visitPage(page, {
+    url: "http://localhost:5173/test/agent-embed/",
+    waitForRequest: "/get_api_key_names",
+  });
 
   await selectApiKeyName(page);
 });
@@ -16,7 +20,10 @@ test("can select api key name", async ({ page }) => {
 test("can ask one sql-only question, then follow-on question", async ({
   page,
 }) => {
-  await page.goto("http://localhost:5173/test/agent-embed/");
+  await visitPage(page, {
+    url: "http://localhost:5173/test/agent-embed/",
+    waitForRequest: "/get_api_key_names",
+  });
 
   await selectApiKeyName(page);
 
@@ -37,7 +44,10 @@ test("can ask one sql-only question, then follow-on question", async ({
 test("check history management. can store history in local storage, and can clear it. sql-only. asks follow-on question", async ({
   page,
 }) => {
-  await page.goto("http://localhost:5173/test/agent-embed/");
+  await visitPage(page, {
+    url: "http://localhost:5173/test/agent-embed/",
+    waitForRequest: "/get_api_key_names",
+  });
 
   await selectApiKeyName(page);
 
@@ -97,7 +107,10 @@ test("check history management. can store history in local storage, and can clea
 test("can ask one advanced question with send email usage", async ({
   page,
 }) => {
-  await page.goto("http://localhost:5173/test/agent-embed/");
+  await visitPage(page, {
+    url: "http://localhost:5173/test/agent-embed/",
+    waitForRequest: "/get_api_key_names",
+  });
 
   await selectApiKeyName(page);
 

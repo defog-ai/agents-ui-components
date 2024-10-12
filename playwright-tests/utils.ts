@@ -14,6 +14,11 @@ export const FILE_TYPES = {
  * await selectApiKeyName(page);
  */
 export async function selectApiKeyName(page: Page) {
+  await page.waitForResponse(
+    (response) => response.url().includes("/get_api_key_names"),
+    { timeout: 10000 }
+  );
+
   // either we see the dropdown, or we have a selector with data-db-selected-db=true
   const selectedDb = page.locator("[data-selected-db=true]");
   const dropdown = page.getByPlaceholder("Select an option");
@@ -332,4 +337,50 @@ export async function uploadFileOnNullTab(
   await page.dispatchEvent("div[data-testid='file-drop']", "drop", {
     dataTransfer,
   });
+}
+
+/**
+ * Navigates to a specified URL and optionally waits for a specific request to complete.
+ * After navigation, it selects an API key name.
+ *
+ * @param page - Playwright Page object
+ * @param options - Configuration options for the page visit
+ * @param options.url - The URL to navigate to (default: "http://localhost:5173/test/agent-embed/")
+ * @param options.waitForRequest - The request to wait for (default: "/get_api_key_names")
+ * @param options.timeout - Timeout in milliseconds for waiting for the response (default: 10000)
+ * @returns Promise<void>
+ * @throws Will throw an error if navigation fails or if the response wait times out
+ */
+export async function visitPage(
+  page: Page,
+  options: {
+    url?: string;
+    waitForRequest?: string | null;
+    timeout?: number;
+  } = {}
+): Promise<void> {
+  const {
+    url = "http://localhost:5173/test/agent-embed/",
+    waitForRequest = "/get_api_key_names",
+    timeout = 10000,
+  } = options;
+
+  try {
+    if (waitForRequest) {
+      await Promise.all([
+        page.waitForResponse(
+          (response) => response.url().includes(waitForRequest),
+          { timeout }
+        ),
+        page.goto(url),
+      ]);
+    } else {
+      await page.goto(url);
+    }
+
+    await selectApiKeyName(page);
+  } catch (error) {
+    console.error(`Failed to visit page ${url}:`, error);
+    throw error;
+  }
 }
