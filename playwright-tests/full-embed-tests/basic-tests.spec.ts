@@ -72,6 +72,11 @@ test("check history management. can store history in local storage, and can clea
 
   await page.reload();
 
+  await page.waitForResponse(
+    (response) => response.url().includes("/get_api_key_names"),
+    { timeout: 10000 }
+  );
+
   await selectApiKeyName(page);
 
   // find items inside .sidebar which match the question and selectedFollowOnQuestion
