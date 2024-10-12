@@ -8,6 +8,8 @@ import {
   visitPage,
 } from "../utils";
 
+const testEmail = process.env.VITE_TEST_EMAIL_ID || "thedivtagguy@gmail.com";
+
 test("can select api key name", async ({ page }) => {
   await visitPage(page, {
     url: "http://localhost:5173/test/agent-embed/",
@@ -118,7 +120,7 @@ test("can ask one advanced question with send email usage", async ({
 
   await askQuestionUsingSearchBar(
     page,
-    "show me 5 rows and send an email to manas@defog.ai"
+    `show me 5 rows and send an email to ${testEmail}`
   );
 
   // we will either get a clarifier that says "Click here or press enter to"
