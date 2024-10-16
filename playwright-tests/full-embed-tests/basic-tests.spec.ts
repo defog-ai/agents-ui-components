@@ -8,7 +8,7 @@ import {
   visitPage,
 } from "../utils";
 
-const testEmail = process.env.VITE_TEST_EMAIL_ID || "rishab@defog.ai";
+const testEmail = process.env.VITE_TEST_EMAIL_ID;
 
 test("can select api key name", async ({ page }) => {
   await visitPage(page, {
