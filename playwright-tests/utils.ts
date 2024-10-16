@@ -336,7 +336,6 @@ export async function uploadFileOnNullTab(
 
 /**
  * Navigates to a specified URL and optionally waits for a specific request to complete.
- * After navigation, it selects an API key name.
  *
  * @param page - Playwright Page object
  * @param options - Configuration options for the page visit
@@ -368,6 +367,4 @@ export async function visitPage(
       { timeout }
     );
   }
-
-  await selectApiKeyName(page);
 }
