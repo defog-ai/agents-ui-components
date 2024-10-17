@@ -315,7 +315,7 @@ export function AnalysisTreeViewer({
 
                   return (
                     <div key={groupName}>
-                      <h3 className="text-xs font-bold text-gray-400 mt-4 mb-2">
+                      <h3 className="text-lg font-bold text-gray-400 mt-4 mb-2">
                         {groupName}
                       </h3>
                       {analysesInGroup.map((rootAnalysisId, i) => {
