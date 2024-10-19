@@ -1,0 +1,13 @@
+Date,Value,Category
+2023-01-01,abc,A
+invalid_date,123,B
+2023-02-01,def,C
+2023-03-01,-50,A
+not_a_date,ghi,B
+2023-05-01,456.7,C
+2023-06-01,true,A
+2023-07-01,,B
+,789,C
+2023-09-01,null,A
+2023-10-01,Infinity,B
+2023-11-01,NaN,C
