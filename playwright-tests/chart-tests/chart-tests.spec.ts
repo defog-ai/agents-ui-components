@@ -14,51 +14,6 @@ import { readFileSync } from "fs";
 import { resolve } from "path";
 
 test.describe("Observable Charts", () => {
-  test.beforeEach(async ({ page }) => {
-    await visitPage(page, {
-      url: "http://localhost:5173/test/agent-embed/",
-      waitForRequest: "/get_api_key_names",
-    });
-    await selectApiKeyName(page);
-    await askQuestionUsingSearchBar(
-      page,
-      "show me 10 rows with first 3 columns from the data"
-    );
-    await page.getByText("Chart").click();
-  });
-
-  test("should render default chart", async ({ page }) => {
-    await expect(
-      page.locator("svg").filter({ hasText: " --plot" })
-    ).toBeVisible();
-  });
-
-  test("should change chart type", async ({ page }) => {
-    // Test changing chart type
-    await page.getByText("Line").click();
-    await expect(
-      page.locator("svg").filter({ hasText: " --plot" })
-    ).toBeVisible();
-
-    await page.getByText("Bar").click();
-    await expect(
-      page.locator("svg").filter({ hasText: " --plot" })
-    ).toBeVisible();
-  });
-
-  test("should select axes", async ({ page }) => {
-    // Test selecting x and y axes
-    await page.locator(".x-axis-selector").click();
-    await page.getByText("Select column for x-axis").click();
-
-    await page.locator(".y-axis-selector").click();
-    await page.getByText("Select column for y-axis").click();
-
-    await expect(
-      page.locator("svg").filter({ hasText: " --plot" })
-    ).toBeVisible();
-  });
-
   test("should change date format", async ({ page }) => {
     const csvFileName = "cash_flows.csv";
     const tableName = csvFileName.split(".")[0];
@@ -209,6 +164,63 @@ test.describe("Observable Charts", () => {
     expect(
       newExpectedTicks.every((tick) => newTicksOnScreen.indexOf(tick) >= 0)
     ).toBe(true);
+  });
+
+  test.beforeEach(async ({ page }) => {
+    await visitPage(page, {
+      url: "http://localhost:5173/test/agent-embed/",
+      waitForRequest: "/get_api_key_names",
+    });
+    await selectApiKeyName(page);
+    await askQuestionUsingSearchBar(
+      page,
+      "show me 10 rows with first 3 columns from the data"
+    );
+    await page.getByText("Chart").click();
+  });
+
+  test("should render default chart", async ({ page }) => {
+    await expect(
+      page.locator("svg").filter({ hasText: " --plot" })
+    ).toBeVisible();
+  });
+
+  test("should change chart type", async ({ page }) => {
+    // Test changing chart type
+    await page.getByText("Line").click();
+    await expect(
+      page.locator("svg").filter({ hasText: " --plot" })
+    ).toBeVisible();
+
+    await page.getByText("Bar").click();
+    await expect(
+      page.locator("svg").filter({ hasText: " --plot" })
+    ).toBeVisible();
+  });
+
+  test("should select axes", async ({ page }) => {
+    await page.getByLabel("close-circle").locator("svg").click();
+
+    // Click the dropdown to open it
+    await page.locator("#rc_select_0").click();
+
+    await page.waitForSelector(".ant-select-item-option", {
+      state: "visible",
+      timeout: 5000,
+    });
+
+    // Get all the visible options
+    const options = await page.locator(".ant-select-item-option").all();
+    // Choose a random option
+    const randomIndex = Math.floor(Math.random() * options.length);
+    await options[randomIndex].click();
+
+    // Wait for the chart to update
+    await page.waitForTimeout(1000);
+
+    await expect(
+      page.locator("svg").filter({ hasText: " --plot" })
+    ).toBeVisible();
   });
 
   test("should handle faulty data and empty axis", async ({ page }) => {
