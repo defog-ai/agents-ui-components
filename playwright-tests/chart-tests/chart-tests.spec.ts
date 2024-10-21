@@ -14,10 +14,25 @@ import { readFileSync } from "fs";
 import { resolve } from "path";
 
 test.describe("Observable Charts", () => {
+  // go to page and ask question before each test case
+  test.beforeEach(async ({ page }) => {
+    await visitPage(page, {
+      url: "http://localhost:5173/test/agent-embed/",
+      waitForRequest: "/get_api_key_names",
+    });
+    await selectApiKeyName(page);
+    await askQuestionUsingSearchBar(
+      page,
+      "show me 10 rows with first 3 columns from the data"
+    );
+    await page.getByText("Chart").click();
+  });
+
   test("should change date format", async ({ page }) => {
     const csvFileName = "cash_flows.csv";
     const tableName = csvFileName.split(".")[0];
 
+    // note that we are testing with a csv here. so need to negate the beforeEach hook above
     await page.goto("http://localhost:5173/test/agent-embed/");
 
     const csvBuffer = readFileSync(
@@ -160,19 +175,6 @@ test.describe("Observable Charts", () => {
     expect(
       newExpectedTicks.every((tick) => newTicksOnScreen.indexOf(tick) >= 0)
     ).toBe(true);
-  });
-
-  test.beforeEach(async ({ page }) => {
-    await visitPage(page, {
-      url: "http://localhost:5173/test/agent-embed/",
-      waitForRequest: "/get_api_key_names",
-    });
-    await selectApiKeyName(page);
-    await askQuestionUsingSearchBar(
-      page,
-      "show me 10 rows with first 3 columns from the data"
-    );
-    await page.getByText("Chart").click();
   });
 
   test("should render default chart", async ({ page }) => {
