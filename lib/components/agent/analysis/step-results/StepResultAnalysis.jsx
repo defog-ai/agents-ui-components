@@ -80,6 +80,8 @@ export default function StepResultAnalysis({
         }
       }
 
+      newAnalysis = newAnalysis.trim();
+
       // if newAnalysis ends with .., remove the last one
       if (newAnalysis.endsWith("..")) {
         newAnalysis = newAnalysis.slice(0, -1);
@@ -131,6 +133,7 @@ export default function StepResultAnalysis({
     generateFollowOnQuestions();
   }, [data_csv, question]);
 
+  console.log(toolRunAnalysis);
   return (
     <div
       style={{ whiteSpace: "pre-wrap" }}
