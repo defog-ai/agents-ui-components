@@ -1,12 +1,14 @@
-import { useEffect, useState } from "react";
+"use client";
+import { Suspense, useEffect, useState } from "react";
 import setupBaseUrl from "../../../utils/setupBaseUrl";
 import { SpinningLoader } from "@ui-components";
 import {
   addStepAnalysisToLocalStorage,
   getStepAnalysisFromLocalStorage,
 } from "../../../utils/utils";
-import Markdown from "react-markdown";
 import ErrorBoundary from "../../../common/ErrorBoundary";
+import { lazy } from "react";
+const Markdown = lazy(() => import("react-markdown"));
 
 export default function StepResultAnalysis({
   stepId,
@@ -18,6 +20,7 @@ export default function StepResultAnalysis({
   setCurrentQuestion = (...args) => {},
 }) {
   const [toolRunAnalysis, setToolRunAnalysis] = useState("");
+
   const [loading, setLoading] = useState(false);
   const [followOnQuestions, setFollowOnQuestions] = useState([]);
 
@@ -143,9 +146,15 @@ export default function StepResultAnalysis({
         </>
       ) : (
         <>
-          <ErrorBoundary>
-            <Markdown className="analysis-markdown">{toolRunAnalysis}</Markdown>
-          </ErrorBoundary>
+          {toolRunAnalysis ? (
+            <ErrorBoundary customErrorMessage={toolRunAnalysis}>
+              <Suspense fallback={<SpinningLoader />}>
+                <Markdown className="analysis-markdown">
+                  {toolRunAnalysis}
+                </Markdown>
+              </Suspense>
+            </ErrorBoundary>
+          ) : null}
 
           {/* show buttons for follow on questions */}
           <div className="flex flex-row gap-4">
