@@ -5,6 +5,8 @@ import {
   addStepAnalysisToLocalStorage,
   getStepAnalysisFromLocalStorage,
 } from "../../../utils/utils";
+import Markdown from "react-markdown";
+import ErrorBoundary from "../../../common/ErrorBoundary";
 
 export default function StepResultAnalysis({
   stepId,
@@ -141,7 +143,9 @@ export default function StepResultAnalysis({
         </>
       ) : (
         <>
-          <p className="">{toolRunAnalysis}</p>
+          <ErrorBoundary errorInfo="Error displaying analysis">
+            <Markdown className="analysis-markdown">{toolRunAnalysis}</Markdown>
+          </ErrorBoundary>
 
           {/* show buttons for follow on questions */}
           <div className="flex flex-row gap-4">
