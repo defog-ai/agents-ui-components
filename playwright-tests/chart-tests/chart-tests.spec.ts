@@ -69,42 +69,38 @@ test.describe("Observable Charts", () => {
     // but only if they're not selected already
     let isSelected =
       (await page
-        .locator(".ant-select-selection-item", { hasText: "cash_inflow" })
+        .locator(".ant-select-selection-item", { hasText: "inflow" })
         .count()) > 0;
 
     if (!isSelected) {
-      await page
-        .locator(".ant-select-item", { hasText: "cash_inflow" })
-        .click();
+      await page.locator(".ant-select-item", { hasText: "inflow" }).click();
     }
 
     isSelected =
       (await page
-        .locator(".ant-select-selection-item", { hasText: "cash_outflow" })
+        .locator(".ant-select-selection-item", { hasText: "outflow" })
         .count()) > 0;
 
     if (!isSelected) {
-      await page
-        .locator(".ant-select-item", { hasText: "cash_outflow" })
-        .click();
+      await page.locator(".ant-select-item", { hasText: "outflow" }).click();
     }
 
     // make sure they're selected
     expect(
       await page.locator(".ant-select-selection-item", {
-        hasText: "cash_inflow",
+        hasText: "inflow",
       })
     ).toHaveCount(1);
 
     expect(
       await page.locator(".ant-select-selection-item", {
-        hasText: "cash_outflow",
+        hasText: "outflow",
       })
     ).toHaveCount(1);
 
     await page.waitForTimeout(5000);
 
-    // now we shuold expect both cash_inflow and cash_outflow to be selected
+    // now we shuold expect both inflow and outflow to be selected
 
     // now we can check the actual chart
     // look for all the fx-axis (we facet in a bar chart) ticks to contain the following entries:
