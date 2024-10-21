@@ -133,7 +133,6 @@ export default function StepResultAnalysis({
     generateFollowOnQuestions();
   }, [data_csv, question]);
 
-  console.log(toolRunAnalysis);
   return (
     <div
       style={{ whiteSpace: "pre-wrap" }}
