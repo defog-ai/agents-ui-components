@@ -358,13 +358,15 @@ export async function visitPage(
     waitForRequest = "/get_api_key_names",
     timeout = 10000,
   } = options;
-
-  await page.goto(url);
+  let responsePromise = null;
 
   if (waitForRequest !== null) {
-    await page.waitForResponse(
+    responsePromise = page.waitForResponse(
       (response) => response.url().includes(waitForRequest),
       { timeout }
     );
   }
+
+  await page.goto(url);
+  await responsePromise;
 }
