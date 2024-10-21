@@ -1,5 +1,5 @@
 "use client";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useState, lazy } from "react";
 import setupBaseUrl from "../../../utils/setupBaseUrl";
 import { SpinningLoader } from "@ui-components";
 import {
@@ -7,7 +7,6 @@ import {
   getStepAnalysisFromLocalStorage,
 } from "../../../utils/utils";
 import ErrorBoundary from "../../../common/ErrorBoundary";
-import { lazy } from "react";
 const Markdown = lazy(() => import("react-markdown"));
 
 export default function StepResultAnalysis({
