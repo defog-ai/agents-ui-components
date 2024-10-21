@@ -143,7 +143,7 @@ export default function StepResultAnalysis({
         </>
       ) : (
         <>
-          <ErrorBoundary errorInfo="Error displaying analysis">
+          <ErrorBoundary>
             <Markdown className="analysis-markdown">{toolRunAnalysis}</Markdown>
           </ErrorBoundary>
 
