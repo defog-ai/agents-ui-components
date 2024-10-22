@@ -10,12 +10,12 @@
 
 .analysis-markdown {
   ol {
-    vertical-align: top !important;
+    vertical-align: super !important;
     @apply list-decimal list-outside pl-6 inline-block leading-[0] !important;
   }
 
   ul {
-    vertical-align: top !important;
+    vertical-align: super !important;
     @apply list-disc list-outside pl-6 inline-block leading-[0] !important;
   }
 
