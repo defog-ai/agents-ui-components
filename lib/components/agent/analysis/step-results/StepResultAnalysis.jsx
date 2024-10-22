@@ -1,13 +1,14 @@
 "use client";
-import { Suspense, useEffect, useState, lazy } from "react";
+import { useEffect, useState } from "react";
 import setupBaseUrl from "../../../utils/setupBaseUrl";
-import { SpinningLoader } from "@ui-components";
+import { SpinningLoader, Tabs } from "@ui-components";
 import {
   addStepAnalysisToLocalStorage,
   getStepAnalysisFromLocalStorage,
 } from "../../../utils/utils";
 import ErrorBoundary from "../../../common/ErrorBoundary";
-const Markdown = lazy(() => import("react-markdown"));
+import { marked } from "marked";
+import sanitizeHtml from "sanitize-html";
 
 export default function StepResultAnalysis({
   stepId,
@@ -66,28 +67,7 @@ export default function StepResultAnalysis({
         addStepAnalysisToLocalStorage(stepId, analysis);
       }
 
-      // analysis is currently a giant blob of text that has full stops in the middle of sentences. It is not very readable. we should split into paragraphs
-      // we can split by full stops, but we need to be careful about full stops that are part of numbers, e.g. 1.1
-
-      const paragraphs = analysis.split(". ");
-      let newAnalysis = "";
-      let currentParagraph = "";
-      for (let i = 0; i < paragraphs.length; i++) {
-        currentParagraph += paragraphs[i] + ". ";
-        if (currentParagraph.length > 100) {
-          newAnalysis += currentParagraph + "\n\n";
-          currentParagraph = "";
-        }
-      }
-
-      newAnalysis = newAnalysis.trim();
-
-      // if newAnalysis ends with .., remove the last one
-      if (newAnalysis.endsWith("..")) {
-        newAnalysis = newAnalysis.slice(0, -1);
-      }
-
-      setToolRunAnalysis(newAnalysis);
+      setToolRunAnalysis(analysis);
     } catch (error) {
       console.error(error);
     } finally {
@@ -136,11 +116,11 @@ export default function StepResultAnalysis({
   return (
     <div
       style={{ whiteSpace: "pre-wrap" }}
-      className="bg-gray-100 rounded my-3 text-sm text-gray-600 p-4"
+      className="my-3 text-sm text-gray-600"
     >
       {loading === true ? (
         <>
-          <p className="small code p-2">
+          <p className="small code p-4 bg-gray-100">
             <SpinningLoader />
             Loading Analysis
           </p>
@@ -149,32 +129,54 @@ export default function StepResultAnalysis({
         <>
           {toolRunAnalysis ? (
             <ErrorBoundary customErrorMessage={toolRunAnalysis}>
-              <Suspense fallback={<SpinningLoader />}>
-                <Markdown className="analysis-markdown">
-                  {toolRunAnalysis}
-                </Markdown>
-              </Suspense>
+              <Tabs
+                size="small"
+                defaultSelected="Formatted"
+                tabs={[
+                  {
+                    name: "Formatted",
+                    content: (
+                      <div
+                        className="p-4 pb-0 bg-gray-100 text-sm text-gray-600 analysis-markdown "
+                        dangerouslySetInnerHTML={{
+                          __html: sanitizeHtml(marked(toolRunAnalysis)),
+                        }}
+                      />
+                    ),
+                  },
+                  {
+                    name: "Raw",
+                    content: (
+                      <div className="p-4 bg-gray-100 text-sm text-gray-600">
+                        {toolRunAnalysis}
+                      </div>
+                    ),
+                  },
+                ]}
+              />
             </ErrorBoundary>
           ) : null}
 
           {/* show buttons for follow on questions */}
-          <div className="flex flex-row gap-4">
-            {followOnQuestions.map((followOnQuestion, index) => (
-              <button
-                key={index}
-                data-testid="follow-on-question"
-                className="cursor-pointer text-sm p-2 m-1 border border-gray-200 rounded-md shadow-sm hover:bg-gray-50 hover:border"
-                onClick={() => {
-                  console.log(
-                    "clicked on follow on question",
-                    followOnQuestion
-                  );
-                  setCurrentQuestion(followOnQuestion);
-                }}
-              >
-                {followOnQuestion}
-              </button>
-            ))}
+          <div className=" bg-gray-100 p-4">
+            <div className="max-w-[600px] m-auto flex flex-row gap-4">
+              {followOnQuestions.map((followOnQuestion, index) => (
+                <button
+                  key={index}
+                  data-testid="follow-on-question"
+                  className="cursor-pointer text-sm p-2 m-1 border border-gray-200 rounded-md shadow-sm hover:bg-gray-50 "
+                  onClick={() => {
+                    console.log(
+                      "clicked on follow on question",
+                      followOnQuestion
+                    );
+                    setCurrentQuestion(followOnQuestion);
+                  }}
+                >
+                  {followOnQuestion}
+                </button>
+              ))}
+            </div>
           </div>
         </>
       )}
