@@ -8,6 +8,30 @@
 @import "./view-notebooks.scss";
 @import "./writer.scss";
 
-.analysis-markdown > * {
-  all: revert;
+.analysis-markdown {
+  ol {
+    @apply list-decimal list-outside pl-6 inline-block leading-[0] !important;
+  }
+
+  ul {
+    @apply list-disc list-outside pl-6 inline-block leading-[0] !important;
+  }
+
+  li {
+    @apply leading-[1.25] !important;
+  }
+
+  h1 {
+    font-size: 1.25rem !important;
+    margin: 0 !important;
+  }
+
+  h2 {
+    font-size: 1.125rem !important;
+    margin: 0 !important;
+  }
+
+  p {
+    margin: 0 !important;
+  }
 }
