@@ -26,7 +26,29 @@ export default function ObservablePlot() {
 
   const chartState = useContext(ChartStateContext);
 
+  const updateDimensions = useCallback(() => {
+    if (containerRef.current) {
+      const { width, height } = containerRef.current.getBoundingClientRect();
+      setDimensions((prev) =>
+        width !== prev.width || height !== prev.height
+          ? { width, height }
+          : prev
+      );
+    }
+  }, []);
+
+  useEffect(() => {
+    const resizeObserver = new ResizeObserver(updateDimensions);
+    if (containerRef.current) resizeObserver.observe(containerRef.current);
+    updateDimensions();
+    return () => resizeObserver.disconnect();
+  }, [updateDimensions]);
+
   const observableOptions = useMemo(() => {
+    const start = performance.now();
+
+    let generatedOptions;
+
     const {
       selectedChart,
       selectedColumns,
@@ -57,16 +79,28 @@ export default function ObservablePlot() {
 
     let processedData = data;
 
+    console.groupCollapsed("Chart timings");
+    const startDataProcessing = performance.now();
     // Process dates if necessary
     if (xColumn?.isDate && dateToUnix) {
-      processedData = data.map((item) => ({
-        ...item,
-        [selectedColumns.x]:
-          dateToUnix(item[selectedColumns.x]) || item[selectedColumns.x],
-      }));
+      processedData = [];
+
+      for (let i = 0; i < data.length; i++) {
+        // we already have unix dates pre-calculated and stored for every row. (look inside agentUitls.js in the reFormatData function)
+        const item = data[i];
+        processedData.push({
+          ...item,
+          [selectedColumns.x]: item.unixDateValues[selectedColumns.x],
+        });
+      }
     }
 
+    console.log(
+      `data processed in: ${performance.now() - startDataProcessing}ms. Processed ${data.length} items.`
+    );
+
     if (selectedChart === "bar" || selectedChart === "line") {
+      const startDataConversiontoLong = performance.now();
       try {
         processedData = convertWideToLong(
           processedData,
@@ -76,10 +110,15 @@ export default function ObservablePlot() {
       } catch (e) {
         console.error("Error converting wide to long format", e);
       }
+      console.log(
+        `data converted to long in: ${performance.now() - startDataConversiontoLong}ms`
+      );
     }
 
+    const startCreatingOptions = performance.now();
+
     if (selectedChart !== "bar" && selectedChart !== "line") {
-      return getObservableOptions(
+      generatedOptions = getObservableOptions(
         dimensions,
         {
           ...defaultOptions,
@@ -96,7 +135,7 @@ export default function ObservablePlot() {
         processedData
       );
     } else if (selectedChart === "bar") {
-      return getObservableOptions(
+      generatedOptions = getObservableOptions(
         dimensions,
         {
           ...defaultOptions,
@@ -115,7 +154,7 @@ export default function ObservablePlot() {
         processedData
       );
     } else if (selectedChart == "line") {
-      return getObservableOptions(
+      generatedOptions = getObservableOptions(
         dimensions,
         {
           ...defaultOptions,
@@ -135,30 +174,14 @@ export default function ObservablePlot() {
         processedData
       );
     }
-  }, [dimensions, chartState]);
-
-  const updateDimensions = useCallback(() => {
-    if (containerRef.current) {
-      const { width, height } = containerRef.current.getBoundingClientRect();
-      setDimensions((prev) =>
-        width !== prev.width || height !== prev.height
-          ? { width, height }
-          : prev
-      );
-    }
-  }, []);
-
-  useEffect(() => {
-    const resizeObserver = new ResizeObserver(updateDimensions);
-    if (containerRef.current) resizeObserver.observe(containerRef.current);
-    updateDimensions();
-    return () => resizeObserver.disconnect();
-  }, [updateDimensions]);
-
-  useEffect(() => {
+    console.log(
+      `created options in: ${performance.now() - startCreatingOptions}ms`
+    );
     if (!containerRef.current) return;
 
-    if (observableOptions) {
+    const startGeneratingChart = performance.now();
+
+    if (generatedOptions) {
       containerRef.current.innerHTML = "";
       // always reset the padding or it messes with boundclient calculation below
       containerRef.current.style.padding = "0 0 0 0";
@@ -193,9 +216,9 @@ export default function ObservablePlot() {
         });
         containerRef.current.appendChild(
           Plot.plot({
-            ...observableOptions,
+            ...generatedOptions,
             color: {
-              ...observableOptions.color,
+              ...generatedOptions.color,
               // override the scheme
               scheme: undefined,
               domain: colorDomain,
@@ -251,9 +274,9 @@ export default function ObservablePlot() {
         // if chart is not a bar chart
         containerRef.current.appendChild(
           Plot.plot({
-            ...observableOptions,
+            ...generatedOptions,
             color: {
-              ...observableOptions.color,
+              ...generatedOptions.color,
               // override the scheme
               scheme: undefined,
               domain: colorDomain,
@@ -265,10 +288,16 @@ export default function ObservablePlot() {
         // if chart is not a bar chart
         containerRef.current.appendChild(
           Plot.plot({
-            ...observableOptions,
+            ...generatedOptions,
           })
         );
       }
+
+      console.log(
+        `created chart in: ${performance.now() - startGeneratingChart}ms`
+      );
+
+      const shiftLabelsStart = performance.now();
 
       /**
        * Now that we have added rotation to the ticks, some of them might overflow the bottom of the svg and get cut off if they are too long.
@@ -374,11 +403,21 @@ export default function ObservablePlot() {
       if (chart) {
         chart.style.padding = `0 0 ${paddingBottom}px ${paddingLeft}px`;
       }
+
+      console.log(
+        `shifted labels in: ${performance.now() - shiftLabelsStart}ms`
+      );
     } else {
       containerRef.current.innerHTML =
         "<div class='flex items-center justify-center h-full w-full'>Please select X and Y axes to display the chart.</div>";
     }
-  }, [observableOptions]);
+
+    console.log(`everything took: ${performance.now() - start}ms`);
+
+    console.groupEnd();
+
+    return generatedOptions;
+  }, [chartState, dimensions]);
 
   return (
     <div className="grow bg-white">

@@ -485,6 +485,23 @@ export const reFormatData = (data, columns) => {
         } else if (stringAsNumeric.indexOf(j) >= 0) {
           row[cols[j]] = "" + rows[i][j];
         } else row[cols[j]] = rows[i][j];
+
+        // if this is a date column, parse the date using dateToUnix returned by inferColumnType
+        // and keep for future use in charts.
+        if (newCols[j].isDate) {
+          try {
+            row.unixDateValues = {
+              ...row.unixDateValues,
+              [cols[j]]: newCols[j].dateToUnix(rows[i][j]),
+            };
+          } catch (e) {
+            // just store normal value
+            row.unixDateValues = {
+              ...row.unixDateValues,
+              [cols[j]]: rows[i][j],
+            };
+          }
+        }
       }
       newRows.push(row);
     }
