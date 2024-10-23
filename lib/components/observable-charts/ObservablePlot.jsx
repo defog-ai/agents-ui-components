@@ -203,6 +203,7 @@ export default function ObservablePlot() {
           chartState?.chartSpecificOptions?.["line"]?.lineOptions || {};
 
         let schemeIdx = -1;
+
         const colorRange = colorDomain.map((col) => {
           // if options.lineOptions[d["label"]] exists, use that
           if (lineOptions[col] && lineOptions[col].stroke) {
