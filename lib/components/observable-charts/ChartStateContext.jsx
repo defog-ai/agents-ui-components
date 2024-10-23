@@ -211,6 +211,7 @@ function deepMergeObjects(obj1, obj2) {
  * @property {string} barColor - Color of the bars
  * @property {number} barWidth - Width of the bars
  * @property {('sum'|'proportion'|'count'|'median'|'mean'|'variance')} aggregateFunction - Function to aggregate the data
+ * * @property {{[colName: string]: {fill: string}}} barOptions - Options for bar styling. Each property is a column name.
  * @property {string|null} fill - Column to determine bar color
  */
 
@@ -300,7 +301,7 @@ export const defaultChartState = {
     xTicks: 10,
     dateFormat: "%b %d, %Y",
     yTicks: 10,
-    selectedScheme: "accent",
+    selectedScheme: "Accent",
     yAxisUnitLabel: "",
   },
   chartSpecificOptions: {
@@ -321,6 +322,7 @@ export const defaultChartState = {
       barWidth: 0.8,
       aggregateFunction: "sum",
       fill: null,
+      barOptions: {},
     },
     scatter: { pointColor: "#f54242", pointSize: 3 },
     histogram: {

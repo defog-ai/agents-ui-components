@@ -9,22 +9,57 @@ import {
 
 const BarChartControls = () => {
   const chartState = useContext(ChartStateContext);
-  const { chartSpecificOptions } = chartState;
+  const { chartSpecificOptions, selectedColumns } = chartState;
 
   const handleOptionChange = (key, value) => {
     chartState.updateChartSpecificOptions({ [key]: value }).render();
   };
 
+  // Handle changes for individual bar options
+  const handleBarOptionChange = (column, key, value) => {
+    const updatedBarOptions = {
+      ...(chartSpecificOptions.bar.barOptions || {}),
+    };
+
+    updatedBarOptions[column] = {
+      ...updatedBarOptions[column],
+      [key]: value,
+    };
+
+    chartState
+      .updateChartSpecificOptions({ barOptions: updatedBarOptions })
+      .render();
+  };
+
+  // Render controls for individual bars
+  const renderIndividualBarControls = () =>
+    Array.isArray(selectedColumns.y) &&
+    selectedColumns.y.map((column) => (
+      <div key={column} className="">
+        <h4 className="mb-2 font-bold">{`${column}`}</h4>
+        <div className="mb-2">
+          <ColorPicker
+            allowClear={true}
+            value={chartSpecificOptions.bar.barOptions?.[column]?.fill || ""}
+            onChange={(color) =>
+              handleBarOptionChange(
+                column,
+                "fill",
+                color.cleared ? undefined : color.toHexString()
+              )
+            }
+          />
+        </div>
+      </div>
+    ));
+
   return (
-    <div className="flex gap-4 text-xs">
-      <div>
-        <h3 className="mb-2">Bar Color</h3>
-        <ColorPicker
-          value={chartSpecificOptions.bar.barColor}
-          onChange={(color) =>
-            handleOptionChange("barColor", color.toHexString())
-          }
-        />
+    <div className="flex gap-4 flex-col text-xs">
+      <div className="flex flex-col gap-2">
+        <span className="block mb-1">Bar color</span>
+        <div className="flex flex-row flex-wrap gap-4">
+          {renderIndividualBarControls()}
+        </div>
       </div>
       {/* Add a sort button with three states: ascending, descending, and none */}
       <div>

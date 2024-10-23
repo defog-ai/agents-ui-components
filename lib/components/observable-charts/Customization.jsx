@@ -54,6 +54,7 @@ export function Customization() {
       <div>
         <h3 className="mb-2 input-label">Background Color</h3>
         <ColorPicker
+          allowClear={true}
           value={chartStyle.backgroundColor}
           onChange={(color) =>
             handleStyleChange("backgroundColor", color.toHexString())
