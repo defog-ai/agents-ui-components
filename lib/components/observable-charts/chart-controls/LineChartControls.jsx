@@ -20,11 +20,14 @@ const LineChartControls = () => {
   };
 
   // Handle changes for individual line options
-  const handleLineOptionChange = (index, key, value) => {
-    const updatedLineOptions = [
-      ...(chartSpecificOptions.line.lineOptions || []),
-    ];
-    updatedLineOptions[index] = { ...updatedLineOptions[index], [key]: value };
+  const handleLineOptionChange = (column, key, value) => {
+    const updatedLineOptions = {
+      ...(chartSpecificOptions.line.lineOptions || {}),
+    };
+    updatedLineOptions[column] = {
+      ...updatedLineOptions[column],
+      [key]: value,
+    };
     chartState
       .updateChartSpecificOptions({ lineOptions: updatedLineOptions })
       .render();
@@ -33,7 +36,7 @@ const LineChartControls = () => {
   // Render global line chart controls
   const renderGlobalControls = () => (
     <>
-      <div className="flex gap-2">
+      {/* <div className="flex gap-2">
         <SingleSelect
           label="Curve Type"
           options={CURVE_OPTIONS}
@@ -41,17 +44,7 @@ const LineChartControls = () => {
           allowClear={false}
           value={chartSpecificOptions.line.curve || "linear"}
         />
-        <div>
-          <h3 className="mb-2 input-label">Color</h3>
-          <ColorPicker
-            size="medium"
-            value={chartSpecificOptions.line.lineColor}
-            onChange={(color) =>
-              handleGlobalOptionChange("lineColor", color.toHexString())
-            }
-          />
-        </div>
-      </div>
+      </div> */}
 
       <div>
         <h3 className="mb-2 input-label">Line Width</h3>
@@ -84,9 +77,11 @@ const LineChartControls = () => {
         <div className="mb-2">
           <span className="block mb-1">Line Color</span>
           <ColorPicker
-            value={chartSpecificOptions.line.lineOptions?.[index]?.stroke || ""}
+            value={
+              chartSpecificOptions.line.lineOptions?.[column]?.stroke || ""
+            }
             onChange={(color) =>
-              handleLineOptionChange(index, "stroke", color.toHexString())
+              handleLineOptionChange(column, "stroke", color.toHexString())
             }
           />
         </div>
@@ -96,10 +91,10 @@ const LineChartControls = () => {
             min={1}
             max={10}
             value={
-              chartSpecificOptions.line.lineOptions?.[index]?.strokeWidth || 2
+              chartSpecificOptions.line.lineOptions?.[column]?.strokeWidth || 2
             }
             onChange={(value) =>
-              handleLineOptionChange(index, "strokeWidth", value)
+              handleLineOptionChange(column, "strokeWidth", value)
             }
           />
         </div>

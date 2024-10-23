@@ -7,7 +7,11 @@ import {
   useContext,
 } from "react";
 import * as Plot from "@observablehq/plot";
-import { defaultOptions, getObservableOptions } from "./plotUtils";
+import {
+  defaultOptions,
+  getColorScheme,
+  getObservableOptions,
+} from "./plotUtils";
 import { saveAsPNG } from "./utils/saveChart";
 import { Button } from "@ui-components";
 import { Download } from "lucide-react";
@@ -184,6 +188,44 @@ export default function ObservablePlot() {
             x: {
               axis: null,
               label: "",
+            },
+          })
+        );
+      } else if (chartState.selectedChart === "line") {
+        // we will create a custom scale
+        // and use (if specified) options.lineOptions
+        const { colorScheme } = getColorScheme(
+          chartState.chartStyle.selectedScheme
+        );
+
+        const colorDomain = chartState.selectedColumns.y;
+        const lineOptions =
+          chartState?.chartSpecificOptions?.["line"]?.lineOptions || {};
+
+        let schemeIdx = -1;
+        const colorRange = colorDomain.map((col) => {
+          // if options.lineOptions[d["label"]] exists, use that
+          if (lineOptions[col] && lineOptions[col].stroke) {
+            return lineOptions[col].stroke;
+          } else {
+            // else use the scheme
+            // or the interpolator, depending on whether it's a function or array
+            return Array.isArray(colorScheme)
+              ? colorScheme[++schemeIdx % colorScheme.length]
+              : colorScheme(schemeIdx / colorDomain.length);
+          }
+        });
+
+        // if chart is not a bar chart
+        containerRef.current.appendChild(
+          Plot.plot({
+            ...observableOptions,
+            color: {
+              ...observableOptions.color,
+              // override the scheme. we don't give the option for choosing scheme in line and bar charts.
+              scheme: undefined,
+              domain: colorDomain,
+              range: colorRange,
             },
           })
         );
