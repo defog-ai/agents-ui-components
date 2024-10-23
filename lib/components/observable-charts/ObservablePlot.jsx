@@ -46,8 +46,6 @@ export default function ObservablePlot() {
   }, [updateDimensions]);
 
   const observableOptions = useMemo(() => {
-    const start = performance.now();
-
     let generatedOptions;
 
     const {
@@ -80,8 +78,6 @@ export default function ObservablePlot() {
 
     let processedData = data;
 
-    // console.groupCollapsed("Chart timings");
-    const startDataProcessing = performance.now();
     // Process dates if necessary
     if (xColumn?.isDate && dateToUnix) {
       processedData = [];
@@ -96,12 +92,7 @@ export default function ObservablePlot() {
       }
     }
 
-    console.log(
-      `data processed in: ${performance.now() - startDataProcessing}ms. Processed ${data.length} items.`
-    );
-
     if (selectedChart === "bar" || selectedChart === "line") {
-      const startDataConversiontoLong = performance.now();
       try {
         processedData = convertWideToLong(
           processedData,
@@ -111,12 +102,7 @@ export default function ObservablePlot() {
       } catch (e) {
         console.error("Error converting wide to long format", e);
       }
-      console.log(
-        `data converted to long in: ${performance.now() - startDataConversiontoLong}ms`
-      );
     }
-
-    const startCreatingOptions = performance.now();
 
     if (selectedChart !== "bar" && selectedChart !== "line") {
       generatedOptions = getObservableOptions(
@@ -175,12 +161,8 @@ export default function ObservablePlot() {
         processedData
       );
     }
-    console.log(
-      `created options in: ${performance.now() - startCreatingOptions}ms`
-    );
-    if (!containerRef.current) return;
 
-    const startGeneratingChart = performance.now();
+    if (!containerRef.current) return;
 
     if (generatedOptions) {
       containerRef.current.innerHTML = "";
@@ -295,12 +277,6 @@ export default function ObservablePlot() {
         );
       }
 
-      console.log(
-        `created chart in: ${performance.now() - startGeneratingChart}ms`
-      );
-
-      const shiftLabelsStart = performance.now();
-
       /**
        * Now that we have added rotation to the ticks, some of them might overflow the bottom of the svg and get cut off if they are too long.
        * Observable will not handle this on it's own so
@@ -405,18 +381,10 @@ export default function ObservablePlot() {
       if (chart) {
         chart.style.padding = `0 0 ${paddingBottom}px ${paddingLeft}px`;
       }
-
-      console.log(
-        `shifted labels in: ${performance.now() - shiftLabelsStart}ms`
-      );
     } else {
       containerRef.current.innerHTML =
         "<div class='flex items-center justify-center h-full w-full'>Please select X and Y axes to display the chart.</div>";
     }
-
-    console.log(`everything took: ${performance.now() - start}ms`);
-
-    // console.groupEnd();
 
     return generatedOptions;
   }, [chartState, dimensions]);
