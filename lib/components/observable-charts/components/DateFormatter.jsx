@@ -10,7 +10,7 @@ const formatOptions = [
   { value: "%Y-%m-%d", label: "YYYY-MM-DD" },
   { value: "%d/%m/%Y", label: "DD/MM/YYYY" },
   { value: "%m/%d/%Y", label: "MM/DD/YYYY" },
-  { value: "%B %d, %Y", label: "Month DD, YYYY" },
+  { value: "%b %d, %Y", label: "Month DD, YYYY" },
   // { value: "%Y-%m-%dT%H:%M:%S", label: "ISO 8601" },
 ];
 
@@ -74,6 +74,7 @@ const D3DateFormatBuilder = () => {
     };
   }, []);
 
+  console.log(chartStyle);
   return (
     <div className="font-sans w-full max-w-[300px] relative">
       <label className="block mb-1 input-label">Date Format</label>
@@ -81,7 +82,8 @@ const D3DateFormatBuilder = () => {
         <input
           ref={inputRef}
           value={
-            formatOptions.find((d) => d.value === chartStyle.dateFormat).label
+            formatOptions.find((d) => d.value === chartStyle.dateFormat)
+              ?.label || chartStyle.dateFormat
           }
           onChange={handleFormatChange}
           onFocus={() => setIsOpen(true)}
@@ -99,7 +101,7 @@ const D3DateFormatBuilder = () => {
             <LucideChevronsUpDown size={18} />
           </button>
         </div>
-        <Popover
+        {/* <Popover
           content={<FormatHelpContent />}
           title="Format Help"
           trigger="click"
@@ -108,7 +110,7 @@ const D3DateFormatBuilder = () => {
           <button className="cursor-pointer">
             <CircleHelp size={18} />
           </button>
-        </Popover>
+        </Popover> */}
       </div>
 
       {isOpen && (

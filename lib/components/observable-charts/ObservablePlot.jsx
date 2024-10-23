@@ -80,7 +80,7 @@ export default function ObservablePlot() {
 
     let processedData = data;
 
-    console.groupCollapsed("Chart timings");
+    // console.groupCollapsed("Chart timings");
     const startDataProcessing = performance.now();
     // Process dates if necessary
     if (xColumn?.isDate && dateToUnix) {
@@ -416,7 +416,7 @@ export default function ObservablePlot() {
 
     console.log(`everything took: ${performance.now() - start}ms`);
 
-    console.groupEnd();
+    // console.groupEnd();
 
     return generatedOptions;
   }, [chartState, dimensions]);
