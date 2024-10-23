@@ -190,7 +190,7 @@ function deepMergeObjects(obj1, obj2) {
  * @property {number} xTicks - Number of ticks on the x-axis
  * @property {string} dateFormat - Format for date values
  * @property {number} yTicks - Number of ticks on the y-axis
- * @property {string} scheme - Color scheme for the chart
+ * @property {string} selectedScheme - Color scheme for the chart. Used for all charts. Styles applied to individual bars and lines override this scheme.
  * @property {string} yAxisUnitLabel - Unit label for the y-axis
  */
 
@@ -200,10 +200,9 @@ function deepMergeObjects(obj1, obj2) {
  * @property {number} lineWidth - Width of the line
  * @property {string} curve - Type of curve for the line
  * @property {boolean} marker - Whether to show markers on data points
- * @property {string} scheme - Color scheme for multiple lines
  * @property {string} groupBy - Column to group data by
  * @property {string} stroke - Column to determine line color
- * @property {Array<string>} lineOptions - Options for line styling
+ * @property {{[colName: string]: {stroke: string, strokeWidth: number}}} lineOptions - Options for line styling. Each property is a column name.
  * @property {boolean} showLabels - Whether to show labels on the chart
  */
 
@@ -301,7 +300,7 @@ export const defaultChartState = {
     xTicks: 10,
     dateFormat: "%b %d, %Y",
     yTicks: 10,
-    scheme: "accent",
+    selectedScheme: "accent",
     yAxisUnitLabel: "",
   },
   chartSpecificOptions: {
@@ -310,11 +309,10 @@ export const defaultChartState = {
       lineWidth: 2,
       curve: "linear",
       marker: false,
-      scheme: "category10",
       filter: null,
       groupBy: "",
       stroke: "",
-      lineOptions: [],
+      lineOptions: {},
       showLabels: false,
       aggregateFunction: "sum",
     },

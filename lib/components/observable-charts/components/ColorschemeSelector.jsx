@@ -3,54 +3,37 @@ import * as d3 from "d3";
 import { ChartStateContext } from "../ChartStateContext";
 import { useContext } from "react";
 import { InfoCircleOutlined } from "@ant-design/icons";
+import { getColorScheme } from "../plotUtils";
 
 const { Option, OptGroup } = Select;
 
 const COLOR_SCHEMES = {
   categorical: [
-    "category10",
-    "accent",
-    "dark2",
-    "paired",
-    "pastel1",
-    "pastel2",
-    "set1",
-    "set2",
-    "set3",
-    "tableau10",
+    "Category10",
+    "Accent",
+    "Dark2",
+    "Paired",
+    "Pastel1",
+    "Pastel2",
+    "Set1",
+    "Set2",
+    "Set3",
+    "Tableau10",
   ],
-  diverging: [
-    "brbg",
-    "prgn",
-    "piyg",
-    "puor",
-    "rdbu",
-    "rdgy",
-    "rdylbu",
-    "rdylgn",
-    "spectral",
-  ],
+  diverging: ["PuOr", "RdBu", "RdGy", "RdYlBu", "RdYlGn", "Spectral"],
 };
 
 const ColorSchemeSelector = ({ value, onChange }) => {
   const chartState = useContext(ChartStateContext);
-  const { selectedColumns } = chartState;
-  const colorBySelected = selectedColumns.fill || selectedColumns.stroke;
-
-  const getColorScheme = (scheme) => {
-    const schemeKey = `scheme${scheme.charAt(0).toUpperCase() + scheme.slice(1)}`;
-    const interpolatorKey = `interpolate${scheme.charAt(0).toUpperCase() + scheme.slice(1)}`;
-
-    if (d3[schemeKey]) {
-      return d3[schemeKey];
-    } else if (d3[interpolatorKey]) {
-      return d3[interpolatorKey];
-    }
-    return null;
-  };
+  const { selectedColumns, selectedChart } = chartState;
+  const colorBySelected =
+    selectedColumns.fill ||
+    selectedColumns.stroke ||
+    selectedChart !== "bar" ||
+    selectedChart !== "line";
 
   const renderColorPreview = (scheme) => {
-    const colorScheme = getColorScheme(scheme);
+    const { colorScheme } = getColorScheme(scheme);
     if (!colorScheme) return null;
 
     let colors;
@@ -98,6 +81,7 @@ const ColorSchemeSelector = ({ value, onChange }) => {
       <Space className="w-full mb-2" align="center" justify="space-between">
         <h3 className="w-full m-0 input-label">Color Scheme</h3>
 
+        {/* we allow multiple y axis to be selected in bar and line charts so color scheme can still be applied */}
         {!colorBySelected && (
           <Tooltip
             title="Select a 'Color By' column in the Primary tab"
