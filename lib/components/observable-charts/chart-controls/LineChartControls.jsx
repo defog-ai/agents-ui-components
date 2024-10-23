@@ -85,7 +85,7 @@ const LineChartControls = () => {
               handleLineOptionChange(
                 column,
                 "stroke",
-                color.cleared ? undefined : color.toHexString()
+                color.cleared ? null : color.toHexString()
               )
             }
           />

@@ -167,9 +167,40 @@ export default function ObservablePlot() {
       );
 
       if (chartState.selectedChart === "bar") {
+        // we will create a custom scale
+        // and use (if specified) options.lineOptions
+        const { colorScheme } = getColorScheme(
+          chartState.chartStyle.selectedScheme
+        );
+
+        const colorDomain = chartState.selectedColumns.y;
+        const barOptions =
+          chartState?.chartSpecificOptions?.["bar"]?.barOptions || {};
+
+        let schemeIdx = -1;
+
+        const colorRange = colorDomain.map((col) => {
+          // if options.barOptions[d["label"]] exists, use that
+          if (barOptions[col] && barOptions[col].fill) {
+            return barOptions[col].fill;
+          } else {
+            // else use the scheme
+            // or the interpolator, depending on whether it's a function or array
+            return Array.isArray(colorScheme)
+              ? colorScheme[++schemeIdx % colorScheme.length]
+              : colorScheme(schemeIdx / colorDomain.length);
+          }
+        });
         containerRef.current.appendChild(
           Plot.plot({
             ...observableOptions,
+            color: {
+              ...observableOptions.color,
+              // override the scheme
+              scheme: undefined,
+              domain: colorDomain,
+              range: colorRange,
+            },
             fx: {
               grid: false,
               tickRotate: -90,
@@ -184,6 +215,7 @@ export default function ObservablePlot() {
                 }
               },
               axis: "bottom",
+              fontSize: chartState.chartStyle.fontSize,
             },
             x: {
               axis: null,
@@ -223,7 +255,7 @@ export default function ObservablePlot() {
             ...observableOptions,
             color: {
               ...observableOptions.color,
-              // override the scheme. we don't give the option for choosing scheme in line and bar charts.
+              // override the scheme
               scheme: undefined,
               domain: colorDomain,
               range: colorRange,

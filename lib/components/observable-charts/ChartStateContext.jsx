@@ -208,7 +208,6 @@ function deepMergeObjects(obj1, obj2) {
 
 /**
  * @typedef {Object} BarChartOptions
- * @property {string} barColor - Color of the bars
  * @property {number} barWidth - Width of the bars
  * @property {('sum'|'proportion'|'count'|'median'|'mean'|'variance')} aggregateFunction - Function to aggregate the data
  * * @property {{[colName: string]: {fill: string}}} barOptions - Options for bar styling. Each property is a column name.
@@ -318,7 +317,6 @@ export const defaultChartState = {
       aggregateFunction: "sum",
     },
     bar: {
-      barColor: "#4287f5",
       barWidth: 0.8,
       aggregateFunction: "sum",
       fill: null,
