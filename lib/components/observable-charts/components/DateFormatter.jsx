@@ -74,7 +74,6 @@ const D3DateFormatBuilder = () => {
     };
   }, []);
 
-  console.log(chartStyle);
   return (
     <div className="font-sans w-full max-w-[300px] relative">
       <label className="block mb-1 input-label">Date Format</label>
@@ -85,7 +84,7 @@ const D3DateFormatBuilder = () => {
             formatOptions.find((d) => d.value === chartStyle.dateFormat)
               ?.label || chartStyle.dateFormat
           }
-          onChange={handleFormatChange}
+          // onChange={handleFormatChange}
           onFocus={() => setIsOpen(true)}
           placeholder="Select or enter format"
           className={twMerge(

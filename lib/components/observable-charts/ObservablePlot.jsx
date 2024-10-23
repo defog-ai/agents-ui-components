@@ -119,7 +119,9 @@ export default function ObservablePlot() {
           ...chartStyle,
           ...chartSpecificOptions[selectedChart],
         },
-        processedData
+        processedData,
+        selectedColumns,
+        availableColumns
       );
     } else if (selectedChart === "bar") {
       generatedOptions = getObservableOptions(
@@ -138,7 +140,9 @@ export default function ObservablePlot() {
           ...chartStyle,
           ...chartSpecificOptions[selectedChart],
         },
-        processedData
+        processedData,
+        selectedColumns,
+        availableColumns
       );
     } else if (selectedChart == "line") {
       generatedOptions = getObservableOptions(
@@ -158,7 +162,9 @@ export default function ObservablePlot() {
           ...chartStyle,
           ...chartSpecificOptions[selectedChart],
         },
-        processedData
+        processedData,
+        selectedColumns,
+        availableColumns
       );
     }
 
@@ -351,13 +357,15 @@ export default function ObservablePlot() {
 
           // if the yAxisLeft is more than ctrLeft, means the ticks are overflowing
           // add the difference in x position to the container as padding-left
-          let padding = yAxisLeft - ctrLeft - 10;
+          // 20 here because we will move the y axis *label* to the left of the ticks
+          let padding = yAxisLeft - ctrLeft - 20;
 
           // negative padding = y axis is to the left of the ctr
           // keep if negative padding
           paddingLeft = padding < 0 ? Math.abs(padding) : 0;
 
           if (yAxisLabelCtr) {
+            // this is really only relevant in a horizontal box plot. in all other charts the y axis label is at the top of the axis
             // parse the transform of this g tag
             const transform = yAxisLabelCtr.getAttribute("transform");
             const [x, y] = transform
@@ -366,8 +374,16 @@ export default function ObservablePlot() {
               .split(",")
               .map((val) => parseFloat(val));
 
-            // add the padding to the x position. this will move it right in the svg
-            const newX = x + padding;
+            // get the left of this relative to the y axis and move to the left if it's overlapping
+            const labelLeft = yAxisLabelCtr.getBoundingClientRect().left;
+            // if the labelLeft is more than yAxisLeft, means the label is overflowing and is "overlapping" the y ticks
+            let newX = x;
+            if (labelLeft > yAxisLeft) {
+              newX = x - (labelLeft - yAxisLeft) - 20;
+            }
+
+            // // add the padding to the x position. this will move it in the svg
+            // const newX = x + (yAxisLeft - ctrLeft - 20);
 
             yAxisLabelCtr.setAttribute("transform", `translate(${newX}, ${y})`);
           }
