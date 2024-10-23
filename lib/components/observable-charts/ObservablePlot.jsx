@@ -19,6 +19,7 @@ import { ChartStateContext } from "./ChartStateContext";
 import { unix } from "dayjs";
 import dayjs from "dayjs";
 import { convertWideToLong } from "../utils/utils";
+import { timeFormat } from "d3";
 
 export default function ObservablePlot() {
   const containerRef = useRef(null);
@@ -214,6 +215,7 @@ export default function ObservablePlot() {
               : colorScheme(schemeIdx / colorDomain.length);
           }
         });
+
         containerRef.current.appendChild(
           Plot.plot({
             ...generatedOptions,
@@ -231,7 +233,7 @@ export default function ObservablePlot() {
                 if (xColumn.isDate && dayjs(d).isValid()) {
                   // if date, format it
                   // convert from unix to date
-                  const date = unix(d).format("YYYY-MM-DD");
+                  const date = timeFormat(chartStyle.dateFormat)(unix(d));
                   return date;
                 } else {
                   return d;

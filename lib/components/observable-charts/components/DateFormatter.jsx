@@ -80,7 +80,9 @@ const D3DateFormatBuilder = () => {
       <div className="flex items-center gap-2">
         <input
           ref={inputRef}
-          value={chartStyle.dateFormat}
+          value={
+            formatOptions.find((d) => d.value === chartStyle.dateFormat).label
+          }
           onChange={handleFormatChange}
           onFocus={() => setIsOpen(true)}
           placeholder="Select or enter format"
