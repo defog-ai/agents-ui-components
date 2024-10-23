@@ -20,7 +20,9 @@ export function ChartContainer({ columns, rows, initialQuestion }) {
     createChartState({ data: rows, availableColumns: columns })
   );
 
-  chartState.setStateCallback = setChartState;
+  useEffect(() => {
+    chartState.setStateCallback = setChartState;
+  }, []);
 
   const agentConfigContext = useContext(AgentConfigContext);
   const { apiEndpoint } = agentConfigContext.val;
@@ -35,10 +37,10 @@ export function ChartContainer({ columns, rows, initialQuestion }) {
 
   const { selectedColumns } = chartState;
 
-  const [userQuestion, setUserQuestion] = useState(initialQuestion);
+  // const [userQuestion, setUserQuestion] = useState(initialQuestion);
   const [loading, setLoading] = useState(false);
 
-  const submitUserQuestion = async () => {
+  const submitUserQuestion = async (userQuestion) => {
     try {
       setLoading(true);
 
@@ -93,7 +95,7 @@ export function ChartContainer({ columns, rows, initialQuestion }) {
 
   useEffect(() => {
     if (initialQuestion) {
-      submitUserQuestion();
+      submitUserQuestion(initialQuestion);
     }
   }, [initialQuestion]);
 
@@ -141,12 +143,12 @@ export function ChartContainer({ columns, rows, initialQuestion }) {
           type="text"
           rootClassNames="w-full mb-6 p-2 rounded"
           label="Ask a question to edit the visualization"
-          onChange={(e) => setUserQuestion(e.target.value)}
+          // onChange={(e) => setUserQuestion(e.target.value)}
           disabled={loading}
           onPressEnter={async (e) => {
             e.preventDefault();
             e.stopPropagation();
-            await submitUserQuestion();
+            await submitUserQuestion(e.target.value);
             e.target.value = "";
           }}
         />
