@@ -151,19 +151,16 @@ export function PrimarySelection({ columns }) {
         placeholder={`Enter ${axis.toUpperCase()}-Axis Label`}
         value={chartStyle[`${axis}Label`]}
         onChange={handleAxisLabelChange(axis)}
-        defaultValue={selectedColumns[axis]}
       />
     </div>
   );
 
-  // For histogram, only allow one column for x-axis
   const renderHistogramYAxisLabel = () => (
     <div>
-      <h3 className="mb-2 input-label">Horizontal Label</h3>
+      <h3 className="mb-2 input-label">Axis Label</h3>
       <TextInput
-        placeholder="Enter Horizontal Label"
-        defaultValue="Frequency"
-        value={chartStyle.yLabel || "Frequency"}
+        placeholder="Enter y axis label"
+        value={chartStyle.yLabel}
         onChange={(e) =>
           chartState.updateChartStyle({ yLabel: e.target.value }).render()
         }

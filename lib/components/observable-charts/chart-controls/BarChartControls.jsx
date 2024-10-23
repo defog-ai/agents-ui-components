@@ -20,8 +20,7 @@ const BarChartControls = () => {
       <div>
         <h3 className="mb-2">Bar Color</h3>
         <ColorPicker
-          defaultValue={"#4287F5"}
-          value={chartSpecificOptions.barColor}
+          value={chartSpecificOptions.bar.barColor}
           onChange={(color) =>
             handleOptionChange("barColor", color.toHexString())
           }
