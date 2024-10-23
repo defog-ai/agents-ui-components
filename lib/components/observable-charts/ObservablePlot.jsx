@@ -278,8 +278,9 @@ export default function ObservablePlot() {
        */
 
       // get the x axis
+      // if bar chart, it will be fx-axis
       const xAxisCtr = containerRef.current.querySelector(
-        "[aria-label^='x-axis tick label']"
+        "[aria-label^='x-axis tick label'], [aria-label^='fx-axis tick label']"
       );
 
       // get the y axis
@@ -290,7 +291,7 @@ export default function ObservablePlot() {
       // the svg <g> element that stores the x axis labels
       // we will later move this down
       const xAxisLabelCtr = containerRef.current.querySelector(
-        "[aria-label^='x-axis label']"
+        "[aria-label^='x-axis label'], [aria-label^='fx-axis label']"
       );
 
       // the svg <g> element that stores the y axis labels
@@ -368,7 +369,11 @@ export default function ObservablePlot() {
         }
       }
 
-      containerRef.current.style.padding = `0 0 ${paddingBottom}px ${paddingLeft}px`;
+      // get the first child of the container, and set the padding to the actual chart
+      const chart = containerRef.current.children[0];
+      if (chart) {
+        chart.style.padding = `0 0 ${paddingBottom}px ${paddingLeft}px`;
+      }
     } else {
       containerRef.current.innerHTML =
         "<div class='flex items-center justify-center h-full w-full'>Please select X and Y axes to display the chart.</div>";
@@ -381,7 +386,7 @@ export default function ObservablePlot() {
         <Button
           className="flex flex-row items-center text-sm text-gray-800 border bg-gray-50 hover:bg-gray-200 z-[10]"
           onClick={() => {
-            if (containerRef.current) {
+            if (containerRef.current && observableOptions) {
               // get the first child inside container because container has overflow scroll
               const chart = containerRef.current.children[0];
               if (chart) {
