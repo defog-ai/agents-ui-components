@@ -215,7 +215,6 @@ export default function ObservablePlot() {
                 }
               },
               axis: "bottom",
-              fontSize: chartState.chartStyle.fontSize,
             },
             x: {
               axis: null,

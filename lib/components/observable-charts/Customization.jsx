@@ -45,7 +45,9 @@ export function Customization() {
     <div className="flex flex-col gap-4 mx-2">
       <ColorSchemeSelector
         value={chartStyle.selectedScheme}
-        onChange={(value) => handleStyleChange("selectedScheme", value)}
+        onChange={(value) => {
+          handleStyleChange("selectedScheme", value);
+        }}
       />
       {renderChartSpecificControls()}
 
