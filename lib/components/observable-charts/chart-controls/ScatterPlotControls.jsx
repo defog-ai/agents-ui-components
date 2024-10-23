@@ -14,7 +14,7 @@ const ScatterPlotControls = () => {
     <div className="flex flex-col gap-4 p-2 text-xs">
       {!chartState.selectedColumns.fill && (
         <div>
-          <h3 className="mb-2">Point Color</h3>
+          <h3 className="mb-2">Override dot color</h3>
           <ColorPicker
             value={chartSpecificOptions.scatter.pointColor}
             onChange={(color) =>
