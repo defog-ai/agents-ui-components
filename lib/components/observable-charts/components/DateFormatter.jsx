@@ -1,44 +1,132 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useContext } from "react";
 import { twMerge } from "tailwind-merge";
 import { LucideChevronsUpDown, CircleHelp } from "lucide-react";
 import { Popover } from "antd";
-import { useContext } from "react";
 import { ChartStateContext } from "../ChartStateContext";
 
-const formatOptions = [
-  { value: "%b, %Y", label: "Month, YYYY" },
-  { value: "%Y-%m-%d", label: "YYYY-MM-DD" },
-  { value: "%d/%m/%Y", label: "DD/MM/YYYY" },
-  { value: "%m/%d/%Y", label: "MM/DD/YYYY" },
-  { value: "%b %d, %Y", label: "Month DD, YYYY" },
-  // { value: "%Y-%m-%dT%H:%M:%S", label: "ISO 8601" },
-];
+const formatMappings = {
+  // Years
+  YYYY: "%Y",
+  YY: "%y",
+  yyyy: "%Y",
+  yy: "%y",
 
-const formatHelp = {
-  "%Y": "4-digit year",
-  "%m": "2-digit month (01-12)",
-  "%d": "2-digit day of the month (01-31)",
-  "%B": "Full month name",
-  "%H": "2-digit hour (24h)",
-  "%I": "2-digit hour (12h)",
-  "%M": "2-digit minutes",
-  "%S": "2-digit seconds",
-  "%p": "AM/PM",
+  // Months
+  MMMM: "%B", // Full month name
+  MMM: "%b", // Abbreviated month name
+  MM: "%m", // 01-12
+  M: "%-m", // 1-12
+
+  // Days - ensure DD is handled before D
+  DD: "%d", // 01-31
+  D: "%-d", // 1-31
+
+  // Hours
+  HH: "%H", // 00-23
+  H: "%-H", // 0-23
+  hh: "%I", // 01-12
+  h: "%-I", // 1-12
+
+  // Minutes and Seconds
+  mm: "%M",
+  m: "%-M",
+  ss: "%S",
+  s: "%-S",
+
+  // Time Period
+  A: "%p", // AM/PM
+  a: "%P", // am/pm
 };
 
+const convertToD3Format = (format) => {
+  // Create a pattern that matches any of our format strings
+  const pattern = new RegExp(
+    Object.keys(formatMappings)
+      .sort((a, b) => b.length - a.length) // Sort by length to handle longer patterns first
+      .map((key) => key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")) // Escape regex special chars
+      .join("|"),
+    "g"
+  );
+
+  return format.replace(pattern, (match) => formatMappings[match] || match);
+};
+
+const formatOptions = [
+  { value: "YYYY-MM-DD", label: "YYYY-MM-DD" },
+  { value: "DD/MM/YYYY", label: "DD/MM/YYYY" },
+  { value: "MM/DD/YYYY", label: "MM/DD/YYYY" },
+  { value: "MMM D, YYYY", label: "Month D, YYYY" },
+  { value: "MMMM D, YYYY", label: "Full Month D, YYYY" },
+];
 const FormatHelpContent = () => (
-  <div className="text-sm w-44">
-    <ul className="space-y-1">
-      {Object.entries(formatHelp).map(([key, value]) => (
-        <li key={key} className="mb-1 text-xs">
-          <code className="px-1 bg-gray-100 rounded">{key}</code>: {value}
-        </li>
-      ))}
-    </ul>
-    <p className="mt-2 text-xs text-gray-500 whitespace-normal ">
-      Uppercase specifiers (e.g., %Y, %B) show full values; lowercase (e.g., %y,
-      %b) use abbreviations. All d3.js date/time specifiers work here.
-    </p>
+  <div className="">
+    <div className="grid grid-cols-2 gap-4">
+      {/* Year formats */}
+      <div>
+        <span className="block pl-1 text-xs font-medium text-gray-700">
+          Years
+        </span>
+        <div className="text-xs">
+          <code className="px-1 rounded bg-gray-50">YYYY</code> → 2024
+        </div>
+        <div className="text-xs">
+          <code className="px-1 rounded bg-gray-50">YY</code> → 24
+        </div>
+      </div>
+
+      {/* Month formats */}
+      <div>
+        <span className="block pl-1 text-xs font-medium text-gray-700">
+          Months
+        </span>
+        <div className="text-xs">
+          <code className="px-1 rounded bg-gray-50">MMMM</code> → March
+        </div>
+        <div className="text-xs">
+          <code className="px-1 rounded bg-gray-50">MMM</code> → Mar
+        </div>
+        <div className="text-xs">
+          <code className="px-1 rounded bg-gray-50">MM</code> → 03
+        </div>
+        <div className="text-xs">
+          <code className="px-1 rounded bg-gray-50">M</code> → 3
+        </div>
+      </div>
+
+      {/* Day formats */}
+      <div>
+        <span className="block pl-1 text-xs font-medium text-gray-700">
+          Days
+        </span>
+        <div className="text-xs">
+          <code className="px-1 rounded bg-gray-50">DD</code> → 05
+        </div>
+        <div className="text-xs">
+          <code className="px-1 rounded bg-gray-50">D</code> → 5
+        </div>
+      </div>
+
+      {/* Common Examples */}
+      <div>
+        <span className="block pl-1 text-xs font-medium text-gray-700">
+          Examples
+        </span>
+        <div className="space-y-1">
+          {formatOptions.slice(0, 2).map((opt, idx) => (
+            <div key={idx} className="flex justify-between text-xs">
+              <code className="px-1 rounded bg-gray-50">{opt.value}</code>
+              <span className="text-gray-500">{opt.example}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+
+    <div className="pt-2 mt-3 border-t border-gray-100">
+      <p className="text-xs text-gray-500">
+        Combine patterns with any separators (-, /, space)
+      </p>
+    </div>
   </div>
 );
 
@@ -46,15 +134,27 @@ const D3DateFormatBuilder = () => {
   const chartState = useContext(ChartStateContext);
   const { chartStyle } = chartState;
   const [isOpen, setIsOpen] = useState(false);
+  const [userFormat, setUserFormat] = useState(
+    formatOptions.find(
+      (opt) => convertToD3Format(opt.value) === chartStyle.dateFormat
+    )?.value || "YYYY-MM-DD"
+  );
   const inputRef = useRef(null);
   const dropdownRef = useRef(null);
 
   const handleFormatChange = (e) => {
-    chartState.updateChartStyle({ dateFormat: e.target.value }).render();
+    const newFormat = e.target.value;
+    setUserFormat(newFormat);
+    chartState
+      .updateChartStyle({ dateFormat: convertToD3Format(newFormat) })
+      .render();
   };
 
-  const handleOptionClick = (value) => {
-    chartState.updateChartStyle({ dateFormat: value }).render();
+  const handleOptionClick = (format) => {
+    setUserFormat(format);
+    chartState
+      .updateChartStyle({ dateFormat: convertToD3Format(format) })
+      .render();
     setIsOpen(false);
   };
 
@@ -80,13 +180,10 @@ const D3DateFormatBuilder = () => {
       <div className="flex items-center gap-2">
         <input
           ref={inputRef}
-          value={
-            formatOptions.find((d) => d.value === chartStyle.dateFormat)
-              ?.label || chartStyle.dateFormat
-          }
+          value={userFormat}
           onChange={handleFormatChange}
           onFocus={() => setIsOpen(true)}
-          placeholder="Select or enter format"
+          placeholder="Enter format (e.g., YYYY-MM-DD)"
           className={twMerge(
             "focus:outline-none block w-full shadow-sm rounded-md border-0 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-1 focus:ring-inset",
             "text-[16px] lg:text-sm sm:leading-6"
@@ -102,7 +199,7 @@ const D3DateFormatBuilder = () => {
         </div>
         <Popover
           content={<FormatHelpContent />}
-          title="Format Help"
+          title="Writing Date Formats"
           trigger="click"
           placement="bottomRight"
         >
