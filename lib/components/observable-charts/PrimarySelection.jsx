@@ -214,7 +214,6 @@ export function PrimarySelection({ columns }) {
         </Select>
         {(selectedChart === "bar" || selectedChart === "line") &&
           axis === "x" &&
-          isCategorical &&
           renderAggregateSelection()}
       </div>
     );
