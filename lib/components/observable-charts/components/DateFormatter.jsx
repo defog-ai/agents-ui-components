@@ -84,7 +84,7 @@ const D3DateFormatBuilder = () => {
             formatOptions.find((d) => d.value === chartStyle.dateFormat)
               ?.label || chartStyle.dateFormat
           }
-          // onChange={handleFormatChange}
+          onChange={handleFormatChange}
           onFocus={() => setIsOpen(true)}
           placeholder="Select or enter format"
           className={twMerge(
@@ -100,7 +100,7 @@ const D3DateFormatBuilder = () => {
             <LucideChevronsUpDown size={18} />
           </button>
         </div>
-        {/* <Popover
+        <Popover
           content={<FormatHelpContent />}
           title="Format Help"
           trigger="click"
@@ -109,7 +109,7 @@ const D3DateFormatBuilder = () => {
           <button className="cursor-pointer">
             <CircleHelp size={18} />
           </button>
-        </Popover> */}
+        </Popover>
       </div>
 
       {isOpen && (
