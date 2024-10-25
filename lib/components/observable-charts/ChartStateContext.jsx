@@ -298,7 +298,7 @@ export const defaultChartState = {
     xGrid: false,
     yGrid: true,
     xTicks: 10,
-    dateFormat: "%b %d, %Y",
+    dateFormat: "%b %-d, %Y",
     yTicks: 10,
     selectedScheme: "Accent",
     yAxisUnitLabel: "",
