@@ -270,7 +270,7 @@ export function Table({
   return (
     <div className={twMerge("overflow-auto", rootClassNames)}>
       {paginationPosition === "top" && pager}
-      <div className="flex flex-row py-2 mx-auto overflow-auto max-w-7xl">
+      <div className="flex flex-row mx-auto overflow-auto max-w-7xl">
         <table className="w-full divide-y divide-gray-300">
           <thead className="bg-gray-50">
             <tr>
