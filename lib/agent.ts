@@ -1,3 +1,5 @@
+export { ChartContainer } from "./components/observable-charts/ChartContainer.jsx";
+
 export { parseData } from "./components/utils/utils.js";
 
 export { Setup } from "./components/context/Setup.jsx";
