@@ -19,7 +19,7 @@ import { ChartStateContext } from "./ChartStateContext";
 import { unix } from "dayjs";
 import dayjs from "dayjs";
 import { convertWideToLong } from "../utils/utils";
-import { timeFormat } from "d3";
+import { timeFormat, extent } from "d3";
 
 export default function ObservablePlot() {
   const containerRef = useRef(null);
@@ -46,7 +46,10 @@ export default function ObservablePlot() {
   }, [updateDimensions]);
 
   const observableOptions = useMemo(() => {
-    let generatedOptions;
+    let generatedOptions = null;
+    let uniqueLabels = new Set();
+
+    let wasSampled = false;
 
     const {
       selectedChart,
@@ -99,12 +102,41 @@ export default function ObservablePlot() {
           selectedColumns.x,
           selectedColumns.y
         );
+        // if this has more than 50 unique values in the x axis, then will will not render the chart and ask to use line chart instead
+        uniqueLabels = new Set(processedData.map((d) => d[selectedColumns.x]));
       } catch (e) {
         console.error("Error converting wide to long format", e);
       }
     }
 
+    const tooManyCategories = uniqueLabels.size > 200;
+
     if (selectedChart !== "bar" && selectedChart !== "line") {
+      // if we have more than 10k categories in the x axis, and this is a boxplot, sample 100 unique values
+      let uniqueX = new Set(processedData.map((d) => d[selectedColumns.x]));
+
+      if (selectedChart === "boxplot" && uniqueX.size > 10000) {
+        wasSampled = true;
+        const sampledLabels = new Set();
+        const step = Math.floor(uniqueX.size / 200);
+        let i = 0;
+        for (const label of uniqueX) {
+          if (i % step === 0) {
+            sampledLabels.add(label);
+          }
+          i++;
+
+          if (sampledLabels.size >= 200) {
+            break;
+          }
+        }
+
+        // filter processedData to only include the unique labels
+        processedData = processedData.filter((d) =>
+          sampledLabels.has(d[selectedColumns.x])
+        );
+      }
+
       generatedOptions = getObservableOptions(
         dimensions,
         {
@@ -123,7 +155,7 @@ export default function ObservablePlot() {
         selectedColumns,
         availableColumns
       );
-    } else if (selectedChart === "bar") {
+    } else if (selectedChart === "bar" && !tooManyCategories) {
       generatedOptions = getObservableOptions(
         dimensions,
         {
@@ -174,11 +206,8 @@ export default function ObservablePlot() {
       containerRef.current.innerHTML = "";
       // always reset the padding or it messes with boundclient calculation below
       containerRef.current.style.padding = "0 0 0 0";
-      const xColumn = chartState.availableColumns.find(
-        (col) => col.key === chartState.selectedColumns.x
-      );
 
-      if (chartState.selectedChart === "bar") {
+      if (chartState.selectedChart === "bar" && !tooManyCategories) {
         // we will create a custom scale
         // and use (if specified) options.lineOptions
         const { colorScheme } = getColorScheme(
@@ -398,16 +427,24 @@ export default function ObservablePlot() {
         chart.style.padding = `0 0 ${paddingBottom}px ${paddingLeft}px`;
       }
     } else {
-      containerRef.current.innerHTML =
-        "<div class='flex items-center justify-center h-full w-full'>Please select X and Y axes to display the chart.</div>";
+      const errorMessage = tooManyCategories
+        ? `Too many bars: ${uniqueLabels.size}. Please use a subset of your data, or try a line chart.`
+        : "Please select X and Y axes to display the chart.";
+      containerRef.current.innerHTML = `<div class='flex items-center justify-center h-full w-full'>${errorMessage}</div>`;
     }
 
+    if (generatedOptions) generatedOptions.wasSampled = wasSampled;
     return generatedOptions;
   }, [chartState, dimensions]);
 
   return (
     <div className="grow bg-white">
       <div className="flex justify-end mb-2">
+        {observableOptions && observableOptions?.wasSampled && (
+          <div className="text-sm self-start mr-auto text-rose-500">
+            Chart was sampled to show 200 unique values
+          </div>
+        )}
         <Button
           className="flex flex-row items-center text-sm text-gray-800 border bg-gray-50 hover:bg-gray-200 z-[10]"
           onClick={() => {
