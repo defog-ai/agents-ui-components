@@ -13,6 +13,9 @@ import { mean } from "d3-array";
 import { isNumber } from "../utils/utils";
 
 const dateFormats = [
+  "MM/DD/YYYY HH:mm:ss",
+  "DD/MM/YYYY HH:mm:ss",
+  "DD/MM/YYYY HH:mm:ss",
   "YYYY-MM-DD HH:mm:ss",
   "YYYY-MM-DDTHH:mm:ss",
   "YYYY-MM-DD",
