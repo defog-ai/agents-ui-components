@@ -356,11 +356,12 @@ export function StepResults({
               <div key={v4()}>
                 <StepResultsTable
                   stepId={stepId}
+                  keyName={keyName}
                   tableData={output["data"]}
                   apiEndpoint={apiEndpoint}
                   chartImages={output["chart_images"]}
                   reactiveVars={output["reactive_vars"]}
-                  nodeId={activeNode.data.id}
+                  nodeName={activeNode?.data?.name}
                   analysisId={analysisId}
                   initialQuestion={step?.inputs?.question}
                 />

@@ -58,6 +58,7 @@ export default function StepsDag({
         title: step["tool_name"],
         key: step["tool_name"],
         isError: step.error_message,
+        name: step?.["outputs_storage_keys"]?.[0],
         isTool: true,
         parents: new Set(),
         children: [],
