@@ -27,8 +27,9 @@ import { ChartContainer } from "../../../observable-charts/ChartContainer";
 // tabBarLeftContent: extra content for the tab bar on the left side
 export function StepResultsTable({
   stepId,
+  keyName,
   analysisId,
-  nodeId,
+  nodeName,
   apiEndpoint,
   tableData = null,
   codeStr = null,
@@ -70,8 +71,9 @@ export function StepResultsTable({
           },
           body: JSON.stringify({
             step_id: stepId,
-            output_storage_key: nodeId,
+            output_storage_key: nodeName,
             analysis_id: analysisId,
+            key_name: keyName,
           }),
         }).then((r) => r.json());
 
@@ -104,7 +106,7 @@ export function StepResultsTable({
       a.href = url;
       // name with time stamp but without miliseconds
 
-      a.download = `${nodeId}-${new Date().toISOString().split(".")[0]}.csv`;
+      a.download = `${nodeName}-${new Date().toISOString().split(".")[0]}.csv`;
       a.click();
       URL.revokeObjectURL(url);
       // delete a tag
