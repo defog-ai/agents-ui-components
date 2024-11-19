@@ -20,7 +20,6 @@ const sampleRows = [
   {
     id: 3,
     name: "Jane Doe",
-    age: 22,
     email: "jaja@jaja.com",
     dob: "2005-01-01",
     large_number: Math.floor(Math.random() * 100000000),
