@@ -191,11 +191,11 @@ export function PrimarySelection({ columns }) {
           </Select>
         </div>
 
-        {/* Add Split by selector when aggregation is none and selected Y columns <= 1 */}
+        {/* Add Color by selector when aggregation is none and selected Y columns <= 1 */}
         {chartSpecificOptions[selectedChart].aggregateFunction === "none" &&
           selectedColumns.y.length <= 1 && (
             <div className="mt-2">
-              <h3 className="mr-2 input-label">Split by</h3>
+              <h3 className="mr-2 input-label">Color by</h3>
               <Select
                 style={{ width: "100%" }}
                 value={chartSpecificOptions[selectedChart].colorBy}
