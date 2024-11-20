@@ -77,12 +77,23 @@ export default function ObservablePlot() {
     ) {
       generatedOptions = null;
     } else {
-      const dateToUnix = xColumn?.isDate ? xColumn.dateToUnix : null;
+      const xColumnDateToUnix = xColumn?.isDate ? xColumn.dateToUnix : null;
 
       let processedData = data;
 
+      // also do this for colorBy column
+      const colorByColumn = availableColumns.find(
+        (col) => col.key === chartSpecificOptions[selectedChart].colorBy
+      );
+
+      const colorByDateToUnix = colorByColumn
+        ? colorByColumn?.isDate
+          ? colorByColumn.dateToUnix
+          : null
+        : null;
+
       // Process dates if necessary
-      if (xColumn?.isDate && dateToUnix) {
+      if (xColumnDateToUnix || colorByDateToUnix) {
         processedData = [];
 
         for (let i = 0; i < data.length; i++) {
@@ -90,7 +101,20 @@ export default function ObservablePlot() {
           const item = data[i];
           processedData.push({
             ...item,
-            [selectedColumns.x]: item.unixDateValues[selectedColumns.x],
+            ...(xColumnDateToUnix
+              ? {
+                  [selectedColumns.x]: xColumnDateToUnix
+                    ? item.unixDateValues[selectedColumns.x]
+                    : null,
+                }
+              : {}),
+            ...(colorByDateToUnix
+              ? {
+                  [colorByColumn.dataIndex]: colorByDateToUnix
+                    ? item.unixDateValues[colorByColumn.dataIndex]
+                    : null,
+                }
+              : {}),
           });
         }
       }
@@ -150,7 +174,9 @@ export default function ObservablePlot() {
             facet: selectedColumns.facet,
             filter: chartSpecificOptions[selectedChart]?.filter,
             xIsDate: xColumn?.isDate,
-            dateToUnix,
+            colorByIsDate: colorByColumn?.isDate,
+            xColumnDateToUnix,
+            colorByDateToUnix,
             ...chartStyle,
             ...chartSpecificOptions[selectedChart],
           },
@@ -171,7 +197,9 @@ export default function ObservablePlot() {
             facet: selectedColumns.x || null,
             filter: chartSpecificOptions[selectedChart]?.filter,
             xIsDate: xColumn?.isDate,
-            dateToUnix,
+            xColumnDateToUnix,
+            colorByIsDate: colorByColumn?.isDate,
+            colorByDateToUnix,
             ...chartStyle,
             ...chartSpecificOptions[selectedChart],
           },
@@ -193,7 +221,9 @@ export default function ObservablePlot() {
             // facet: selectedColumns.facet || null,
             filter: chartSpecificOptions[selectedChart]?.filter,
             xIsDate: xColumn?.isDate,
-            dateToUnix,
+            colorByIsDate: colorByColumn?.isDate,
+            xColumnDateToUnix,
+            colorByDateToUnix,
             ...chartStyle,
             ...chartSpecificOptions[selectedChart],
           },
@@ -248,6 +278,8 @@ export default function ObservablePlot() {
                       chartState.chartSpecificOptions[selectedChart]
                         .colorByIsDate
                     ) {
+                      // this is already coming in as a unix timestamp
+
                       return timeFormat(chartStyle.dateFormat)(unix(d));
                     } else {
                       return d;
