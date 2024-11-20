@@ -101,7 +101,7 @@ export default function ObservablePlot() {
             processedData,
             selectedColumns.x,
             selectedColumns.y,
-            chartSpecificOptions[selectedChart].splitBy
+            chartSpecificOptions[selectedChart].colorBy
           );
           // if this has more than 50 unique values in the x axis, then will will not render the chart and ask to use line chart instead
           uniqueLabels = new Set(
@@ -240,13 +240,13 @@ export default function ObservablePlot() {
         containerRef.current.appendChild(
           Plot.plot({
             ...generatedOptions,
-            color: chartSpecificOptions[selectedChart].splitBy
+            color: chartSpecificOptions[selectedChart].colorBy
               ? {
                   legend: true,
                   tickFormat: (d) => {
                     if (
                       chartState.chartSpecificOptions[selectedChart]
-                        .splitByIsDate
+                        .colorByIsDate
                     ) {
                       return timeFormat(chartStyle.dateFormat)(unix(d));
                     } else {
@@ -311,13 +311,13 @@ export default function ObservablePlot() {
         containerRef.current.appendChild(
           Plot.plot({
             ...generatedOptions,
-            color: chartSpecificOptions[selectedChart].splitBy
+            color: chartSpecificOptions[selectedChart].colorBy
               ? {
                   legend: true,
                   tickFormat: (d) => {
                     if (
                       chartState.chartSpecificOptions[selectedChart]
-                        .splitByIsDate
+                        .colorByIsDate
                     ) {
                       return timeFormat(chartStyle.dateFormat)(unix(d));
                     } else {

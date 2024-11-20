@@ -212,8 +212,8 @@ function deepMergeObjects(obj1, obj2) {
  * @property {('sum'|'proportion'|'count'|'median'|'mean'|'variance')} aggregateFunction - Function to aggregate the data
  * * @property {{[colName: string]: {fill: string}}} barOptions - Options for bar styling. Each property is a column name.
  * @property {string|null} fill - Column to determine bar color
- * @property {string|null} splitBy - Column to determine bar color when within a group (aka x facet)
- * @property {boolean} splitByIsDate - Whether the splitBy column is a date column
+ * @property {string|null} colorBy - Column to determine bar color when within a group (aka x facet)
+ * @property {boolean} colorByIsDate - Whether the colorBy column is a date column
  */
 
 /**
@@ -317,8 +317,8 @@ export const defaultChartState = {
       lineOptions: {},
       showLabels: false,
       aggregateFunction: "sum",
-      splitBy: null,
-      splitByIsDate: false,
+      colorBy: null,
+      colorByIsDate: false,
     },
     bar: {
       barWidth: 0.8,

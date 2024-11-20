@@ -107,11 +107,11 @@ export function PrimarySelection({ columns }) {
         }
       }
 
-      // reset split by if we are changing the y axis
+      // reset color by if we are changing the y axis
       if (axis === "y") {
         newChartState = newChartState.updateChartSpecificOptions({
-          splitBy: null,
-          splitByIsDate: false,
+          colorBy: null,
+          colorByIsDate: false,
         });
       }
 
@@ -121,9 +121,9 @@ export function PrimarySelection({ columns }) {
   );
 
   const handleAggregateChange = (value) => {
-    // if this is a bar chart, we need to reset the split by selection to the first quantitative column
-    let newSplitBy = null;
-    let newSplitByIsDate = false;
+    // if this is a bar chart, we need to reset the color by selection to the first quantitative column
+    let newColorBy = null;
+    let newColorByIsDate = false;
 
     // only do this if:
     // - this is a bar chart
@@ -136,32 +136,32 @@ export function PrimarySelection({ columns }) {
       columns.length > 0 &&
       selectedColumns.y.length <= 1
     ) {
-      newSplitBy =
-        chartSpecificOptions[selectedChart].splitBy || columns[0].dataIndex;
-      const selectedColumn = columns.find((col) => col.key === newSplitBy);
-      newSplitByIsDate = selectedColumn.isDate;
+      newColorBy =
+        chartSpecificOptions[selectedChart].colorBy || columns[0].dataIndex;
+      const selectedColumn = columns.find((col) => col.key === newColorBy);
+      newColorByIsDate = selectedColumn.isDate;
     } else {
-      newSplitBy = null;
-      newSplitByIsDate = false;
+      newColorBy = null;
+      newColorByIsDate = false;
     }
 
     chartState
       .updateChartSpecificOptions({
         aggregateFunction: value || "sum",
-        splitBy: newSplitBy,
-        splitByIsDate: newSplitByIsDate,
+        colorBy: newColorBy,
+        colorByIsDate: newColorByIsDate,
       })
       .render();
   };
 
-  const handleSplitByChange = (value) => {
+  const handleColorByChange = (value) => {
     const selectedColumn = columns.find((col) => col.key === value) || {};
-    const newSplitByIsDate = selectedColumn.isDate || false;
+    const newColorByIsDate = selectedColumn.isDate || false;
 
     chartState
       .updateChartSpecificOptions({
-        splitBy: value,
-        splitByIsDate: newSplitByIsDate,
+        colorBy: value,
+        colorByIsDate: newColorByIsDate,
       })
       .render();
   };
@@ -198,8 +198,8 @@ export function PrimarySelection({ columns }) {
               <h3 className="mr-2 input-label">Split by</h3>
               <Select
                 style={{ width: "100%" }}
-                value={chartSpecificOptions[selectedChart].splitBy}
-                onChange={handleSplitByChange}
+                value={chartSpecificOptions[selectedChart].colorBy}
+                onChange={handleColorByChange}
                 options={columns.map((col) => ({
                   label: col.title,
                   value: col.dataIndex,
@@ -317,7 +317,7 @@ export function PrimarySelection({ columns }) {
     );
   }, [selectedColumns, orderedColumns, handleAxisChange]);
 
-  const splitBySelection = useMemo(() => {
+  const colorBySelection = useMemo(() => {
     const colorSchemeSelection = (value) => {
       if (selectedChart !== "line") {
         chartState
@@ -434,7 +434,7 @@ export function PrimarySelection({ columns }) {
 
           <div className="grid grid-cols-2 gap-2 pt-4 ">
             {FacetSelection}
-            {splitBySelection}
+            {colorBySelection}
           </div>
         </div>
       ) : null}
