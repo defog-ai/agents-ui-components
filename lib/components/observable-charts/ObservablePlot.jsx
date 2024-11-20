@@ -48,6 +48,7 @@ export default function ObservablePlot() {
   const observableOptions = useMemo(() => {
     let generatedOptions = null;
     let uniqueLabels = new Set();
+    let tooManyCategories = false;
 
     let wasSampled = false;
 
@@ -60,6 +61,10 @@ export default function ObservablePlot() {
       data,
     } = chartState;
 
+    const xColumn = availableColumns.find(
+      (col) => col.key === selectedColumns.x
+    );
+
     // if selected.x or selected.y is null, return null here
     // or if selectedColumns.y.length is 0, also return null
     if (
@@ -70,134 +75,133 @@ export default function ObservablePlot() {
       // if y is array but has length 0
       (Array.isArray(selectedColumns.y) && !selectedColumns?.y?.length)
     ) {
-      return null;
-    }
+      generatedOptions = null;
+    } else {
+      const dateToUnix = xColumn?.isDate ? xColumn.dateToUnix : null;
 
-    const xColumn = availableColumns.find(
-      (col) => col.key === selectedColumns.x
-    );
+      let processedData = data;
 
-    const dateToUnix = xColumn?.isDate ? xColumn.dateToUnix : null;
+      // Process dates if necessary
+      if (xColumn?.isDate && dateToUnix) {
+        processedData = [];
 
-    let processedData = data;
-
-    // Process dates if necessary
-    if (xColumn?.isDate && dateToUnix) {
-      processedData = [];
-
-      for (let i = 0; i < data.length; i++) {
-        // we already have unix dates pre-calculated and stored for every row. (look inside agentUitls.js in the reFormatData function)
-        const item = data[i];
-        processedData.push({
-          ...item,
-          [selectedColumns.x]: item.unixDateValues[selectedColumns.x],
-        });
+        for (let i = 0; i < data.length; i++) {
+          // we already have unix dates pre-calculated and stored for every row. (look inside agentUitls.js in the reFormatData function)
+          const item = data[i];
+          processedData.push({
+            ...item,
+            [selectedColumns.x]: item.unixDateValues[selectedColumns.x],
+          });
+        }
       }
-    }
 
-    if (selectedChart === "bar" || selectedChart === "line") {
-      try {
-        processedData = convertWideToLong(
-          processedData,
-          selectedColumns.x,
-          selectedColumns.y
-        );
-        // if this has more than 50 unique values in the x axis, then will will not render the chart and ask to use line chart instead
-        uniqueLabels = new Set(processedData.map((d) => d[selectedColumns.x]));
-      } catch (e) {
-        console.error("Error converting wide to long format", e);
+      if (selectedChart === "bar" || selectedChart === "line") {
+        try {
+          processedData = convertWideToLong(
+            processedData,
+            selectedColumns.x,
+            selectedColumns.y,
+            chartSpecificOptions[selectedChart].splitBy
+          );
+          // if this has more than 50 unique values in the x axis, then will will not render the chart and ask to use line chart instead
+          uniqueLabels = new Set(
+            processedData.map((d) => d[selectedColumns.x])
+          );
+        } catch (e) {
+          console.error("Error converting wide to long format", e);
+        }
       }
-    }
 
-    const tooManyCategories = uniqueLabels.size > 200;
+      tooManyCategories = uniqueLabels.size > 200;
 
-    if (selectedChart !== "bar" && selectedChart !== "line") {
-      // if we have more than 10k categories in the x axis, and this is a boxplot, sample 100 unique values
-      let uniqueX = new Set(processedData.map((d) => d[selectedColumns.x]));
+      if (selectedChart !== "bar" && selectedChart !== "line") {
+        // if we have more than 10k categories in the x axis, and this is a boxplot, sample 100 unique values
+        let uniqueX = new Set(processedData.map((d) => d[selectedColumns.x]));
 
-      if (selectedChart === "boxplot" && uniqueX.size > 10000) {
-        wasSampled = true;
-        const sampledLabels = new Set();
-        const step = Math.floor(uniqueX.size / 200);
-        let i = 0;
-        for (const label of uniqueX) {
-          if (i % step === 0) {
-            sampledLabels.add(label);
+        if (selectedChart === "boxplot" && uniqueX.size > 10000) {
+          wasSampled = true;
+          const sampledLabels = new Set();
+          const step = Math.floor(uniqueX.size / 200);
+          let i = 0;
+          for (const label of uniqueX) {
+            if (i % step === 0) {
+              sampledLabels.add(label);
+            }
+            i++;
+
+            if (sampledLabels.size >= 200) {
+              break;
+            }
           }
-          i++;
 
-          if (sampledLabels.size >= 200) {
-            break;
-          }
+          // filter processedData to only include the unique labels
+          processedData = processedData.filter((d) =>
+            sampledLabels.has(d[selectedColumns.x])
+          );
         }
 
-        // filter processedData to only include the unique labels
-        processedData = processedData.filter((d) =>
-          sampledLabels.has(d[selectedColumns.x])
+        generatedOptions = getObservableOptions(
+          dimensions,
+          {
+            ...defaultOptions,
+            type: selectedChart || "Bar",
+            x: selectedColumns.x || null,
+            y: selectedColumns.y || null,
+            facet: selectedColumns.facet,
+            filter: chartSpecificOptions[selectedChart]?.filter,
+            xIsDate: xColumn?.isDate,
+            dateToUnix,
+            ...chartStyle,
+            ...chartSpecificOptions[selectedChart],
+          },
+          processedData,
+          selectedColumns,
+          availableColumns
+        );
+      } else if (selectedChart === "bar" && !tooManyCategories) {
+        generatedOptions = getObservableOptions(
+          dimensions,
+          {
+            ...defaultOptions,
+            type: selectedChart,
+            // we do this only if an x column and some y columns are selected
+            x: selectedColumns.x && selectedColumns?.y?.length && "label",
+            // check to ensure we don't render a blank chart if no axis is selected
+            y: selectedColumns.x && selectedColumns?.y?.length ? "value" : null,
+            facet: selectedColumns.x || null,
+            filter: chartSpecificOptions[selectedChart]?.filter,
+            xIsDate: xColumn?.isDate,
+            dateToUnix,
+            ...chartStyle,
+            ...chartSpecificOptions[selectedChart],
+          },
+          processedData,
+          selectedColumns,
+          availableColumns
+        );
+      } else if (selectedChart == "line") {
+        generatedOptions = getObservableOptions(
+          dimensions,
+          {
+            ...defaultOptions,
+            type: selectedChart,
+            x: selectedColumns.x || null,
+            // check to ensure we don't render a blank chart if no axis is selected
+            y: selectedColumns.x && selectedColumns.y.length ? "value" : null,
+            stroke: "label",
+            // disable facetting for line charts for now
+            // facet: selectedColumns.facet || null,
+            filter: chartSpecificOptions[selectedChart]?.filter,
+            xIsDate: xColumn?.isDate,
+            dateToUnix,
+            ...chartStyle,
+            ...chartSpecificOptions[selectedChart],
+          },
+          processedData,
+          selectedColumns,
+          availableColumns
         );
       }
-
-      generatedOptions = getObservableOptions(
-        dimensions,
-        {
-          ...defaultOptions,
-          type: selectedChart || "Bar",
-          x: selectedColumns.x || null,
-          y: selectedColumns.y || null,
-          facet: selectedColumns.facet,
-          filter: chartSpecificOptions[selectedChart]?.filter,
-          xIsDate: xColumn?.isDate,
-          dateToUnix,
-          ...chartStyle,
-          ...chartSpecificOptions[selectedChart],
-        },
-        processedData,
-        selectedColumns,
-        availableColumns
-      );
-    } else if (selectedChart === "bar" && !tooManyCategories) {
-      generatedOptions = getObservableOptions(
-        dimensions,
-        {
-          ...defaultOptions,
-          type: selectedChart,
-          // we do this only if an x column and some y columns are selected
-          x: selectedColumns.x && selectedColumns?.y?.length && "label",
-          // check to ensure we don't render a blank chart if no axis is selected
-          y: selectedColumns.x && selectedColumns?.y?.length ? "value" : null,
-          facet: selectedColumns.x || null,
-          filter: chartSpecificOptions[selectedChart]?.filter,
-          xIsDate: xColumn?.isDate,
-          dateToUnix,
-          ...chartStyle,
-          ...chartSpecificOptions[selectedChart],
-        },
-        processedData,
-        selectedColumns,
-        availableColumns
-      );
-    } else if (selectedChart == "line") {
-      generatedOptions = getObservableOptions(
-        dimensions,
-        {
-          ...defaultOptions,
-          type: selectedChart,
-          x: selectedColumns.x || null,
-          // check to ensure we don't render a blank chart if no axis is selected
-          y: selectedColumns.x && selectedColumns.y.length ? "value" : null,
-          stroke: "label",
-          // disable facetting for line charts for now
-          // facet: selectedColumns.facet || null,
-          filter: chartSpecificOptions[selectedChart]?.filter,
-          xIsDate: xColumn?.isDate,
-          dateToUnix,
-          ...chartStyle,
-          ...chartSpecificOptions[selectedChart],
-        },
-        processedData,
-        selectedColumns,
-        availableColumns
-      );
     }
 
     if (!containerRef.current) return;
@@ -236,13 +240,27 @@ export default function ObservablePlot() {
         containerRef.current.appendChild(
           Plot.plot({
             ...generatedOptions,
-            color: {
-              ...generatedOptions.color,
-              // override the scheme
-              scheme: undefined,
-              domain: colorDomain,
-              range: colorRange,
-            },
+            color: chartSpecificOptions[selectedChart].splitBy
+              ? {
+                  legend: true,
+                  tickFormat: (d) => {
+                    if (
+                      chartState.chartSpecificOptions[selectedChart]
+                        .splitByIsDate
+                    ) {
+                      return timeFormat(chartStyle.dateFormat)(unix(d));
+                    } else {
+                      return d;
+                    }
+                  },
+                }
+              : {
+                  ...generatedOptions.color,
+                  // override the scheme
+                  scheme: undefined,
+                  domain: colorDomain,
+                  range: colorRange,
+                },
             fx: {
               grid: false,
               tickRotate: -90,
@@ -290,17 +308,30 @@ export default function ObservablePlot() {
           }
         });
 
-        // if chart is not a bar chart
         containerRef.current.appendChild(
           Plot.plot({
             ...generatedOptions,
-            color: {
-              ...generatedOptions.color,
-              // override the scheme
-              scheme: undefined,
-              domain: colorDomain,
-              range: colorRange,
-            },
+            color: chartSpecificOptions[selectedChart].splitBy
+              ? {
+                  legend: true,
+                  tickFormat: (d) => {
+                    if (
+                      chartState.chartSpecificOptions[selectedChart]
+                        .splitByIsDate
+                    ) {
+                      return timeFormat(chartStyle.dateFormat)(unix(d));
+                    } else {
+                      return d;
+                    }
+                  },
+                }
+              : {
+                  ...generatedOptions.color,
+                  // override the scheme
+                  scheme: undefined,
+                  domain: colorDomain,
+                  range: colorRange,
+                },
           })
         );
       } else {

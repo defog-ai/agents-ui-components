@@ -9,7 +9,6 @@ const HistogramControls = () => {
   const histogramOptions = chartSpecificOptions.histogram;
 
   const handleOptionChange = (option, value) => {
-    console.log(option, value);
     chartState.updateChartSpecificOptions({ [option]: value }).render();
   };
 
