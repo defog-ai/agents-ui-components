@@ -26,6 +26,7 @@ const CHART_TYPES = [
 ];
 
 const AGGREGATE_OPTIONS = [
+  { value: "none", label: "None" },
   { value: "count", label: "Count" },
   { value: "sum", label: "Sum" },
   { value: "proportion", label: "Proportion" },
@@ -106,34 +107,111 @@ export function PrimarySelection({ columns }) {
         }
       }
 
+      // reset split by if we are changing the y axis
+      if (axis === "y") {
+        newChartState = newChartState.updateChartSpecificOptions({
+          splitBy: null,
+          splitByIsDate: false,
+        });
+      }
+
       newChartState.render();
     },
     [chartState, selectedColumns, selectedChart, columns]
   );
 
   const handleAggregateChange = (value) => {
+    // if this is a bar chart, we need to reset the split by selection to the first quantitative column
+    let newSplitBy = null;
+    let newSplitByIsDate = false;
+
+    // only do this if:
+    // - this is a bar chart
+    // - we are aggregating by none
+    // - we have columns
+    // - we have <=1 y columns
+    if (
+      selectedChart === "bar" &&
+      value === "none" &&
+      columns.length > 0 &&
+      selectedColumns.y.length <= 1
+    ) {
+      newSplitBy =
+        chartSpecificOptions[selectedChart].splitBy || columns[0].dataIndex;
+      const selectedColumn = columns.find((col) => col.key === newSplitBy);
+      newSplitByIsDate = selectedColumn.isDate;
+    } else {
+      newSplitBy = null;
+      newSplitByIsDate = false;
+    }
+
     chartState
-      .updateChartSpecificOptions({ aggregateFunction: value || "sum" })
+      .updateChartSpecificOptions({
+        aggregateFunction: value || "sum",
+        splitBy: newSplitBy,
+        splitByIsDate: newSplitByIsDate,
+      })
+      .render();
+  };
+
+  const handleSplitByChange = (value) => {
+    const selectedColumn = columns.find((col) => col.key === value) || {};
+    const newSplitByIsDate = selectedColumn.isDate || false;
+
+    chartState
+      .updateChartSpecificOptions({
+        splitBy: value,
+        splitByIsDate: newSplitByIsDate,
+      })
       .render();
   };
 
   // Render aggregate function selection
-  const renderAggregateSelection = () => (
-    <div className="mt-2">
-      <span className="mr-2 input-label">Aggregation</span>
-      <Select
-        style={{ width: "100%" }}
-        value={chartSpecificOptions[selectedChart].aggregateFunction || "sum"}
-        onChange={handleAggregateChange}
-      >
-        {AGGREGATE_OPTIONS.map(({ value, label }) => (
-          <Option key={value} value={value}>
-            {label}
-          </Option>
-        ))}
-      </Select>
-    </div>
-  );
+  const renderAggregateSelection = () => {
+    return (
+      <>
+        <div>
+          <span className="mr-2 input-label">Aggregation</span>
+          <Select
+            style={{ width: "100%" }}
+            value={
+              chartSpecificOptions[selectedChart].aggregateFunction || "sum"
+            }
+            onChange={handleAggregateChange}
+          >
+            {AGGREGATE_OPTIONS.filter(
+              (option) =>
+                // remove none if we have a line chart
+                option.value !== "none" || selectedChart !== "line"
+            ).map(({ value, label }) => (
+              <Option key={value} value={value}>
+                {label}
+              </Option>
+            ))}
+          </Select>
+        </div>
+
+        {/* Add Split by selector when aggregation is none and selected Y columns <= 1 */}
+        {chartSpecificOptions[selectedChart].aggregateFunction === "none" &&
+          selectedColumns.y.length <= 1 && (
+            <div className="mt-2">
+              <h3 className="mr-2 input-label">Split by</h3>
+              <Select
+                style={{ width: "100%" }}
+                value={chartSpecificOptions[selectedChart].splitBy}
+                onChange={handleSplitByChange}
+                options={columns.map((col) => ({
+                  label: col.title,
+                  value: col.dataIndex,
+                }))}
+                placeholder="Select column"
+                allowClear
+              />
+            </div>
+          )}
+      </>
+    );
+  };
 
   // Handle axis label change
   const handleAxisLabelChange = (axis) => (e) => {
@@ -239,7 +317,7 @@ export function PrimarySelection({ columns }) {
     );
   }, [selectedColumns, orderedColumns, handleAxisChange]);
 
-  const ColorBySelection = useMemo(() => {
+  const splitBySelection = useMemo(() => {
     const colorSchemeSelection = (value) => {
       if (selectedChart !== "line") {
         chartState
@@ -356,7 +434,7 @@ export function PrimarySelection({ columns }) {
 
           <div className="grid grid-cols-2 gap-2 pt-4 ">
             {FacetSelection}
-            {ColorBySelection}
+            {splitBySelection}
           </div>
         </div>
       ) : null}

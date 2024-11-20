@@ -27,7 +27,7 @@ const ColorSchemeSelector = ({ value, onChange }) => {
   const chartState = useContext(ChartStateContext);
   const { selectedColumns, selectedChart } = chartState;
 
-  const colorBySelected = selectedColumns.fill;
+  const splitBy = selectedColumns.fill;
 
   const renderColorPreview = (scheme) => {
     const { colorScheme } = getColorScheme(scheme);
@@ -79,25 +79,23 @@ const ColorSchemeSelector = ({ value, onChange }) => {
         <h3 className="w-full m-0 input-label">Color Scheme</h3>
 
         {/* we allow multiple y axis to be selected in bar and line charts so color scheme can still be applied */}
-        {!colorBySelected &&
-          selectedChart !== "bar" &&
-          selectedChart !== "line" && (
-            <Tooltip
-              title="Select a 'Color By' column in the Primary tab"
-              className="flex items-center gap-1"
-            >
-              <InfoCircleOutlined className="text-gray-500" />
-              <p className="text-xs text-gray-500 underline underline-offset-2">
-                Select &apos;Color By&apos; column
-              </p>
-            </Tooltip>
-          )}
+        {!splitBy && selectedChart !== "bar" && selectedChart !== "line" && (
+          <Tooltip
+            title="Select a 'Color By' column in the Primary tab"
+            className="flex items-center gap-1"
+          >
+            <InfoCircleOutlined className="text-gray-500" />
+            <p className="text-xs text-gray-500 underline underline-offset-2">
+              Select &apos;Color By&apos; column
+            </p>
+          </Tooltip>
+        )}
       </Space>
       <Select
         value={value}
         style={{ width: "100%" }}
         onChange={onChange}
-        // disabled={!colorBySelected}
+        // disabled={!splitBy}
       >
         <OptGroup label="Categorical">
           {COLOR_SCHEMES.categorical.map((scheme) => (

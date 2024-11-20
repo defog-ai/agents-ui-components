@@ -77,6 +77,7 @@ const LineChartControls = () => {
         <div className="mb-2">
           <span className="block mb-1">Line Color</span>
           <ColorPicker
+            disabledAlpha={true}
             allowClear={true}
             value={
               chartSpecificOptions.line.lineOptions?.[column]?.stroke || ""

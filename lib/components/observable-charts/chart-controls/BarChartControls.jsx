@@ -39,6 +39,7 @@ const BarChartControls = () => {
         <h4 className="mb-2 font-bold">{`${column}`}</h4>
         <div className="mb-2">
           <ColorPicker
+            disabledAlpha={true}
             allowClear={true}
             value={chartSpecificOptions.bar.barOptions?.[column]?.fill || ""}
             onChange={(color) =>
