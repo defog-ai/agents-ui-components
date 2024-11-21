@@ -12,7 +12,7 @@ import { createContext } from "react";
  * @property {string|null} user - User email/name.
  * @property {boolean} isAdmin - Whether the user is an admin.
  * @property {Array<string>} hiddenChartsForNonAdminUsers - The list of charts that *will be hidden* for non admin users.
- * @property {boolean} hideSqlForNonAdminUsers - Whether to hide the SQL/Code tab for non admin users.
+ * @property {boolean} hideSqlTabForNonAdminUsers - Whether to hide the SQL/Code tab for non admin users.
  * @property {boolean} hidePreviewTabsForNonAdminUsers - Whether to hide the "view data structure" and "preview data" tabs for non admin users.
  * @property {string|null} token - Token aka hashed password. NOT api key.
  * @property {boolean} showAnalysisUnderstanding - Poorly named. Whether to show "analysis understanding" aka description of the results of a step under the table of that step.
@@ -31,7 +31,7 @@ export const defaultAgentConfig = {
   user: null,
   isAdmin: false,
   hiddenChartsForNonAdminUsers: [],
-  hideSqlForNonAdminUsers: false,
+  hideSqlTabForNonAdminUsers: false,
   hidePreviewTabsForNonAdminUsers: false,
   token: null,
   analyses: [],

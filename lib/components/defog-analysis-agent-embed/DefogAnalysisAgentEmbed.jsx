@@ -509,7 +509,7 @@ export function EmbedInner({
  * @property {Object=} user - User email/name. Default is "admin".
  * @property {Boolean=} isAdmin - Whether the user is an admin.
  * @property {Array<string>=} hiddenChartsForNonAdminUsers - The list of charts that *will be hidden* for non admin users.
- * @property {Boolean=} hideSqlForNonAdminUsers - Whether to hide the SQL/Code tab for non admin users.
+ * @property {Boolean=} hideSqlTabForNonAdminUsers - Whether to hide the SQL/Code tab for non admin users.
  * @property {Boolean=} hidePreviewTabsForNonAdminUsers - Whether to hide the "view data structure" and "preview data" tabs for non admin users.
  * @property {String} apiEndpoint - The API endpoint to use for the requests. Default is https://demo.defog.ai.
  * @property {Boolean=} devMode -  If the component should be in dev mode.
@@ -542,7 +542,7 @@ export function DefogAnalysisAgentEmbed({
   user = "admin",
   isAdmin = false,
   hiddenChartsForNonAdminUsers = [],
-  hideSqlForNonAdminUsers = false,
+  hideSqlTabForNonAdminUsers = false,
   hidePreviewTabsForNonAdminUsers = false,
   devMode = false,
   showAnalysisUnderstanding = true,
@@ -583,8 +583,8 @@ export function DefogAnalysisAgentEmbed({
   console.debug(
     "isAdmin",
     isAdmin,
-    "hideSqlForNonAdminUsers",
-    hideSqlForNonAdminUsers,
+    "hideSqlTabForNonAdminUsers",
+    hideSqlTabForNonAdminUsers,
     "hidePreviewTabsForNonAdminUsers",
     hidePreviewTabsForNonAdminUsers
   );
@@ -597,7 +597,7 @@ export function DefogAnalysisAgentEmbed({
           user={user}
           isAdmin={isAdmin}
           hiddenChartsForNonAdminUsers={hiddenChartsForNonAdminUsers}
-          hideSqlForNonAdminUsers={hideSqlForNonAdminUsers}
+          hideSqlTabForNonAdminUsers={hideSqlTabForNonAdminUsers}
           hidePreviewTabsForNonAdminUsers={hidePreviewTabsForNonAdminUsers}
           apiEndpoint={apiEndpoint}
           devMode={devMode}
