@@ -11,7 +11,7 @@ import { createContext } from "react";
  * @property {Object} toolRunDataCache - Cache for tool run data. (Only those that have been opened/created in this "Session")
  * @property {string|null} user - User email/name.
  * @property {boolean} isAdmin - Whether the user is an admin.
- * @property {Array<string>} skippedChartsForNonAdminUsers - The list of charts that *will be removed* for non admin users.
+ * @property {Array<string>} hiddenChartsForNonAdminUsers - The list of charts that *will be hidden* for non admin users.
  * @property {boolean} hideSqlForNonAdminUsers - Whether to hide the SQL/Code tab for non admin users.
  * @property {boolean} hidePreviewTabsForNonAdminUsers - Whether to hide the "view data structure" and "preview data" tabs for non admin users.
  * @property {string|null} token - Token aka hashed password. NOT api key.
@@ -30,7 +30,7 @@ export const defaultAgentConfig = {
   sqliteConn: null,
   user: null,
   isAdmin: false,
-  skippedChartsForNonAdminUsers: [],
+  hiddenChartsForNonAdminUsers: [],
   hideSqlForNonAdminUsers: false,
   hidePreviewTabsForNonAdminUsers: false,
   token: null,

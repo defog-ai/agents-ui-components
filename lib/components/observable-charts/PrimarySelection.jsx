@@ -56,7 +56,7 @@ export function PrimarySelection({ columns }) {
   });
 
   const agentConfigContext = useContext(AgentConfigContext);
-  const { isAdmin, skippedChartsForNonAdminUsers } = agentConfigContext.val;
+  const { isAdmin, hiddenChartsForNonAdminUsers } = agentConfigContext.val;
 
   // Reorder columns when chart type or available columns change
   useEffect(() => {
@@ -381,7 +381,7 @@ export function PrimarySelection({ columns }) {
               if (isAdmin) {
                 return true;
               } else {
-                return !skippedChartsForNonAdminUsers.includes(d.value);
+                return !hiddenChartsForNonAdminUsers.includes(d.value);
               }
             }).map(({ value, label, Icon }) => (
               <Button

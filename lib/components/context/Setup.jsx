@@ -19,7 +19,7 @@ import { initializeSQLite } from "../utils/sqlite";
  * @property {String} token - The hashed password.
  * @property {Object=} user - User email/name. Default is "admin".
  * @property {Boolean=} isAdmin - Whether the user is an admin.
- * @property {Array<string>=} skippedChartsForNonAdminUsers - The list of charts that *will be removed* for non admin users.
+ * @property {Array<string>=} hiddenChartsForNonAdminUsers - The list of charts that *will be hidden* for non admin users.
  * @property {Boolean=} hideSqlForNonAdminUsers - Whether to hide the SQL/Code tab for non admin users.
  * @property {Boolean=} hidePreviewTabsForNonAdminUsers - Whether to hide the "view data structure" and "preview data" tabs for non admin users.
  * @property {String} apiEndpoint - The API endpoint to use for the requests. Default is https://demo.defog.ai.
@@ -43,7 +43,7 @@ export function Setup({
   token,
   user = "admin",
   isAdmin = false,
-  skippedChartsForNonAdminUsers = [],
+  hiddenChartsForNonAdminUsers = [],
   hideSqlForNonAdminUsers = false,
   hidePreviewTabsForNonAdminUsers = false,
   apiEndpoint = "https://demo.defog.ai",
@@ -65,7 +65,7 @@ export function Setup({
       user,
       token,
       isAdmin,
-      skippedChartsForNonAdminUsers,
+      hiddenChartsForNonAdminUsers,
       showAnalysisUnderstanding,
       hideSqlForNonAdminUsers,
       hidePreviewTabsForNonAdminUsers,
@@ -83,7 +83,7 @@ export function Setup({
       user,
       token,
       isAdmin,
-      skippedChartsForNonAdminUsers,
+      hiddenChartsForNonAdminUsers,
       hideSqlForNonAdminUsers,
       hidePreviewTabsForNonAdminUsers,
       showAnalysisUnderstanding,
@@ -96,7 +96,7 @@ export function Setup({
     user,
     token,
     isAdmin,
-    skippedChartsForNonAdminUsers,
+    hiddenChartsForNonAdminUsers,
     hideSqlForNonAdminUsers,
     hidePreviewTabsForNonAdminUsers,
     showAnalysisUnderstanding,
