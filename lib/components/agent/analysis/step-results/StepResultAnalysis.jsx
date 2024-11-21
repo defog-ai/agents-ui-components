@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import setupBaseUrl from "../../../utils/setupBaseUrl";
 import { SpinningLoader, Tabs } from "@ui-components";
 import {
@@ -9,6 +9,7 @@ import {
 import ErrorBoundary from "../../../common/ErrorBoundary";
 import { marked } from "marked";
 import sanitizeHtml from "sanitize-html";
+import { AgentConfigContext } from "../../../context/AgentContext";
 
 export default function StepResultAnalysis({
   stepId,
@@ -20,6 +21,9 @@ export default function StepResultAnalysis({
   setCurrentQuestion = (...args) => {},
 }) {
   const [toolRunAnalysis, setToolRunAnalysis] = useState("");
+
+  const agentConfigContext = useContext(AgentConfigContext);
+  const { isAdmin } = agentConfigContext.val;
 
   const [loading, setLoading] = useState(false);
   const [followOnQuestions, setFollowOnQuestions] = useState([]);
@@ -129,31 +133,40 @@ export default function StepResultAnalysis({
         <>
           {toolRunAnalysis ? (
             <ErrorBoundary customErrorMessage={toolRunAnalysis}>
-              <Tabs
-                size="small"
-                defaultSelected="Formatted"
-                tabs={[
-                  {
-                    name: "Formatted",
-                    content: (
-                      <div
-                        className="p-4 pb-0 bg-gray-100 text-sm text-gray-600 analysis-markdown "
-                        dangerouslySetInnerHTML={{
-                          __html: sanitizeHtml(marked(toolRunAnalysis)),
-                        }}
-                      />
-                    ),
-                  },
-                  {
-                    name: "Raw",
-                    content: (
-                      <div className="p-4 bg-gray-100 text-sm text-gray-600">
-                        {toolRunAnalysis}
-                      </div>
-                    ),
-                  },
-                ]}
-              />
+              {isAdmin ? (
+                <Tabs
+                  size="small"
+                  defaultSelected="Formatted"
+                  tabs={[
+                    {
+                      name: "Formatted",
+                      content: (
+                        <div
+                          className="p-4 pb-0 bg-gray-100 text-sm text-gray-600 analysis-markdown "
+                          dangerouslySetInnerHTML={{
+                            __html: sanitizeHtml(marked(toolRunAnalysis)),
+                          }}
+                        />
+                      ),
+                    },
+                    {
+                      name: "Raw",
+                      content: (
+                        <div className="p-4 bg-gray-100 text-sm text-gray-600">
+                          {toolRunAnalysis}
+                        </div>
+                      ),
+                    },
+                  ]}
+                />
+              ) : (
+                <div
+                  className="p-4 pb-0 bg-gray-100 text-sm text-gray-600 analysis-markdown "
+                  dangerouslySetInnerHTML={{
+                    __html: sanitizeHtml(marked(toolRunAnalysis)),
+                  }}
+                />
+              )}
             </ErrorBoundary>
           ) : null}
 

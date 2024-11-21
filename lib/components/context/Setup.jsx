@@ -18,6 +18,10 @@ import { initializeSQLite } from "../utils/sqlite";
  * @typedef {Object} SetupProps
  * @property {String} token - The hashed password.
  * @property {Object=} user - User email/name. Default is "admin".
+ * @property {Boolean=} isAdmin - Whether the user is an admin.
+ * @property {Array<string>=} skippedChartsForNonAdminUsers - The list of charts that *will be removed* for non admin users.
+ * @property {Boolean=} hideSqlForNonAdminUsers - Whether to hide the SQL/Code tab for non admin users.
+ * @property {Boolean=} hidePreviewTabsForNonAdminUsers - Whether to hide the "view data structure" and "preview data" tabs for non admin users.
  * @property {String} apiEndpoint - The API endpoint to use for the requests. Default is https://demo.defog.ai.
  * @property {Boolean=} devMode -  If the component should be in dev mode.
  * @property {Boolean=} showAnalysisUnderstanding - Poorly named. Whether to show "analysis understanding" aka description of the results created by a model under the table.
@@ -38,6 +42,10 @@ import { initializeSQLite } from "../utils/sqlite";
 export function Setup({
   token,
   user = "admin",
+  isAdmin = false,
+  skippedChartsForNonAdminUsers = [],
+  hideSqlForNonAdminUsers = false,
+  hidePreviewTabsForNonAdminUsers = false,
   apiEndpoint = "https://demo.defog.ai",
   devMode = false,
   showAnalysisUnderstanding = true,
@@ -56,7 +64,11 @@ export function Setup({
     createAgentConfig({
       user,
       token,
+      isAdmin,
+      skippedChartsForNonAdminUsers,
       showAnalysisUnderstanding,
+      hideSqlForNonAdminUsers,
+      hidePreviewTabsForNonAdminUsers,
       showCode,
       allowDashboardAdd,
       devMode,
@@ -70,6 +82,10 @@ export function Setup({
       ...prev,
       user,
       token,
+      isAdmin,
+      skippedChartsForNonAdminUsers,
+      hideSqlForNonAdminUsers,
+      hidePreviewTabsForNonAdminUsers,
       showAnalysisUnderstanding,
       showCode,
       allowDashboardAdd,
@@ -79,6 +95,10 @@ export function Setup({
   }, [
     user,
     token,
+    isAdmin,
+    skippedChartsForNonAdminUsers,
+    hideSqlForNonAdminUsers,
+    hidePreviewTabsForNonAdminUsers,
     showAnalysisUnderstanding,
     showCode,
     allowDashboardAdd,

@@ -10,6 +10,10 @@ import { createContext } from "react";
  * @property {Object} analysisDataCache - Cache for analysis data. (Only those that have been opened/created in this "Session")
  * @property {Object} toolRunDataCache - Cache for tool run data. (Only those that have been opened/created in this "Session")
  * @property {string|null} user - User email/name.
+ * @property {boolean} isAdmin - Whether the user is an admin.
+ * @property {Array<string>} skippedChartsForNonAdminUsers - The list of charts that *will be removed* for non admin users.
+ * @property {boolean} hideSqlForNonAdminUsers - Whether to hide the SQL/Code tab for non admin users.
+ * @property {boolean} hidePreviewTabsForNonAdminUsers - Whether to hide the "view data structure" and "preview data" tabs for non admin users.
  * @property {string|null} token - Token aka hashed password. NOT api key.
  * @property {boolean} showAnalysisUnderstanding - Poorly named. Whether to show "analysis understanding" aka description of the results of a step under the table of that step.
  * @property {boolean} showCode - Whether to show tool code.
@@ -25,6 +29,10 @@ export const defaultAgentConfig = {
   apiEndpoint: "https://demo.defog.ai",
   sqliteConn: null,
   user: null,
+  isAdmin: false,
+  skippedChartsForNonAdminUsers: [],
+  hideSqlForNonAdminUsers: false,
+  hidePreviewTabsForNonAdminUsers: false,
   token: null,
   analyses: [],
   dashboards: [],
