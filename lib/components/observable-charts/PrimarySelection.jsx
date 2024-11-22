@@ -13,6 +13,7 @@ import {
 import { reorderColumns } from "./columnOrdering.js";
 import { Input as TextInput, Button } from "@ui-components";
 import { ChartStateContext } from "./ChartStateContext.jsx";
+import { AgentConfigContext } from "../context/AgentContext";
 
 const { Option } = Select;
 
@@ -53,6 +54,9 @@ export function PrimarySelection({ columns }) {
     x: "Horizontal",
     y: "Vertical",
   });
+
+  const agentConfigContext = useContext(AgentConfigContext);
+  const { hiddenCharts } = agentConfigContext.val;
 
   // Reorder columns when chart type or available columns change
   useEffect(() => {
@@ -373,7 +377,13 @@ export function PrimarySelection({ columns }) {
         <div>
           <h3 className="mb-2 font-bold input-label">Chart Type</h3>
           <div className="flex flex-wrap gap-2">
-            {CHART_TYPES.map(({ value, label, Icon }) => (
+            {CHART_TYPES.filter((d) => {
+              if (hiddenCharts.length === 0) {
+                return true;
+              } else {
+                return !hiddenCharts.includes(d.value);
+              }
+            }).map(({ value, label, Icon }) => (
               <Button
                 key={value}
                 onClick={() => handleChartChange(value)}

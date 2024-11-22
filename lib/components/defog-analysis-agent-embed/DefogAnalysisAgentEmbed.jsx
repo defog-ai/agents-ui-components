@@ -29,7 +29,8 @@ export function EmbedInner({
   const messageManager = useContext(MessageManagerContext);
   const agentConfigContext = useContext(AgentConfigContext);
 
-  const { sqliteConn, token, apiEndpoint } = agentConfigContext.val;
+  const { sqliteConn, token, apiEndpoint, hideRawAnalysis, hidePreviewTabs } =
+    agentConfigContext.val;
 
   const [availableDbs, setAvailableDbs] = useState(dbs);
 
@@ -427,8 +428,19 @@ export function EmbedInner({
           />
         ),
       },
-    ];
-  }, [selectedDb, apiEndpoint, searchBarDraggable, token, nullTab]);
+    ].filter((d) =>
+      hidePreviewTabs
+        ? d.name !== "View data structure" && d.name !== "Preview data"
+        : true
+    );
+  }, [
+    selectedDb,
+    apiEndpoint,
+    searchBarDraggable,
+    token,
+    nullTab,
+    hidePreviewTabs,
+  ]);
 
   useEffect(() => {
     // if the new selected db is temp, empty its tree
@@ -489,6 +501,10 @@ export function EmbedInner({
  * @typedef {Object} EmbedProps
  * @property {String} token - The hashed password.
  * @property {Object=} user - User email/name. Default is "admin".
+ * @property {Boolean=} hideRawAnalysis - Whether to hide the raw analysis of results.
+ * @property {Array<string>=} hiddenCharts - The list of charts that *will be hidden*.
+ * @property {Boolean=} hideSqlTab - Whether to hide the SQL/Code tab.
+ * @property {Boolean=} hidePreviewTabs - Whether to hide the "view data structure" and "preview data" tabs.
  * @property {String} apiEndpoint - The API endpoint to use for the requests. Default is https://demo.defog.ai.
  * @property {Boolean=} devMode -  If the component should be in dev mode.
  * @property {Boolean=} showAnalysisUnderstanding - Poorly named. Whether to show "analysis understanding" aka description of the results created by a model under the table.
@@ -518,6 +534,10 @@ export function DefogAnalysisAgentEmbed({
   token,
   apiEndpoint = "https://demo.defog.ai",
   user = "admin",
+  hideRawAnalysis = false,
+  hiddenCharts = [],
+  hideSqlTab = false,
+  hidePreviewTabs = false,
   devMode = false,
   showAnalysisUnderstanding = true,
   showCode = false,
@@ -554,12 +574,25 @@ export function DefogAnalysisAgentEmbed({
     }));
   }, [dbs, initialTrees]);
 
+  console.debug(
+    "hideRawAnalysis",
+    hideRawAnalysis,
+    "hideSqlTab",
+    hideSqlTab,
+    "hidePreviewTabs",
+    hidePreviewTabs
+  );
+
   return (
     <div className="w-full bg-gradient-to-br from-[#6E00A2]/10 to-[#FFA20D]/10 p-2 lg:px-0 py-2 h-full flex items-center shadow-inner relative">
       <div className="w-full lg:w-full min-h-96 h-full overflow-y-hidden mx-auto">
         <Setup
           token={token}
           user={user}
+          hideRawAnalysis={hideRawAnalysis}
+          hiddenCharts={hiddenCharts}
+          hideSqlTab={hideSqlTab}
+          hidePreviewTabs={hidePreviewTabs}
           apiEndpoint={apiEndpoint}
           devMode={devMode}
           showAnalysisUnderstanding={showAnalysisUnderstanding}
