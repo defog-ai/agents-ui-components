@@ -29,13 +29,8 @@ export function EmbedInner({
   const messageManager = useContext(MessageManagerContext);
   const agentConfigContext = useContext(AgentConfigContext);
 
-  const {
-    sqliteConn,
-    token,
-    apiEndpoint,
-    isAdmin,
-    hidePreviewTabsForNonAdminUsers,
-  } = agentConfigContext.val;
+  const { sqliteConn, token, apiEndpoint, hideRawAnalysis, hidePreviewTabs } =
+    agentConfigContext.val;
 
   const [availableDbs, setAvailableDbs] = useState(dbs);
 
@@ -434,7 +429,7 @@ export function EmbedInner({
         ),
       },
     ].filter((d) =>
-      !isAdmin && hidePreviewTabsForNonAdminUsers
+      hidePreviewTabs
         ? d.name !== "View data structure" && d.name !== "Preview data"
         : true
     );
@@ -444,8 +439,7 @@ export function EmbedInner({
     searchBarDraggable,
     token,
     nullTab,
-    isAdmin,
-    hidePreviewTabsForNonAdminUsers,
+    hidePreviewTabs,
   ]);
 
   useEffect(() => {
@@ -507,10 +501,10 @@ export function EmbedInner({
  * @typedef {Object} EmbedProps
  * @property {String} token - The hashed password.
  * @property {Object=} user - User email/name. Default is "admin".
- * @property {Boolean=} isAdmin - Whether the user is an admin.
- * @property {Array<string>=} hiddenChartsForNonAdminUsers - The list of charts that *will be hidden* for non admin users.
- * @property {Boolean=} hideSqlTabForNonAdminUsers - Whether to hide the SQL/Code tab for non admin users.
- * @property {Boolean=} hidePreviewTabsForNonAdminUsers - Whether to hide the "view data structure" and "preview data" tabs for non admin users.
+ * @property {Boolean=} hideRawAnalysis - Whether to hide the raw analysis of results.
+ * @property {Array<string>=} hiddenCharts - The list of charts that *will be hidden*.
+ * @property {Boolean=} hideSqlTab - Whether to hide the SQL/Code tab.
+ * @property {Boolean=} hidePreviewTabs - Whether to hide the "view data structure" and "preview data" tabs.
  * @property {String} apiEndpoint - The API endpoint to use for the requests. Default is https://demo.defog.ai.
  * @property {Boolean=} devMode -  If the component should be in dev mode.
  * @property {Boolean=} showAnalysisUnderstanding - Poorly named. Whether to show "analysis understanding" aka description of the results created by a model under the table.
@@ -540,10 +534,10 @@ export function DefogAnalysisAgentEmbed({
   token,
   apiEndpoint = "https://demo.defog.ai",
   user = "admin",
-  isAdmin = false,
-  hiddenChartsForNonAdminUsers = [],
-  hideSqlTabForNonAdminUsers = false,
-  hidePreviewTabsForNonAdminUsers = false,
+  hideRawAnalysis = false,
+  hiddenCharts = [],
+  hideSqlTab = false,
+  hidePreviewTabs = false,
   devMode = false,
   showAnalysisUnderstanding = true,
   showCode = false,
@@ -581,12 +575,12 @@ export function DefogAnalysisAgentEmbed({
   }, [dbs, initialTrees]);
 
   console.debug(
-    "isAdmin",
-    isAdmin,
-    "hideSqlTabForNonAdminUsers",
-    hideSqlTabForNonAdminUsers,
-    "hidePreviewTabsForNonAdminUsers",
-    hidePreviewTabsForNonAdminUsers
+    "hideRawAnalysis",
+    hideRawAnalysis,
+    "hideSqlTab",
+    hideSqlTab,
+    "hidePreviewTabs",
+    hidePreviewTabs
   );
 
   return (
@@ -595,10 +589,10 @@ export function DefogAnalysisAgentEmbed({
         <Setup
           token={token}
           user={user}
-          isAdmin={isAdmin}
-          hiddenChartsForNonAdminUsers={hiddenChartsForNonAdminUsers}
-          hideSqlTabForNonAdminUsers={hideSqlTabForNonAdminUsers}
-          hidePreviewTabsForNonAdminUsers={hidePreviewTabsForNonAdminUsers}
+          hideRawAnalysis={hideRawAnalysis}
+          hiddenCharts={hiddenCharts}
+          hideSqlTab={hideSqlTab}
+          hidePreviewTabs={hidePreviewTabs}
           apiEndpoint={apiEndpoint}
           devMode={devMode}
           showAnalysisUnderstanding={showAnalysisUnderstanding}

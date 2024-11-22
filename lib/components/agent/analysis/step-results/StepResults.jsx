@@ -70,7 +70,7 @@ export function StepResults({
   setCurrentQuestion = (...args) => {},
 }) {
   const agentConfigContext = useContext(AgentConfigContext);
-  const { isAdmin, hideSqlTabForNonAdminUsers } = agentConfigContext.val;
+  const { hideSqlTab } = agentConfigContext.val;
   const parsedOutputs = useMemo(() => {
     return parseOutputs(step, analysisData);
   }, [step, analysisData]);
@@ -451,7 +451,7 @@ export function StepResults({
         />
       ) : step?.error_message && !activeNode.data.isTool ? (
         <StepError error_message={step?.error_message}></StepError>
-      ) : !isAdmin && hideSqlTabForNonAdminUsers ? (
+      ) : hideSqlTab ? (
         tabs.filter((d) => d.name === "Analysis")?.[0]?.content
       ) : (
         <Tabs

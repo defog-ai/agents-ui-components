@@ -23,7 +23,7 @@ export default function StepResultAnalysis({
   const [toolRunAnalysis, setToolRunAnalysis] = useState("");
 
   const agentConfigContext = useContext(AgentConfigContext);
-  const { isAdmin } = agentConfigContext.val;
+  const { hideRawAnalysis } = agentConfigContext.val;
 
   const [loading, setLoading] = useState(false);
   const [followOnQuestions, setFollowOnQuestions] = useState([]);
@@ -133,7 +133,14 @@ export default function StepResultAnalysis({
         <>
           {toolRunAnalysis ? (
             <ErrorBoundary customErrorMessage={toolRunAnalysis}>
-              {isAdmin ? (
+              {hideRawAnalysis ? (
+                <div
+                  className="p-4 pb-0 bg-gray-100 text-sm text-gray-600 analysis-markdown "
+                  dangerouslySetInnerHTML={{
+                    __html: sanitizeHtml(marked(toolRunAnalysis)),
+                  }}
+                />
+              ) : (
                 <Tabs
                   size="small"
                   defaultSelected="Formatted"
@@ -158,13 +165,6 @@ export default function StepResultAnalysis({
                       ),
                     },
                   ]}
-                />
-              ) : (
-                <div
-                  className="p-4 pb-0 bg-gray-100 text-sm text-gray-600 analysis-markdown "
-                  dangerouslySetInnerHTML={{
-                    __html: sanitizeHtml(marked(toolRunAnalysis)),
-                  }}
                 />
               )}
             </ErrorBoundary>
