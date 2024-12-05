@@ -81,8 +81,8 @@ const defaultRowCellRender = ({
         colIdx === dataIndexes.length - 1 ? "pr-4 sm:pr-6 lg:pr-8" : ""
       )}
     >
-      {(typeof cellValue === "number" || !isNaN(cellValue)) &
-      (Number(cellValue) > 10000)
+      {(typeof cellValue === "number" || !isNaN(cellValue)) &&
+      Math.abs(cellValue) > 10000
         ? Number(cellValue).toLocaleString()
         : cellValue}
     </td>
