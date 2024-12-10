@@ -50,6 +50,7 @@
     "@tiptap/suggestion": "^2.4.0",
     "@uiw/codemirror-extensions-classname": "^4.23.0",
     "@uiw/react-codemirror": "^4.23.0",
+    "@uiw/codemirror-themes": "^4.23.0",
     "antd": "^5.19.1",
     "chart.js": "^4.4.3",
     "chroma-js": "^2.4.2",
