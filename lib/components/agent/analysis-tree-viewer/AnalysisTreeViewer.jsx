@@ -231,7 +231,7 @@ export function AnalysisTreeViewer({
         {activeAnalysisId && activeRootAnalysisId && (
           <div className="lg:hidden absolute bottom-0 left-0 w-full h-[5%] pointer-events-none bg-gradient-to-b from-transparent to-gray-300 z-10"></div>
         )}
-        <div className="flex flex-row w-full h-full max-w-full text-gray-600 bg-white analysis-tree-viewer">
+        <div className="flex flex-row w-full h-full max-w-full text-gray-600 bg-white dark:bg-gray-900 analysis-tree-viewer">
           <div className="absolute left-0 top-0 z-[20] lg:sticky h-full">
             <Sidebar
               location="left"
@@ -244,7 +244,7 @@ export function AnalysisTreeViewer({
                   History{" "}
                   <span
                     title="Clear history"
-                    className="text-xs font-light underline text-gray-400 inline hover:text-blue-500 cursor-pointer"
+                    className="text-xs font-light underline text-gray-400 dark:text-gray-500 inline hover:text-blue-500 dark:hover:text-blue-500 cursor-pointer"
                     onClick={() => {
                       analysisTreeManager.reset();
                     }}
@@ -254,11 +254,11 @@ export function AnalysisTreeViewer({
                 </span>
               }
               rootClassNames={twMerge(
-                "transition-all z-20 h-[calc(100%-1rem)] rounded-md rounded-l-none lg:rounded-none lg:rounded-tr-md lg:rounded-br-md bg-gray-100 border-r sticky top-0 lg:relative",
+                "transition-all z-20 h-[calc(100%-1rem)] rounded-md rounded-l-none lg:rounded-none lg:rounded-tr-md lg:rounded-br-md bg-gray-100 dark:bg-gray-800 border-r sticky top-0 lg:relative",
                 sideBarClasses
               )}
-              iconClassNames={`${sidebarOpen ? "" : "text-white bg-secondary-highlight-2"}`}
-              openClassNames={"border-gray-300 shadow-md"}
+              iconClassNames={`${sidebarOpen ? "" : "text-white dark:text-gray-500 bg-secondary-highlight-2"}`}
+              openClassNames={"border-gray-300 dark:border-gray-700 shadow-md"}
               closedClassNames={"border-transparent bg-transparent shadow-none"}
               contentClassNames={
                 "w-72 p-4 rounded-tl-lg relative sm:block min-h-96 h-full"
@@ -285,12 +285,12 @@ export function AnalysisTreeViewer({
                     />
                   </div>
                 ) : (
-                  <div className="sticky w-full top-0 py-3 bg-gray-100">
+                  <div className="sticky w-full top-0 py-3 bg-gray-100 dark:bg-gray-800">
                     <div
                       data-enabled={!loading}
                       className={twMerge(
                         "flex items-center cursor-pointer z-20 relative",
-                        "bg-blue-500 hover:bg-blue-500 text-white p-2 shadow-md border border-blue-500"
+                        "bg-blue-500 dark:bg-blue-500 hover:bg-blue-500 dark:hover:bg-blue-500 text-white dark:text-white p-2 shadow-md border border-blue-500 dark:border-blue-500"
                         // "data-[enabled=false]:bg-gray-100 data-[enabled=false]:hover:bg-gray-100 data-[enabled=false]:hover:text-gray-400 data-[enabled=false]:text-gray-400 data-[enabled=false]:cursor-not-allowed"
                       )}
                       onClick={() => {
@@ -315,7 +315,7 @@ export function AnalysisTreeViewer({
 
                   return (
                     <div key={groupName}>
-                      <h3 className="text-lg font-bold text-gray-400 mt-4 mb-2">
+                      <h3 className="text-lg font-bold text-gray-400 dark:text-gray-500 mt-4 mb-2">
                         {groupName}
                       </h3>
                       {analysesInGroup.map((rootAnalysisId, i) => {
@@ -368,7 +368,7 @@ export function AnalysisTreeViewer({
           </div>
           <div
             className={twMerge(
-              "absolute left-0 top-0 h-full w-full overlay lg:hidden bg-gray-800 z-[11] transition-all",
+              "absolute left-0 top-0 h-full w-full overlay lg:hidden bg-gray-800 dark:bg-gray-900 z-[11] transition-all",
               sidebarOpen ? "opacity-50 block" : "opacity-0 pointer-events-none"
             )}
             onClick={() => {
@@ -485,20 +485,20 @@ export function AnalysisTreeViewer({
 
             {!activeAnalysisId && (
               <div className="grow flex flex-col place-content-center m-auto max-w-full relative z-[1]">
-                <div className="text-center text-gray-400 rounded-md">
+                <div className="text-center text-gray-400 dark:text-gray-500 rounded-md">
                   <p className="block mb-4 text-sm font-bold cursor-default">
                     Quickstart
                   </p>
 
-                  <ul className="font-light text-gray-500">
+                  <ul className="font-light text-gray-500 dark:text-gray-400">
                     {predefinedQuestions.map((question, i) => (
                       <li className="" key={i}>
                         <button
                           className={twMerge(
-                            "cursor-pointer text-sm p-2 m-1 border border-gray-200 rounded-md shadow-sm",
+                            "cursor-pointer text-sm p-2 m-1 border border-gray-200 dark:border-gray-700 rounded-md shadow-sm",
                             loading
-                              ? "bg-gray-100 text-gray-300 cursor-not-allowed"
-                              : "hover:bg-gray-50 hover:border"
+                              ? "bg-gray-100 dark:bg-gray-800 text-gray-300 dark:text-gray-600 cursor-not-allowed"
+                              : "hover:bg-gray-50 dark:hover:bg-gray-800 hover:border"
                           )}
                           onClick={(ev) => {
                             if (loading) return;
@@ -556,13 +556,13 @@ export function AnalysisTreeViewer({
           setAddToDashboardSelection(false);
         }}
       >
-        <div className="flex flex-col mt-8 overflow-auto bg-gray-100 rounded-md dashboard-selection max-h-80">
+        <div className="flex flex-col mt-8 overflow-auto bg-gray-100 dark:bg-gray-800 rounded-md dashboard-selection max-h-80">
           {dashboards.map((dashboard) => (
             <div
               className={
-                "flex flex-row p-2 hover:bg-gray-200 cursor-pointer text-gray-400 items-start " +
+                "flex flex-row p-2 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer text-gray-400 dark:text-gray-500 items-start " +
                 (selectedDashboards.includes(dashboard.doc_id) &&
-                  "text-gray-600 font-bold")
+                  "text-gray-600 dark:text-gray-300 font-bold")
               }
               key={dashboard.doc_id}
               onClick={() => {
@@ -583,7 +583,7 @@ export function AnalysisTreeViewer({
               <div className="mr-3 checkbox">
                 <input
                   // style input to have no background and a black tick
-                  className="w-3 h-3 border border-gray-300 rounded-md appearance-none checked:bg-blue-600 checked:border-transparent"
+                  className="w-3 h-3 border border-gray-300 dark:border-gray-600 rounded-md appearance-none checked:bg-blue-600 checked:border-transparent"
                   type="checkbox"
                   checked={selectedDashboards.includes(dashboard.doc_id)}
                   readOnly

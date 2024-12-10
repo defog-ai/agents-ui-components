@@ -17,10 +17,10 @@ export function AnalysisTreeItem({
   return (
     <div
       className={twMerge(
-        "flex flex-row items-center py-1 px-2 mb-2 hover:cursor-pointer hover:bg-gray-200 history-item",
-        isActive ? "font-bold bg-gray-200 " : "",
+        "flex flex-row items-center py-1 px-2 mb-2 hover:cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 history-item dark:text-gray-300",
+        isActive ? "font-bold bg-gray-200 dark:bg-gray-700" : "",
         isDummy
-          ? "dummy-analysis border-l-4 bg-gray-100 border-l-blue-500 text-blue-500 p-2 m-0"
+          ? "dummy-analysis border-l-4 bg-gray-100 dark:bg-gray-800 border-l-blue-500 text-blue-500 p-2 m-0"
           : analysis.analysisId,
         extraClasses
       )}
@@ -42,7 +42,7 @@ export function AnalysisTreeItem({
             setAddToDashboardSelection(analysis);
           }}
         >
-          <PlusIcon className="h-4 w-4 text-gray-400 group-hover:text-white" />
+          <PlusIcon className="h-4 w-4 text-gray-400 dark:text-gray-500 group-hover:text-white" />
         </div>
       )} */}
     </div>
