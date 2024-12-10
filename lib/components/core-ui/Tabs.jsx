@@ -98,7 +98,7 @@ export function Tabs({
                 value: tab.name,
               }))}
               placeholder="Select a tab"
-              rootClassNames="block w-full rounded-md border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+              rootClassNames="block w-full rounded-md border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-200"
               value={selectedTab.name}
               allowCreateNewOption={false}
               onChange={(val) => {
@@ -119,7 +119,7 @@ export function Tabs({
         >
           <nav
             className={twMerge(
-              "isolate flex divide-gray-200 shadow max-w-full overflow-scroll",
+              "isolate flex divide-gray-200 dark:divide-gray-700 shadow max-w-full overflow-scroll",
               size === "small"
                 ? showVerticalTabs
                   ? ""
@@ -139,9 +139,9 @@ export function Tabs({
                 className={twMerge(
                   "flex items-center justify-center cursor-pointer",
                   selectedTab.name === tab.name
-                    ? "text-gray-900"
-                    : "text-gray-500 hover:text-gray-1000",
-                  "group relative min-w-fit overflow-hidden flex-1 bg-white text-center text-sm font-medium hover:bg-gray-50 focus:z-10",
+                    ? "text-gray-900 dark:text-white"
+                    : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300",
+                  "group relative min-w-fit overflow-hidden flex-1 bg-white dark:bg-gray-800 text-center text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 focus:z-10",
                   showVerticalTabs
                     ? "px-2 py-4 min-h-28 max-h-32"
                     : "py-4 px-4",
@@ -187,12 +187,12 @@ export function Tabs({
                   className={twMerge(
                     selectedTab.name === tab.name
                       ? twMerge(
-                          "bg-primary-highlight",
+                          "bg-primary-highlight dark:bg-blue-500",
                           typeof selectedTabHeaderClasses === "function"
                             ? selectedTabHeaderClasses?.(selectedTab.name)
                             : selectedTabHeaderClasses
                         )
-                      : "bg-black/10",
+                      : "bg-black/10 dark:bg-white/10",
                     "absolute",
                     showVerticalTabs
                       ? "top-0 right-0 w-0.5 h-full"
@@ -206,25 +206,33 @@ export function Tabs({
       </div>
       <div
         className={twMerge(
-          "tab-content relative",
-          showVerticalTabs ? "pl-0" : "",
+          "grow",
+          showVerticalTabs ? "sm:grow" : "",
           contentClassNames
         )}
       >
-        {tabs.map((tab) => (
-          <div
-            key={tab.name}
-            className={twMerge(
-              defaultTabClassNames,
-              selectedTab?.classNames,
-              selectedTab.name === tab.name
-                ? "relative"
-                : "fixed left-[-1000px] top-[-1000px] z-[-1] pointer-events-none *:pointer-events-none opacity-0"
-            )}
-          >
-            {tab.content}
-          </div>
-        ))}
+        <div
+          className={twMerge(
+            "rounded-b-2xl bg-white dark:bg-gray-800 p-4",
+            defaultTabClassNames,
+            selectedTab?.classNames
+          )}
+        >
+          {tabs.map((tab) => (
+            <div
+              key={tab.name}
+              className={twMerge(
+                defaultTabClassNames,
+                selectedTab?.classNames,
+                selectedTab.name === tab.name
+                  ? "relative"
+                  : "fixed left-[-1000px] top-[-1000px] z-[-1] pointer-events-none *:pointer-events-none opacity-0"
+              )}
+            >
+              {tab.content}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
