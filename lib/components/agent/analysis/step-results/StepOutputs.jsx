@@ -28,7 +28,7 @@ export function StepOutputs({
             return (
               <div
                 key={i}
-                className="cursor-pointer bg-white p-2 border border-l-8 border-l-green rounded-md"
+                className="cursor-pointer bg-white dark:bg-gray-800 p-2 border border-l-8 border-l-green dark:border-gray-600 dark:border-l-green-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700"
                 onClick={() => {
                   const exists = availableOutputNodes.find(
                     (node) => node.data.id === output
@@ -98,7 +98,7 @@ export function StepOutputs({
                 }
               }}
             >
-              <div className="flex items-center mb-2 my-5 text-gray-400">
+              <div className="flex items-center mb-2 my-5 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300">
                 <ChevronRightIcon
                   className="w-4 h-4 inline mr-1"
                   style={{

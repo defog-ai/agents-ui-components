@@ -18,7 +18,7 @@ const inputTypeToUI = {
                 size="small"
                 suffix={
                   <TrashIcon
-                    className="w-4 h-4 inline ml-1 stroke-gray-600 fill-gray-200"
+                    className="w-4 h-4 inline ml-1 stroke-gray-600 dark:stroke-gray-400 fill-gray-200 dark:fill-gray-700"
                     onClick={() =>
                       onEdit(
                         inputName,
@@ -48,7 +48,7 @@ const inputTypeToUI = {
         })}
         <div className="list-add">
           <PlusCircleIcon
-            className="w-3 h-3"
+            className="w-3 h-3 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
             onClick={() => {
               onEdit(inputName, [...initialValue, "New Value"]);
             }}
@@ -150,7 +150,7 @@ const inputTypeToUI = {
           // get the closest .analysis-content to the mouseovered element
           const closest = ev.target.closest(".analysis-content");
           if (!closest) return;
-          // now get the closest .graph-node with the class name output
+          // now get the closest .graph-node with the class name name_clipped
           const node = closest.querySelector(`.graph-node.${name_clipped}`);
           if (!node) return;
           // add a class highlighted
@@ -274,7 +274,7 @@ const inputTypeToUI = {
               />
               <div className="list-remove">
                 <TrashIcon
-                  className="w-4 h-4 inline ml-1 stroke-gray-600 fill-gray-200"
+                  className="w-4 h-4 inline ml-1 stroke-gray-600 dark:stroke-gray-400 fill-gray-200 dark:fill-gray-700"
                   onClick={() => {
                     // if the length is already at min, don't remove
                     if (initialValue.length <= min) {
@@ -301,7 +301,7 @@ const inputTypeToUI = {
         })}
         <div className="list-add">
           <PlusCircleIcon
-            className="w-3 h-3"
+            className="w-3 h-3 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
             onClick={() => {
               // if the length is already at max, don't add
               if (initialValue.length >= max) {
@@ -440,7 +440,7 @@ export function StepInputs({
   // check the cache if we have tool run data available
 
   return (
-    <div className="tool-input-list" key={stepId} ref={ctr}>
+    <div className="tool-input-list text-sm text-gray-700 dark:text-gray-300">
       {Object.keys(inputs)
         .filter((i) => i !== "global_dict" && i !== "previous_context")
         .map((input_name, i) => {
@@ -455,7 +455,7 @@ export function StepInputs({
               className="font-mono flex flex-row flex-wrap gap-3 items-center *:my-1 pb-4 text-xs"
             >
               <span className="">
-                <span className="rounded-lg p-1 bg-gray-200 text-gray-400 mr-2">
+                <span className="rounded-lg p-1 bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-400 mr-2">
                   {easyToolInputTypes[sanitizedType] || sanitizedType}
                 </span>
                 <span className="font-bold">
