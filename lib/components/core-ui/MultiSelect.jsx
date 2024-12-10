@@ -193,7 +193,7 @@ export function MultiSelect({
       }}
     >
       {label && (
-        <label className="block text-xs mb-2 font-light text-gray-600">
+        <label className="block text-xs mb-2 font-light text-gray-600 dark:text-gray-400">
           {label}
         </label>
       )}
@@ -201,15 +201,15 @@ export function MultiSelect({
       <div className="relative">
         <div
           className={twMerge(
-            "flex flex-row flex-wrap gap-2 items-start w-full rounded-md border-0 pr-12 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-400 sm:text-sm sm:leading-6",
+            "flex flex-row flex-wrap gap-2 items-start w-full rounded-md border-0 pr-12 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 focus:ring-2 focus:ring-inset focus:ring-blue-400 dark:focus:ring-blue-500 sm:text-sm sm:leading-6",
             inputSizeClasses[size] || inputSizeClasses["default"],
-            disabled ? "bg-gray-100 text-gray-400" : "bg-white text-gray-900"
+            disabled ? "bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500" : "bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
           )}
         >
           <ComboboxInput
             ref={ref}
             className={
-              "py-1 grow h-full rounded-md border-0 pr-12 ring-0 focus:ring-0 sm:text-sm sm:leading-6"
+              "py-1 grow h-full rounded-md border-0 pr-12 ring-0 focus:ring-0 sm:text-sm sm:leading-6 bg-transparent"
             }
             placeholder={placeholder}
             onChange={(event) => {
@@ -224,12 +224,12 @@ export function MultiSelect({
               tagRenderer(opt)
             ) : (
               <div
-                className="border border-gray-300 shadow-sm flex h-6 flex-row bg-gray-200 text-gray-500 items-center rounded-md cursor-default"
+                className="border border-gray-300 dark:border-gray-600 shadow-sm flex h-6 flex-row bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 items-center rounded-md cursor-default"
                 key={opt.value + "-" + i}
               >
                 <span className="pl-2">{opt.value}</span>
                 <div
-                  className="ml-2 w-4 rounded-r-md hover:bg-gray-400 hover:text-white h-full flex items-center justify-center cursor-pointer"
+                  className="ml-2 w-4 rounded-r-md hover:bg-gray-400 dark:hover:bg-gray-600 hover:text-white dark:hover:text-gray-200 h-full flex items-center justify-center cursor-pointer"
                   onClick={() => {
                     const newSel = selectedOptions.filter(
                       (selectedOption) => selectedOption.value !== opt.value
@@ -253,7 +253,7 @@ export function MultiSelect({
         <ComboboxButton className="absolute inset-y-0 right-0 flex items-center rounded-r-md px-2 focus:outline-none">
           {allowClear && (
             <XCircleIcon
-              className="w-4 fill-gray-200 hover:fill-gray-500"
+              className="w-4 fill-gray-200 hover:fill-gray-500 dark:fill-gray-700 dark:hover:fill-gray-400"
               onClick={(ev) => {
                 ev.preventDefault();
                 ev.stopPropagation();
@@ -266,7 +266,7 @@ export function MultiSelect({
             />
           )}
           <ChevronUpDownIcon
-            className="h-5 w-5 text-gray-400"
+            className="h-5 w-5 text-gray-400 dark:text-gray-500"
             aria-hidden="true"
           />
         </ComboboxButton>
@@ -275,7 +275,7 @@ export function MultiSelect({
           <ComboboxOptions
             anchor="bottom"
             className={twMerge(
-              "w-[var(--input-width)] z-50 mt-3 max-h-60 overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm absolute",
+              "w-[var(--input-width)] z-50 mt-3 max-h-60 overflow-auto rounded-md bg-white dark:bg-gray-900 py-1 text-base shadow-lg ring-1 ring-black dark:ring-gray-700 ring-opacity-5 focus:outline-none sm:text-sm absolute",
               popupSizeClasses[size] || popupSizeClasses["default"],
               popupClassName
             )}
@@ -289,7 +289,7 @@ export function MultiSelect({
                     "relative cursor-default select-none",
                     popupOptionSizeClasses[size] ||
                       popupOptionSizeClasses["default"],
-                    focus ? "bg-blue-400 text-white" : "text-gray-900"
+                    focus ? "bg-blue-400 dark:bg-blue-500 text-white" : "text-gray-900 dark:text-gray-100"
                   )
                 }
               >
@@ -314,7 +314,7 @@ export function MultiSelect({
                         <span
                           className={twMerge(
                             "absolute inset-y-0 right-0 flex items-center pr-4",
-                            focus ? "text-white" : "text-blue-400"
+                            focus ? "text-white" : "text-blue-400 dark:text-blue-500"
                           )}
                         >
                           <CheckIcon className="h-5 w-5" aria-hidden="true" />

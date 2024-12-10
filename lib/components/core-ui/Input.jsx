@@ -50,11 +50,11 @@ let Input = forwardRef(function Input(
   ref
 ) {
   return (
-    <div className={twMerge("text-gray-600", rootClassNames)}>
+    <div className={twMerge("text-gray-600 dark:text-gray-300", rootClassNames)}>
       {label && (
         <label
           htmlFor={name}
-          className="block text-xs mb-2 font-light text-gray-600"
+          className="block text-xs mb-2 font-light text-gray-600 dark:text-gray-400"
         >
           {label}
         </label>
@@ -66,14 +66,14 @@ let Input = forwardRef(function Input(
           name={name}
           id={id}
           className={twMerge(
-            "focus:outline-none block w-full shadow-sm rounded-md border-0 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-1 focus:ring-inset",
+            "focus:outline-none block w-full shadow-sm rounded-md border-0 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-1 focus:ring-inset",
             status !== "error"
-              ? "focus:ring-blue-400"
-              : "focus:ring-rose-400 ring-rose-400",
+              ? "focus:ring-blue-400 dark:focus:ring-blue-500"
+              : "focus:ring-rose-400 ring-rose-400 dark:focus:ring-rose-500 dark:ring-rose-500",
             "text-[16px] lg:text-sm sm:leading-6",
             disabled
-              ? "bg-gray-100 text-gray-400  focus:ring-gray-100 cursor-not-allowed"
-              : "bg-white",
+              ? "bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500 focus:ring-gray-100 dark:focus:ring-gray-800 cursor-not-allowed"
+              : "bg-white dark:bg-gray-900 dark:text-gray-100",
             inputSizeClasses[size] || inputSizeClasses["default"],
             inputClassNames
           )}
