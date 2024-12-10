@@ -62,7 +62,7 @@ let TextArea = forwardRef(function TextArea(
     }
   });
   return (
-    <div className={twMerge("text-gray-600", rootClassNames)} ref={rootRef}>
+    <div className={twMerge("text-gray-600 dark:text-gray-300", rootClassNames)} ref={rootRef}>
       {label && (
         <label htmlFor={name} className="block text-xs mb-2 font-light">
           {label}
@@ -80,14 +80,15 @@ let TextArea = forwardRef(function TextArea(
             placeholder={placeholder}
             onKeyDown={onKeyDown}
             className={twMerge(
-              "focus:outline-none pl-2 block w-full rounded-md border-0 py-1.5 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-1 focus:ring-inset",
+              "focus:outline-none pl-2 block w-full rounded-md border-0 py-1.5 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600",
               "text-[16px] lg:text-sm leading-6",
+              "placeholder:text-gray-400 dark:placeholder:text-gray-500",
               status !== "error"
-                ? "focus:ring-blue-400"
-                : "focus:ring-rose-400 ring-rose-400",
+                ? "focus:ring-blue-400 dark:focus:ring-blue-500"
+                : "ring-rose-400 focus:ring-rose-400 dark:ring-rose-500 dark:focus:ring-rose-500",
               disabled
-                ? "bg-gray-100 text-gray-400  focus:ring-gray-100 cursor-not-allowed"
-                : "bg-white",
+                ? "bg-gray-100 dark:bg-gray-800 text-gray-400 focus:ring-gray-100 dark:focus:ring-gray-700 cursor-not-allowed"
+                : "bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100",
               textAreaClassNames
             )}
             onFocus={(ev) => {
