@@ -21,7 +21,7 @@ const defaultColumnHeaderRender = ({
       scope="col"
       className={twMerge(
         i === 0 ? "pl-4" : "px-3",
-        "text-left text-sm font-semibold text-gray-900",
+        "text-left text-sm font-semibold text-gray-900 dark:text-gray-100",
         i === allColumns.length - 1 ? "pr-4 sm:pr-6 lg:pr-8" : "",
         columnHeaderClassNames
       )}
@@ -38,9 +38,9 @@ const defaultColumnHeaderRender = ({
             <div
               className={twMerge(
                 "arrow-up cursor-pointer",
-                "border-b-[5px] border-b-gray-300",
+                "border-b-[5px] border-b-gray-300 dark:border-b-gray-600",
                 sortOrder === "asc" && sortColumn.title === column.title
-                  ? "border-b-gray-500"
+                  ? "border-b-gray-500 dark:border-b-gray-300"
                   : ""
               )}
             />
@@ -49,9 +49,9 @@ const defaultColumnHeaderRender = ({
             <div
               className={twMerge(
                 "arrow-down cursor-pointer",
-                "border-t-[5px] border-t-gray-300",
+                "border-t-[5px] border-t-gray-300 dark:border-t-gray-600",
                 sortOrder === "desc" && sortColumn.title === column.title
-                  ? "border-t-gray-500"
+                  ? "border-t-gray-500 dark:border-t-gray-300"
                   : ""
               )}
             />
@@ -77,7 +77,7 @@ const defaultRowCellRender = ({
       key={(row.key || colIdx) + "-" + dataIndex}
       className={twMerge(
         colIdx === 0 ? "pl-4" : "px-3",
-        "py-2 text-sm text-gray-500",
+        "py-2 text-sm text-gray-500 dark:text-gray-400",
         colIdx === dataIndexes.length - 1 ? "pr-4 sm:pr-6 lg:pr-8" : ""
       )}
     >
@@ -213,23 +213,23 @@ export function Table({
     () => (
       <div
         className={twMerge(
-          "pl-4 text-sm pager text-center bg-white",
+          "pl-4 text-sm pager text-center bg-white dark:bg-gray-800",
           pagerClassNames
         )}
       >
         <div className="flex flex-row items-center justify-end w-full">
           <div className="flex flex-row items-center w-50">
-            <div className="text-gray-600">
+            <div className="text-gray-600 dark:text-gray-400">
               Page
-              <span className="mx-1 font-semibold">{currentPage}</span>/
-              <span className="mx-1 font-semibold">{maxPage}</span>
+              <span className="mx-1 font-semibold dark:text-gray-200">{currentPage}</span>/
+              <span className="mx-1 font-semibold dark:text-gray-200">{maxPage}</span>
             </div>
             <ChevronLeftIcon
               className={twMerge(
                 "w-5 cursor-not-allowed",
                 currentPage === 1
-                  ? "text-gray-300"
-                  : "hover:text-blue-500 cursor-pointer"
+                  ? "text-gray-300 dark:text-gray-600"
+                  : "hover:text-blue-500 dark:hover:text-blue-400 cursor-pointer"
               )}
               onClick={() => {
                 setCurrentPage(currentPage - 1 < 1 ? 1 : currentPage - 1);
@@ -239,8 +239,8 @@ export function Table({
               className={twMerge(
                 "w-5 cursor-pointer",
                 currentPage === maxPage
-                  ? "text-gray-300 cursor-not-allowed"
-                  : "hover:text-blue-500 cursor-pointer"
+                  ? "text-gray-300 dark:text-gray-600 cursor-not-allowed"
+                  : "hover:text-blue-500 dark:hover:text-blue-400 cursor-pointer"
               )}
               onClick={() => {
                 setCurrentPage(
@@ -271,8 +271,8 @@ export function Table({
     <div className={twMerge("overflow-auto", rootClassNames)}>
       {paginationPosition === "top" && pager}
       <div className="flex flex-row mx-auto overflow-auto max-w-7xl">
-        <table className="w-full divide-y divide-gray-300">
-          <thead className="bg-gray-50">
+        <table className="w-full divide-y divide-gray-300 dark:divide-gray-700">
+          <thead className="bg-gray-50 dark:bg-gray-800">
             <tr>
               {columnsToDisplay.map((column, i) => {
                 return (
@@ -298,7 +298,7 @@ export function Table({
               })}
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
             {sortedRows
               .slice((currentPage - 1) * pageSize, currentPage * pageSize)
               .map((row, rowIdx) => {
