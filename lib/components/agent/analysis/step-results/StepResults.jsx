@@ -300,12 +300,14 @@ export function StepResults({
                 {step?.reference_queries?.length > 0 ? (
                   <>
                     <p className="mt-8 mb-2 text-sm font-mono">
-                      <span className="font-bold">Reference Queries</span>:
+                      <span className="font-bold dark:text-gray-200">Reference Queries</span>:
+                      <span className="dark:text-gray-300">
                       these queries were selected as reference queries, among
                       all the golden queries you uploaded. If the query
                       generated above is not correct, consider adding some
                       related golden queries to help Defog answer your questions
                       correctly.
+                      </span>
                     </p>
                     <Tabs
                       disableSingleSelect={true}
@@ -315,7 +317,7 @@ export function StepResults({
                         name: `Question ${i + 1}`,
                         content: (
                           <div>
-                            <p className="text-sm my-4 ml-2 font-semibold">
+                            <p className="text-sm my-4 ml-2 font-semibold dark:text-gray-300">
                               {query.question}
                             </p>
                             <CodeEditor
@@ -334,10 +336,12 @@ export function StepResults({
                 {step.instructions_used && (
                   <>
                     <p className="mt-8 mb-2 text-sm font-mono">
-                      <span className="font-bold">Relevant Instructions</span>:
+                      <span className="font-bold dark:text-gray-200">Relevant Instructions</span>:
+                      <span className="dark:text-gray-300">
                       these instructions were selected to create this SQL query
+                      </span>
                     </p>
-                    <p className="text-sm mt-2 mb-4 pl-4 rounded whitespace-break-spaces leading-relaxed">
+                    <p className="text-sm mt-2 mb-4 pl-4 rounded whitespace-break-spaces leading-relaxed dark:text-gray-300">
                       {step.instructions_used}
                     </p>
                   </>
@@ -399,7 +403,7 @@ export function StepResults({
         ) : step?.error_message ? (
           <StepError error_message={step?.error_message}></StepError>
         ) : (
-          <div className="text-gray-400 text-sm h-40 max-w-80 m-auto text-center flex items-center justify-center">
+          <div className="text-gray-400 dark:text-gray-500 text-sm h-40 max-w-80 m-auto text-center flex items-center justify-center">
             No data found when we ran the SQL query. Are you sure that data for
             the question you asked is available in the database
           </div>
@@ -424,13 +428,13 @@ export function StepResults({
     >
       {/* create a translucent overlay if displayLoadingOverlay is true */}
       {analysisBusy && (
-        <div className="absolute top-0 left-0 w-full h-full bg-white bg-opacity-90 z-20 flex flex-col justify-center items-center text-md">
+        <div className="absolute top-0 left-0 w-full h-full bg-white dark:bg-gray-900 bg-opacity-90 dark:bg-opacity-90 z-20 flex flex-col justify-center items-center text-md dark:text-gray-300">
           <span className="my-1">
             Last executed step:{" "}
             {toolDisplayNames[step?.tool_name] || step?.tool_name}
           </span>
           <span className="my-1">Now executing the next step</span>
-          <SpinningLoader classNames="text-gray-500 w-5 h-5" />
+          <SpinningLoader classNames="text-gray-500 dark:text-gray-400 w-5 h-5" />
         </div>
       )}
 
