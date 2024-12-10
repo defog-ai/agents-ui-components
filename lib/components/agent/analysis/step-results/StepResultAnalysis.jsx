@@ -120,11 +120,11 @@ export default function StepResultAnalysis({
   return (
     <div
       style={{ whiteSpace: "pre-wrap" }}
-      className="my-3 text-sm text-gray-600"
+      className="my-3 text-sm text-gray-600 dark:text-gray-300"
     >
       {loading === true ? (
         <>
-          <p className="small code p-4 bg-gray-100">
+          <p className="small code p-4 bg-gray-100 dark:bg-gray-800">
             <SpinningLoader />
             Loading Analysis
           </p>
@@ -135,7 +135,7 @@ export default function StepResultAnalysis({
             <ErrorBoundary customErrorMessage={toolRunAnalysis}>
               {hideRawAnalysis ? (
                 <div
-                  className="p-4 pb-0 bg-gray-100 text-sm text-gray-600 analysis-markdown "
+                  className="p-4 pb-0 bg-gray-100 dark:bg-gray-800 text-sm text-gray-600 dark:text-gray-300 analysis-markdown"
                   dangerouslySetInnerHTML={{
                     __html: sanitizeHtml(marked(toolRunAnalysis)),
                   }}
@@ -149,7 +149,7 @@ export default function StepResultAnalysis({
                       name: "Formatted",
                       content: (
                         <div
-                          className="p-4 pb-0 bg-gray-100 text-sm text-gray-600 analysis-markdown "
+                          className="p-4 pb-0 bg-gray-100 dark:bg-gray-800 text-sm text-gray-600 dark:text-gray-300 analysis-markdown"
                           dangerouslySetInnerHTML={{
                             __html: sanitizeHtml(marked(toolRunAnalysis)),
                           }}
@@ -159,7 +159,7 @@ export default function StepResultAnalysis({
                     {
                       name: "Raw",
                       content: (
-                        <div className="p-4 bg-gray-100 text-sm text-gray-600">
+                        <div className="p-4 bg-gray-100 dark:bg-gray-800 text-sm text-gray-600 dark:text-gray-300">
                           {toolRunAnalysis}
                         </div>
                       ),
@@ -171,13 +171,13 @@ export default function StepResultAnalysis({
           ) : null}
 
           {/* show buttons for follow on questions */}
-          <div className=" bg-gray-100 p-4">
+          <div className="bg-gray-100 dark:bg-gray-800 p-4">
             <div className="max-w-[600px] m-auto flex flex-row gap-4">
               {followOnQuestions.map((followOnQuestion, index) => (
                 <button
                   key={index}
                   data-testid="follow-on-question"
-                  className="cursor-pointer text-sm p-2 m-1 border border-gray-200 rounded-md shadow-sm hover:bg-gray-50 "
+                  className="cursor-pointer text-sm p-2 m-1 border border-gray-200 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200"
                   onClick={() => {
                     console.log(
                       "clicked on follow on question",

@@ -345,7 +345,7 @@ export const AnalysisAgent = ({
 
   const titleDiv = (
     <div className="flex flex-row flex-wrap gap-4 p-6 items-center lg:items-start">
-      <h1 className="font-bold text-xl text-gray-700 basis-0 grow min-w-[50%]">
+      <h1 className="font-bold text-xl text-gray-700 dark:text-gray-200 basis-0 grow min-w-[50%]">
         {sentenceCase(
           analysisData?.user_question ||
             createAnalysisRequestBody.user_question ||
@@ -370,7 +370,7 @@ export const AnalysisAgent = ({
         // </div>
         <div className="basis-0 text-nowrap whitespace-nowrap group cursor-pointer">
           <StopCircleIcon
-            className="w-6 h-6 text-rose-300 group-hover:text-rose-500"
+            className="w-6 h-6 text-rose-300 group-hover:text-rose-500 dark:text-rose-400 dark:group-hover:text-rose-600"
             onClick={() => {
               setGlobalLoading(false);
 
@@ -402,8 +402,8 @@ export const AnalysisAgent = ({
       <div
         ref={ctr}
         className={twMerge(
-          "analysis-agent-container h-max min-h-20 relative grow outline-none focus:outline-none rounded-3xl border border-gray-300 bg-white",
-          independentAnalysisSearchRef ? "bg-gray-50" : "max-w-full",
+          "analysis-agent-container h-max min-h-20 relative grow outline-none focus:outline-none rounded-3xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800",
+          independentAnalysisSearchRef ? "bg-gray-50 dark:bg-gray-900" : "max-w-full",
           rootClassNames
         )}
       >
@@ -411,7 +411,7 @@ export const AnalysisAgent = ({
         {/* means tis is being externally initialised using analysis viewer and initateautosubmit is true */}
         {!analysisData ||
         (!analysisData.currentStage && hasExternalSearchBar) ? (
-          <div className="transition-all w-full bg-gray-50 rounded-3xl">
+          <div className="transition-all w-full bg-gray-50 dark:bg-gray-900 rounded-3xl">
             {titleDiv}
             <AgentLoader
               message={
@@ -444,7 +444,7 @@ export const AnalysisAgent = ({
               <></>
             )}
             {analysisData.currentStage === "clarify" ? (
-              <div className="transition-all w-full bg-gray-50 rounded-3xl">
+              <div className="transition-all w-full bg-gray-50 dark:bg-gray-900 rounded-3xl">
                 {titleDiv}
                 <Clarify
                   data={analysisData.clarify}
@@ -470,12 +470,12 @@ export const AnalysisAgent = ({
 
             {analysisData.currentStage === "gen_steps" ? (
               <div className="analysis-content w-full flex flex-col-reverse lg:flex-row h-full">
-                <div className="analysis-results min-w-0 grow flex flex-col relative border-r">
+                <div className="analysis-results min-w-0 grow flex flex-col relative border-r dark:border-gray-600">
                   {titleDiv}
                   <ErrorBoundary>
                     {analysisData?.gen_steps?.steps.length ? (
                       <>
-                        <div className="grow px-6 rounded-b-3xl lg:rounded-br-none w-full bg-gray-50">
+                        <div className="grow px-6 rounded-b-3xl lg:rounded-br-none w-full bg-gray-50 dark:bg-gray-900">
                           {activeStep && (
                             // if this is sqlonly, we will wait for tool run data to be updated before showing anything
                             // because in the normal case, the tool run data can be fetched from the servers
@@ -535,7 +535,7 @@ export const AnalysisAgent = ({
                       </>
                     ) : (
                       analysisBusy && (
-                        <div className="bg-gray-50 h-full flex items-center justify-center w-full rounded-3xl">
+                        <div className="bg-gray-50 dark:bg-gray-900 h-full flex items-center justify-center w-full rounded-3xl">
                           <AgentLoader
                             message={"Fetching data..."}
                             // lottieData={LoadingLottie}
@@ -547,17 +547,17 @@ export const AnalysisAgent = ({
                   </ErrorBoundary>
                 </div>
                 {analysisData?.gen_steps?.steps && (
-                  <div className="border-b border-b-gray-300 sm:border-b-0 lg:border-b-none  analysis-steps flex-initial rounded-t-3xl lg:rounded-r-3xl lg:rounded-tl-none bg-gray-50">
+                  <div className="border-b border-b-gray-300 dark:border-b-gray-600 sm:border-b-0 lg:border-b-none analysis-steps flex-initial rounded-t-3xl lg:rounded-r-3xl lg:rounded-tl-none bg-gray-50 dark:bg-gray-900">
                     <Collapse
-                      rootClassNames="mb-0 bg-gray-50 w-full rounded-t-3xl lg:rounded-r-3xl lg:rounded-tl-none lg:h-full"
+                      rootClassNames="mb-0 bg-gray-50 dark:bg-gray-900 w-full rounded-t-3xl lg:rounded-r-3xl lg:rounded-tl-none lg:h-full"
                       title={
                         <div className="">
-                          <span className="font-light lg:font-bold text-sm">
+                          <span className="font-light lg:font-bold text-sm dark:text-gray-300">
                             Steps
                           </span>
                           {analysisData.currentStage === "gen_steps" &&
                           analysisBusy ? (
-                            <SpinningLoader classNames="ml-2 w-3 h-3 text-gray-400"></SpinningLoader>
+                            <SpinningLoader classNames="ml-2 w-3 h-3 text-gray-400 dark:text-gray-500"></SpinningLoader>
                           ) : (
                             ""
                           )}
@@ -592,7 +592,7 @@ export const AnalysisAgent = ({
                         }}
                         toolIcon={(node) => {
                           return (
-                            <p className="text-sm truncate m-0">
+                            <p className="text-sm truncate m-0 dark:text-gray-300">
                               {trimStringToLength(
                                 toolShortNames[node?.data?.step?.tool_name] ||
                                   tools[node?.data?.step?.tool_name]?.[
