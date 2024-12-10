@@ -98,7 +98,7 @@ export function DraggableInput({
   return (
     <div
       className={twMerge(
-        "w-full lg:w-8/12 m-auto [&_textarea]:pl-2 bg-white rounded-lg shadow-custom border border-gray-400 hover:border-blue-500 focus:border-blue-500 ",
+        "w-full lg:w-8/12 m-auto [&_textarea]:pl-2 bg-white dark:bg-gray-800 rounded-lg shadow-custom border border-gray-400 dark:border-gray-600 hover:border-blue-500 dark:hover:border-blue-500 focus:border-blue-500 dark:focus:border-blue-500",
         searchBarDraggable ? "fixed z-40" : "",
         searchBarClasses
       )}
@@ -123,14 +123,14 @@ export function DraggableInput({
               e.preventDefault(); // Prevent text selection
             }}
           >
-            <ArrowsPointingOutIcon className="w-3 h-3 text-gray-400 group-hover:text-primary-text" />
+            <ArrowsPointingOutIcon className="w-3 h-3 text-gray-400 dark:text-gray-500 group-hover:text-primary-text dark:group-hover:text-gray-300" />
           </div>
         )}
         <div className="flex flex-col-reverse rounded-md grow lg:items-center lg:flex-row">
           <div className="flex flex-row grow">
             <div className="flex flex-col lg:flex-row-reverse lg:items-center grow">
               <TextArea
-                rootClassNames="grow border-none bg-transparent py-1.5 text-gray-900 px-2 placeholder:text-gray-400 sm:leading-6 text-sm break-all focus:ring-0 focus:outline-none"
+                rootClassNames="grow border-none bg-transparent py-1.5 text-gray-900 dark:text-gray-100 px-2 placeholder:text-gray-400 dark:placeholder:text-gray-500 sm:leading-6 text-sm break-all focus:ring-0 focus:outline-none"
                 textAreaClassNames="resize-none"
                 ref={searchRef}
                 id="main-searchbar"
@@ -158,7 +158,7 @@ export function DraggableInput({
               {showToggle && (
                 <Toggle
                   disabled={forceSqlOnly || loading}
-                  titleClassNames="font-bold text-gray-400"
+                  titleClassNames="font-bold text-gray-400 dark:text-gray-500"
                   onToggle={(v) => {
                     if (forceSqlOnly) return;
                     setSqlOnly(!v);
@@ -166,13 +166,13 @@ export function DraggableInput({
                   defaultOn={!sqlOnly}
                   offLabel="Advanced"
                   onLabel={"Advanced"}
-                  rootClassNames="items-start lg:border-r py-2 lg:py-0 px-2 w-32"
+                  rootClassNames="items-start lg:border-r dark:border-gray-600 py-2 lg:py-0 px-2 w-32"
                 />
               )}
             </div>
             <button
               type="button"
-              className="relative -ml-px inline-flex items-center gap-x-1.5 rounded-r-md px-3 p-0 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-blue-500 hover:bg-blue-500 hover:text-white"
+              className="relative -ml-px inline-flex items-center gap-x-1.5 rounded-r-md px-3 p-0 text-sm font-semibold text-gray-900 dark:text-gray-100 ring-1 ring-inset ring-blue-500 hover:bg-blue-500 hover:text-white dark:hover:text-white"
               onClick={() => {
                 handleSubmit(
                   searchRef.current.value,
@@ -185,7 +185,7 @@ export function DraggableInput({
               }}
             >
               <ArrowRightEndOnRectangleIcon
-                className="-ml-0.5 h-5 w-5 text-gray-400"
+                className="-ml-0.5 h-5 w-5 text-gray-400 dark:text-gray-500"
                 aria-hidden="true"
               />
               Ask
@@ -194,7 +194,7 @@ export function DraggableInput({
         </div>
       </div>
       <div
-        className="w-full text-xs p-1 px-2 pt-0 text-gray-400 hover:underline underline-offset-2 group hover:decoration-blue-500 cursor-pointer hover:text-blue-500"
+        className="w-full text-xs p-1 px-2 pt-0 text-gray-400 dark:text-gray-500 hover:underline underline-offset-2 group hover:decoration-blue-500 cursor-pointer hover:text-blue-500 dark:hover:text-blue-400"
         onClick={onNewConversationTextClick}
       >
         Or click here to start a new conversation instead
