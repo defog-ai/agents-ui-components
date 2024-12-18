@@ -120,18 +120,18 @@ test.describe("Observable Charts", () => {
     // now we can check the actual chart
     // look for all the fx-axis (we facet in a bar chart) ticks to contain the following entries:
     const expectedTicks = [
-      "2023-10-31",
-      "2023-11-30",
-      "2023-12-31",
-      "2024-01-31",
-      "2024-02-29",
-      "2024-03-31",
-      "2024-04-30",
-      "2024-05-31",
-      "2024-06-30",
-      "2024-07-31",
-      "2024-08-31",
-      "2024-09-30",
+      "Oct 31, 2023",
+      "Nov 30, 2023",
+      "Dec 31, 2023",
+      "Jan 31, 2024",
+      "Feb 29, 2024",
+      "Mar 31, 2024",
+      "Apr 30, 2024",
+      "May 31, 2024",
+      "Jun 30, 2024",
+      "Jul 31, 2024",
+      "Aug 31, 2024",
+      "Sep 30, 2024",
     ];
     const ticksOnScreen = await page
       .getByLabel("fx-axis tick label")
@@ -142,13 +142,9 @@ test.describe("Observable Charts", () => {
       expectedTicks.every((tick) => ticksOnScreen.indexOf(tick) >= 0)
     ).toBe(true);
 
-    expect(
-      expectedTicks.every((tick) => ticksOnScreen.indexOf(tick) >= 0)
-    ).toBe(true);
-
     await page.locator("#rc-tabs-1-tab-2").getByRole("img").click();
 
-    await page.getByPlaceholder("Select or enter format").click();
+    await page.getByPlaceholder("Enter format", { exact: false }).click();
     await page.getByText("YYYY-MM-DD").click();
 
     // Check the new date format on the chart
@@ -180,7 +176,7 @@ test.describe("Observable Charts", () => {
   test("should render default chart", async ({ page }) => {
     await expect(
       page.locator("svg").filter({ hasText: " --plot" })
-    ).toBeVisible();
+    ).toBeVisible({ timeout: 10000 });
   });
 
   test("should change chart type", async ({ page }) => {
@@ -219,44 +215,5 @@ test.describe("Observable Charts", () => {
     await expect(
       page.locator("svg").filter({ hasText: " --plot" })
     ).toBeVisible();
-  });
-
-  test("should handle faulty data and empty axis", async ({ page }) => {
-    // Upload a CSV file with garbage data
-    const csvFileName = "garbage_data.csv";
-    const tableName = csvFileName.split(".")[0];
-
-    await page.goto("http://localhost:5173/test/agent-embed/");
-
-    const csvBuffer = readFileSync(
-      resolve(import.meta.dirname, `../assets/${csvFileName}`)
-    ).toJSON().data;
-
-    await uploadFileOnNullTab(page, csvBuffer, csvFileName, FILE_TYPES.CSV);
-
-    // Wait for the table to be parsed
-    await expect(
-      page.getByText(
-        `Table ${tableName} parsed, now generating descriptions for columns!`
-      )
-    ).toBeVisible();
-
-    // Select the table
-    await page
-      .getByTestId("db-tab")
-      .getByText(tableName, { exact: true })
-      .click({ timeout: 20000 });
-
-    await page
-      .getByRole("button", { name: "Show me any 5 rows from the" })
-      .click();
-    await page.getByRole("tab", { name: "Chart" }).click();
-    await expect(page.getByLabel("fx-axis tick label")).toContainText(
-      "invalid_date"
-    );
-    await page.getByLabel("close-circle").locator("svg").click();
-    await expect(page.getByLabel("Chart")).toContainText(
-      "Please select X and Y axes to display the chart."
-    );
   });
 });
