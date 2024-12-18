@@ -1,6 +1,6 @@
 {
   "name": "@defogdotai/agents-ui-components",
-  "version": "0.82.0",
+  "version": "1.0.0-beta.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
