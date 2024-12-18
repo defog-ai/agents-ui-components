@@ -12,7 +12,6 @@ import { Modal } from "antd";
 import { Tabs } from "../../../core-ui/Tabs";
 import { AgentConfigContext } from "../../../context/AgentContext";
 import { SpinningLoader } from "@ui-components";
-import { v4 } from "uuid";
 import SQLFeedback from "./SQLFeedback";
 import StepResultAnalysis from "./StepResultAnalysis";
 import { CodeEditor } from "./CodeEditor";
@@ -358,7 +357,7 @@ export function StepResults({
         content: Object.values(parsedOutputs).length ? (
           Object.values(parsedOutputs).map((output) => {
             return (
-              <div key={v4()}>
+              <div key={crypto.randomUUID()}>
                 <StepResultsTable
                   stepId={stepId}
                   keyName={keyName}

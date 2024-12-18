@@ -2,12 +2,7 @@ import { useEffect, useState, useMemo, useRef } from "react";
 import { Tabs, message, Popover } from "antd";
 import { chartNames, roundColumns } from "../../agentUtils";
 
-import {
-  ArrowDownTrayIcon,
-  ChartBarIcon,
-  DocumentDuplicateIcon,
-  TableCellsIcon,
-} from "@heroicons/react/20/solid";
+import { Download, ChartBarIcon, Copy, TableIcon } from "lucide-react";
 import ErrorBoundary from "../../../common/ErrorBoundary";
 import ChartImage from "./ChartImage";
 
@@ -206,7 +201,7 @@ export function StepResultsTable({
                             });
                           }}
                         >
-                          <DocumentDuplicateIcon className="w-3 h-3 table-chart-cell-copy-icon" />
+                          <Copy className="w-3 h-3 table-chart-cell-copy-icon" />
                         </div>
                       )}
                       arrow={false}
@@ -223,7 +218,7 @@ export function StepResultsTable({
           />
         ),
         tabLabel: "Table",
-        icon: <TableCellsIcon className="w-4 h-4 mb-0.5 mr-1 inline" />,
+        icon: <TableIcon className="w-4 h-4 mb-0.5 mr-1 inline" />,
       });
     }
 
@@ -313,7 +308,7 @@ export function StepResultsTable({
               disabled={csvLoading}
               variant="primary"
             >
-              Download CSV <ArrowDownTrayIcon className="w-4 h-4" />
+              Download CSV <Download className="w-4 h-4" />
             </Button>
           ),
         }}
@@ -396,7 +391,7 @@ export function StepResultsTable({
           >
             {roundNumber(obj[key])}
           </span>
-          <DocumentDuplicateIcon
+          <Copy
             className="w-3 h-3 reactive-var-copy-icon"
             title="Copy"
             onClick={() => {

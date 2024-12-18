@@ -26,7 +26,6 @@ export default ({ mode }) => {
         // Could also be a dictionary or array of multiple entry points
         entry: {
           agent: resolve(__dirname, "lib/agent.ts"),
-          doc: resolve(__dirname, "lib/doc.ts"),
           "core-ui": resolve(__dirname, "lib/core-ui.ts"),
           styles: resolve(__dirname, "lib/styles.ts"),
         },

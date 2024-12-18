@@ -1,4 +1,4 @@
-import { Bars3Icon } from "@heroicons/react/20/solid";
+import { Menu } from "lucide-react";
 
 const GridToggleButton = ({ isActive, onClick, axis }) => {
   return (
@@ -11,7 +11,7 @@ const GridToggleButton = ({ isActive, onClick, axis }) => {
       `}
       aria-label={`Toggle ${axis}-axis grid`}
     >
-      <Bars3Icon
+      <Menu
         className={`
           transition-all duration-200 ease-in-out
           ${isActive ? "text-white" : "text-gray-600"}

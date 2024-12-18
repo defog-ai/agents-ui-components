@@ -9,7 +9,6 @@ import React, {
   useSyncExternalStore,
 } from "react";
 import AgentLoader from "../../common/AgentLoader";
-// import LoadingLottie from "../../svg/loader.json";
 import StepsDag from "./StepsDag";
 import {
   sentenceCase,
@@ -29,12 +28,9 @@ import {
   useWindowSize,
 } from "@ui-components";
 import { twMerge } from "tailwind-merge";
-import {
-  AgentConfigContext,
-  ReactiveVariablesContext,
-} from "../../context/AgentContext";
+import { AgentConfigContext } from "../../context/AgentContext";
 import ErrorBoundary from "../../common/ErrorBoundary";
-import { StopCircleIcon } from "@heroicons/react/20/solid";
+import { CircleStop } from "lucide-react";
 import { StepResults } from "./step-results/StepResults";
 
 /**
@@ -369,14 +365,14 @@ export const AnalysisAgent = ({
         //   />
         // </div>
         <div className="basis-0 text-nowrap whitespace-nowrap group cursor-pointer">
-          <StopCircleIcon
+          <CircleStop
             className="w-6 h-6 text-rose-300 group-hover:text-rose-500 dark:text-rose-400 dark:group-hover:text-rose-600"
             onClick={() => {
               setGlobalLoading(false);
 
               analysisManager.destroy();
             }}
-          ></StopCircleIcon>
+          ></CircleStop>
         </div>
       )}
     </div>
@@ -403,7 +399,9 @@ export const AnalysisAgent = ({
         ref={ctr}
         className={twMerge(
           "analysis-agent-container h-max min-h-20 relative grow outline-none focus:outline-none rounded-3xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800",
-          independentAnalysisSearchRef ? "bg-gray-50 dark:bg-gray-900" : "max-w-full",
+          independentAnalysisSearchRef
+            ? "bg-gray-50 dark:bg-gray-900"
+            : "max-w-full",
           rootClassNames
         )}
       >
@@ -421,7 +419,6 @@ export const AnalysisAgent = ({
                     ? "Setting up..."
                     : "Thinking..."
               }
-              // lottieData={LoadingLottie}
               classNames={"m-0 h-full bg-transparent"}
             />
           </div>
@@ -538,7 +535,6 @@ export const AnalysisAgent = ({
                         <div className="bg-gray-50 dark:bg-gray-900 h-full flex items-center justify-center w-full rounded-3xl">
                           <AgentLoader
                             message={"Fetching data..."}
-                            // lottieData={LoadingLottie}
                             classNames={"m-0 h-40 bg-transparent"}
                           />
                         </div>

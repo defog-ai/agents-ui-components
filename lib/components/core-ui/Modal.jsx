@@ -4,7 +4,7 @@ import {
   DialogTitle,
   Description,
 } from "@headlessui/react";
-import { XCircleIcon } from "@heroicons/react/20/solid";
+import { CircleX } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { twMerge } from "tailwind-merge";
 import { Button } from "./Button";
@@ -38,9 +38,7 @@ export function Modal({
   footer = true,
   title = null,
   description = null,
-  closeIcon = (
-    <XCircleIcon className="w-6 h-6 text-gray-300 hover:text-gray-600" />
-  ),
+  closeIcon = <CircleX className="w-6 h-6 text-gray-300 hover:text-gray-600" />,
   onOk = () => {},
   okLoading = false,
   okText = "Ok",

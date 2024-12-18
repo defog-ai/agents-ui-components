@@ -1,14 +1,11 @@
-import React, { Suspense } from "react";
+import React from "react";
 import { twMerge } from "tailwind-merge";
 import { SpinningLoader } from "@ui-components";
-
-// const Lottie = lazy(() => import("lottie-react"));
 
 const AgentLoader = ({
   type = null,
   message = null,
   svg = null,
-  lottieData = null,
   children = null,
   classNames,
 }) => {

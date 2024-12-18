@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useMemo, useState } from "react";
 import { twMerge } from "tailwind-merge";
 import { SingleSelect } from "./SingleSelect";
-import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/20/solid";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { MessageManagerContext } from "./Message";
 
 const allowedPageSizes = [5, 10, 20, 50, 100];
@@ -221,10 +221,15 @@ export function Table({
           <div className="flex flex-row items-center w-50">
             <div className="text-gray-600 dark:text-gray-400">
               Page
-              <span className="mx-1 font-semibold dark:text-gray-200">{currentPage}</span>/
-              <span className="mx-1 font-semibold dark:text-gray-200">{maxPage}</span>
+              <span className="mx-1 font-semibold dark:text-gray-200">
+                {currentPage}
+              </span>
+              /
+              <span className="mx-1 font-semibold dark:text-gray-200">
+                {maxPage}
+              </span>
             </div>
-            <ChevronLeftIcon
+            <ChevronLeft
               className={twMerge(
                 "w-5 cursor-not-allowed",
                 currentPage === 1
@@ -235,7 +240,7 @@ export function Table({
                 setCurrentPage(currentPage - 1 < 1 ? 1 : currentPage - 1);
               }}
             />
-            <ChevronRightIcon
+            <ChevronRight
               className={twMerge(
                 "w-5 cursor-pointer",
                 currentPage === maxPage

@@ -1,4 +1,4 @@
-import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
+import { CircleAlert } from "lucide-react";
 import React, { forwardRef, useEffect, useRef } from "react";
 import { twMerge } from "tailwind-merge";
 
@@ -62,7 +62,10 @@ let TextArea = forwardRef(function TextArea(
     }
   });
   return (
-    <div className={twMerge("text-gray-600 dark:text-gray-300", rootClassNames)} ref={rootRef}>
+    <div
+      className={twMerge("text-gray-600 dark:text-gray-300", rootClassNames)}
+      ref={rootRef}
+    >
       {label && (
         <label htmlFor={name} className="block text-xs mb-2 font-light">
           {label}
@@ -108,7 +111,7 @@ let TextArea = forwardRef(function TextArea(
         </div>
         {status === "error" && (
           <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-            <ExclamationCircleIcon
+            <CircleAlert
               className="h-5 w-5 stroke-rose-400 text-transparent"
               aria-hidden="true"
             />

@@ -1,20 +1,6 @@
-import { useContext, useEffect, useState } from "react";
-import {
-  SpinningLoader,
-  MessageManagerContext,
-  DropFilesHeadless,
-  Button,
-} from "@ui-components";
-import {
-  FILE_TYPES,
-  isValidFileType,
-  parseCsvFile,
-  parseExcelFile,
-} from "../utils/utils";
+import { useEffect, useState } from "react";
 import { twMerge } from "tailwind-merge";
-import { ArrowDownTrayIcon, ArrowUpTrayIcon } from "@heroicons/react/20/solid";
-import { ArrowBigUpDash, PlusCircle } from "lucide-react";
-
+import { Upload } from "lucide-react";
 /**
  * This is a scaffolding component
  * which allows us to have db selections and file upload buttons on top
@@ -96,7 +82,7 @@ export function EmbedScaffolding({
               selectedDb === null ? "bg-secondary-highlight-1" : ""
             )}
           >
-            Upload <ArrowUpTrayIcon className="w-4 h-4 ml-1" />
+            Upload <Upload className="w-3 ml-1" />
           </span>
         </div>
       </div>

@@ -1,5 +1,5 @@
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { Select, Switch } from "antd";
+import { Select } from "antd";
 import {
   CalendarIcon,
   HashIcon,
@@ -231,7 +231,7 @@ export function PrimarySelection({ columns }) {
       <h3 className="mb-2 input-label">Label</h3>
       <TextInput
         placeholder={`Enter ${axis.toUpperCase()}-Axis Label`}
-        value={chartStyle[`${axis}Label`]}
+        value={chartStyle[`${axis}Label`] || undefined}
         onChange={handleAxisLabelChange(axis)}
       />
     </div>
@@ -242,7 +242,7 @@ export function PrimarySelection({ columns }) {
       <h3 className="mb-2 input-label">Axis Label</h3>
       <TextInput
         placeholder="Enter y axis label"
-        value={chartStyle.yLabel}
+        value={chartStyle.yLabel || undefined}
         onChange={(e) =>
           chartState.updateChartStyle({ yLabel: e.target.value }).render()
         }

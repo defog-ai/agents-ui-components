@@ -10,7 +10,7 @@ import {
 } from "react";
 import { AnalysisAgent } from "../analysis/AnalysisAgent";
 import { AnalysisTreeItem } from "./AnalysisTreeItem";
-import { PlusIcon } from "@heroicons/react/20/solid";
+import { PlusIcon } from "lucide-react";
 import { sentenceCase } from "../../utils/utils";
 import { twMerge } from "tailwind-merge";
 import { Sidebar, MessageManagerContext, breakpoints } from "@ui-components";
@@ -18,7 +18,6 @@ import ErrorBoundary from "../../common/ErrorBoundary";
 import { AnalysisTreeViewerLinks } from "./AnalysisTreeViewerLinks";
 import { AgentConfigContext } from "../../context/AgentContext";
 import { DraggableInput } from "./DraggableInput";
-import { v4 } from "uuid";
 
 /**
  *
@@ -172,7 +171,7 @@ export function AnalysisTreeViewer({
 
         setLoading(true);
 
-        const newId = "analysis-" + v4();
+        const newId = "analysis-" + crypto.randomUUID();
 
         const { newAnalysis } = await analysisTreeManager.submit({
           question,

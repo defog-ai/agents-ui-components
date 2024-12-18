@@ -5,7 +5,7 @@ import {
   SingleSelect,
   SpinningLoader,
 } from "@ui-components";
-import { ArrowDownTrayIcon } from "@heroicons/react/20/solid";
+import { LogOut } from "lucide-react";
 import {
   FILE_TYPES,
   isValidFileType,
@@ -98,7 +98,7 @@ export function TabNullState({
         ) : (
           <>
             <span className="inline sm:hidden">Upload a CSV</span>
-            <ArrowDownTrayIcon className="h-6 w-6 inline text-gray-400" />
+            <LogOut className="h-5 w-5 inline text-gray-400 -rotate-90" />
           </>
         )}
       </DropFiles>

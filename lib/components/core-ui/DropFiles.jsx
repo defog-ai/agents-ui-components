@@ -1,5 +1,5 @@
 import React from "react";
-import { ArrowDownTrayIcon } from "@heroicons/react/20/solid";
+import { Download } from "lucide-react";
 import { twMerge } from "tailwind-merge";
 
 /**
@@ -78,7 +78,7 @@ export function DropFiles({
       <div className={contentClassNames}>
         {children}
         {showIcon && (
-          <ArrowDownTrayIcon className={twMerge("h-6 w-6", iconClassNames)} />
+          <Download className={twMerge("h-6 w-6", iconClassNames)} />
         )}
         <div className="mt-2 relative group cursor-pointer">
           <p className="cursor-pointer text-xs text-gray-400 group-hover:underline z-[2] relative pointer-events-none">

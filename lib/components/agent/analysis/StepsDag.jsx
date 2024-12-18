@@ -2,10 +2,7 @@ import { useEffect, useState } from "react";
 import { Popover } from "antd";
 import { toolDisplayNames } from "../../utils/utils";
 import { twMerge } from "tailwind-merge";
-import {
-  PlusCircleIcon,
-  WrenchScrewdriverIcon,
-} from "@heroicons/react/20/solid";
+import { CirclePlus, Wrench } from "lucide-react";
 import { createDag } from "../../utils/draw-dag";
 
 const nodeCssSize = 15;
@@ -28,7 +25,7 @@ export default function StepsDag({
   disablePopovers = false,
   onPopoverOpenChange = () => {},
   alwaysShowPopover = false,
-  toolIcon = () => <WrenchScrewdriverIcon className="w-3 h-3" />,
+  toolIcon = () => <Wrench className="w-3 h-3" />,
   extraNodeClasses = () => "",
 }) {
   const [graph, setGraph] = useState({ nodes: {}, links: [] });
@@ -336,7 +333,7 @@ export default function StepsDag({
                         {d.data.isTool ? (
                           <>{toolIcon(d)}</>
                         ) : d.data.isAddStepNode ? (
-                          <PlusCircleIcon className="h-4 w-4 stroke-gray-500 text-transparent bg-transparent hover:fill-blue-400 hover:stroke-none" />
+                          <CirclePlus className="h-4 w-4 stroke-gray-500 text-transparent bg-transparent hover:fill-blue-400 hover:stroke-none" />
                         ) : (
                           <div className="graph-node-circle rounded-full w-4 h-4"></div>
                         )}

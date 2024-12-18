@@ -2,8 +2,8 @@ import { Select, Tooltip, Space } from "antd";
 import * as d3 from "d3";
 import { ChartStateContext } from "../ChartStateContext";
 import { useContext } from "react";
-import { InfoCircleOutlined } from "@ant-design/icons";
 import { getColorScheme } from "../plotUtils";
+import { Info } from "lucide-react";
 
 const { Option, OptGroup } = Select;
 
@@ -79,12 +79,12 @@ const ColorSchemeSelector = ({ value, onChange }) => {
         <h3 className="w-full m-0 input-label">Color Scheme</h3>
 
         {/* we allow multiple y axis to be selected in bar and line charts so color scheme can still be applied */}
-        {!colorBy && selectedChart !== "bar" && selectedChart !== "line" && (
+        {true && (
           <Tooltip
             title="Select a 'Color By' column in the Primary tab"
             className="flex items-center gap-1"
           >
-            <InfoCircleOutlined className="text-gray-500" />
+            <Info className="text-gray-500 w-3" />
             <p className="text-xs text-gray-500 underline underline-offset-2">
               Select &apos;Color By&apos; column
             </p>
