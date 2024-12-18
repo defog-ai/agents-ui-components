@@ -1,4 +1,4 @@
-import { ChevronRightIcon } from "@heroicons/react/20/solid";
+import { ChevronRightIcon } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import { twMerge } from "tailwind-merge";
 

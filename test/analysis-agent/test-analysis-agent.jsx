@@ -3,8 +3,6 @@ import ReactDOM from "react-dom/client";
 import "../../lib/styles/index.scss";
 import { Setup } from "../../lib/components/context/Setup";
 import { AnalysisAgent } from "../../lib/agent.ts";
-import { AnalysisTreeManager } from "../../lib/components/agent/analysis-tree-viewer/analysisTreeManager";
-import { v4 } from "uuid";
 
 const dbs = [
   {
@@ -29,7 +27,7 @@ const dbs = [
 // a single analysis can only work with one db at a time
 function QueryDataPage() {
   const { keyName, metadata, isTemp } = dbs[0];
-  const id = v4();
+  const id = crypto.randomUUID();
   return (
     <Setup
       token={import.meta.env.VITE_TOKEN}

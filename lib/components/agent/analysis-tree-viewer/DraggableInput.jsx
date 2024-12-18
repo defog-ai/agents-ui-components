@@ -1,8 +1,5 @@
 import { useRef, useEffect } from "react";
-import {
-  ArrowsPointingOutIcon,
-  ArrowRightEndOnRectangleIcon,
-} from "@heroicons/react/20/solid";
+import { Move, ArrowRight } from "lucide-react";
 import { TextArea, Toggle } from "@ui-components";
 import { twMerge } from "tailwind-merge";
 
@@ -123,7 +120,7 @@ export function DraggableInput({
               e.preventDefault(); // Prevent text selection
             }}
           >
-            <ArrowsPointingOutIcon className="w-3 h-3 text-gray-400 dark:text-gray-500 group-hover:text-primary-text dark:group-hover:text-gray-300" />
+            <Move className="w-3 h-3 text-gray-400 dark:text-gray-500 group-hover:text-primary-text dark:group-hover:text-gray-300" />
           </div>
         )}
         <div className="flex flex-col-reverse rounded-md grow lg:items-center lg:flex-row">
@@ -184,7 +181,7 @@ export function DraggableInput({
                 searchRef.current.value = "";
               }}
             >
-              <ArrowRightEndOnRectangleIcon
+              <ArrowRight
                 className="-ml-0.5 h-5 w-5 text-gray-400 dark:text-gray-500"
                 aria-hidden="true"
               />

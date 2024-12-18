@@ -6,11 +6,7 @@ import {
   ComboboxOption,
   ComboboxOptions,
 } from "@headlessui/react";
-import {
-  CheckIcon,
-  ChevronUpDownIcon,
-  XCircleIcon,
-} from "@heroicons/react/20/solid";
+import { Check, ChevronsUpDownIcon, CircleX } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import { twMerge } from "tailwind-merge";
 
@@ -229,8 +225,8 @@ export function SingleSelect({
 
         <ComboboxButton className="absolute inset-y-0 right-0 flex items-center rounded-r-md px-2 focus:outline-none">
           {allowClear && (
-            <XCircleIcon
-              className="w-4 fill-gray-200 hover:fill-gray-500"
+            <CircleX
+              className="w-4 text-gray-300 hover:text-gray-500"
               onClick={(ev) => {
                 ev.preventDefault();
                 ev.stopPropagation();
@@ -242,7 +238,7 @@ export function SingleSelect({
               }}
             />
           )}
-          <ChevronUpDownIcon
+          <ChevronsUpDownIcon
             className="h-5 w-5 text-gray-400"
             aria-hidden="true"
           />
@@ -294,7 +290,7 @@ export function SingleSelect({
                             focus ? "text-white" : "text-blue-400"
                           )}
                         >
-                          <CheckIcon className="h-5 w-5" aria-hidden="true" />
+                          <Check className="h-5 w-5" aria-hidden="true" />
                         </span>
                       )}
                     </>

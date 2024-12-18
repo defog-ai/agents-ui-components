@@ -1,6 +1,5 @@
 import { useContext, useEffect, useState } from "react";
 import { AddStepInputList } from "./AddStepInputList";
-import { v4 } from "uuid";
 import { createInitialToolInputs } from "../../utils/utils";
 import { MessageManagerContext, SingleSelect } from "@ui-components";
 import { StepReRun } from "../analysis/step-results/StepReRun";
@@ -23,7 +22,7 @@ export function AddStepUI({
   const messageManager = useContext(MessageManagerContext);
 
   const [inputs, setInputs] = useState(activeNode?.data?.step?.inputs || {});
-  const [outputs, setOutputs] = useState(["output_" + v4().split("-")[0]]);
+  const [outputs, setOutputs] = useState(["output_" + crypto.randomUUID().split("-")[0]]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -124,7 +123,7 @@ export function AddStepUI({
               ],
             }}
             autoFocus={false}
-            newListValueDefault={() => "output_" + v4().split("-")[0]}
+            newListValueDefault={() => "output_" + crypto.randomUUID().split("-")[0]}
             inputs={[outputs]}
             onEdit={(prop, newVal) => {
               // don't need to worry about idx, because it's always 0

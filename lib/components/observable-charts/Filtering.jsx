@@ -1,9 +1,8 @@
 import { useContext, useState, useCallback, useRef, useEffect } from "react";
 import { Select, Button, Space, Card, Tag } from "antd";
 import { Input as TextInput } from "@ui-components";
-import { DeleteOutlined, PlusOutlined } from "@ant-design/icons";
 import { ChartStateContext } from "./ChartStateContext";
-import { HashIcon, CaseSensitive } from "lucide-react";
+import { HashIcon, CaseSensitive, Trash2, CirclePlus } from "lucide-react";
 
 const { Option } = Select;
 
@@ -278,7 +277,7 @@ const FilterBuilder = ({ columns }) => {
               <Button
                 type="text"
                 danger
-                icon={<DeleteOutlined />}
+                icon={<Trash2 className="w-3" />}
                 onClick={() => removeFilter(index)}
               />
             }
@@ -324,7 +323,11 @@ const FilterBuilder = ({ columns }) => {
           </Card>
         );
       })}
-      <Button onClick={addFilter} className="w-full" icon={<PlusOutlined />}>
+      <Button
+        onClick={addFilter}
+        className="w-full"
+        icon={<CirclePlus className="w-3" />}
+      >
         Add Filter
       </Button>
     </Space>

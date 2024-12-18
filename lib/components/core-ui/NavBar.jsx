@@ -9,7 +9,7 @@ import {
   DisclosureButton,
   DisclosurePanel,
 } from "@headlessui/react";
-import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
+import { Menu, X } from "lucide-react";
 import { Logo } from "./Logo";
 
 // const items = [
@@ -30,7 +30,10 @@ import { Logo } from "./Logo";
  */
 export function NavBar({ items = [], rootClassNames = "" }) {
   return (
-    <Disclosure as="nav" className={twMerge("bg-white dark:bg-gray-800 shadow", rootClassNames)}>
+    <Disclosure
+      as="nav"
+      className={twMerge("bg-white dark:bg-gray-800 shadow", rootClassNames)}
+    >
       <div className="mx-auto max-w-7xl px-4 xl:px-6 lg:px-8">
         <div className="flex h-12 justify-between">
           <div className="flex">
@@ -50,7 +53,9 @@ export function NavBar({ items = [], rootClassNames = "" }) {
                       }}
                       className={twMerge(
                         "inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm text-gray-500 dark:text-gray-400 hover:border-gray-300 hover:text-gray-700 dark:hover:border-gray-500 dark:hover:text-gray-200",
-                        item.current ? "border-blue-500 text-gray-900 dark:text-white" : ""
+                        item.current
+                          ? "border-blue-500 text-gray-900 dark:text-white"
+                          : ""
                       )}
                       aria-current={item.current ? "page" : undefined}
                     >
@@ -74,11 +79,11 @@ export function NavBar({ items = [], rootClassNames = "" }) {
             <DisclosureButton className="group relative inline-flex items-center justify-center rounded-md p-2 text-gray-400 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-500 dark:hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500">
               <span className="absolute -inset-0.5" />
               <span className="sr-only">Open main menu</span>
-              <Bars3Icon
+              <Menu
                 aria-hidden="true"
                 className="block h-6 w-6 group-data-[open]:hidden"
               />
-              <XMarkIcon
+              <X
                 aria-hidden="true"
                 className="hidden h-6 w-6 group-data-[open]:block"
               />

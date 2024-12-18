@@ -1,7 +1,6 @@
 import { AnalysisAgent, Setup } from "../../lib/agent";
 
 import "../../lib/styles/index.scss";
-import { v4 } from "uuid";
 
 export default {
   title: "Agents/AnalysisAgent",
@@ -41,7 +40,7 @@ export default {
   },
 };
 
-const id = v4();
+const id = crypto.randomUUID();
 export const Primary = {
   args: { analysisId: id, keyName: "Restaurants" },
 };

@@ -1,7 +1,4 @@
-import { PlusIcon } from "@heroicons/react/20/solid";
-import { useContext } from "react";
 import { twMerge } from "tailwind-merge";
-import { AgentConfigContext } from "../../context/AgentContext";
 import { sentenceCase } from "../../utils/utils";
 
 export function AnalysisTreeItem({

@@ -19,7 +19,7 @@ import { ChartStateContext } from "./ChartStateContext";
 import { unix } from "dayjs";
 import dayjs from "dayjs";
 import { convertWideToLong } from "../utils/utils";
-import { timeFormat, extent } from "d3";
+import { timeFormat } from "d3";
 
 export default function ObservablePlot() {
   const containerRef = useRef(null);

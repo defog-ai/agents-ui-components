@@ -1,7 +1,7 @@
 import { message } from "antd";
 import React, { useCallback, useEffect, useState } from "react";
 import { Input, SingleSelect, TextArea } from "@ui-components";
-import { TrashIcon, PlusCircleIcon } from "@heroicons/react/20/solid";
+import { Trash2, CirclePlus } from "lucide-react";
 import { easyToolInputTypes } from "../../../utils/utils";
 
 const inputTypeToUI = {
@@ -17,7 +17,7 @@ const inputTypeToUI = {
                 value={val}
                 size="small"
                 suffix={
-                  <TrashIcon
+                  <Trash2
                     className="w-4 h-4 inline ml-1 stroke-gray-600 dark:stroke-gray-400 fill-gray-200 dark:fill-gray-700"
                     onClick={() =>
                       onEdit(
@@ -47,12 +47,12 @@ const inputTypeToUI = {
           );
         })}
         <div className="list-add">
-          <PlusCircleIcon
+          <CirclePlus
             className="w-3 h-3 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
             onClick={() => {
               onEdit(inputName, [...initialValue, "New Value"]);
             }}
-          ></PlusCircleIcon>
+          ></CirclePlus>
         </div>
         <span className="list-bracket">]</span>
       </span>
@@ -273,7 +273,7 @@ const inputTypeToUI = {
                 }}
               />
               <div className="list-remove">
-                <TrashIcon
+                <Trash2
                   className="w-4 h-4 inline ml-1 stroke-gray-600 dark:stroke-gray-400 fill-gray-200 dark:fill-gray-700"
                   onClick={() => {
                     // if the length is already at min, don't remove
@@ -300,7 +300,7 @@ const inputTypeToUI = {
           );
         })}
         <div className="list-add">
-          <PlusCircleIcon
+          <CirclePlus
             className="w-3 h-3 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
             onClick={() => {
               // if the length is already at max, don't add
@@ -313,7 +313,7 @@ const inputTypeToUI = {
 
               onEdit(inputName, [...initialValue, ""]);
             }}
-          ></PlusCircleIcon>
+          ></CirclePlus>
         </div>
         <span className="list-bracket">]</span>
       </span>

@@ -1,9 +1,7 @@
 import { Divider, Select, Slider, Space, Input as AntdInput } from "antd";
 import React, { useState, useRef } from "react";
-// import LoadingLottie from "../../svg/loader.json";
 import AgentLoader from "../../common/AgentLoader";
 import { Input } from "@ui-components";
-import Writer from "../../common/Writer";
 
 export default function Clarify({
   data,
@@ -194,10 +192,7 @@ export default function Clarify({
           (clarification_questions.length ? (
             <>
               {clarification_questions.map((q, i) => (
-                <div
-                  key={q.question}
-                  className="w-full"
-                >
+                <div key={q.question} className="w-full">
                   {/* <Writer s={q.question} animate={!stageDone}> */}
                   <div>
                     <p className="q-desc m-0 mb-2 text-primary-text">
@@ -228,7 +223,6 @@ export default function Clarify({
         ) : (
           <AgentLoader
             message={"Thinking about whether I need to clarify the question..."}
-            // lottieData={LoadingLottie}
           />
         )}
       </div>

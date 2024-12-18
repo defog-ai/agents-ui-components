@@ -5,12 +5,7 @@ import {
   ComboboxOption,
   ComboboxOptions,
 } from "@headlessui/react";
-import {
-  CheckIcon,
-  ChevronUpDownIcon,
-  XCircleIcon,
-  XMarkIcon,
-} from "@heroicons/react/20/solid";
+import { Check, ChevronsUpDownIcon, CircleX, X } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import { twMerge } from "tailwind-merge";
 import { isNumber } from "../utils/utils";
@@ -203,7 +198,9 @@ export function MultiSelect({
           className={twMerge(
             "flex flex-row flex-wrap gap-2 items-start w-full rounded-md border-0 pr-12 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 focus:ring-2 focus:ring-inset focus:ring-blue-400 dark:focus:ring-blue-500 sm:text-sm sm:leading-6",
             inputSizeClasses[size] || inputSizeClasses["default"],
-            disabled ? "bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500" : "bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+            disabled
+              ? "bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500"
+              : "bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
           )}
         >
           <ComboboxInput
@@ -243,7 +240,7 @@ export function MultiSelect({
                     }
                   }}
                 >
-                  <XMarkIcon className="w-3 h-3" />
+                  <X className="w-3 h-3" />
                 </div>
               </div>
             );
@@ -252,7 +249,7 @@ export function MultiSelect({
 
         <ComboboxButton className="absolute inset-y-0 right-0 flex items-center rounded-r-md px-2 focus:outline-none">
           {allowClear && (
-            <XCircleIcon
+            <CircleX
               className="w-4 fill-gray-200 hover:fill-gray-500 dark:fill-gray-700 dark:hover:fill-gray-400"
               onClick={(ev) => {
                 ev.preventDefault();
@@ -265,7 +262,7 @@ export function MultiSelect({
               }}
             />
           )}
-          <ChevronUpDownIcon
+          <ChevronsUpDownIcon
             className="h-5 w-5 text-gray-400 dark:text-gray-500"
             aria-hidden="true"
           />
@@ -289,7 +286,9 @@ export function MultiSelect({
                     "relative cursor-default select-none",
                     popupOptionSizeClasses[size] ||
                       popupOptionSizeClasses["default"],
-                    focus ? "bg-blue-400 dark:bg-blue-500 text-white" : "text-gray-900 dark:text-gray-100"
+                    focus
+                      ? "bg-blue-400 dark:bg-blue-500 text-white"
+                      : "text-gray-900 dark:text-gray-100"
                   )
                 }
               >
@@ -314,10 +313,12 @@ export function MultiSelect({
                         <span
                           className={twMerge(
                             "absolute inset-y-0 right-0 flex items-center pr-4",
-                            focus ? "text-white" : "text-blue-400 dark:text-blue-500"
+                            focus
+                              ? "text-white"
+                              : "text-blue-400 dark:text-blue-500"
                           )}
                         >
-                          <CheckIcon className="h-5 w-5" aria-hidden="true" />
+                          <Check className="h-5 w-5" aria-hidden="true" />
                         </span>
                       )}
                     </>

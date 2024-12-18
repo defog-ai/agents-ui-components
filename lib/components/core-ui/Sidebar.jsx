@@ -1,8 +1,5 @@
 // sidebar that can be toggled open and closed
-import {
-  ArrowLeftStartOnRectangleIcon,
-  ArrowRightStartOnRectangleIcon,
-} from "@heroicons/react/20/solid";
+import { LogOut } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import { twMerge } from "tailwind-merge";
 
@@ -100,22 +97,14 @@ export function Sidebar({
         >
           {location === "left" ? (
             sidebarOpen ? (
-              <ArrowLeftStartOnRectangleIcon
-                className={`h-${iconSize} w-${iconSize}`}
-              />
+              <LogOut className={`h-${iconSize} w-${iconSize} rotate-180`} />
             ) : (
-              <ArrowRightStartOnRectangleIcon
-                className={`h-${iconSize} w-${iconSize}`}
-              />
+              <LogOut className={`h-${iconSize} w-${iconSize}`} />
             )
           ) : sidebarOpen ? (
-            <ArrowRightStartOnRectangleIcon
-              className={`h-${iconSize} w-${iconSize}`}
-            />
+            <LogOut className={`h-${iconSize} w-${iconSize}`} />
           ) : (
-            <ArrowLeftStartOnRectangleIcon
-              className={`h-${iconSize} w-${iconSize}`}
-            />
+            <LogOut className={`h-${iconSize} w-${iconSize} rotate-180`} />
           )}
         </button>
       )}

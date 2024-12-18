@@ -1,12 +1,6 @@
-import {
-  CheckCircleIcon,
-  ExclamationCircleIcon,
-  InformationCircleIcon,
-  XCircleIcon,
-} from "@heroicons/react/20/solid";
+import { CircleCheck, CircleAlert, Info, CircleX } from "lucide-react";
 import React, { createContext, useContext, useSyncExternalStore } from "react";
 import { twMerge } from "tailwind-merge";
-import { v4 } from "uuid";
 
 /**
  * Provides a message manager with success, error, warning, and info messages.
@@ -60,7 +54,7 @@ export function MessageManager() {
 
   function addMessage(type, message) {
     const time = performance.now();
-    const id = v4();
+    const id = crypto.randomUUID();
 
     list = [
       ...list,
@@ -144,10 +138,10 @@ export function MessageManager() {
 export const MessageManagerContext = createContext(MessageManager());
 
 const icons = {
-  success: <CheckCircleIcon className="text-lime-500 w-4 h-4" />,
-  warning: <ExclamationCircleIcon className="text-yellow-400 w-4 h-4" />,
-  error: <XCircleIcon className="text-rose-500 w-4 h-4" />,
-  info: <InformationCircleIcon className="text-blue-500 w-4 h-4" />,
+  success: <CircleCheck className="text-lime-500 w-4 h-4" />,
+  warning: <CircleAlert className="text-yellow-400 w-4 h-4" />,
+  error: <CircleX className="text-rose-500 w-4 h-4" />,
+  info: <Info className="text-blue-500 w-4 h-4" />,
 };
 
 /**

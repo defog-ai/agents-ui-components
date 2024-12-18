@@ -1,4 +1,4 @@
-import { ArrowRightIcon, ChevronRightIcon } from "@heroicons/react/20/solid";
+import { ChevronRight } from "lucide-react";
 import { CodeEditor } from "./CodeEditor";
 import { useRef, useState } from "react";
 
@@ -99,7 +99,7 @@ export function StepOutputs({
               }}
             >
               <div className="flex items-center mb-2 my-5 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300">
-                <ChevronRightIcon
+                <ChevronRight
                   className="w-4 h-4 inline mr-1"
                   style={{
                     transition: "transform 0.3s ease-in-out",
