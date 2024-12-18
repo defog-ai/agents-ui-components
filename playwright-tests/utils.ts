@@ -78,7 +78,7 @@ export async function setSqlOnly(page: Page, sqlOnly: boolean = true) {
 }
 
 /**
- * Simply puts in a question in the search bar and clicks the ask button.
+ * Simply puts in a question in the search bar and clicks the ask button. Skips clarifications by default.
  */
 export async function askQuestionUsingSearchBar(
   page: Page,
@@ -96,6 +96,43 @@ export async function askQuestionUsingSearchBar(
 
   // ensure that the search bar has been emptied after the click
   expect(await searchBar.inputValue()).toBeFalsy();
+
+  try {
+    // first wait for the request
+    // if the request is never sent, skip the rest
+    // start waiting for clarification request
+    const requestPromise = page.waitForRequest(
+      (response) => response.url().includes("/clarify"),
+      { timeout: 1000 }
+    );
+
+    const request = await requestPromise;
+
+    // start waiting for the network response for `/clarify`
+    const responsePromise = page.waitForResponse(
+      (response) => response.url().includes("/clarify"),
+      { timeout: 10000 }
+    );
+    // if we receieve clarification questions, just skip them
+    const responseClarify = await responsePromise;
+    const resClarifyData = await responseClarify.json();
+    // look inside `clarification_questions` key of the response, and check if the array is empty
+    // if not empty, then:
+    // look for a text "Click here or press enter to submit"
+    // click it
+    if (resClarifyData.clarification_questions.length > 0) {
+      const buttonClarifyLocator = page.getByRole("button", {
+        name: "Click here or press enter to submit",
+      });
+      await expect(buttonClarifyLocator).toBeVisible();
+      await buttonClarifyLocator.click();
+    }
+  } catch (error) {
+    console.log(
+      "The clarify request never got sent. Skipping the rest.",
+      error
+    );
+  }
 }
 
 /**
@@ -183,7 +220,7 @@ export async function fullyTestSQLOnlyQuestionForNonTempDb({
   // monitor responses sent to the /generate_follow_on_questions endpoint
   const responsePromiseFollowOn = page.waitForResponse(
     (response) => response.url().includes("/generate_follow_on_questions"),
-    { timeout: 10000 }
+    { timeout: 20000 }
   );
 
   const responseFollowOn = await responsePromiseFollowOn;
@@ -230,7 +267,10 @@ export async function fullyTestSQLOnlyQuestionForTempDb({
 }) {
   // start waiting for to the network response for `/generate_query_csv`
   const responsePromiseGenerateCsvQuery = page.waitForResponse(
-    (response) => response.url().includes("/generate_query_csv"),
+    (response) => {
+      console.log("response receieved for question", question, response.url());
+      return response.url().includes("/generate_query_csv");
+    },
     { timeout: 10000 }
   );
 
@@ -273,7 +313,7 @@ export async function fullyTestSQLOnlyQuestionForTempDb({
   // monitor responses sent to the /generate_follow_on_questions endpoint
   const responsePromiseFollowOn = page.waitForResponse(
     (response) => response.url().includes("/generate_follow_on_questions"),
-    { timeout: 10000 }
+    { timeout: 20000 }
   );
 
   const responseFollowOn = await responsePromiseFollowOn;

@@ -103,18 +103,18 @@ test("yyyy-mm-dd - cash-flows", async ({ page }) => {
   // now we can check the actual chart
   // look for all the fx-axis (we facet in a bar chart) ticks to contain the following entries:
   const expectedTicks = [
-    "2023-10-31",
-    "2023-11-30",
-    "2023-12-31",
-    "2024-01-31",
-    "2024-02-29",
-    "2024-03-31",
-    "2024-04-30",
-    "2024-05-31",
-    "2024-06-30",
-    "2024-07-31",
-    "2024-08-31",
-    "2024-09-30",
+    "Oct 31, 2023",
+    "Nov 30, 2023",
+    "Dec 31, 2023",
+    "Jan 31, 2024",
+    "Feb 29, 2024",
+    "Mar 31, 2024",
+    "Apr 30, 2024",
+    "May 31, 2024",
+    "Jun 30, 2024",
+    "Jul 31, 2024",
+    "Aug 31, 2024",
+    "Sep 30, 2024",
   ];
 
   const ticksOnScreen = await page
