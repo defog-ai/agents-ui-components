@@ -171,7 +171,10 @@ export function MultiSelect({
       by="value"
       multiple
       immediate
-      className={twMerge("max-w-96", rootClassNames)}
+      className={twMerge(
+        "max-w-96 agui-item agui-select agui-item agui-multiselect",
+        rootClassNames
+      )}
       value={selectedOptions}
       defaultValue={defaultValue}
       disabled={disabled}
@@ -247,7 +250,7 @@ export function MultiSelect({
           })}
         </div>
 
-        <ComboboxButton className="absolute inset-y-0 right-0 flex items-center rounded-r-md px-2 focus:outline-none">
+        <ComboboxButton className="agui-item agui-btn absolute inset-y-0 right-0 flex items-center rounded-r-md px-2 focus:outline-none">
           {allowClear && (
             <CircleX
               className="w-4 fill-gray-200 hover:fill-gray-500 dark:fill-gray-700 dark:hover:fill-gray-400"

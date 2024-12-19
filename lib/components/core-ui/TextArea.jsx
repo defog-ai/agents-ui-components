@@ -63,7 +63,10 @@ let TextArea = forwardRef(function TextArea(
   });
   return (
     <div
-      className={twMerge("text-gray-600 dark:text-gray-300", rootClassNames)}
+      className={twMerge(
+        "agui-item agui-input text-gray-600 dark:text-gray-300",
+        rootClassNames
+      )}
       ref={rootRef}
     >
       {label && (

@@ -85,10 +85,16 @@ export function Collapse({
   return (
     <>
       <div
-        className={twMerge("max-h-96 mb-2 pointer-events-auto", rootClassNames)}
+        className={twMerge(
+          "agui-item agui-collapse max-h-96 mb-2 pointer-events-auto",
+          rootClassNames
+        )}
       >
         <div
-          className={twMerge("h-10 w-full cursor-pointer", headerClassNames)}
+          className={twMerge(
+            "agui-item agui-collapse-header h-10 w-full cursor-pointer",
+            headerClassNames
+          )}
           onClick={(e) => {
             e.stopPropagation();
             e.preventDefault();
@@ -96,7 +102,10 @@ export function Collapse({
           }}
         >
           <ChevronRightIcon
-            className={twMerge("w-4 h-4 inline fill-gray-500", iconClassNames)}
+            className={twMerge(
+              "w-4 h-4 inline fill-gray-500 dark:fill-gray-400",
+              iconClassNames
+            )}
             style={{
               transition: "transform 0.3s ease-in-out",
               marginRight: "3px",
@@ -104,12 +113,18 @@ export function Collapse({
               transform: internalCollapsed ? "rotate(0deg)" : "rotate(90deg)",
             }}
           />
-          <span className={twMerge("font-bold text-md", titleClassNames)}>
+          <span
+            className={twMerge(
+              "font-bold text-md text-gray-900 dark:text-gray-100",
+              titleClassNames
+            )}
+          >
             {title}
           </span>
         </div>
         <div
           ref={ctr}
+          className="agui-item agui-collapse-content"
           style={{
             overflow: "hidden",
             maxHeight: "0px",

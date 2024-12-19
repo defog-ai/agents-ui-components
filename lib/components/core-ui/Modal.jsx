@@ -63,7 +63,7 @@ export function Modal({
       <div className="fixed inset-0 overflow-y-auto w-full h-full p-4 bg-black bg-opacity-30">
         <DialogPanel
           className={twMerge(
-            "bg-white w-full max-h-full rounded-md relative p-4 m-auto gap-2 flex flex-col",
+            "agui-item agui-modal bg-white dark:bg-gray-800 w-full max-h-full rounded-md relative p-4 m-auto gap-2 flex flex-col",
             contentClassNames
           )}
         >
@@ -80,9 +80,17 @@ export function Modal({
           </div>
 
           {title && (
-            <DialogTitle className={"text-xl font-bold"}>{title}</DialogTitle>
+            <DialogTitle
+              className={"text-xl font-bold text-gray-900 dark:text-gray-100"}
+            >
+              {title}
+            </DialogTitle>
           )}
-          {description && <Description>{description}</Description>}
+          {description && (
+            <Description className="text-gray-600 dark:text-gray-300">
+              {description}
+            </Description>
+          )}
 
           <div className="overflow-auto">{children}</div>
 

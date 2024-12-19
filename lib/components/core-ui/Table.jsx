@@ -1,7 +1,14 @@
-import React, { useContext, useEffect, useMemo, useState } from "react";
+import React, {
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  Suspense,
+  useTransition,
+} from "react";
 import { twMerge } from "tailwind-merge";
 import { SingleSelect } from "./SingleSelect";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { MessageManagerContext } from "./Message";
 
 const allowedPageSizes = [5, 10, 20, 50, 100];
@@ -93,6 +100,59 @@ const defaultSorter = (a, b, dataIndex) => {
   return String(a[dataIndex]).localeCompare(String(b[dataIndex]));
 };
 
+const TableBody = React.memo(
+  ({
+    rows,
+    dataIndexes,
+    rowCellRender,
+    dataIndexToColumnMap,
+    columnsToDisplay,
+  }) => {
+    return (
+      <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+        {rows.map((row, rowIdx) => (
+          <tr key={row.originalIndex + "-" + rowIdx}>
+            {dataIndexes.map(
+              (dataIndex, colIdx) =>
+                rowCellRender({
+                  cellValue: row[dataIndex],
+                  colIdx,
+                  row,
+                  dataIndex,
+                  column: dataIndexToColumnMap[dataIndex],
+                  dataIndexes,
+                  allColumns: columnsToDisplay,
+                  dataIndexToColumnMap,
+                }) ||
+                defaultRowCellRender({
+                  cellValue: row[dataIndex],
+                  colIdx,
+                  row,
+                  dataIndex,
+                  column: dataIndexToColumnMap[dataIndex],
+                  dataIndexes,
+                  allColumns: columnsToDisplay,
+                  dataIndexToColumnMap,
+                })
+            )}
+          </tr>
+        ))}
+      </tbody>
+    );
+  }
+);
+
+const TableLoader = () => (
+  <div className="absolute inset-0 bg-white/50 dark:bg-gray-900/50 backdrop-blur-[1px] flex items-center justify-center">
+    <div className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
+      <Loader2 className="w-5 h-5 animate-spin text-blue-500" />
+      <span className="text-sm text-gray-600 dark:text-gray-300">
+        Loading...
+      </span>
+    </div>
+  </div>
+);
+
 /**
  * Table component
  * @typedef {Object} TableProps
@@ -130,6 +190,8 @@ export function Table({
   // name of the property in the rows objects where each column's data is stored
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(pagination.defaultPageSize || 10);
+  const [isPending, startTransition] = useTransition();
+
   const columnsToDisplay = useMemo(
     () =>
       columns
@@ -213,7 +275,7 @@ export function Table({
     () => (
       <div
         className={twMerge(
-          "pl-4 text-sm pager text-center bg-white dark:bg-gray-800",
+          "mb-4 pl-4 text-sm pager text-center bg-white dark:bg-gray-800",
           pagerClassNames
         )}
       >
@@ -262,7 +324,12 @@ export function Table({
                 rootClassNames="w-24"
                 options={allowedPageSizes.map((d) => ({ value: d, label: d }))}
                 value={pageSize}
-                onChange={(val) => setPageSize(val || 10)}
+                onChange={(val) => {
+                  startTransition(() => {
+                    setPageSize(val || 10);
+                    setCurrentPage(1);
+                  });
+                }}
               />
             </div>
           )}
@@ -272,10 +339,34 @@ export function Table({
     [currentPage, maxPage, pageSize, allowedPageSizes]
   );
 
+  const handlePageSizeChange = (newSize) => {
+    startTransition(() => {
+      setPageSize(newSize || 10);
+      setCurrentPage(1);
+    });
+  };
+
+  const visibleRows = useMemo(
+    () =>
+      sortedRows.slice((currentPage - 1) * pageSize, currentPage * pageSize),
+    [sortedRows, currentPage, pageSize]
+  );
+
+  const minTableHeight = useMemo(() => {
+    // Calculate approximate row height (adjust these values based on your actual row heights)
+    const approximateRowHeight = 48; // height of each row in pixels
+    const headerHeight = 48; // height of the header in pixels
+    return Math.min(pageSize * approximateRowHeight + headerHeight, 800); // cap at 800px
+  }, [pageSize]);
+
   return (
     <div className={twMerge("overflow-auto", rootClassNames)}>
       {paginationPosition === "top" && pager}
-      <div className="flex flex-row mx-auto overflow-auto max-w-7xl">
+      <div
+        className="flex flex-row mx-auto overflow-auto max-w-7xl relative"
+        style={{ minHeight: `${minTableHeight}px` }}
+      >
+        {isPending && <TableLoader />}
         <table className="w-full divide-y divide-gray-300 dark:divide-gray-700">
           <thead className="bg-gray-50 dark:bg-gray-800">
             <tr>
@@ -303,42 +394,15 @@ export function Table({
               })}
             </tr>
           </thead>
-          <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
-            {sortedRows
-              .slice((currentPage - 1) * pageSize, currentPage * pageSize)
-              .map((row, rowIdx) => {
-                return (
-                  <tr key={row.originalIndex + "-" + rowIdx}>
-                    {dataIndexes.map(
-                      (dataIndex, colIdx) =>
-                        rowCellRender({
-                          cellValue: row[dataIndex],
-                          colIdx,
-                          row,
-                          dataIndex,
-                          column: dataIndexToColumnMap[dataIndex],
-                          dataIndexes,
-                          allColumns: columnsToDisplay,
-                          dataIndexToColumnMap,
-                        }) ||
-                        defaultRowCellRender({
-                          cellValue: row[dataIndex],
-                          colIdx,
-                          row,
-                          dataIndex,
-                          column: dataIndexToColumnMap[dataIndex],
-                          dataIndexes,
-                          allColumns: columnsToDisplay,
-                          dataIndexToColumnMap,
-                        })
-                    )}
-                  </tr>
-                );
-              })}
-          </tbody>
+          <TableBody
+            rows={visibleRows}
+            dataIndexes={dataIndexes}
+            rowCellRender={rowCellRender}
+            dataIndexToColumnMap={dataIndexToColumnMap}
+            columnsToDisplay={columnsToDisplay}
+          />
         </table>
       </div>
-
       {paginationPosition === "bottom" && pager}
     </div>
   );

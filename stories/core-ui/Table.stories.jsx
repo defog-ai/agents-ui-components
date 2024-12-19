@@ -26,6 +26,18 @@ const sampleRows = [
   },
 ];
 
+const lotsOfData = [];
+for (let i = 0; i < 100; i++) {
+  lotsOfData.push({
+    id: i,
+    name: "John Doe",
+    age: 25,
+    email: "john@example.com",
+    dob: "1994-01-01",
+    large_number: Math.floor(Math.random() * 100000000),
+  });
+}
+
 const sampleColumns = [
   { dataIndex: "id", title: "ID" },
   { dataIndex: "name", title: "Name" },
@@ -55,6 +67,11 @@ export const Primary = {
 export const SomeData = {
   name: "Table with some data",
   args: { rows: sampleRows, columns: sampleColumns },
+};
+
+export const LotsOfData = {
+  name: "Table with lots of data",
+  args: { rows: lotsOfData, columns: sampleColumns },
 };
 
 export const PaginationOnTop = {

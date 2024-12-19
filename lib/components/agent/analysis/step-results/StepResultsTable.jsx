@@ -215,6 +215,7 @@ export function StepResultsTable({
                 return d;
               })}
             pagination={{ defaultPageSize: 10, showSizeChanger: true }}
+            paginationPosition="top"
           />
         ),
         tabLabel: "Table",

@@ -176,14 +176,18 @@ export function MessageMonitor({ disabled = false, rootClassNames = "" }) {
             <div
               key={message.id}
               className={twMerge(
-                `my-2 flex flex-row gap-2 items-center max-w-[80%] p-2 shadow-md bg-white text-gray-800 mx-auto rounded-lg max-w-10/12 border animate-fade-in-down`,
-                message.type === "success" && "border-lime-500",
-                message.type === "warning" && "border-yellow-400",
-                message.type === "error" && "border-rose-500",
-                message.type === "info" && "border-blue-500"
+                `agui-item agui-message my-2 flex flex-row gap-2 items-center max-w-[80%] p-2 shadow-md bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 mx-auto rounded-lg max-w-10/12 border animate-fade-in-down`,
+                message.type === "success" &&
+                  "border-lime-500 dark:border-lime-600",
+                message.type === "warning" &&
+                  "border-yellow-400 dark:border-yellow-500",
+                message.type === "error" &&
+                  "border-rose-500 dark:border-rose-600",
+                message.type === "info" &&
+                  "border-blue-500 dark:border-blue-600"
               )}
             >
-              <span>{icons[message.type]}</span>
+              <span className="dark:text-gray-200">{icons[message.type]}</span>
               <span className="grow">{message.message}</span>
             </div>
           ))}

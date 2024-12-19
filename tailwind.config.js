@@ -7,6 +7,7 @@ module.exports = {
     "./test/**/*.{js,ts,jsx,tsx,mdx,html}",
     "./stories/**/*.{js,ts,jsx,tsx,mdx}",
   ],
+  darkMode: "class",
   theme: {
     extend: {
       colors: {
@@ -16,6 +17,14 @@ module.exports = {
         "secondary-highlight-2": "#7891EE",
         "secondary-highlight-3": "rgba(112, 0, 163, 0.2)",
         "secondary-highlight-4": "hsla(37, 100%, 53%, 0.2)",
+        dark: {
+          "bg-primary": "#1a1a1a",
+          "bg-secondary": "#2d2d2d",
+          "text-primary": "#ffffff",
+          "text-secondary": "#e0e0e0",
+          border: "#404040",
+          hover: "#404040",
+        },
       },
       boxShadow: {
         custom: " rgba(0, 0, 0, 0.24) 0px 3px 8px",

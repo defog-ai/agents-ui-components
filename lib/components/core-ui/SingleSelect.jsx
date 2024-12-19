@@ -179,7 +179,7 @@ export function SingleSelect({
     <Combobox
       as="div"
       by="value"
-      className={rootClassNames}
+      className={twMerge("agui-item agui-select", rootClassNames)}
       immediate={true}
       value={selectedOption}
       defaultValue={defaultValue}
@@ -208,9 +208,11 @@ export function SingleSelect({
           ref={ref}
           placeholder={placeholder}
           className={twMerge(
-            "w-full rounded-md border-0 pr-12 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-400 sm:text-sm sm:leading-6",
+            "w-full rounded-md border-0 pr-12 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 focus:ring-2 focus:ring-inset focus:ring-blue-400 dark:focus:ring-blue-500 sm:text-sm sm:leading-6",
             inputSizeClasses[size] || inputSizeClasses["default"],
-            disabled ? "bg-gray-100 text-gray-400" : "bg-white text-gray-900"
+            disabled
+              ? "bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500"
+              : "bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
           )}
           onChange={(event) => {
             setQuery(event.target.value);
@@ -223,10 +225,10 @@ export function SingleSelect({
           }}
         />
 
-        <ComboboxButton className="absolute inset-y-0 right-0 flex items-center rounded-r-md px-2 focus:outline-none">
+        <ComboboxButton className="agui-item agui-btn absolute inset-y-0 right-0 flex items-center rounded-r-md px-2 focus:outline-none">
           {allowClear && (
             <CircleX
-              className="w-4 text-gray-300 hover:text-gray-500"
+              className="w-4 text-gray-300 hover:text-gray-500 dark:text-gray-600 dark:hover:text-gray-400"
               onClick={(ev) => {
                 ev.preventDefault();
                 ev.stopPropagation();
@@ -239,7 +241,7 @@ export function SingleSelect({
             />
           )}
           <ChevronsUpDownIcon
-            className="h-5 w-5 text-gray-400"
+            className="h-5 w-5 text-gray-400 dark:text-gray-500"
             aria-hidden="true"
           />
         </ComboboxButton>
@@ -248,54 +250,58 @@ export function SingleSelect({
           <ComboboxOptions
             anchor="bottom"
             className={twMerge(
-              "w-[var(--input-width)] z-50 mt-1 max-h-60 overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm absolute",
+              "agui-item agui-select-dropdown w-[var(--input-width)] z-50 mt-1 max-h-60 overflow-auto rounded-md bg-white dark:bg-gray-800 py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm absolute",
               popupSizeClasses[size] || popupSizeClasses["default"],
               popupClassName
             )}
           >
-            {filteredOptions.map((option, i) => (
+            {filteredOptions.map((option) => (
               <ComboboxOption
-                key={option.value + "-" + i}
+                key={option.value}
                 value={option}
-                className={({ focus }) =>
+                className={({ active }) =>
                   twMerge(
-                    "relative cursor-default select-none",
+                    "agui-item agui-select-option relative cursor-default select-none",
                     popupOptionSizeClasses[size] ||
                       popupOptionSizeClasses["default"],
-                    focus ? "bg-blue-400 text-white" : "text-gray-900"
+                    active
+                      ? "bg-blue-500 dark:bg-blue-600 text-white"
+                      : "text-gray-900 dark:text-gray-100",
+                    optionRenderer ? "" : ""
                   )
                 }
               >
-                {({ focus, selected }) => {
-                  return (
-                    <>
-                      {optionRenderer ? (
-                        optionRenderer(option, focus, selected)
-                      ) : (
-                        <>
-                          <span
-                            className={twMerge(
-                              "block truncate",
-                              selected && "font-semibold"
-                            )}
-                          >
-                            {option.label}
-                          </span>
-                        </>
-                      )}
-                      {selected && (
+                {({ selected, active }) => (
+                  <>
+                    {optionRenderer ? (
+                      optionRenderer(option, { selected, active })
+                    ) : (
+                      <div className="flex items-center">
                         <span
                           className={twMerge(
-                            "absolute inset-y-0 right-0 flex items-center pr-4",
-                            focus ? "text-white" : "text-blue-400"
+                            "block truncate",
+                            selected && "font-semibold"
                           )}
                         >
-                          <Check className="h-5 w-5" aria-hidden="true" />
+                          {option.label}
                         </span>
-                      )}
-                    </>
-                  );
-                }}
+
+                        {selected ? (
+                          <span
+                            className={twMerge(
+                              "absolute inset-y-0 right-0 flex items-center pr-4",
+                              active
+                                ? "text-white"
+                                : "text-blue-500 dark:text-blue-400"
+                            )}
+                          >
+                            <Check className="h-5 w-5" aria-hidden="true" />
+                          </span>
+                        ) : null}
+                      </div>
+                    )}
+                  </>
+                )}
               </ComboboxOption>
             ))}
           </ComboboxOptions>
