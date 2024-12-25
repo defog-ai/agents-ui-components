@@ -4,6 +4,8 @@ import {
   ChartNoAxesCombined,
   SlidersHorizontal,
   FilterIcon,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { PrimarySelection } from "./PrimarySelection";
 import { Customization } from "./Customization";
@@ -15,10 +17,16 @@ import { Input, MessageManagerContext, SpinningLoader } from "@ui-components";
 import setupBaseUrl from "../utils/setupBaseUrl";
 import { AgentConfigContext } from "../context/AgentContext";
 
-export function ChartContainer({ columns, rows, initialQuestion }) {
+export function ChartContainer({
+  columns,
+  rows,
+  initialQuestion,
+  initialOptionsExpanded = true,
+}) {
   const [chartState, setChartState] = useState(
     createChartState({ data: rows, availableColumns: columns })
   );
+  const [isOptionsExpanded, setIsOptionsExpanded] = useState(initialOptionsExpanded);
 
   useEffect(() => {
     chartState.setStateCallback = setChartState;
@@ -153,24 +161,42 @@ export function ChartContainer({ columns, rows, initialQuestion }) {
           }}
         />
 
-        <div className="flex flex-row gap-3">
-          <div className="min-w-[350px] max-w-[350px] h-full border-r">
-            <Tabs
-              tabPosition="left"
-              className="h-full pl-0"
-              size="small"
-              tabBarStyle={{
-                width: "60px",
-                height: "100%",
-                display: "flex",
-                paddingLeft: "0px !important",
-                marginLeft: "-20px",
-                flexDirection: "column",
-                justifyContent: "space-between",
-              }}
-              items={tabItems}
-            />
-          </div>
+        <div className="flex flex-row gap-3 relative">
+          <button
+            onClick={() => setIsOptionsExpanded(!isOptionsExpanded)}
+            className="absolute right-3 -top-12 bg-white border rounded px-3 py-1.5 shadow-sm hover:bg-gray-50 flex items-center gap-2 text-sm font-medium text-gray-700 z-10"
+          >
+            {isOptionsExpanded ? (
+              <>
+                <span>Hide Options</span>
+                <ChevronLeft size={16} />
+              </>
+            ) : (
+              <>
+                <span>Customize Chart</span>
+                <ChevronRight size={16} />
+              </>
+            )}
+          </button>
+          {isOptionsExpanded && (
+            <div className="min-w-[350px] max-w-[350px] h-full border-r chart-options-container">
+              <Tabs
+                tabPosition="left"
+                className="h-full pl-0"
+                size="small"
+                tabBarStyle={{
+                  width: "60px",
+                  height: "100%",
+                  display: "flex",
+                  paddingLeft: "0px !important",
+                  marginLeft: "-20px",
+                  flexDirection: "column",
+                  justifyContent: "space-between",
+                }}
+                items={tabItems}
+              />
+            </div>
+          )}
           {loading ? (
             <div className="w-full flex items-center justify-center">
               <SpinningLoader classNames="ml-2 w-8 h-8 text-gray-400"></SpinningLoader>
