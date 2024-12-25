@@ -44,7 +44,7 @@
     "@uiw/codemirror-extensions-classname": "^4.23.0",
     "@uiw/codemirror-themes": "^4.23.0",
     "@uiw/react-codemirror": "^4.23.0",
-    "antd": "^5.19.1",
+    "antd": "^5.22.5",
     "chart.js": "^4.4.3",
     "chroma-js": "^2.4.2",
     "codemirror": "^6.0.1",
@@ -66,13 +66,10 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
-    "@chromatic-com/storybook": "^3.2.3",
-    "@microlink/react-json-view": "^1.23.1",
     "@playwright/test": "^1.49.1",
     "@storybook/addon-essentials": "^8.4.7",
     "@storybook/addon-interactions": "^8.4.7",
     "@storybook/addon-links": "^8.4.7",
-    "@storybook/addon-onboarding": "^8.4.7",
     "@storybook/blocks": "^8.4.7",
     "@storybook/react": "^8.4.7",
     "@storybook/react-vite": "^8.4.7",
