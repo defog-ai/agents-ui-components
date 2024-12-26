@@ -354,10 +354,11 @@ export function Table({
 
   const minTableHeight = useMemo(() => {
     // Calculate approximate row height (adjust these values based on your actual row heights)
-    const approximateRowHeight = 48; // height of each row in pixels
+    const approximateRowHeight = 36; // height of each row in pixels
     const headerHeight = 48; // height of the header in pixels
-    return Math.min(pageSize * approximateRowHeight + headerHeight, 800); // cap at 800px
-  }, [pageSize]);
+    const actualRowCount = visibleRows.length;
+    return Math.min(actualRowCount * approximateRowHeight + headerHeight, 800); // cap at 800px
+  }, [visibleRows.length]);
 
   return (
     <div className={twMerge("overflow-auto", rootClassNames)}>
