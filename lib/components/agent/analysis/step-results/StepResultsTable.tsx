@@ -19,6 +19,8 @@ import setupBaseUrl from "../../../utils/setupBaseUrl";
 import { Button, Table } from "@ui-components";
 import { ChartContainer } from "../../../observable-charts/ChartContainer";
 
+import type { ParsedOutput, Step } from "../analysisManager";
+
 // tabBarLeftContent: extra content for the tab bar on the left side
 export function StepResultsTable({
   stepId,
@@ -26,13 +28,26 @@ export function StepResultsTable({
   analysisId,
   nodeName,
   apiEndpoint,
-  tableData = null,
+  stepData = null,
   codeStr = null,
   sql = null,
   chartImages = null,
   reactiveVars = null,
   initialQuestion = null,
   handleEdit = () => {},
+}: {
+  stepId: string;
+  keyName: string;
+  analysisId: string;
+  nodeName: string;
+  apiEndpoint: string;
+  stepData?: ParsedOutput | null;
+  codeStr?: string | null;
+  sql?: string | null;
+  chartImages?: any;
+  reactiveVars?: any;
+  initialQuestion: string | null;
+  handleEdit?: () => void;
 }) {
   const downloadCsvEndpoint = setupBaseUrl({
     protocol: "http",
@@ -50,6 +65,7 @@ export function StepResultsTable({
     let csv = "";
     try {
       // tableData: {columns: Array(4), data: Array(1)}
+      const tableData = stepData?.data;
       if (!tableData) return;
       const { columns, data } = tableData;
 
@@ -142,7 +158,10 @@ export function StepResultsTable({
   //   });
   // }, [reactiveVars]);
 
-  const updateCodeAndSql = (updateProp = null, newVal) => {
+  const updateCodeAndSql = (
+    updateProp: string | null = null,
+    newVal: string
+  ) => {
     // update values of the code and the SQL
     if (updateProp !== "sql" && updateProp !== "code") return;
     if (!stepId) return;
@@ -166,11 +185,12 @@ export function StepResultsTable({
     setToolCode(codeStr);
   }, [sql, codeStr]);
 
-  const [results, setResults] = useState([]);
+  const [results, setResults] = useState<any>([]);
 
   useEffect(() => {
     // extra tabs should be an array and all elements should be jsx components
     let tabs = [];
+    const tableData = stepData?.data;
     if (tableData) {
       const roundedData = roundColumns(tableData.data, tableData.columns);
 
@@ -184,7 +204,7 @@ export function StepResultsTable({
             columns={tableData.columns
               .filter((d) => d.title !== "index")
               .map((d) => {
-                d.render = (text, record, index) => {
+                d.render = (text: string) => {
                   // popover with a copy button
                   return (
                     <Popover
@@ -223,13 +243,12 @@ export function StepResultsTable({
     }
 
     if (!chartImages || chartImages.length <= 0) {
-      if (tableData) {
+      if (stepData) {
         tabs.push({
           component: (
             <ErrorBoundary>
               <ChartContainer
-                rows={tableData.data}
-                columns={tableData.columns}
+                stepData={stepData}
                 initialQuestion={initialQuestion}
               />
             </ErrorBoundary>
@@ -327,9 +346,13 @@ export function StepResultsTable({
     );
 
     setResults(tabs);
-  }, [tableData, chartImages, toolCode, sqlQuery]);
+  }, [stepData, chartImages, toolCode, sqlQuery]);
 
-  function nestedDivsUntilNumericKeys(key, obj, nestLocation) {
+  function nestedDivsUntilNumericKeys(
+    key: string,
+    obj: { [key: string]: any },
+    nestLocation: string
+  ) {
     if (typeof obj[key] === "object") {
       return (
         <div className="table-chart-reactive-var-group" key={key}>
@@ -393,7 +416,6 @@ export function StepResultsTable({
           </span>
           <Copy
             className="w-3 h-3 reactive-var-copy-icon"
-            title="Copy"
             onClick={() => {
               let clipboardItem = new ClipboardItem({
                 "text/html": new Blob(

@@ -1,4 +1,4 @@
-export { ChartContainer } from "./components/observable-charts/ChartContainer.jsx";
+export { ChartContainer } from "./components/observable-charts/ChartContainer.tsx";
 
 export { parseData } from "./components/utils/utils.js";
 

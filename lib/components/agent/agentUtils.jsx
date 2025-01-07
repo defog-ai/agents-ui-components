@@ -551,3 +551,37 @@ export const chartNames = {
   boxplot: "Boxplot",
   heatmap: "Heatmap",
 };
+
+/**
+ * Returns the analysisId and DOM node of the most visible analysis container in the viewport
+ * @param {string[]} analysisIds - Array of analysis IDs to check
+ * @returns {{id: string, element: HTMLElement}} Object containing ID and DOM node of most visible analysis
+ */
+export const getMostVisibleAnalysis = (analysisIds) => {
+  let maxVisibility = 0;
+  let mostVisibleId = analysisIds[0]; // Default to first if none visible
+  let mostVisibleElement = document.getElementById(mostVisibleId);
+
+  analysisIds.forEach(id => {
+    const element = document.getElementById(id);
+    if (!element) return;
+
+    const rect = element.getBoundingClientRect();
+    const windowHeight = window.innerHeight;
+    
+    // Calculate how much of the element is visible
+    const visibleHeight = Math.min(rect.bottom, windowHeight) - Math.max(rect.top, 0);
+    const visibility = Math.max(0, visibleHeight / element.offsetHeight);
+
+    if (visibility > maxVisibility) {
+      maxVisibility = visibility;
+      mostVisibleId = id;
+      mostVisibleElement = element;
+    }
+  });
+
+  return {
+    id: mostVisibleId,
+    element: mostVisibleElement
+  };
+};

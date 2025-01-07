@@ -1,4 +1,3 @@
-import { Modal } from "antd";
 import {
   useCallback,
   useContext,
@@ -11,13 +10,15 @@ import {
 import { AnalysisAgent } from "../analysis/AnalysisAgent";
 import { AnalysisTreeItem } from "./AnalysisTreeItem";
 import { PlusIcon } from "lucide-react";
-import { sentenceCase } from "../../utils/utils";
+import { getQuestionType, sentenceCase } from "../../utils/utils";
 import { twMerge } from "tailwind-merge";
 import { Sidebar, MessageManagerContext, breakpoints } from "@ui-components";
 import ErrorBoundary from "../../common/ErrorBoundary";
 import { AnalysisTreeViewerLinks } from "./AnalysisTreeViewerLinks";
 import { AgentConfigContext } from "../../context/AgentContext";
 import { DraggableInput } from "./DraggableInput";
+import { getMostVisibleAnalysis } from "../agentUtils";
+import setupBaseUrl from "../../utils/setupBaseUrl";
 
 /**
  *
@@ -47,14 +48,19 @@ export function AnalysisTreeViewer({
 
   const analysisDomRefs = useRef({});
 
-  const [loading, setLoading] = useState(false);
   const [sqlOnly, setSqlOnly] = useState(true);
   const [currentQuestion, setCurrentQuestion] = useState("");
 
   const [addToDashboardSelection, setAddToDashboardSelection] = useState(false);
   const [selectedDashboards, setSelectedDashboards] = useState([]);
 
-  const { dashboards } = useContext(AgentConfigContext).val;
+  const { token, apiEndpoint } = useContext(AgentConfigContext).val;
+
+  const chartEditUrl = setupBaseUrl({
+    protocol: "http",
+    path: "edit_chart",
+    apiEndpoint: apiEndpoint,
+  });
 
   const [sidebarOpen, setSidebarOpen] = useState(defaultSidebarOpen);
 
@@ -144,7 +150,6 @@ export function AnalysisTreeViewer({
   );
 
   useEffect(() => {
-    setLoading(false);
     setSelectedDashboards([]);
     setAddToDashboardSelection(false);
     analysisDomRefs.current = {};
@@ -169,7 +174,54 @@ export function AnalysisTreeViewer({
         if (!analysisTreeManager)
           throw new Error("Analysis tree manager not found");
 
-        setLoading(true);
+        const allAnalyses = analysisTreeManager.getAll();
+
+        const questionType = await getQuestionType(
+          token,
+          keyName,
+          apiEndpoint,
+          question
+        );
+
+        const mostVisibleElement = getMostVisibleAnalysis(
+          Object.keys(allAnalyses)
+        );
+        const visibleAnalysis = allAnalyses[mostVisibleElement.id];
+
+        if (questionType.question_type === "chart") {
+          if (!visibleAnalysis?.analysisManager?.getAnalysisData?.()) {
+            messageManager.error("No visible analysis found to edit chart");
+            return;
+          }
+          const activeStep = visibleAnalysis.analysisManager.getActiveStep();
+
+          const stepOutputs = Object.values(activeStep.parsedOutputs);
+          if (stepOutputs.length === 0) {
+            messageManager.error("No outputs found in the visible analysis");
+            return;
+          }
+
+          const stepOutput = stepOutputs[0];
+
+          if (!stepOutput?.chartState) {
+            messageManager.error("No chart found in the visible analysis");
+            return;
+          }
+
+          try {
+            await stepOutput.chartState.editChart(question, chartEditUrl, {
+              onError: (e) => {
+                messageManager.error(e.message);
+                console.error(e);
+              },
+            });
+          } catch (e) {
+            messageManager.error(e.message);
+            console.error(e);
+          }
+
+          return;
+        }
 
         const newId = "analysis-" + crypto.randomUUID();
 
@@ -196,8 +248,6 @@ export function AnalysisTreeViewer({
       } catch (e) {
         messageManager.error("Failed to create analysis");
         console.log(e.stack);
-      } finally {
-        setLoading(false);
       }
     },
     [analysisTreeManager, forceSqlOnly, sqlOnly, isTemp, keyName, metadata]
@@ -286,14 +336,12 @@ export function AnalysisTreeViewer({
                 ) : (
                   <div className="sticky w-full top-0 py-3 bg-gray-100 dark:bg-gray-800">
                     <div
-                      data-enabled={!loading}
+                      data-enabled={true}
                       className={twMerge(
                         "flex items-center cursor-pointer z-20 relative",
                         "bg-blue-500 dark:bg-blue-500 hover:bg-blue-500 dark:hover:bg-blue-500 text-white dark:text-white p-2 shadow-md border border-blue-500 dark:border-blue-500"
-                        // "data-[enabled=false]:bg-gray-100 data-[enabled=false]:hover:bg-gray-100 data-[enabled=false]:hover:text-gray-400 data-[enabled=false]:text-gray-400 data-[enabled=false]:cursor-not-allowed"
                       )}
                       onClick={() => {
-                        if (loading) return;
                         // start a new root analysis
                         analysisTreeManager.setActiveRootAnalysisId(null);
                         analysisTreeManager.setActiveAnalysisId(null);
@@ -403,7 +451,6 @@ export function AnalysisTreeViewer({
                     }
                     initiateAutoSubmit={true}
                     hasExternalSearchBar={true}
-                    setGlobalLoading={setLoading}
                     // we store this at the time of creation of the analysis
                     // and don't change it for this specific analysis afterwards.
                     sqlOnly={analysis.sqlOnly}
@@ -471,8 +518,6 @@ export function AnalysisTreeViewer({
                       if (activeRootAnalysisId === id) {
                         analysisTreeManager.setActiveRootAnalysisId(null);
                       }
-
-                      setLoading(false);
                     }}
                     initialConfig={{
                       analysisManager: analysis.analysisManager || null,
@@ -495,13 +540,9 @@ export function AnalysisTreeViewer({
                         <button
                           className={twMerge(
                             "cursor-pointer text-sm p-2 m-1 border border-gray-200 dark:border-gray-700 rounded-md shadow-sm",
-                            loading
-                              ? "bg-gray-100 dark:bg-gray-800 text-gray-300 dark:text-gray-600 cursor-not-allowed"
-                              : "hover:bg-gray-50 dark:hover:bg-gray-800 hover:border"
+                            "hover:bg-gray-50 dark:hover:bg-gray-800 hover:border"
                           )}
                           onClick={(ev) => {
-                            if (loading) return;
-
                             handleSubmit(
                               sentenceCase(question),
                               activeRootAnalysisId,
@@ -522,7 +563,6 @@ export function AnalysisTreeViewer({
               <DraggableInput
                 searchBarClasses={searchBarClasses}
                 searchBarDraggable={searchBarDraggable}
-                loading={loading}
                 handleSubmit={handleSubmit}
                 activeRootAnalysisId={activeRootAnalysisId}
                 activeAnalysisId={activeAnalysisId}
@@ -532,7 +572,6 @@ export function AnalysisTreeViewer({
                 sqlOnly={sqlOnly}
                 question={currentQuestion}
                 onNewConversationTextClick={() => {
-                  if (loading) return;
                   // start a new root analysis
                   analysisTreeManager.setActiveRootAnalysisId(null);
                   analysisTreeManager.setActiveAnalysisId(null);
@@ -545,54 +584,6 @@ export function AnalysisTreeViewer({
           </div>
         </div>
       </div>
-      {/* <Modal
-        title="Select the dashboards to add this analysis to"
-        open={addToDashboardSelection}
-        onOk={() => {
-          return;
-        }}
-        onCancel={() => {
-          setAddToDashboardSelection(false);
-        }}
-      >
-        <div className="flex flex-col mt-8 overflow-auto bg-gray-100 dark:bg-gray-800 rounded-md dashboard-selection max-h-80">
-          {dashboards.map((dashboard) => (
-            <div
-              className={
-                "flex flex-row p-2 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer text-gray-400 dark:text-gray-500 items-start " +
-                (selectedDashboards.includes(dashboard.doc_id) &&
-                  "text-gray-600 dark:text-gray-300 font-bold")
-              }
-              key={dashboard.doc_id}
-              onClick={() => {
-                if (selectedDashboards.includes(dashboard.doc_id)) {
-                  setSelectedDashboards(
-                    selectedDashboards.filter(
-                      (item) => item !== dashboard.doc_id
-                    )
-                  );
-                } else {
-                  setSelectedDashboards([
-                    ...selectedDashboards,
-                    dashboard.doc_id,
-                  ]);
-                }
-              }}
-            >
-              <div className="mr-3 checkbox">
-                <input
-                  // style input to have no background and a black tick
-                  className="w-3 h-3 border border-gray-300 dark:border-gray-600 rounded-md appearance-none checked:bg-blue-600 checked:border-transparent"
-                  type="checkbox"
-                  checked={selectedDashboards.includes(dashboard.doc_id)}
-                  readOnly
-                />
-              </div>
-              <div className="grow">{dashboard.doc_title}</div>
-            </div>
-          ))}
-        </div>
-      </Modal> */}
     </ErrorBoundary>
   );
 }

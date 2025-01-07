@@ -21,6 +21,7 @@ export default ({ mode }) => {
         "@ui-components": resolve(__dirname, "./lib/core-ui.ts"),
       },
     },
+
     build: {
       lib: {
         // Could also be a dictionary or array of multiple entry points

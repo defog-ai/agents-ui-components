@@ -152,7 +152,7 @@ export const AnalysisAgent = ({
 
       // if the current stage is null, just destroy this analysis
       if (!newAnalysisData.currentStage) {
-        analysisManager.destroy();
+        // analysisManager.destroy();
       }
     }
   }
@@ -212,15 +212,6 @@ export const AnalysisAgent = ({
       setGlobalLoading(false);
     }
   }, [analysisData]);
-
-  const setActiveNode = useCallback(
-    (node) => {
-      setActiveNodePrivate(node);
-      analysisManager.updateStepData(pendingStepUpdates.current);
-      pendingStepUpdates.current = {};
-    },
-    [setActiveNodePrivate, analysisManager]
-  );
 
   useEffect(() => {
     if (analysisManager.didInit) return;
@@ -378,25 +369,28 @@ export const AnalysisAgent = ({
     </div>
   );
 
+  const setActiveNode = useCallback(
+    (node) => {
+      setActiveNodePrivate(node);
+      analysisManager.setActiveStepId(node?.data?.id || null);
+      if (Object.keys(pendingStepUpdates.current).length) {
+        analysisManager.updateStepData(pendingStepUpdates.current);
+        pendingStepUpdates.current = {};
+      }
+    },
+    [setActiveNodePrivate, analysisManager]
+  );
+
   const activeStep = useMemo(() => {
     if (!activeNode || !analysisData || !analysisData.gen_steps) return null;
-    try {
-      let stepId = activeNode.data.id;
-      // if this is an addStepNode, then the id can be figured out by removing the ending "-add"
-      if (activeNode.data.id.endsWith("-add")) {
-        stepId = activeNode.data.id.replace("-add", "");
-      }
-      return analysisData.gen_steps.steps.find((s) => s.id === stepId);
-    } catch (e) {
-      console.log(e);
-      return null;
-    }
-  }, [activeNode, analysisData]);
+    return analysisManager.getActiveStep();
+  }, [activeNode, analysisData, analysisManager]);
 
   return (
     <ErrorBoundary>
       <div
         ref={ctr}
+        id={analysisId}
         className={twMerge(
           "analysis-agent-container h-max min-h-20 relative grow outline-none focus:outline-none rounded-3xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800",
           independentAnalysisSearchRef

@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { reorderColumns } from "./columnOrdering.js";
 import { Input as TextInput, Button } from "@ui-components";
-import { ChartStateContext } from "./ChartStateContext.jsx";
+import { ChartStateContext } from "./ChartStateContext";
 import { AgentConfigContext } from "../context/AgentContext";
 
 const { Option } = Select;

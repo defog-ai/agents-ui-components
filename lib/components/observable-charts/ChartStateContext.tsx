@@ -1,28 +1,211 @@
 // this context is specific for each chart
 // hence not used in the Setup.jsx file once
-// but used inside ChartContainer.jsx and added to each chart separately
+// but used inside ChartContainer.tsx and added to each chart separately
 
 import { createContext } from "react";
 
-/**
- *
- * @typedef {Object} ActionHandlers
- * @property {function(): ChartState} render
- * @property {function(string): ChartState} setSelectedChart
- * @property {function(SelectedColumns): ChartState} setSelectedColumns
- * @property {function(Partial<ChartStyle>): ChartState} updateChartStyle
- * @property {function(Partial<ChartSpecificOptions[keyof ChartSpecificOptions]>): ChartState} updateChartSpecificOptions
- * @property {function(Array<Object>): ChartState} setData
- * @property {function(Array<Column>): ChartState} setAvailableColumns
- * @property {function(): ChartState} autoSelectVariables
- */
+interface ChartStyle {
+  /** The chart title */
+  title: string;
+  /** Font size for chart elements */
+  fontSize: number;
+  /** Background color of the chart */
+  backgroundColor: string;
+  /** Label for the x-axis */
+  xLabel: string | null;
+  /** Label for the y-axis */
+  yLabel: string | null;
+  /** Whether to show x-axis grid lines */
+  xGrid: boolean;
+  /** Whether to show y-axis grid lines */
+  yGrid: boolean;
+  /** Number of ticks on the x-axis */
+  xTicks: number;
+  /** Format for date values */
+  dateFormat: string;
+  /** Number of ticks on the y-axis */
+  yTicks: number;
+  /** Color scheme for the chart. Used for all charts. Styles applied to individual bars and lines override this scheme. */
+  selectedScheme: string;
+  /** Unit label for the y-axis */
+  yAxisUnitLabel: string;
+}
+
+interface LineChartOptions {
+  /** Color of the line */
+  lineColor: string;
+  /** Width of the line */
+  lineWidth: number;
+  /** Type of curve for the line */
+  curve: string;
+  /** Whether to show markers on data points */
+  marker: boolean;
+  /** Column to group data by */
+  groupBy: string;
+  /** Column to determine line color */
+  stroke: string;
+  /** Options for line styling. Each property is a column name. */
+  lineOptions: { [colName: string]: { stroke: string; strokeWidth: number } };
+  /** Whether to show labels on the chart */
+  showLabels: boolean;
+  filter: string | null;
+  aggregateFunction:
+    | "sum"
+    | "proportion"
+    | "count"
+    | "median"
+    | "mean"
+    | "variance";
+}
+
+interface BarChartOptions {
+  /** Width of the bars */
+  barWidth: number;
+  /** Function to aggregate the data */
+  aggregateFunction:
+    | "sum"
+    | "proportion"
+    | "count"
+    | "median"
+    | "mean"
+    | "variance";
+  /** Options for bar styling. Each property is a column name. */
+  barOptions: { [colName: string]: { fill: string } };
+  /** Column to determine bar color */
+  fill: string | null;
+  /** Column to determine bar color when within a group (aka x facet) */
+  colorBy: string | null;
+  /** Whether the colorBy column is a date column */
+  colorByIsDate: boolean;
+}
+
+interface ScatterChartOptions {
+  /** Color of the points */
+  pointColor: string;
+  /** Size of the points */
+  pointSize: number;
+}
+
+interface HistogramOptions {
+  /** Number of bins in the histogram */
+  binCount: number;
+  /** Fill color of the bars */
+  fillColor: string;
+  /** Thresholds for binning */
+  thresholds: string | number[];
+  /** Whether to normalize the histogram */
+  normalize: boolean;
+  /** Whether to show cumulative distribution */
+  cumulative: boolean;
+}
+
+interface BoxplotOptions {
+  /** Fill color of the box */
+  fill: string;
+  /** Stroke color of the box */
+  stroke: string;
+  /** Width of the stroke */
+  strokeWidth: number;
+  /** Opacity of the box */
+  opacity: number;
+  /** Orientation of the boxplot */
+  boxplotOrientation: string;
+}
+
+interface ChartSpecificOptions {
+  [key: string]: any;
+  /** Options for line charts */
+  line: LineChartOptions;
+  /** Options for bar charts */
+  bar: BarChartOptions;
+  /** Options for scatter plots */
+  scatter: ScatterChartOptions;
+  /** Options for histograms */
+  histogram: HistogramOptions;
+  /** Options for boxplots */
+  boxplot: BoxplotOptions;
+}
+
+interface SelectedColumns {
+  /** Selected column for x-axis */
+  x: string | null;
+  /** Selected column(s) for y-axis */
+  y: string | string[] | null;
+  /** Selected column for faceting */
+  facet?: string | null;
+  /** Selected column for fill color */
+  fill?: string | null;
+  /** Selected column for stroke color */
+  stroke?: string | null;
+  filter?: string | null;
+}
+
+interface Column {
+  /** Column key */
+  key: string;
+  /** Type of the variable (e.g., 'quantitative', 'categorical') */
+  variableType: string;
+  /** Whether the column contains date values */
+  isDate: boolean;
+  /** Column title */
+  title: string;
+  /** Column description */
+  description: string;
+  /** Column type */
+  colType: string;
+}
+
+interface ChartConfig {
+  /**Currently selected chart type */
+  selectedChart: string;
+  /**Selected columns for the chart */
+  selectedColumns: SelectedColumns;
+  /**Style options for the chart */
+  chartStyle: ChartStyle;
+  /**Options specific to each chart type */
+  chartSpecificOptions: ChartSpecificOptions;
+  /**Data for the chart */
+  data: Array<Object>;
+  /**Available columns in the dataset */
+  availableColumns: Array<Column>;
+  /**Deep merge state updates into current state, and return the merged state. */
+  mergeStateUpdates: (stateUpdate: Partial<ChartState>) => Partial<ChartState>;
+  /**Callback function to set the state */
+  setStateCallback: (newState: ChartState) => void;
+  /**Clone the current state. Returns the state without any function properties and `skipKeys` if passed. */
+  clone: (skipKeys: string[]) => Object;
+}
+
+export interface ChartState extends ChartConfig, ActionHandlers {
+  loading?: boolean;
+  [key: string]: any;
+}
+
+interface ActionHandlers {
+  render: () => void;
+  setSelectedChart: (newChart: string) => Partial<ChartState>;
+  setSelectedColumns: (selectedColumns: SelectedColumns) => Partial<ChartState>;
+  updateChartStyle: (newStyle: Partial<ChartStyle>) => Partial<ChartState>;
+  updateChartSpecificOptions: (
+    newOptions: Partial<ChartSpecificOptions[keyof ChartSpecificOptions]>
+  ) => Partial<ChartState>;
+  setData: (newData: Array<Object>) => Partial<ChartState>;
+  setAvailableColumns: (newColumns: Array<Column>) => Partial<ChartState>;
+  autoSelectVariables: () => Partial<ChartState>;
+  editChart: (
+    userQuestion: string,
+    chartEditUrl: string,
+    callbacks?: {
+      onError?: (error: Error) => void;
+    }
+  ) => Promise<void>;
+}
 
 /**
  * Handy, chainable methods to change chart state without doing chartState.update({...}) everytime.
  *
  * Always used with defaultChartState.
  *
- * @returns {ActionHandlers} - Action handlers.
  * @example
  * const [state, setState] = useState(defaultChartState);
  *
@@ -35,8 +218,8 @@ import { createContext } from "react";
  *  .setSelectedColumns({ x: "date", y: "value" })
  *  .render();
  */
-export function createActionHandlers() {
-  const actionHandlers = {
+export function createActionHandlers(): ActionHandlers {
+  const actionHandlers: ChartState = {
     render: function () {
       this.setStateCallback(this);
     },
@@ -147,20 +330,65 @@ export function createActionHandlers() {
         selectedColumns: {
           x: xAxis,
           y:
-            selectedChart === "line" || selectedChart == "bar"
-              ? [yAxis]
-              : yAxis,
+            yAxis === null
+              ? null
+              : selectedChart === "line" || selectedChart == "bar"
+                ? [yAxis]
+                : yAxis,
         },
       };
 
       return newState;
+    },
+    editChart: async function (
+      userQuestion: string,
+      chartEditUrl: string,
+      callbacks?: {
+        onError?: (error: Error) => void;
+      }
+    ): Promise<void> {
+      try {
+        this.setStateCallback({ ...this, loading: true });
+
+        const response = await fetch(chartEditUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            user_request: userQuestion,
+            current_chart_state: this.clone(["data", "availableColumns"]),
+            columns: this.availableColumns.map((col) => ({
+              title: col.title,
+              col_type: col.colType,
+            })),
+          }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || data.error || !data.success) {
+          throw new Error(data.error || "Failed to edit chart");
+        }
+
+        const chartStateEdits = data["chart_state_edits"];
+
+        this.mergeStateUpdates(chartStateEdits).render();
+      } catch (error) {
+        this.setStateCallback({ ...this, loading: false });
+        callbacks?.onError?.(error as Error);
+        throw error;
+      }
     },
   };
 
   return actionHandlers;
 }
 
-function deepMergeObjects(obj1, obj2) {
+function deepMergeObjects(
+  obj1: { [key: string]: any },
+  obj2: { [key: string]: any }
+) {
   const merged = { ...obj1 };
 
   for (const key in obj2) {
@@ -178,110 +406,7 @@ function deepMergeObjects(obj1, obj2) {
   return merged;
 }
 
-/**
- * @typedef {Object} ChartStyle
- * @property {string} title - The chart title
- * @property {number} fontSize - Font size for chart elements
- * @property {string} backgroundColor - Background color of the chart
- * @property {string} xLabel - Label for the x-axis
- * @property {string} yLabel - Label for the y-axis
- * @property {boolean} xGrid - Whether to show x-axis grid lines
- * @property {boolean} yGrid - Whether to show y-axis grid lines
- * @property {number} xTicks - Number of ticks on the x-axis
- * @property {string} dateFormat - Format for date values
- * @property {number} yTicks - Number of ticks on the y-axis
- * @property {string} selectedScheme - Color scheme for the chart. Used for all charts. Styles applied to individual bars and lines override this scheme.
- * @property {string} yAxisUnitLabel - Unit label for the y-axis
- */
-
-/**
- * @typedef {Object} LineChartOptions
- * @property {string} lineColor - Color of the line
- * @property {number} lineWidth - Width of the line
- * @property {string} curve - Type of curve for the line
- * @property {boolean} marker - Whether to show markers on data points
- * @property {string} groupBy - Column to group data by
- * @property {string} stroke - Column to determine line color
- * @property {{[colName: string]: {stroke: string, strokeWidth: number}}} lineOptions - Options for line styling. Each property is a column name.
- * @property {boolean} showLabels - Whether to show labels on the chart
- */
-
-/**
- * @typedef {Object} BarChartOptions
- * @property {number} barWidth - Width of the bars
- * @property {('sum'|'proportion'|'count'|'median'|'mean'|'variance')} aggregateFunction - Function to aggregate the data
- * * @property {{[colName: string]: {fill: string}}} barOptions - Options for bar styling. Each property is a column name.
- * @property {string|null} fill - Column to determine bar color
- * @property {string|null} colorBy - Column to determine bar color when within a group (aka x facet)
- * @property {boolean} colorByIsDate - Whether the colorBy column is a date column
- */
-
-/**
- * @typedef {Object} ScatterChartOptions
- * @property {string} pointColor - Color of the points
- * @property {number} pointSize - Size of the points
- */
-
-/**
- * @typedef {Object} HistogramOptions
- * @property {number} binCount - Number of bins in the histogram
- * @property {string} fillColor - Fill color of the bars
- * @property {string|number[]} thresholds - Thresholds for binning
- * @property {boolean} normalize - Whether to normalize the histogram
- * @property {boolean} cumulative - Whether to show cumulative distribution
- */
-
-/**
- * @typedef {Object} BoxplotOptions
- * @property {string} fill - Fill color of the box
- * @property {string} stroke - Stroke color of the box
- * @property {number} strokeWidth - Width of the stroke
- * @property {number} opacity - Opacity of the box
- * @property {string} boxplotOrientation - Orientation of the boxplot
- */
-
-/**
- * @typedef {Object} ChartSpecificOptions
- * @property {LineChartOptions} line - Options for line charts
- * @property {BarChartOptions} bar - Options for bar charts
- * @property {ScatterChartOptions} scatter - Options for scatter plots
- * @property {HistogramOptions} histogram - Options for histograms
- * @property {BoxplotOptions} boxplot - Options for boxplots
- */
-
-/**
- * @typedef {Object} SelectedColumns
- * @property {string|null} x - Selected column for x-axis
- * @property {string|string[]|null} y - Selected column(s) for y-axis
- * @property {string|null} facet - Selected column for faceting
- * @property {string|null} fill - Selected column for fill color
- * @property {string|null} stroke - Selected column for stroke color
- */
-
-/**
- * @typedef {Object} Column
- * @property {string} key - Column key
- * @property {string} variableType - Type of the variable (e.g., 'quantitative', 'categorical')
- * @property {boolean} isDate - Whether the column contains date values
- */
-
-/**
- * @typedef {Object} ChartConfig
- * @property {string} selectedChart - Currently selected chart type
- * @property {SelectedColumns} selectedColumns - Selected columns for the chart
- * @property {ChartStyle} chartStyle - Style options for the chart
- * @property {ChartSpecificOptions} chartSpecificOptions - Options specific to each chart type
- * @property {Array<Object>} data - Data for the chart
- * @property {Array<Column>} availableColumns - Available columns in the dataset
- * @property {function(Object): ChartState} mergeStateUpdates - Deep merge state updates into current state, and return the merged state.
- * @property {function(ChartState): void} setStateCallback - Callback function to set the state
- * @property {(skipKeys: string[]) => Object} clone - Clone the current state. Returns the state without any function properties and `skipKeys` if passed.
- */
-
-/**
- * @typedef {ChartConfig & ActionHandlers} ChartState
- */
-export const defaultChartState = {
+export const defaultChartState: ChartState = {
   selectedChart: "bar",
   selectedColumns: {
     x: null,
@@ -325,6 +450,8 @@ export const defaultChartState = {
       aggregateFunction: "sum",
       fill: null,
       barOptions: {},
+      colorBy: null,
+      colorByIsDate: false,
     },
     scatter: { pointColor: "#f54242", pointSize: 3 },
     histogram: {
@@ -344,6 +471,7 @@ export const defaultChartState = {
   },
   data: [],
   availableColumns: [],
+  loading: false,
   mergeStateUpdates: function (stateUpdates) {
     // if state updates have selectedChart === "line"
     // or if the active chart is line or bar
@@ -387,7 +515,7 @@ export const defaultChartState = {
   ...createActionHandlers(),
   clone: function (skipKeys = []) {
     // return a copy of the state without any function properties, and without any keys in skipKeys
-    const clone = {};
+    const clone: { [key: string]: any } = {};
     for (const key in this) {
       if (typeof this[key] !== "function" && skipKeys.indexOf(key) === -1) {
         clone[key] = this[key];
@@ -399,14 +527,17 @@ export const defaultChartState = {
 
 /**
  * Create a new chart state.
- * @param {object} partialState - Partial chart state.
- * @param {function} setStateCallback - Callback function to set the state. chartState.xxx().yyy().render() will call this function with the latest chartState after applying the xxx and yyy methods.
- * @returns {ChartState} - Chart State.
  */
 export function createChartState(
-  partialState = {},
-  setStateCallback = () => {}
-) {
+  /**
+   * Partial chart state.
+   */
+  partialState: Partial<ChartState> = {},
+  /**
+   * Callback function to set the state. chartState.xxx().yyy().render() will call this function with the latest chartState after applying the xxx and yyy methods.
+   */
+  setStateCallback: ChartState["setStateCallback"] = () => {}
+): ChartState {
   // only set defined keys
   const newState = Object.assign({}, defaultChartState);
 
