@@ -171,19 +171,24 @@ export function AnalysisTreeViewer({
 
         const allAnalyses = analysisTreeManager.getAll();
 
-        const questionType = await getQuestionType(
-          token,
-          keyName,
-          apiEndpoint,
-          question
-        );
+        let questionType = "analysis";
 
-        const mostVisibleElement = getMostVisibleAnalysis(
-          Object.keys(allAnalyses)
-        );
-        const visibleAnalysis = allAnalyses[mostVisibleElement.id];
+        if (allAnalyses.length > 0) {
+          // find question type if some analyses exist
+          questionType = await getQuestionType(
+            token,
+            keyName,
+            apiEndpoint,
+            question
+          );
+        }
 
         if (questionType.question_type === "chart") {
+          const mostVisibleElement = getMostVisibleAnalysis(
+            Object.keys(allAnalyses)
+          );
+          const visibleAnalysis = allAnalyses[mostVisibleElement.id];
+
           if (!visibleAnalysis?.analysisManager?.getAnalysisData?.()) {
             messageManager.error("No visible analysis found to edit chart");
             return;
