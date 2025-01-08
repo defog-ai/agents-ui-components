@@ -11,9 +11,9 @@ import {
 import { runQueryOnDb } from "../../utils/sqlite";
 import setupBaseUrl from "../..//utils/setupBaseUrl";
 import {
-  ChartState,
-  createChartState,
-} from "../../observable-charts/ChartStateContext";
+  ChartManager,
+  createChartManager,
+} from "../../observable-charts/ChartManagerContext";
 
 // the name of the prop where the data is stored for each stage
 const propNames: Record<string, string> = {
@@ -37,8 +37,8 @@ export interface OutputData {
 export interface ParsedOutput {
   csvString: string;
   data: any;
-  /** The chart state for this output */
-  chartState: ChartState;
+  /** The chart manager for this output */
+  chartManager: ChartManager;
   reactive_vars: {
     title?: string;
     [key: string]: any;
@@ -59,7 +59,8 @@ function parseOutputs(
     parsedOutputs[k].csvString = data.outputs![k].data;
     if (data.outputs![k].data) {
       parsedOutputs[k].data = parseData(data.outputs![k].data);
-      parsedOutputs[k].chartState = createChartState({
+      parsedOutputs[k].chartManager = createChartManager({
+        loading: true,
         data: parsedOutputs[k].data.data,
         availableColumns: parsedOutputs[k].data.columns,
       });

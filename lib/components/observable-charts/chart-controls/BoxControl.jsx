@@ -1,15 +1,14 @@
 import { Select } from "antd";
-import { ChartStateContext } from "../ChartStateContext";
+import { ChartManagerContext } from "../ChartManagerContext";
 import { useContext } from "react";
 import { useEffect } from "react";
 
 const BoxPlotControls = () => {
-  const chartState = useContext(ChartStateContext);
-  const { chartSpecificOptions, updateChartSpecificOptions, selectedChart } =
-    chartState;
+  const chartManager = useContext(ChartManagerContext);
+  const { chartSpecificOptions, selectedChart } = chartManager.config;
 
   const handleOrientationChange = (value) => {
-    chartState
+    chartManager
       .updateChartSpecificOptions({
         boxplotOrientation: value,
       })
@@ -19,13 +18,13 @@ const BoxPlotControls = () => {
   // If chart changes, reset the orientation to vertical
   useEffect(() => {
     if (selectedChart !== "boxplot") {
-      chartState
+      chartManager
         .updateChartSpecificOptions({
           boxplotOrientation: "vertical",
         })
         .render();
     }
-  }, [selectedChart, updateChartSpecificOptions]);
+  }, [chartManager, selectedChart]);
 
   return (
     <div>

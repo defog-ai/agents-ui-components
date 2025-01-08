@@ -12,7 +12,7 @@ import { Customization } from "./Customization";
 import ObservablePlot from "./ObservablePlot";
 import TabPaneWrapper from "./utils/TabPaneWrapper";
 import FilterBuilder from "./Filtering";
-import { ChartStateContext } from "./ChartStateContext";
+import { ChartManagerContext } from "./ChartManagerContext";
 import { Input, MessageManagerContext, SpinningLoader } from "@ui-components";
 import setupBaseUrl from "../utils/setupBaseUrl";
 import { AgentConfigContext } from "../context/AgentContext";
@@ -28,13 +28,16 @@ export function ChartContainer({
   initialQuestion: string | null;
   initialOptionsExpanded?: boolean;
 }) {
-  const [chartState, setChartState] = useState(stepData.chartState);
   const [isOptionsExpanded, setIsOptionsExpanded] = useState(
     initialOptionsExpanded
   );
 
+  const chartManager = useMemo(() => stepData.chartManager, [stepData]);
+
+  const [chartConfig, setChartConfig] = useState(stepData.chartManager.config);
+
   useEffect(() => {
-    chartState.setStateCallback = setChartState;
+    stepData.chartManager.setConfigCallback = setChartConfig;
   }, []);
 
   const agentConfigContext = useContext(AgentConfigContext);
@@ -48,11 +51,11 @@ export function ChartContainer({
 
   const messageManager = useContext(MessageManagerContext);
 
-  const { selectedColumns } = chartState;
+  const { selectedColumns } = chartConfig;
 
   useEffect(() => {
     if (initialQuestion) {
-      chartState.editChart(initialQuestion, chartEditUrl, {
+      chartManager.editChart(initialQuestion, chartEditUrl, {
         onError: (e) => {
           messageManager.error(e.message);
           console.error(e);
@@ -61,12 +64,8 @@ export function ChartContainer({
     }
   }, [initialQuestion]);
 
-  useEffect(() => {
-    setChartState(stepData.chartState);
-  }, [stepData.chartState]);
-
   const tabItems = useMemo(() => {
-    const columns = chartState.availableColumns;
+    const columns = chartConfig.availableColumns;
 
     return [
       {
@@ -104,7 +103,9 @@ export function ChartContainer({
   }, [selectedColumns]);
 
   return (
-    <ChartStateContext.Provider value={{ ...chartState, setChartState }}>
+    <ChartManagerContext.Provider
+      value={{ ...chartManager, config: chartConfig }}
+    >
       <div className="relative">
         <div className="flex flex-row gap-3 relative">
           <div
@@ -152,7 +153,7 @@ export function ChartContainer({
             </span>
           </div>
 
-          {chartState.loading ? (
+          {chartConfig.loading ? (
             <div className="w-full flex items-center justify-center">
               <SpinningLoader classNames="ml-2 w-8 h-8 text-gray-400"></SpinningLoader>
             </div>
@@ -161,7 +162,7 @@ export function ChartContainer({
           )}
         </div>
       </div>
-    </ChartStateContext.Provider>
+    </ChartManagerContext.Provider>
   );
 }
 

@@ -8,16 +8,16 @@ import AxisControl from "./components/AxisControl";
 import D3DateFormatBuilder from "./components/DateFormatter";
 import BoxPlotControls from "./chart-controls/BoxControl";
 import ColorSchemeSelector from "./components/ColorschemeSelector";
-import { ChartStateContext } from "./ChartStateContext";
+import { ChartManagerContext } from "./ChartManagerContext";
 import { useContext } from "react";
 
 export function Customization() {
-  const chartState = useContext(ChartStateContext);
+  const chartManager = useContext(ChartManagerContext);
   const { selectedChart, chartStyle, selectedColumns, availableColumns } =
-    chartState;
+    chartManager.config;
 
   const handleStyleChange = (key, value) => {
-    chartState.updateChartStyle({ [key]: value }).render();
+    chartManager.editChart({ [key]: value }).render();
   };
 
   const renderChartSpecificControls = () => {

@@ -15,7 +15,7 @@ import {
 import { saveAsPNG } from "./utils/saveChart";
 import { Button } from "@ui-components";
 import { Download } from "lucide-react";
-import { ChartStateContext } from "./ChartStateContext";
+import { ChartManagerContext } from "./ChartManagerContext";
 import { unix } from "dayjs";
 import dayjs from "dayjs";
 import { convertWideToLong } from "../utils/utils";
@@ -25,7 +25,7 @@ export default function ObservablePlot() {
   const containerRef = useRef(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
 
-  const chartState = useContext(ChartStateContext);
+  const chartManager = useContext(ChartManagerContext);
 
   const updateDimensions = useCallback(() => {
     if (containerRef.current) {
@@ -59,7 +59,7 @@ export default function ObservablePlot() {
       chartSpecificOptions,
       availableColumns,
       data,
-    } = chartState;
+    } = chartManager.config;
 
     const xColumn = availableColumns.find(
       (col) => col.key === selectedColumns.x
@@ -241,16 +241,16 @@ export default function ObservablePlot() {
       // always reset the padding or it messes with boundclient calculation below
       containerRef.current.style.padding = "0 0 0 0";
 
-      if (chartState.selectedChart === "bar" && !tooManyCategories) {
+      if (chartManager.config.selectedChart === "bar" && !tooManyCategories) {
         // we will create a custom scale
         // and use (if specified) options.lineOptions
         const { colorScheme } = getColorScheme(
-          chartState.chartStyle.selectedScheme
+          chartManager.config.chartStyle.selectedScheme
         );
 
-        const colorDomain = chartState.selectedColumns.y;
+        const colorDomain = chartManager.config.selectedColumns.y;
         const barOptions =
-          chartState?.chartSpecificOptions?.["bar"]?.barOptions || {};
+          chartManager.config?.chartSpecificOptions?.["bar"]?.barOptions || {};
 
         let schemeIdx = -1;
 
@@ -275,7 +275,7 @@ export default function ObservablePlot() {
                   legend: true,
                   tickFormat: (d) => {
                     if (
-                      chartState.chartSpecificOptions[selectedChart]
+                      chartManager.config.chartSpecificOptions[selectedChart]
                         .colorByIsDate
                     ) {
                       // this is already coming in as a unix timestamp
@@ -314,16 +314,17 @@ export default function ObservablePlot() {
             },
           })
         );
-      } else if (chartState.selectedChart === "line") {
+      } else if (chartManager.config.selectedChart === "line") {
         // we will create a custom scale
         // and use (if specified) options.lineOptions
         const { colorScheme } = getColorScheme(
-          chartState.chartStyle.selectedScheme
+          chartManager.config.chartStyle.selectedScheme
         );
 
-        const colorDomain = chartState.selectedColumns.y;
+        const colorDomain = chartManager.config.selectedColumns.y;
         const lineOptions =
-          chartState?.chartSpecificOptions?.["line"]?.lineOptions || {};
+          chartManager.config?.chartSpecificOptions?.["line"]?.lineOptions ||
+          {};
 
         let schemeIdx = -1;
 
@@ -348,7 +349,7 @@ export default function ObservablePlot() {
                   legend: true,
                   tickFormat: (d) => {
                     if (
-                      chartState.chartSpecificOptions[selectedChart]
+                      chartManager.config.chartSpecificOptions[selectedChart]
                         .colorByIsDate
                     ) {
                       return timeFormat(chartStyle.dateFormat)(unix(d));
@@ -498,7 +499,7 @@ export default function ObservablePlot() {
 
     if (generatedOptions) generatedOptions.wasSampled = wasSampled;
     return generatedOptions;
-  }, [chartState, dimensions]);
+  }, [chartManager.config, dimensions]);
 
   return (
     <div className="grow bg-white">

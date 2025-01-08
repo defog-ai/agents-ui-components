@@ -4,7 +4,6 @@ import { sentenceCase } from "../../utils/utils";
 export function AnalysisTreeItem({
   setActiveAnalysisId,
   setActiveRootAnalysisId,
-  setAddToDashboardSelection = (...args) => {},
   analysis = null,
   isActive = false,
   extraClasses = "",

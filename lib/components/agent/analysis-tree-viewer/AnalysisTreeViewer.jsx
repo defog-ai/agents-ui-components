@@ -51,9 +51,6 @@ export function AnalysisTreeViewer({
   const [sqlOnly, setSqlOnly] = useState(true);
   const [currentQuestion, setCurrentQuestion] = useState("");
 
-  const [addToDashboardSelection, setAddToDashboardSelection] = useState(false);
-  const [selectedDashboards, setSelectedDashboards] = useState([]);
-
   const { token, apiEndpoint } = useContext(AgentConfigContext).val;
 
   const chartEditUrl = setupBaseUrl({
@@ -150,8 +147,6 @@ export function AnalysisTreeViewer({
   );
 
   useEffect(() => {
-    setSelectedDashboards([]);
-    setAddToDashboardSelection(false);
     analysisDomRefs.current = {};
   }, [analysisTreeManager]);
 
@@ -203,13 +198,13 @@ export function AnalysisTreeViewer({
 
           const stepOutput = stepOutputs[0];
 
-          if (!stepOutput?.chartState) {
+          if (!stepOutput?.chartManager?.config) {
             messageManager.error("No chart found in the visible analysis");
             return;
           }
 
           try {
-            await stepOutput.chartState.editChart(question, chartEditUrl, {
+            await stepOutput.chartManager.editChart(question, chartEditUrl, {
               onError: (e) => {
                 messageManager.error(e.message);
                 console.error(e);
@@ -385,9 +380,6 @@ export function AnalysisTreeViewer({
                                   }
                                   setActiveAnalysisId={
                                     analysisTreeManager.setActiveAnalysisId
-                                  }
-                                  setAddToDashboardSelection={
-                                    setAddToDashboardSelection
                                   }
                                   onClick={() => {
                                     if (autoScroll) {

@@ -1,5 +1,5 @@
 import { ColorPicker, Button } from "antd";
-import { ChartStateContext } from "../ChartStateContext";
+import { ChartManagerContext } from "../ChartManagerContext";
 import { useContext } from "react";
 import {
   ArrowUpNarrowWide,
@@ -8,11 +8,11 @@ import {
 } from "lucide-react";
 
 const BarChartControls = () => {
-  const chartState = useContext(ChartStateContext);
-  const { chartSpecificOptions, selectedColumns } = chartState;
+  const chartManager = useContext(ChartManagerContext);
+  const { chartSpecificOptions, selectedColumns } = chartManager.config;
 
   const handleOptionChange = (key, value) => {
-    chartState.updateChartSpecificOptions({ [key]: value }).render();
+    chartManager.updateChartSpecificOptions({ [key]: value }).render();
   };
 
   // Handle changes for individual bar options
@@ -26,7 +26,7 @@ const BarChartControls = () => {
       [key]: value,
     };
 
-    chartState
+    chartManager
       .updateChartSpecificOptions({ barOptions: updatedBarOptions })
       .render();
   };

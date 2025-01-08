@@ -32,8 +32,6 @@ interface ChartStyle {
 }
 
 interface LineChartOptions {
-  /** Color of the line */
-  lineColor: string;
   /** Width of the line */
   lineWidth: number;
   /** Type of curve for the line */
@@ -113,7 +111,6 @@ interface BoxplotOptions {
 }
 
 interface ChartSpecificOptions {
-  [key: string]: any;
   /** Options for line charts */
   line: LineChartOptions;
   /** Options for bar charts */
@@ -164,34 +161,36 @@ interface ChartConfig {
   chartStyle: ChartStyle;
   /**Options specific to each chart type */
   chartSpecificOptions: ChartSpecificOptions;
+  /** Whether the chart is in a loading state */
+  loading?: boolean;
   /**Data for the chart */
   data: Array<Object>;
   /**Available columns in the dataset */
   availableColumns: Array<Column>;
-  /**Deep merge state updates into current state, and return the merged state. */
-  mergeStateUpdates: (stateUpdate: Partial<ChartState>) => Partial<ChartState>;
-  /**Callback function to set the state */
-  setStateCallback: (newState: ChartState) => void;
-  /**Clone the current state. Returns the state without any function properties and `skipKeys` if passed. */
-  clone: (skipKeys: string[]) => Object;
 }
 
-export interface ChartState extends ChartConfig, ActionHandlers {
-  loading?: boolean;
-  [key: string]: any;
+interface ChartUtils {
+  /**Deep merge state updates into current state, and return the merged state. */
+  mergeConfigUpdates: (configUpdates: Partial<ChartConfig>) => ChartManager;
+  /**Callback function to set the state */
+  setConfigCallback: (newConfig: ChartConfig) => void;
+  /**Clone the current config. Returns the config without any function properties and `skipKeys` if passed. */
+  clone: (skipKeys: string[]) => Partial<ChartConfig>;
 }
 
 interface ActionHandlers {
+  /** Calls the setConfigCallback function with the latest config */
   render: () => void;
-  setSelectedChart: (newChart: string) => Partial<ChartState>;
-  setSelectedColumns: (selectedColumns: SelectedColumns) => Partial<ChartState>;
-  updateChartStyle: (newStyle: Partial<ChartStyle>) => Partial<ChartState>;
+
+  setSelectedChart: (newChart: string) => ChartManager;
+  setSelectedColumns: (selectedColumns: SelectedColumns) => ChartManager;
+  updateChartStyle: (newStyle: Partial<ChartStyle>) => ChartManager;
   updateChartSpecificOptions: (
     newOptions: Partial<ChartSpecificOptions[keyof ChartSpecificOptions]>
-  ) => Partial<ChartState>;
-  setData: (newData: Array<Object>) => Partial<ChartState>;
-  setAvailableColumns: (newColumns: Array<Column>) => Partial<ChartState>;
-  autoSelectVariables: () => Partial<ChartState>;
+  ) => ChartManager;
+  setData: (newData: Array<Object>) => ChartManager;
+  setAvailableColumns: (newColumns: Array<Column>) => ChartManager;
+  autoSelectVariables: () => ChartManager;
   editChart: (
     userQuestion: string,
     chartEditUrl: string,
@@ -201,85 +200,69 @@ interface ActionHandlers {
   ) => Promise<void>;
 }
 
+export interface ChartManager extends ActionHandlers, ChartUtils {
+  config: ChartConfig;
+}
+
 /**
- * Handy, chainable methods to change chart state without doing chartState.update({...}) everytime.
- *
- * Always used with defaultChartState.
- *
- * @example
- * const [state, setState] = useState(defaultChartState);
- *
- * // update the state
- * state.setSelectedChart("line").render();
- *
- * // update state by chaining multiple actions and then calling .render()
- * state
- *  .setSelectedChart("line")
- *  .setSelectedColumns({ x: "date", y: "value" })
- *  .render();
+ * Handy, chainable methods to change chart config without doing chartManager.update({...}) everytime.
  */
 export function createActionHandlers(): ActionHandlers {
-  const actionHandlers: ChartState = {
+  const actionHandlers: ChartManager = {
     render: function () {
-      this.setStateCallback(this);
+      this.setConfigCallback(this.config);
     },
     setSelectedChart: function (payload) {
-      const newState = {
-        ...this,
+      this.config = {
+        ...this.config,
         selectedChart: payload,
         selectedColumns: {
           x: null,
           y: payload === "line" || payload === "bar" ? [] : null,
         },
         chartStyle: {
-          ...defaultChartState.chartStyle,
+          ...defaultChartManager.config.chartStyle,
           xLabel: null,
           yLabel: null,
         },
       };
 
-      return newState;
+      return this;
     },
     setSelectedColumns: function (payload) {
-      const newState = { ...this, selectedColumns: payload };
-
-      return newState;
+      this.config = { ...this.config, selectedColumns: payload };
+      return this;
     },
     updateChartStyle: function (payload) {
-      const newState = {
-        ...this,
-        chartStyle: { ...this.chartStyle, ...payload },
+      this.config = {
+        ...this.config,
+        chartStyle: { ...this.config.chartStyle, ...payload },
       };
-
-      return newState;
+      return this;
     },
     updateChartSpecificOptions: function (payload) {
-      const newState = {
-        ...this,
+      this.config = {
+        ...this.config,
         chartSpecificOptions: {
-          ...this.chartSpecificOptions,
-          [this.selectedChart]: {
-            ...this.chartSpecificOptions[this.selectedChart],
+          ...this.config.chartSpecificOptions,
+          [this.config.selectedChart]: {
+            ...this.config.chartSpecificOptions[this.config.selectedChart],
             ...payload,
           },
         },
       };
-      return newState;
+      return this;
     },
     setData: function (payload) {
-      const newState = { ...this, data: payload };
-      return newState;
+      this.config.data = payload;
+      return this;
     },
     setAvailableColumns: function (payload) {
-      const newState = {
-        ...this,
-        availableColumns: payload,
-      };
-
-      return newState;
+      this.config.availableColumns = payload;
+      return this;
     },
     autoSelectVariables: function () {
-      const { selectedChart, availableColumns } = this;
+      const { selectedChart, availableColumns } = this.config;
 
       const dateColumn = availableColumns.find((col) => col.isDate);
       const quantColumns = availableColumns.filter(
@@ -325,8 +308,8 @@ export function createActionHandlers(): ActionHandlers {
         // if here, then just do null
         null;
 
-      const newState = {
-        ...this,
+      this.config = {
+        ...this.config,
         selectedColumns: {
           x: xAxis,
           y:
@@ -338,7 +321,7 @@ export function createActionHandlers(): ActionHandlers {
         },
       };
 
-      return newState;
+      return this;
     },
     editChart: async function (
       userQuestion: string,
@@ -348,7 +331,9 @@ export function createActionHandlers(): ActionHandlers {
       }
     ): Promise<void> {
       try {
-        this.setStateCallback({ ...this, loading: true });
+        console.log("on start", this);
+        // start loading
+        this.mergeConfigUpdates({ loading: true }).render();
 
         const response = await fetch(chartEditUrl, {
           method: "POST",
@@ -358,7 +343,7 @@ export function createActionHandlers(): ActionHandlers {
           body: JSON.stringify({
             user_request: userQuestion,
             current_chart_state: this.clone(["data", "availableColumns"]),
-            columns: this.availableColumns.map((col) => ({
+            columns: this.config.availableColumns.map((col) => ({
               title: col.title,
               col_type: col.colType,
             })),
@@ -371,11 +356,17 @@ export function createActionHandlers(): ActionHandlers {
           throw new Error(data.error || "Failed to edit chart");
         }
 
-        const chartStateEdits = data["chart_state_edits"];
+        const chartConfigEdits = data["chart_state_edits"];
+        console.log("before", this);
 
-        this.mergeStateUpdates(chartStateEdits).render();
+        this.mergeConfigUpdates({
+          ...chartConfigEdits,
+          loading: false,
+        }).render();
+
+        console.log("after", this);
       } catch (error) {
-        this.setStateCallback({ ...this, loading: false });
+        this.mergeConfigUpdates({ loading: false }).render();
         callbacks?.onError?.(error as Error);
         throw error;
       }
@@ -406,100 +397,102 @@ function deepMergeObjects(
   return merged;
 }
 
-export const defaultChartState: ChartState = {
-  selectedChart: "bar",
-  selectedColumns: {
-    x: null,
-    y: null,
-    facet: null,
-    fill: null,
-    stroke: null,
-    filter: null,
-  },
-  chartStyle: {
-    title: "",
-    fontSize: 12,
-    backgroundColor: "#ffffff",
-    xLabel: null,
-    yLabel: null,
-    xGrid: false,
-    yGrid: true,
-    xTicks: 10,
-    dateFormat: "%b %-d, %Y",
-    yTicks: 10,
-    selectedScheme: "Accent",
-    yAxisUnitLabel: "",
-  },
-  chartSpecificOptions: {
-    line: {
-      lineColor: "#000000",
-      lineWidth: 2,
-      curve: "linear",
-      marker: false,
-      filter: null,
-      groupBy: "",
-      stroke: "",
-      lineOptions: {},
-      showLabels: false,
-      aggregateFunction: "sum",
-      colorBy: null,
-      colorByIsDate: false,
-    },
-    bar: {
-      barWidth: 0.8,
-      aggregateFunction: "sum",
+export const defaultChartManager: ChartManager = {
+  config: {
+    selectedChart: "bar",
+    selectedColumns: {
+      x: null,
+      y: null,
+      facet: null,
       fill: null,
-      barOptions: {},
-      colorBy: null,
-      colorByIsDate: false,
+      stroke: null,
+      filter: null,
     },
-    scatter: { pointColor: "#f54242", pointSize: 3 },
-    histogram: {
-      binCount: 10,
-      fillColor: "#4287f5",
-      thresholds: "auto",
-      normalize: false,
-      cumulative: false,
+    chartStyle: {
+      title: "",
+      fontSize: 12,
+      backgroundColor: "#ffffff",
+      xLabel: null,
+      yLabel: null,
+      xGrid: false,
+      yGrid: true,
+      xTicks: 10,
+      dateFormat: "%b %-d, %Y",
+      yTicks: 10,
+      selectedScheme: "Accent",
+      yAxisUnitLabel: "",
     },
-    boxplot: {
-      fill: "#8AA7E2",
-      stroke: "#355DA3",
-      strokeWidth: 1,
-      opacity: 1,
-      boxplotOrientation: "vertical",
+    chartSpecificOptions: {
+      line: {
+        lineWidth: 2,
+        curve: "linear",
+        marker: false,
+        filter: null,
+        groupBy: "",
+        stroke: "",
+        lineOptions: {},
+        showLabels: false,
+        aggregateFunction: "sum",
+        colorBy: null,
+        colorByIsDate: false,
+      },
+      bar: {
+        barWidth: 0.8,
+        aggregateFunction: "sum",
+        fill: null,
+        barOptions: {},
+        colorBy: null,
+        colorByIsDate: false,
+      },
+      scatter: { pointColor: "#f54242", pointSize: 3 },
+      histogram: {
+        binCount: 10,
+        fillColor: "#4287f5",
+        thresholds: "auto",
+        normalize: false,
+        cumulative: false,
+      },
+      boxplot: {
+        fill: "#8AA7E2",
+        stroke: "#355DA3",
+        strokeWidth: 1,
+        opacity: 1,
+        boxplotOrientation: "vertical",
+      },
     },
+    loading: false,
+    data: [],
+    availableColumns: [],
   },
-  data: [],
-  availableColumns: [],
-  loading: false,
-  mergeStateUpdates: function (stateUpdates) {
-    // if state updates have selectedChart === "line"
+  mergeConfigUpdates: function (configUpdates) {
+    // if config updates have selectedChart === "line"
     // or if the active chart is line or bar
     // make sure that selectedColumns.y is an Array
     let isLineOrBar;
-    if (stateUpdates.selectedChart) {
+    if (configUpdates.selectedChart) {
       isLineOrBar =
-        stateUpdates.selectedChart === "line" ||
-        stateUpdates.selectedChart === "bar";
+        configUpdates.selectedChart === "line" ||
+        configUpdates.selectedChart === "bar";
     } else {
       isLineOrBar =
-        this.selectedChart === "line" || this.selectedChart === "bar";
+        this.config.selectedChart === "line" ||
+        this.config.selectedChart === "bar";
     }
 
     if (isLineOrBar) {
-      if (stateUpdates.selectedColumns && stateUpdates.selectedColumns.y) {
-        if (!Array.isArray(stateUpdates.selectedColumns.y)) {
-          stateUpdates.selectedColumns.y = [stateUpdates.selectedColumns.y];
+      if (configUpdates.selectedColumns && configUpdates.selectedColumns.y) {
+        if (!Array.isArray(configUpdates.selectedColumns.y)) {
+          configUpdates.selectedColumns.y = [configUpdates.selectedColumns.y];
         }
       }
     } else {
       // if this isn't a line, make sure y is NOT an array
-      if (stateUpdates.selectedColumns && stateUpdates.selectedColumns.y) {
+      if (configUpdates.selectedColumns && configUpdates.selectedColumns.y) {
         if (
-          Array.isArray(stateUpdates.selectedColumns.y) &&
-          stateUpdates.selectedColumns.y.length > 0
+          Array.isArray(configUpdates.selectedColumns.y) &&
+          configUpdates.selectedColumns.y.length > 0
         ) {
-          stateUpdates.selectedColumns.y = stateUpdates.selectedColumns.y[0];
+          configUpdates.selectedColumns.y = configUpdates.selectedColumns.y[0];
         }
       }
     }
@@ -507,56 +500,62 @@ export const defaultChartState: ChartState = {
     // for example: user question: "plot ratings onthe x axis"
     // if currently the selectedColumns are { x: "date", y: "value" }
     // then the state update will be { selectedColumns: { x: "ratings" } }
-    // but if we directly do {...this, ...stateUpdates}, then the y value will be lost
+    // but if we directly do {...this, ...configUpdates}, then the y value will be lost
     // hence we need to do a deep merge
-    return deepMergeObjects(this, stateUpdates);
+    this.config = deepMergeObjects(this.config, configUpdates);
+
+    return this;
   },
-  setStateCallback: () => {},
-  ...createActionHandlers(),
+  setConfigCallback: () => {},
   clone: function (skipKeys = []) {
     // return a copy of the state without any function properties, and without any keys in skipKeys
-    const clone: { [key: string]: any } = {};
-    for (const key in this) {
-      if (typeof this[key] !== "function" && skipKeys.indexOf(key) === -1) {
-        clone[key] = this[key];
+    const clone: Partial<ChartConfig> = {};
+    for (const key in this.config) {
+      if (
+        typeof this.config[key] !== "function" &&
+        skipKeys.indexOf(key) === -1
+      ) {
+        clone[key] = this.config[key];
       }
     }
     return clone;
   },
+  // add action handlers
+  ...createActionHandlers(),
 };
 
 /**
- * Create a new chart state.
+ * Create a new chart manager.
  */
-export function createChartState(
+export function createChartManager(
   /**
-   * Partial chart state.
+   * Partial chart config.
    */
-  partialState: Partial<ChartState> = {},
+  partialConfig: Partial<ChartConfig> = {},
   /**
-   * Callback function to set the state. chartState.xxx().yyy().render() will call this function with the latest chartState after applying the xxx and yyy methods.
+   * Callback function to set the state. chartManager.xxx().yyy().render() will call this function with the latest chartManager after applying the xxx and yyy methods.
    */
-  setStateCallback: ChartState["setStateCallback"] = () => {}
-): ChartState {
+  setConfigCallback: ChartManager["setConfigCallback"] = () => {}
+): ChartManager {
   // only set defined keys
-  const newState = Object.assign({}, defaultChartState);
+  const newManager = Object.assign({}, defaultChartManager);
 
-  for (const key in partialState) {
-    if (partialState[key] !== undefined) {
-      newState[key] = partialState[key];
+  console.log(newManager);
+
+  for (const key in partialConfig) {
+    if (partialConfig[key] !== undefined) {
+      newManager.config[key] = partialConfig[key];
     }
   }
 
-  const actionHandlers = createActionHandlers();
-
   return {
-    ...newState,
-    ...actionHandlers,
-    setStateCallback,
+    ...newManager,
+    config: newManager.config,
+    setConfigCallback,
   };
 }
 
 // defining this so explicitly here only to allow vscode's intellisense to work
 // we can also just do createContext()
 // but defining this here lets jsdoc + intellisense play together nicely
-export const ChartStateContext = createContext(createChartState());
+export const ChartManagerContext = createContext(createChartManager());
