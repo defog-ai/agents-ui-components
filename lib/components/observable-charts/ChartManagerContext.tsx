@@ -331,7 +331,6 @@ export function createActionHandlers(): ActionHandlers {
       }
     ): Promise<void> {
       try {
-        console.log("on start", this);
         // start loading
         this.mergeConfigUpdates({ loading: true }).render();
 
@@ -357,14 +356,12 @@ export function createActionHandlers(): ActionHandlers {
         }
 
         const chartConfigEdits = data["chart_state_edits"];
-        console.log("before", this);
 
         this.mergeConfigUpdates({
           ...chartConfigEdits,
           loading: false,
         }).render();
 
-        console.log("after", this);
       } catch (error) {
         this.mergeConfigUpdates({ loading: false }).render();
         callbacks?.onError?.(error as Error);
@@ -539,8 +536,6 @@ export function createChartManager(
 ): ChartManager {
   // only set defined keys
   const newManager = Object.assign({}, defaultChartManager);
-
-  console.log(newManager);
 
   for (const key in partialConfig) {
     if (partialConfig[key] !== undefined) {

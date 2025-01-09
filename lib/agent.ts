@@ -1,4 +1,4 @@
-export { ChartContainer } from "./components/observable-charts/ChartContainer.tsx";
+export { ChartContainer } from "./components/observable-charts/ChartContainer";
 
 export { parseData } from "./components/utils/utils.js";
 
@@ -10,7 +10,7 @@ export {
   AgentConfigContext,
   createAgentConfig,
   defaultAgentConfig,
-} from "./components/context/AgentContext.jsx";
+} from "./components/context/AgentContext";
 
 export { AnalysisAgent } from "./components/agent/analysis/AnalysisAgent.jsx";
 

@@ -10,7 +10,7 @@ import {
 import { AnalysisAgent } from "../analysis/AnalysisAgent";
 import { AnalysisTreeItem } from "./AnalysisTreeItem";
 import { PlusIcon } from "lucide-react";
-import { getQuestionType, sentenceCase } from "../../utils/utils";
+import { getQuestionType, raf, sentenceCase } from "../../utils/utils";
 import { twMerge } from "tailwind-merge";
 import { Sidebar, MessageManagerContext, breakpoints } from "@ui-components";
 import ErrorBoundary from "../../common/ErrorBoundary";
@@ -19,12 +19,24 @@ import { AgentConfigContext } from "../../context/AgentContext";
 import { DraggableInput } from "./DraggableInput";
 import { getMostVisibleAnalysis } from "../agentUtils";
 import setupBaseUrl from "../../utils/setupBaseUrl";
+import type { AnalysisTreeManager, AnalysisTree } from "./analysisTreeManager";
+import { AnalysisManager } from "../analysis/analysisManager";
+import debounce from "lodash.debounce";
+
+type GroupClass =
+  | "Today"
+  | "Yesterday"
+  | "Past week"
+  | "Past month"
+  | "Earlier";
+
+type AnalysisGrouped = {
+  [K in GroupClass]: string[];
+};
 
 /**
  *
  * Analysis tree viewer component
- * @param {Object} props
- * @param {ReturnType<import('./analysisTreeManager').AnalysisTreeManager>} props.analysisTreeManager
  *
  */
 export function AnalysisTreeViewer({
@@ -43,10 +55,24 @@ export function AnalysisTreeViewer({
   defaultSidebarOpen = false,
   showToggle = true,
   onTreeChange = () => {},
+}: {
+  analysisTreeManager: AnalysisTreeManager;
+  keyName: string;
+  isTemp?: boolean;
+  forceSqlOnly?: boolean;
+  metadata?: any;
+  predefinedQuestions?: string[];
+  autoScroll?: boolean;
+  sideBarClasses?: string;
+  searchBarClasses?: string;
+  searchBarDraggable?: boolean;
+  defaultSidebarOpen?: boolean;
+  showToggle?: boolean;
+  onTreeChange?: (keyName: string, analysisTree: AnalysisTree) => void;
 }) {
   const messageManager = useContext(MessageManagerContext);
 
-  const analysisDomRefs = useRef({});
+  const analysisDomRefs = useRef<{ [key: string]: { ctr: HTMLElement, analysisManager?: AnalysisManager, id?: string } }>({});
 
   const [sqlOnly, setSqlOnly] = useState(true);
   const [currentQuestion, setCurrentQuestion] = useState("");
@@ -59,7 +85,7 @@ export function AnalysisTreeViewer({
     apiEndpoint: apiEndpoint,
   });
 
-  const [sidebarOpen, setSidebarOpen] = useState(defaultSidebarOpen);
+  const [sidebarOpen, setSidebarOpen] = useState<boolean>(defaultSidebarOpen);
 
   const analysisTree = useSyncExternalStore(
     analysisTreeManager.subscribeToDataChanges,
@@ -78,7 +104,7 @@ export function AnalysisTreeViewer({
         );
       });
 
-      const grouped = {
+      const grouped: AnalysisGrouped = {
         Today: [],
         Yesterday: [],
         "Past week": [],
@@ -160,8 +186,8 @@ export function AnalysisTreeViewer({
 
   const handleSubmit = useCallback(
     async function (
-      question,
-      rootAnalysisId = null,
+      question: string,
+      rootAnalysisId: string | null = null,
       isRoot = false,
       directParentId = null
     ) {
@@ -173,7 +199,7 @@ export function AnalysisTreeViewer({
 
         let questionType = "analysis";
 
-        if (allAnalyses.length > 0) {
+        if (Object.keys(allAnalyses).length > 0) {
           // find question type if some analyses exist
           questionType = await getQuestionType(
             token,
@@ -183,7 +209,7 @@ export function AnalysisTreeViewer({
           );
         }
 
-        if (questionType.question_type === "chart") {
+        if (questionType === "chart") {
           const mostVisibleElement = getMostVisibleAnalysis(
             Object.keys(allAnalyses)
           );
@@ -194,6 +220,8 @@ export function AnalysisTreeViewer({
             return;
           }
           const activeStep = visibleAnalysis.analysisManager.getActiveStep();
+
+          if (!activeStep?.parsedOutputs) return;
 
           const stepOutputs = Object.values(activeStep.parsedOutputs);
           if (stepOutputs.length === 0) {
@@ -215,7 +243,7 @@ export function AnalysisTreeViewer({
                 console.error(e);
               },
             });
-          } catch (e) {
+          } catch (e: any) {
             messageManager.error(e.message);
             console.error(e);
           }
@@ -245,7 +273,7 @@ export function AnalysisTreeViewer({
 
         analysisTreeManager.setActiveAnalysisId(newAnalysis.analysisId);
         analysisTreeManager.setActiveRootAnalysisId(newAnalysis.rootAnalysisId);
-      } catch (e) {
+      } catch (e: any) {
         messageManager.error("Failed to create analysis");
         console.log(e.stack);
       }
@@ -253,13 +281,12 @@ export function AnalysisTreeViewer({
     [analysisTreeManager, forceSqlOnly, sqlOnly, isTemp, keyName, metadata]
   );
 
-  function scrollTo(id) {
+  function scrollTo(id: string) {
     if (!analysisDomRefs.current?.[id]?.ctr) return;
 
     analysisDomRefs.current[id].ctr.scrollIntoView({
       behavior: "smooth",
-      block: "nearest",
-      inline: "nearest",
+      block: "start",
     });
   }
 
@@ -271,6 +298,8 @@ export function AnalysisTreeViewer({
       null
     );
   }, [analysisTree, activeRootAnalysisId]);
+
+  const disableScrollEvent = useRef<boolean>(false);
 
   // w-0
   return (
@@ -285,7 +314,7 @@ export function AnalysisTreeViewer({
             <Sidebar
               location="left"
               open={sidebarOpen}
-              onChange={(open) => {
+              onChange={(open: boolean) => {
                 setSidebarOpen(open);
               }}
               title={
@@ -317,7 +346,9 @@ export function AnalysisTreeViewer({
                 <AnalysisTreeViewerLinks
                   analyses={allAnalyses}
                   activeAnalysisId={
-                    allAnalyses?.[activeAnalysisId] ? activeAnalysisId : null
+                    activeAnalysisId && allAnalyses?.[activeAnalysisId]
+                      ? activeAnalysisId
+                      : null
                   }
                 />
                 {!activeRootAnalysisId ? (
@@ -342,6 +373,7 @@ export function AnalysisTreeViewer({
                         "bg-blue-500 dark:bg-blue-500 hover:bg-blue-500 dark:hover:bg-blue-500 text-white dark:text-white p-2 shadow-md border border-blue-500 dark:border-blue-500"
                       )}
                       onClick={() => {
+                        disableScrollEvent.current = true;
                         // start a new root analysis
                         analysisTreeManager.setActiveRootAnalysisId(null);
                         analysisTreeManager.setActiveAnalysisId(null);
@@ -356,7 +388,7 @@ export function AnalysisTreeViewer({
                     </div>
                   </div>
                 )}
-                {Object.keys(analysisIdsGrouped).map((groupName) => {
+                {Object.keys(analysisIdsGrouped).map((groupName: any) => {
                   const analysesInGroup = analysisIdsGrouped[groupName];
                   if (!analysesInGroup.length) return null;
 
@@ -365,7 +397,7 @@ export function AnalysisTreeViewer({
                       <h3 className="text-lg font-bold text-gray-400 dark:text-gray-500 mt-4 mb-2">
                         {groupName}
                       </h3>
-                      {analysesInGroup.map((rootAnalysisId, i) => {
+                      {analysesInGroup.map((rootAnalysisId: string) => {
                         const root = analysisTree[rootAnalysisId].root;
                         const analysisChildList =
                           analysisTree?.[rootAnalysisId]?.analysisList || [];
@@ -383,9 +415,10 @@ export function AnalysisTreeViewer({
                                   setActiveRootAnalysisId={
                                     analysisTreeManager.setActiveRootAnalysisId
                                   }
-                                  setActiveAnalysisId={
-                                    analysisTreeManager.setActiveAnalysisId
-                                  }
+                                  setActiveAnalysisId={(id: string) => {
+                                    disableScrollEvent.current = false;
+                                    scrollTo(id);
+                                  }}
                                   onClick={() => {
                                     if (autoScroll) {
                                       scrollTo(tree.analysisId);
@@ -428,6 +461,19 @@ export function AnalysisTreeViewer({
                 ? ""
                 : "flex flex-col"
             )}
+            onScroll={debounce((e) => {
+              if(disableScrollEvent.current) return;
+              // when we scroll, we want to update the active analysis id
+              // so that we can show the active analysis in the sidebar
+              e.stopPropagation();
+              const allAnalyses = analysisTreeManager.getAll();
+              const {id: visibleAnalysisId, element} = getMostVisibleAnalysis(
+                Object.keys(allAnalyses)
+              );
+              if(!visibleAnalysisId) return;
+              if(visibleAnalysisId === activeAnalysisId) return;
+              analysisTreeManager.setActiveAnalysisId(visibleAnalysisId);
+            }, 100)}
           >
             {activeAnalysisList &&
               activeAnalysisList.map((analysis) => {
@@ -484,7 +530,7 @@ export function AnalysisTreeViewer({
                           return true;
                         }
                       })}
-                    onManagerCreated={(analysisManager, id, ctr) => {
+                    onManagerCreated={(analysisManager: AnalysisManager, id: string, ctr: HTMLDivElement) => {
                       analysisDomRefs.current[id] = {
                         ctr,
                         analysisManager,
@@ -503,7 +549,7 @@ export function AnalysisTreeViewer({
                         },
                       });
                     }}
-                    onManagerDestroyed={(analysisManager, id) => {
+                    onManagerDestroyed={(analysisManager: AnalysisManager, id: string) => {
                       // remove the analysis from the analysisTree
                       analysisTreeManager.removeAnalysis({
                         analysisId: analysis.analysisId,
