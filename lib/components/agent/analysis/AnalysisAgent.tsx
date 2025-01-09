@@ -11,6 +11,7 @@ import React, {
 import AgentLoader from "../../common/AgentLoader";
 import StepsDag, { DagLink, DagResult } from "./StepsDag";
 import {
+  raf,
   sentenceCase,
   toolShortNames,
   trimStringToLength,
@@ -92,9 +93,9 @@ interface Props {
    */
   plannerQuestionSuffix?: string | null;
   /**
-   * Questions that the user has asked so far before this analysis. has to be an array of Objects.
+   * Questions that the user has asked so far before this analysis. Has to be an array of Objects.
    */
-  previousQuestions?: string[];
+  previousQuestions?: any[] | null;
   /**
    * Global loading. Useful if you are handling multiple analysis..
    */
@@ -102,11 +103,19 @@ interface Props {
   /**
    * Callback when analysis manager is created.
    */
-  onManagerCreated?: (analysisManager: AnalysisManager, analysisId: string, ctr: HTMLDivElement | null) => void;
+  onManagerCreated?: (
+    analysisManager: AnalysisManager,
+    analysisId: string,
+    ctr: HTMLDivElement | null
+  ) => void;
   /**
    * Callback when analysis manager is destroyed.
    */
-  onManagerDestroyed?: (analysisManager: AnalysisManager, analysisId: string, ctr: HTMLDivElement | null) => void;
+  onManagerDestroyed?: (
+    analysisManager: AnalysisManager,
+    analysisId: string,
+    ctr: HTMLDivElement | null
+  ) => void;
   /**
    * Disable the search bar.
    */
@@ -118,38 +127,15 @@ interface Props {
     analysisManager?: AnalysisManager | null;
   };
   setCurrentQuestion?: (question: string) => void;
+  /**
+   * Callback when container height changes
+   */
+  onHeightChange?: (height: number) => void;
 }
 
 /**
- * Analysis Agent
+ * Analysis Agent. Handles a single analysis. Chonker.
  * */
-/**
- * The AnalysisAgent component is responsible for managing the state and interactions
- * of an analysis session within the application. It handles the initialization, data 
- * fetching, and submission processes related to analysis steps. The component also 
- * manages user interactions with analysis tools and stages, updating the UI accordingly.
- * 
- * Props:
- * - analysisId: The unique identifier for the analysis.
- * - keyName: A key name associated with the analysis.
- * - isTemp: A flag indicating if the analysis is temporary.
- * - metadata: Metadata related to the analysis.
- * - sqlOnly: A flag indicating if the analysis is SQL only.
- * - rootClassNames: CSS class names for styling the component.
- * - createAnalysisRequestBody: Request body for creating an analysis.
- * - initiateAutoSubmit: A flag to automatically submit the analysis.
- * - hasExternalSearchBar: A flag indicating presence of an external search bar.
- * - searchBarPlaceholder: Placeholder text for the search bar.
- * - extraTools: An array of extra tools available for the analysis.
- * - plannerQuestionSuffix: A suffix for planner questions in the analysis.
- * - previousQuestions: An array of previous questions asked during the analysis.
- * - setGlobalLoading: Function to set the global loading state.
- * - onManagerCreated: Callback when the analysis manager is created.
- * - onManagerDestroyed: Callback when the analysis manager is destroyed.
- * - disabled: A flag to disable the component.
- * - initialConfig: Initial configuration for the analysis manager.
- * - setCurrentQuestion: Function to set the current question in the analysis.
- */
 export const AnalysisAgent = ({
   analysisId,
   keyName,
@@ -163,7 +149,7 @@ export const AnalysisAgent = ({
   searchBarPlaceholder = null,
   extraTools = [],
   plannerQuestionSuffix = null,
-  previousQuestions = [], // questions that the user has asked so far in the analysis
+  previousQuestions = [],
   setGlobalLoading = (...args) => {},
   onManagerCreated = (...args) => {},
   onManagerDestroyed = (...args) => {},
@@ -172,6 +158,7 @@ export const AnalysisAgent = ({
     analysisManager: null,
   },
   setCurrentQuestion = (...args) => {},
+  onHeightChange = (...args) => {},
 }: Props) => {
   const agentConfigContext = useContext(AgentConfigContext);
   const { devMode, apiEndpoint, token } = agentConfigContext.val;
@@ -191,7 +178,7 @@ export const AnalysisAgent = ({
   // we flush these pending updates to the actual analysis data when:
   // 1. the active node changes
   // 2. the user submits the step for re running
-  const pendingStepUpdates = useRef<{[stepId: string]: any}>({});
+  const pendingStepUpdates = useRef<{ [stepId: string]: any }>({});
 
   const windowSize = useWindowSize();
   const collapsed = useMemo(() => {
@@ -205,10 +192,35 @@ export const AnalysisAgent = ({
   const [tools, setTools] = useState({});
 
   const ctr = useRef<HTMLDivElement>(null);
+  const observerRef = useRef<ResizeObserver | null>(null);
+
+  // Setup resize observer for container div
+  useEffect(() => {
+    if (!ctr.current || !onHeightChange) return;
+
+    observerRef.current?.disconnect();
+
+    const observer = new ResizeObserver((entries) => {
+      entries.forEach((entry) => {
+        onHeightChange(entry.contentRect.height);
+      });
+    });
+
+    observer.observe(ctr.current);
+    observerRef.current = observer;
+
+    return () => {
+      observerRef.current?.disconnect();
+      observerRef.current = null;
+    };
+  }, [onHeightChange]);
 
   const messageManager = useContext(MessageManagerContext);
 
-  function onMainSocketMessage(response: DefaultResponse, newAnalysisData: AnalysisData) {
+  function onMainSocketMessage(
+    response: DefaultResponse,
+    newAnalysisData: AnalysisData
+  ) {
     try {
       if (response.error_message) {
         // messageManager.error(response.error_message);
@@ -360,8 +372,7 @@ export const AnalysisAgent = ({
       stageInput?: Record<string, any>,
       submitStage?: string | null
     ): void;
-  }>
-    (
+  }>(
     (query?: string, stageInput = {}, submitStage = null) => {
       try {
         if (!query) throw new Error("Query is empty");
@@ -424,42 +435,44 @@ export const AnalysisAgent = ({
   );
 
   const titleDiv = (
-    <div className="flex flex-row flex-wrap gap-4 p-6 items-center lg:items-start">
-      <h1 className="font-bold text-xl text-gray-700 dark:text-gray-200 basis-0 grow min-w-[50%]">
-        {sentenceCase(
-          analysisData?.user_question ||
-            createAnalysisRequestBody.user_question ||
-            ""
-        )}
-      </h1>
-      {!analysisBusy &&
-      analysisData &&
-      !(
-        !analysisData ||
-        (!analysisData.currentStage && hasExternalSearchBar)
-      ) ? null : (
-        // <div className="basis-0 text-nowrap whitespace-nowrap">
-        //   <AnalysisFeedback
-        //     analysisSteps={analysisData?.gen_steps?.steps || []}
-        //     analysisId={analysisId}
-        //     user_question={analysisData?.user_question}
-        //     apiEndpoint={apiEndpoint}
-        //     token={token}
-        //     keyName={keyName}
-        //   />
-        // </div>
-        <div className="basis-0 text-nowrap whitespace-nowrap group cursor-pointer">
-          <CircleStop
-            className="w-6 h-6 text-rose-300 group-hover:text-rose-500 dark:text-rose-400 dark:group-hover:text-rose-600"
-            onClick={() => {
-              setGlobalLoading(false);
+    <>
+      <div className="flex flex-row flex-wrap gap-4 p-6 items-center lg:items-start transition-all duration-200">
+        <h1 className="font-bold text-xl text-gray-700 dark:text-gray-200 basis-0 grow min-w-[50%]">
+          {sentenceCase(
+            analysisData?.user_question ||
+              createAnalysisRequestBody.user_question ||
+              ""
+          )}
+        </h1>
+        {!analysisBusy &&
+        analysisData &&
+        !(
+          !analysisData ||
+          (!analysisData.currentStage && hasExternalSearchBar)
+        ) ? null : (
+          // <div className="basis-0 text-nowrap whitespace-nowrap">
+          //   <AnalysisFeedback
+          //     analysisSteps={analysisData?.gen_steps?.steps || []}
+          //     analysisId={analysisId}
+          //     user_question={analysisData?.user_question}
+          //     apiEndpoint={apiEndpoint}
+          //     token={token}
+          //     keyName={keyName}
+          //   />
+          // </div>
+          <div className="basis-0 text-nowrap whitespace-nowrap group cursor-pointer">
+            <CircleStop
+              className="w-6 h-6 text-rose-300 group-hover:text-rose-500 dark:text-rose-400 dark:group-hover:text-rose-600"
+              onClick={() => {
+                setGlobalLoading(false);
 
-              analysisManager.destroy();
-            }}
-          ></CircleStop>
-        </div>
-      )}
-    </div>
+                analysisManager.destroy();
+              }}
+            ></CircleStop>
+          </div>
+        )}
+      </div>
+    </>
   );
 
   const setActiveNode = useCallback(
@@ -680,7 +693,7 @@ export const AnalysisAgent = ({
                               {trimStringToLength(
                                 // @ts-ignore
                                 toolShortNames[node?.data?.step?.tool_name] ||
-                                // @ts-ignore
+                                  // @ts-ignore
                                   tools[node?.data?.step?.tool_name]?.[
                                     "tool_name"
                                   ] ||

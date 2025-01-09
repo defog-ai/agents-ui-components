@@ -24,6 +24,9 @@ const propNames: Record<string, string> = {
 
 const agentRequestTypes: string[] = ["clarify", "gen_steps"];
 
+/**
+ * Raw outputs of a step.
+ */
 export interface OutputData {
   data?: string;
   reactive_vars?: {
@@ -34,6 +37,9 @@ export interface OutputData {
   analysis?: any;
 }
 
+/**
+ * Parsed output of a step.
+ */
 export interface ParsedOutput {
   csvString?: string;
   data: any;
@@ -54,7 +60,7 @@ function parseOutputs(
   let parsedOutputs: Record<string, ParsedOutput> = {};
   // go through data and parse all tables
   Object.keys(data?.outputs || {}).forEach((k) => {
-    parsedOutputs[k] = {};
+    parsedOutputs[k] = {} as ParsedOutput;
     // check if this has data, reactive_vars and chart_images
     parsedOutputs[k].csvString = data.outputs![k].data;
     if (data.outputs![k].data) {

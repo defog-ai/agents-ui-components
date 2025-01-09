@@ -72,7 +72,13 @@ export function AnalysisTreeViewer({
 }) {
   const messageManager = useContext(MessageManagerContext);
 
-  const analysisDomRefs = useRef<{ [key: string]: { ctr: HTMLElement, analysisManager?: AnalysisManager, id?: string } }>({});
+  const analysisDomRefs = useRef<{
+    [key: string]: {
+      ctr: HTMLElement | null;
+      analysisManager?: AnalysisManager;
+      id?: string;
+    };
+  }>({});
 
   const [sqlOnly, setSqlOnly] = useState(true);
   const [currentQuestion, setCurrentQuestion] = useState("");
@@ -281,11 +287,11 @@ export function AnalysisTreeViewer({
     [analysisTreeManager, forceSqlOnly, sqlOnly, isTemp, keyName, metadata]
   );
 
-  function scrollTo(id: string) {
+  function scrollTo(id: string, behavior: ScrollBehavior = "smooth") {
     if (!analysisDomRefs.current?.[id]?.ctr) return;
 
     analysisDomRefs.current[id].ctr.scrollIntoView({
-      behavior: "smooth",
+      behavior: behavior,
       block: "start",
     });
   }
@@ -300,6 +306,16 @@ export function AnalysisTreeViewer({
   }, [analysisTree, activeRootAnalysisId]);
 
   const disableScrollEvent = useRef<boolean>(false);
+
+  const changeActiveAnalysis = useCallback(() => {
+    const allAnalyses = analysisTreeManager.getAll();
+    const { id: visibleAnalysisId, element } = getMostVisibleAnalysis(
+      Object.keys(allAnalyses)
+    );
+    if (!visibleAnalysisId) return;
+    if (visibleAnalysisId === activeAnalysisId) return;
+    analysisTreeManager.setActiveAnalysisId(visibleAnalysisId);
+  }, []);
 
   // w-0
   return (
@@ -462,17 +478,11 @@ export function AnalysisTreeViewer({
                 : "flex flex-col"
             )}
             onScroll={debounce((e) => {
-              if(disableScrollEvent.current) return;
+              if (disableScrollEvent.current) return;
               // when we scroll, we want to update the active analysis id
               // so that we can show the active analysis in the sidebar
               e.stopPropagation();
-              const allAnalyses = analysisTreeManager.getAll();
-              const {id: visibleAnalysisId, element} = getMostVisibleAnalysis(
-                Object.keys(allAnalyses)
-              );
-              if(!visibleAnalysisId) return;
-              if(visibleAnalysisId === activeAnalysisId) return;
-              analysisTreeManager.setActiveAnalysisId(visibleAnalysisId);
+              changeActiveAnalysis();
             }, 100)}
           >
             {activeAnalysisList &&
@@ -499,6 +509,13 @@ export function AnalysisTreeViewer({
                     sqlOnly={analysis.sqlOnly}
                     isTemp={analysis.isTemp}
                     keyName={analysis.keyName}
+                    onHeightChange={(h) => {
+                      // console.log(h);
+                      // if (activeAnalysisId) {
+                      //   console.log("calling instant");
+                      //   scrollTo(activeAnalysisId, "instant");
+                      // }
+                    }}
                     previousQuestions={analysisChildList
                       .map((i) => ({
                         ...i,
@@ -530,7 +547,11 @@ export function AnalysisTreeViewer({
                           return true;
                         }
                       })}
-                    onManagerCreated={(analysisManager: AnalysisManager, id: string, ctr: HTMLDivElement) => {
+                    onManagerCreated={(
+                      analysisManager: AnalysisManager,
+                      id: string,
+                      ctr: HTMLDivElement | null
+                    ) => {
                       analysisDomRefs.current[id] = {
                         ctr,
                         analysisManager,
@@ -549,7 +570,10 @@ export function AnalysisTreeViewer({
                         },
                       });
                     }}
-                    onManagerDestroyed={(analysisManager: AnalysisManager, id: string) => {
+                    onManagerDestroyed={(
+                      analysisManager: AnalysisManager,
+                      id: string
+                    ) => {
                       // remove the analysis from the analysisTree
                       analysisTreeManager.removeAnalysis({
                         analysisId: analysis.analysisId,

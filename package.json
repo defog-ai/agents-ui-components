@@ -61,6 +61,7 @@
     "papaparse": "^5.4.1",
     "prismjs": "^1.29.0",
     "react-simple-code-editor": "^0.14.1",
+    "react-use": "^17.6.0",
     "sanitize-html": "^2.13.1",
     "styled-components": "^6.1.11",
     "tailwind-merge": "^2.4.0",
