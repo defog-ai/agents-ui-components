@@ -35,7 +35,7 @@ export interface OutputData {
 }
 
 export interface ParsedOutput {
-  csvString: string;
+  csvString?: string;
   data: any;
   /** The chart manager for this output */
   chartManager: ChartManager;
@@ -49,9 +49,9 @@ export interface ParsedOutput {
 
 function parseOutputs(
   data: { outputs?: Record<string, OutputData> },
-  analysisData: AnalysisData
-): Record<string, Partial<ParsedOutput>> {
-  let parsedOutputs: Record<string, Partial<ParsedOutput>> = {};
+  analysisData: AnalysisData | null
+): Record<string, ParsedOutput> {
+  let parsedOutputs: Record<string, ParsedOutput> = {};
   // go through data and parse all tables
   Object.keys(data?.outputs || {}).forEach((k) => {
     parsedOutputs[k] = {};
@@ -115,15 +115,15 @@ export interface Step {
 
 export interface AnalysisData {
   analysis_id?: string;
-  currentStage?: "clarify" | "gen_steps" | null;
+  currentStage?: string | null | undefined;
   direct_parent_id?: string | null;
   follow_up_analyses?: any[];
   gen_steps?: {
-    success: boolean | undefined;
+    success?: boolean;
     steps: Step[];
   };
   clarify?: {
-    success: boolean;
+    success?: boolean;
     clarification_questions?: string[];
   };
   nextStage?: string | null;
@@ -143,7 +143,7 @@ export interface AnalysisManager {
     question?: string;
     existingData?: AnalysisData | null;
     sqliteConn?: any;
-  }) => Promise<{ analysisData: AnalysisData | null } | undefined>;
+  }) => Promise<{ analysisData?: AnalysisData }>;
   wasNewAnalysisCreated: boolean;
   analysisData: AnalysisData;
   getAnalysisData: () => AnalysisData | null;
@@ -156,7 +156,17 @@ export interface AnalysisManager {
   setAnalysisBusy: (busy: boolean) => void;
   submit: (query: string, stageInput?: Record<string, any>) => Promise<void>;
   reRun: (stepId: string, sqliteConn?: any) => Promise<void>;
-  createNewStep: (step: Partial<Step>) => Promise<void>;
+  createNewStep: ({
+    tool_name,
+    inputs,
+    analysis_id,
+    outputs_storage_keys,
+  }: {
+    tool_name: string;
+    inputs: Record<string, any>;
+    analysis_id: string;
+    outputs_storage_keys: string[];
+  }) => Promise<void>;
   deleteSteps: (stepIds: string[]) => Promise<void>;
   destroy: () => void;
   setOnNewDataCallback: (callback: (data: AnalysisData) => void) => void;
@@ -170,15 +180,10 @@ export interface AnalysisManager {
 export interface AnalysisManagerConfig {
   analysisId: string;
   apiEndpoint: string;
-  token: string;
+  token: string | null;
   keyName: string;
   devMode: boolean;
-  metadata: {
-    column_name: string;
-    data_type: string;
-    column_description: string;
-    table_name: string;
-  }[];
+  metadata: ColumnMetadata[] | null;
   isTemp: boolean;
   sqlOnly?: boolean;
   extraTools?: Array<{
@@ -188,15 +193,15 @@ export interface AnalysisManagerConfig {
     input_metadata: any;
     output_metadata: any;
   }>;
-  plannerQuestionSuffix?: string;
-  previousQuestions?: string[];
+  plannerQuestionSuffix?: string | null;
+  previousQuestions?: string[] | null;
   onNewData?: (...args: any[]) => void;
   onManagerDestroyed?: (...args: any[]) => void;
   onAbortError?: (...args: any[]) => void;
   createAnalysisRequestBody?: any;
 }
 
-function AnalysisManager({
+function createAnalysisManager({
   analysisId,
   apiEndpoint,
   token,
@@ -298,10 +303,14 @@ function AnalysisManager({
     question,
     existingData = null,
     sqliteConn,
-  }): Promise<void> {
+  }: {
+    question: string;
+    existingData?: AnalysisData | null;
+    sqliteConn?: any;
+  }): Promise<void | {analysisData?: AnalysisData;}> {
     didInit = true;
 
-    if (analysisData) return;
+    if (analysisData) return { };
 
     // console.log("Analysis Manager init");
     // get analysis data
@@ -1068,4 +1077,4 @@ function AnalysisManager({
   };
 }
 
-export default AnalysisManager;
+export default createAnalysisManager;

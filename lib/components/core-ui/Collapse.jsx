@@ -9,7 +9,7 @@ let timeout,
  * Collapse component
  * @typedef {Object} CollapseProps
  * @property {React.ReactNode} children - The content of the collapse.
- * @property {string} title - The title of the collapse.
+ * @property {string | React.ReactNode} title - The title of the collapse.
  * @property {boolean} [defaultCollapsed] - If true, the collapse will be collapsed by default.
  * @property {boolean} [collapsed] - If true, the collapse will be collapsed.
  * @property {boolean} [alwaysOpen] - If true, the collapse will always be open.

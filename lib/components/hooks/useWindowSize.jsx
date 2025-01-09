@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 
 /**
  * A hook that returns the current window size.
- * @returns {Array<[width, height]>} The current window size in px.
+ * @returns {[number, number]} The current window size in px.
  * @example
  * // Logs the current window size.
  * function MyComponent() {

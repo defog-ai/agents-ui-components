@@ -12,6 +12,6 @@ export {
   defaultAgentConfig,
 } from "./components/context/AgentContext";
 
-export { AnalysisAgent } from "./components/agent/analysis/AnalysisAgent.jsx";
+export { AnalysisAgent } from "./components/agent/analysis/AnalysisAgent";
 
 export { DefogAnalysisAgentEmbed } from "./components/defog-analysis-agent-embed/DefogAnalysisAgentEmbed.jsx";

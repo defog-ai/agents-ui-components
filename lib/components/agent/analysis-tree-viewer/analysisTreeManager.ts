@@ -1,7 +1,7 @@
 import { AnalysisManager } from "../analysis/analysisManager.js";
 
-interface CreateAnalysisRequestBody {
-  initialisation_details?: Object;
+export interface CreateAnalysisRequestBody {
+  initialisation_details?: {[key: string]: any};
   direct_parent_id?: string | null;
   is_root_analysis?: boolean;
   root_analysis_id?: string | null;

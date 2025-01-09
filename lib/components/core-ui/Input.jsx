@@ -7,10 +7,10 @@ const inputSizeClasses = {
   small: "py-0 pr-5",
 };
 /**
- * @typedef {Object} InputProps
+ * @typedef {React.ComponentPropsWithoutRef} InputProps
  * @property {string} [value] - The value of the input. Setting this converts this to a controlled component.
  * @property {string} [defaultValue] - Default initial value of the input.
- * @property {string} [label] - Label for the input.
+ * @property {string | React.ReactNode} [label] - Label for the input.
  * @property {string} [type] - The type of the input. Can be "text", "password", "email", "number", "tel", "url".
  * @property {string} [status] - The status of the input. Can be "error". If "error" is set, the input will have a red border.
  * @property {boolean} [disabled] - If true, the input will be disabled.
