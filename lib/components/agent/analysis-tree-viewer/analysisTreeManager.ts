@@ -1,7 +1,7 @@
 import { AnalysisManager } from "../analysis/analysisManager.js";
 
 export interface CreateAnalysisRequestBody {
-  initialisation_details?: {[key: string]: any};
+  initialisation_details?: { [key: string]: any };
   direct_parent_id?: string | null;
   is_root_analysis?: boolean;
   root_analysis_id?: string | null;
@@ -24,17 +24,37 @@ interface Analysis {
   user_question: string;
 }
 
-export type AnalysisTree = { [analysisId: string]: { root: Analysis; analysisList: Analysis[]; }; };
+export type AnalysisTree = {
+  [analysisId: string]: { root: Analysis; analysisList: Analysis[] };
+};
 
 type Listener = () => void;
 
-type FlatAnalysisTree = { [analysisId: string]: Analysis; };
+type FlatAnalysisTree = { [analysisId: string]: Analysis };
 
 type Unsubscribe = () => void;
+
+export interface AnalysisTreeNode extends Analysis {
+  children: AnalysisTreeNode[];
+  parent: AnalysisTreeNode | null;
+  /**
+   * Returns a flat list of all children of this node, ordered by depth first.
+   */
+  flatOrderedChildren: AnalysisTreeNode[];
+  /**
+   * Flat list of all parents of this node, going up the tree from this node.
+   */
+  allParents: AnalysisTreeNode[];
+}
+
+export interface NestedAnalysisTree {
+  [analysisId: string]: AnalysisTreeNode;
+}
 
 export interface AnalysisTreeManager {
   subscribeToDataChanges: (listener: Listener) => Unsubscribe;
   getTree: () => AnalysisTree;
+  getNestedTree: () => NestedAnalysisTree;
   getAll: () => FlatAnalysisTree;
   subscribeToActiveAnalysisIdChanges: (listener: Listener) => Unsubscribe;
   setActiveAnalysisId: (analysisId: string | null) => void;
@@ -50,7 +70,7 @@ export interface AnalysisTreeManager {
     directParentId?: string | null;
     sqlOnly?: boolean;
     isTemp?: boolean;
-  }) => Promise<{newAnalysis: Analysis}>;
+  }) => Promise<{ newAnalysis: Analysis }>;
   removeAnalysis: (params: {
     analysisId: string;
     isRoot: boolean;
@@ -73,7 +93,10 @@ export interface AnalysisTreeManager {
  * @param {AnalysisTree} initialTree - The initial structure of the analysis tree. Defaults to an empty object.
  * @param {string} id - The unique identifier for the root of the analysis tree. Defaults to a generated UUID.
  */
-export function AnalysisTreeManager(initialTree: AnalysisTree = {}, id: string | null = crypto.randomUUID()) {
+export function AnalysisTreeManager(
+  initialTree: AnalysisTree = {},
+  id: string | null = crypto.randomUUID()
+) {
   // Initializes the unique identifier for this analysis tree manager instance.
   let _id = id;
 
@@ -111,19 +134,22 @@ export function AnalysisTreeManager(initialTree: AnalysisTree = {}, id: string |
    * Just a duplicate of the analysisTree but in a flat object
    * structure:
    */
-  let allAnalyses: FlatAnalysisTree = Object.values(analysisTree).reduce((acc, item) => {
-    return {
-      ...acc,
-      [item.root.analysisId]: item.root,
-      // Accumulates child analyses into the flat object, mapping their IDs to their data.
-      ...item.analysisList.reduce((acc, child) => {
-        return {
-          ...acc,
-          [child.analysisId]: child,
-        };
-      }, {}),
-    };
-  }, {});
+  let allAnalyses: FlatAnalysisTree = Object.values(analysisTree).reduce(
+    (acc, item) => {
+      return {
+        ...acc,
+        [item.root.analysisId]: item.root,
+        // Accumulates child analyses into the flat object, mapping their IDs to their data.
+        ...item.analysisList.reduce((acc, child) => {
+          return {
+            ...acc,
+            [child.analysisId]: child,
+          };
+        }, {}),
+      };
+    },
+    {}
+  );
 
   let dataListeners: Listener[] = [];
   let activeAnalysisIdChangeListeners: Listener[] = [];
@@ -132,7 +158,10 @@ export function AnalysisTreeManager(initialTree: AnalysisTree = {}, id: string |
 
   let destroyed = false;
 
-  function setAnalysisTree(newAnalysisTree: AnalysisTree, newAllAnalyses: FlatAnalysisTree) {
+  function setAnalysisTree(
+    newAnalysisTree: AnalysisTree,
+    newAllAnalyses: FlatAnalysisTree
+  ) {
     analysisTree = newAnalysisTree;
     allAnalyses = newAllAnalyses;
     emitDataChange();
@@ -144,6 +173,60 @@ export function AnalysisTreeManager(initialTree: AnalysisTree = {}, id: string |
 
   function getTree(): AnalysisTree {
     return analysisTree;
+  }
+
+  function flatOrderedChildren(node: AnalysisTreeNode): AnalysisTreeNode[] {
+    return [...node.children, ...node.children.flatMap(flatOrderedChildren)];
+  }
+
+  function getAllParents(node: AnalysisTreeNode): AnalysisTreeNode[] {
+    const parents: AnalysisTreeNode[] = [];
+    let current: AnalysisTreeNode | null = node;
+    while (current) {
+      parents.push(current);
+      current = current.parent;
+    }
+    return parents;
+  }
+
+  function getNestedTree(): NestedAnalysisTree {
+    const nestedTree: NestedAnalysisTree = {};
+
+    Object.keys(allAnalyses).forEach((analysisId) => {
+      nestedTree[analysisId] = {
+        ...allAnalyses[analysisId],
+        children: [],
+        parent: null,
+        flatOrderedChildren: [],
+        allParents: [],
+      };
+    });
+
+    Object.keys(nestedTree).forEach((analysisId) => {
+      if (nestedTree[analysisId].directParentId) {
+        const parent = nestedTree[nestedTree[analysisId].directParentId];
+        if (parent) {
+          nestedTree[analysisId].parent = parent;
+          nestedTree[analysisId].allParents = getAllParents(parent);
+          parent.children.push(nestedTree[analysisId]);
+          // sort the new children by timestamp
+          parent.children.sort((a, b) => b.timestamp - a.timestamp);
+        }
+      }
+    });
+
+    // only keep root analyses at the top level
+    for (const analysisId in nestedTree) {
+      if (!nestedTree[analysisId].isRoot) {
+        delete nestedTree[analysisId];
+      } else {
+        nestedTree[analysisId].flatOrderedChildren = flatOrderedChildren(
+          nestedTree[analysisId]
+        );
+      }
+    }
+
+    return nestedTree;
   }
 
   function emitDataChange() {
@@ -207,7 +290,7 @@ export function AnalysisTreeManager(initialTree: AnalysisTree = {}, id: string |
     } else {
       // else find the root analysis and remove the child
       if (rootAnalysisId) {
-        const rootAnalysis = newAnalysisTree[rootAnalysisId];
+        const rootAnalysis = analysisTree[rootAnalysisId].root;
         if (rootAnalysis) {
           rootAnalysis.analysisList = rootAnalysis.analysisList.filter(
             (item) => item.analysisId !== analysisId
@@ -222,7 +305,12 @@ export function AnalysisTreeManager(initialTree: AnalysisTree = {}, id: string |
     setAnalysisTree(newAnalysisTree, newAllAnalyses);
   }
 
-  function updateAnalysis({ analysisId, isRoot, updateObj, emit = true }: {
+  function updateAnalysis({
+    analysisId,
+    isRoot,
+    updateObj,
+    emit = true,
+  }: {
     analysisId: string;
     isRoot: boolean;
     updateObj: Partial<Analysis>;
@@ -269,9 +357,6 @@ export function AnalysisTreeManager(initialTree: AnalysisTree = {}, id: string |
     setAnalysisTree(newAnalysisTree, newAllAnalyses);
   }
 
-  /**
-   * 
-   */
   async function submit({
     question,
     keyName,
@@ -355,6 +440,7 @@ export function AnalysisTreeManager(initialTree: AnalysisTree = {}, id: string |
   return {
     subscribeToDataChanges,
     getTree,
+    getNestedTree,
     getAll,
     subscribeToActiveAnalysisIdChanges,
     setActiveAnalysisId,
@@ -373,7 +459,7 @@ export function AnalysisTreeManager(initialTree: AnalysisTree = {}, id: string |
  * Validates an analysis object. This is to prevent UI crashes in case of illegal/abnormal analyses being stored in localStorage/passed down for some reason.
  *
  * An analysis should:
- * - Be an object with the following keys: analysisId, createAnalysisRequestBody, directParentId, isRoot, isTemp, keyName, rootAnalysisId, sqlOnly, user_question
+ * - Be an object with the following keys: analysisId, createAnalysisRequestBody, directParentId, isRoot, isTemp, keyName, rootAnalysisId, sqlOnly, userQuestion
  * - analysisId should be a string
  * - createAnalysisRequestBody should be an object
  * - directParentId should be a string or null

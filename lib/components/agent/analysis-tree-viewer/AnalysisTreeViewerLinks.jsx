@@ -57,10 +57,10 @@ export const AnalysisTreeViewerLinks = ({ analyses, activeAnalysisId }) => {
       const listCtrRect = listCtr.getBoundingClientRect();
 
       const currentAnalysisEl = listCtr.querySelector(
-        `.${currentAnalysis.analysisId}`
+        `.${currentAnalysis.analysisId} .title`
       );
       const parentAnalysisEl = listCtr.querySelector(
-        `.${parentAnalysis.analysisId}`
+        `.${parentAnalysis.analysisId} .title`
       );
 
       const currentAnalysisRect = currentAnalysisEl.getBoundingClientRect();
