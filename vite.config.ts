@@ -36,7 +36,13 @@ export default ({ mode }) => {
       rollupOptions: {
         // make sure to externalize deps that shouldn't be bundled
         // into your library
-        external: [...Object.keys(peerDependencies)],
+        external: [
+          ...Object.keys(peerDependencies),
+          "react",
+          /^react\/.*/,
+          "react-dom",
+          /react-dom\/.*/,
+        ],
         target: "esnext",
         sourcemap: true,
       },
