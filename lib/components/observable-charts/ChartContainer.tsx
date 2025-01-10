@@ -43,12 +43,13 @@ export function ChartContainer({
   // support for oracle: if chart manager is not provided, we will create using rows and columns passed
   const chartManager: ChartManager = useMemo(
     () =>
-      stepData.chartManager ||
-      createChartManager({
-        loading: true,
-        data: rows,
-        availableColumns: columns,
-      }),
+      stepData
+        ? stepData?.chartManager
+        : createChartManager({
+            loading: true,
+            data: rows,
+            availableColumns: columns,
+          }),
     [stepData, rows, columns]
   );
 
