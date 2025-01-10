@@ -361,7 +361,6 @@ export function createActionHandlers(): ActionHandlers {
           ...chartConfigEdits,
           loading: false,
         }).render();
-
       } catch (error) {
         this.mergeConfigUpdates({ loading: false }).render();
         callbacks?.onError?.(error as Error);
@@ -499,7 +498,10 @@ export const defaultChartManager: ChartManager = {
     // then the state update will be { selectedColumns: { x: "ratings" } }
     // but if we directly do {...this, ...configUpdates}, then the y value will be lost
     // hence we need to do a deep merge
-    this.config = deepMergeObjects(this.config, configUpdates);
+    this.config = deepMergeObjects(
+      JSON.parse(JSON.stringify(this.config)),
+      configUpdates
+    );
 
     return this;
   },

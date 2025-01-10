@@ -342,10 +342,20 @@ export function AnalysisTreeViewer({
     });
   }, [allAnalyses]);
 
+  let currentScrollTimeout = useRef<NodeJS.Timeout | null>(null);
+
   // on first render, scroll to the active analysis
   useEffect(() => {
+    // if there's a current timeout, clear it
+    // and also make sure we reset scroll events till our new one fires
+    if (currentScrollTimeout.current) {
+      clearTimeout(currentScrollTimeout.current);
+      currentScrollTimeout.current = null;
+      disableScrollEvent.current = false;
+    }
+
     disableScrollEvent.current = true;
-    setTimeout(() => {
+    currentScrollTimeout.current = setTimeout(() => {
       if (activeAnalysisId) {
         if (autoScroll && analysisDomRefs.current[activeAnalysisId]) {
           scrollTo(activeAnalysisId);
@@ -354,8 +364,6 @@ export function AnalysisTreeViewer({
       disableScrollEvent.current = false;
     }, 500);
   }, []);
-
-  console.log(activeAnalysisId);
 
   // w-0
   return (
@@ -477,11 +485,21 @@ export function AnalysisTreeViewer({
                                 if (window.innerWidth < breakpoints.lg)
                                   setSidebarOpen(false);
 
-                                setTimeout(() => {
+                                // if there's a current timeout, clear it
+                                // and also make sure we reset scroll events till our new one fires
+                                if (currentScrollTimeout.current) {
+                                  clearTimeout(currentScrollTimeout.current);
+                                  currentScrollTimeout.current = null;
                                   disableScrollEvent.current = false;
+                                }
+
+                                setTimeout(() => {
+                                  // disable scroll events while we are scrolling
+                                  disableScrollEvent.current = true;
                                   if (autoScroll && analysis) {
                                     scrollTo(analysis.analysisId);
                                   }
+                                  disableScrollEvent.current = false;
                                 }, timeout);
                               }}
                               extraClasses={twMerge("ml-4")}
