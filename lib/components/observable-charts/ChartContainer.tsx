@@ -12,18 +12,26 @@ import { Customization } from "./Customization";
 import ObservablePlot from "./ObservablePlot";
 import TabPaneWrapper from "./utils/TabPaneWrapper";
 import FilterBuilder from "./Filtering";
-import { ChartManagerContext } from "./ChartManagerContext";
-import { Input, MessageManagerContext, SpinningLoader } from "@ui-components";
+import {
+  ChartManager,
+  ChartManagerContext,
+  createChartManager,
+} from "./ChartManagerContext";
+import { MessageManagerContext, SpinningLoader } from "@ui-components";
 import setupBaseUrl from "../utils/setupBaseUrl";
 import { AgentConfigContext } from "../context/AgentContext";
 import { ParsedOutput } from "../agent/analysis/analysisManager";
 import { twMerge } from "tailwind-merge";
 
 export function ChartContainer({
+  rows,
+  columns,
   stepData,
   initialQuestion = null,
   initialOptionsExpanded = true,
 }: {
+  rows?: any[];
+  columns?: any[];
   stepData: ParsedOutput;
   initialQuestion: string | null;
   initialOptionsExpanded?: boolean;
@@ -32,12 +40,22 @@ export function ChartContainer({
     initialOptionsExpanded
   );
 
-  const chartManager = useMemo(() => stepData.chartManager, [stepData]);
+  // support for oracle: if chart manager is not provided, we will create using rows and columns passed
+  const chartManager: ChartManager = useMemo(
+    () =>
+      stepData.chartManager ||
+      createChartManager({
+        loading: true,
+        data: rows,
+        availableColumns: columns,
+      }),
+    [stepData, rows, columns]
+  );
 
-  const [chartConfig, setChartConfig] = useState(stepData.chartManager.config);
+  const [chartConfig, setChartConfig] = useState(chartManager.config);
 
   useEffect(() => {
-    stepData.chartManager.setConfigCallback = setChartConfig;
+    chartManager.setConfigCallback = setChartConfig;
   }, []);
 
   const agentConfigContext = useContext(AgentConfigContext);
