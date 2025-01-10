@@ -329,6 +329,34 @@ export function AnalysisTreeViewer({
     analysisTreeManager.setActiveRootAnalysisId(rootAnalysisId);
   }, []);
 
+  useEffect(() => {
+    // on first render, refresh the analysisDomRefs
+    // the tree and managers remains in state, but the dom refs get removed once we leave the component
+    // so we need to refresh them here
+    Object.values(allAnalyses).forEach((analysis) => {
+      analysisDomRefs.current[analysis.analysisId] = {
+        id: analysis.analysisId,
+        ctr: document.getElementById(analysis.analysisId),
+        analysisManager: analysis.analysisManager,
+      };
+    });
+  }, [allAnalyses]);
+
+  // on first render, scroll to the active analysis
+  useEffect(() => {
+    disableScrollEvent.current = true;
+    setTimeout(() => {
+      if (activeAnalysisId) {
+        if (autoScroll && analysisDomRefs.current[activeAnalysisId]) {
+          scrollTo(activeAnalysisId);
+        }
+      }
+      disableScrollEvent.current = false;
+    }, 500);
+  }, []);
+
+  console.log(activeAnalysisId);
+
   // w-0
   return (
     <ErrorBoundary>
