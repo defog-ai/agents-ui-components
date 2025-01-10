@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useEffect, useState, useMemo, useRef } from "react";
 import { Tabs, message, Popover } from "antd";
 import { chartNames, roundColumns } from "../../agentUtils";
@@ -7,6 +8,7 @@ import ErrorBoundary from "../../../common/ErrorBoundary";
 import ChartImage from "./ChartImage";
 
 import Editor from "react-simple-code-editor";
+// @ts-ignore
 import { highlight, languages } from "prismjs/components/prism-core";
 
 import "prismjs/components/prism-clike";
@@ -34,7 +36,7 @@ export function StepResultsTable({
   chartImages = null,
   reactiveVars = null,
   initialQuestion = null,
-  handleEdit = () => {},
+  handleEdit = (...args) => {},
 }: {
   stepId: string;
   keyName: string;
@@ -47,7 +49,7 @@ export function StepResultsTable({
   chartImages?: any;
   reactiveVars?: any;
   initialQuestion: string | null;
-  handleEdit?: () => void;
+  handleEdit?: (...args: any) => void;
 }) {
   const downloadCsvEndpoint = setupBaseUrl({
     protocol: "http",

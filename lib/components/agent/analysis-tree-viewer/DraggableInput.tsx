@@ -1,7 +1,27 @@
-import { useRef, useEffect, forwardRef } from "react";
+import { useRef, useEffect, forwardRef, Ref } from "react";
 import { Move, ArrowRight } from "lucide-react";
 import { TextArea, Toggle } from "@ui-components";
 import { twMerge } from "tailwind-merge";
+
+interface DraggableInputProps {
+  searchBarClasses?: string;
+  searchBarDraggable?: boolean;
+  loading?: boolean;
+  handleSubmit: (
+    question: string,
+    rootAnalysisId?: string,
+    newConversation?: boolean,
+    analysisId?: string
+  ) => void;
+  activeRootAnalysisId?: string | null;
+  activeAnalysisId?: string | null;
+  showToggle?: boolean;
+  forceSqlOnly?: boolean;
+  setSqlOnly?: (sqlOnly: boolean) => void;
+  sqlOnly?: boolean;
+  question?: string;
+  onNewConversationTextClick?: () => void;
+}
 
 let DraggableInput = forwardRef(function DraggableInput(
   {
@@ -17,8 +37,8 @@ let DraggableInput = forwardRef(function DraggableInput(
     sqlOnly,
     question,
     onNewConversationTextClick = () => {},
-  },
-  ref
+  }: DraggableInputProps,
+  ref: Ref<HTMLTextAreaElement>
 ) {
   const searchCtr = useRef(null);
   // const ref = useRef(null);
@@ -26,6 +46,7 @@ let DraggableInput = forwardRef(function DraggableInput(
 
   useEffect(() => {
     if (question) {
+      // @ts-ignore
       ref.current.value = question;
     }
   }, [question, ref]);
@@ -141,6 +162,7 @@ let DraggableInput = forwardRef(function DraggableInput(
                     ev.preventDefault();
                     ev.stopPropagation();
                     handleSubmit(
+                      // @ts-ignore
                       ref.current.value,
                       activeRootAnalysisId,
                       !activeRootAnalysisId,
@@ -175,6 +197,7 @@ let DraggableInput = forwardRef(function DraggableInput(
               className="relative -ml-px inline-flex items-center gap-x-1.5 rounded-r-md px-3 p-0 text-sm font-semibold text-gray-900 dark:text-gray-100 ring-1 ring-inset ring-blue-500 hover:bg-blue-500 hover:text-white dark:hover:text-white"
               onClick={() => {
                 handleSubmit(
+                  // @ts-ignore
                   ref.current.value,
                   activeRootAnalysisId,
                   !activeRootAnalysisId,

@@ -292,9 +292,9 @@ export function AnalysisTreeManager(
       if (rootAnalysisId) {
         const rootAnalysis = analysisTree[rootAnalysisId].root;
         if (rootAnalysis) {
-          rootAnalysis.analysisList = rootAnalysis.analysisList.filter(
-            (item) => item.analysisId !== analysisId
-          );
+          newAnalysisTree[analysisId].analysisList = newAnalysisTree[
+            analysisId
+          ].analysisList.filter((item) => item.analysisId !== analysisId);
         }
       }
     }
@@ -376,6 +376,7 @@ export function AnalysisTreeManager(
     sqlOnly?: boolean;
     isTemp?: boolean;
   }) {
+    // @ts-ignore
     let newAnalysis: Analysis = {
       analysisId: analysisId,
       isRoot: isRoot,

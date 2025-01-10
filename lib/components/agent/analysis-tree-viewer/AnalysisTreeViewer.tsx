@@ -1,4 +1,5 @@
 import {
+  SyntheticEvent,
   useCallback,
   useContext,
   useEffect,
@@ -21,6 +22,7 @@ import { getMostVisibleAnalysis } from "../agentUtils";
 import setupBaseUrl from "../../utils/setupBaseUrl";
 import type { AnalysisTreeManager, AnalysisTree } from "./analysisTreeManager";
 import { AnalysisManager } from "../analysis/analysisManager";
+// @ts-ignore
 import debounce from "lodash.debounce";
 
 type GroupClass =
@@ -151,6 +153,7 @@ export function AnalysisTreeViewer({
 
       // sort within each group
       Object.keys(grouped).forEach((key) => {
+        // @ts-ignore
         grouped[key].sort((a, b) => {
           return (
             (analysisTree?.[b]?.root?.timestamp || 0) -
@@ -200,8 +203,8 @@ export function AnalysisTreeViewer({
     async function (
       question: string,
       rootAnalysisId: string | null = null,
-      isRoot = false,
-      directParentId = null
+      isRoot: boolean = false,
+      directParentId: string | null = null
     ) {
       try {
         setLoading(true);
@@ -313,7 +316,7 @@ export function AnalysisTreeViewer({
     });
   }
 
-  const searchRef = useRef<HTMLInputElement>(null);
+  const searchRef = useRef<HTMLTextAreaElement>(null);
 
   const disableScrollEvent = useRef<boolean>(false);
 
@@ -444,7 +447,7 @@ export function AnalysisTreeViewer({
                   </div>
                 )}
 
-                {Object.keys(analysisIdsGrouped).map((groupName: string) => {
+                {Object.keys(analysisIdsGrouped).map((groupName) => {
                   const analysesInGroup = analysisIdsGrouped[groupName];
                   if (!analysesInGroup.length) return null;
 
@@ -529,7 +532,7 @@ export function AnalysisTreeViewer({
               // and pushes the search bar down
               activeAnalysisId ? "" : "flex flex-col"
             )}
-            onScroll={debounce((e) => {
+            onScroll={debounce((e: SyntheticEvent) => {
               if (disableScrollEvent.current) return;
               // when we scroll, we want to update the active analysis id
               // so that we can show the active analysis in the sidebar

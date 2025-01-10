@@ -103,7 +103,8 @@ export interface Step {
   outputs_storage_keys: string[];
   reference_queries: string[];
   sql?: string;
-  tool_name: string;
+  parent_step?: Step | null;
+  tool_name: string | null;
   outputs: Record<string, { data: string }>;
   input_metadata: Record<
     string,
@@ -146,7 +147,7 @@ export interface AnalysisData {
 
 export interface AnalysisManager {
   init: (params: {
-    question?: string;
+    question: string;
     existingData?: AnalysisData | null;
     sqliteConn?: any;
   }) => Promise<{ analysisData?: AnalysisData }>;
@@ -315,7 +316,7 @@ function createAnalysisManager({
     question: string;
     existingData?: AnalysisData | null;
     sqliteConn?: any;
-  }): Promise<void | { analysisData?: AnalysisData }> {
+  }): Promise<{ analysisData?: AnalysisData | null }> {
     didInit = true;
 
     if (analysisData) return {};
@@ -737,12 +738,14 @@ function createAnalysisManager({
   ): Promise<Step> {
     const res = await generateQueryForCsv({
       question: question,
-      metadata: metadata.map((d) => ({
-        column_name: d.column_name || "",
-        data_type: d.data_type || "",
-        column_description: d.column_description || "",
-        table_name: d.table_name,
-      })),
+      metadata:
+        metadata &&
+        metadata.map((d) => ({
+          column_name: d.column_name || "",
+          data_type: d.data_type || "",
+          column_description: d.column_description || "",
+          table_name: d.table_name,
+        })),
       keyName: keyName,
       apiEndpoint: apiEndpoint,
       previousContext: previousContext,
@@ -770,12 +773,14 @@ function createAnalysisManager({
       console.info("Retrying the query");
       const retryRes = await retryQueryForCsv({
         question: question,
-        metadata: metadata.map((d) => ({
-          column_name: d.column_name || "",
-          data_type: d.data_type || "",
-          column_description: d.column_description || "",
-          table_name: d.table_name,
-        })),
+        metadata:
+          metadata &&
+          metadata.map((d) => ({
+            column_name: d.column_name || "",
+            data_type: d.data_type || "",
+            column_description: d.column_description || "",
+            table_name: d.table_name,
+          })),
         keyName: keyName,
         apiEndpoint: apiEndpoint,
         previousQuery: res.sql,

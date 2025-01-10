@@ -47,6 +47,8 @@ interface LineChartOptions {
   /** Whether to show labels on the chart */
   showLabels: boolean;
   filter: string | null;
+  colorBy?: string | null;
+  colorByIsDate?: boolean;
   aggregateFunction:
     | "sum"
     | "proportion"
@@ -208,6 +210,7 @@ export interface ChartManager extends ActionHandlers, ChartUtils {
  * Handy, chainable methods to change chart config without doing chartManager.update({...}) everytime.
  */
 export function createActionHandlers(): ActionHandlers {
+  // @ts-ignore
   const actionHandlers: ChartManager = {
     render: function () {
       this.setConfigCallback(this.config);
@@ -373,20 +376,28 @@ export function createActionHandlers(): ActionHandlers {
 }
 
 function deepMergeObjects(
-  obj1: { [key: string]: any },
-  obj2: { [key: string]: any }
-) {
+  obj1: ChartConfig,
+  obj2: Partial<ChartConfig>
+): ChartConfig {
   const merged = { ...obj1 };
 
   for (const key in obj2) {
     if (
+      // if this isn't an object we don't need to deep merge
       typeof obj2[key] === "object" &&
+      // if this is an array, we don't need to deep merge, we will just slice later
       !Array.isArray(obj2[key]) &&
-      obj2[key] !== null
+      // if this key doesn't exist in obj1, we don't need to deep merge
+      obj1[key] !== undefined
     ) {
       merged[key] = deepMergeObjects(obj1[key], obj2[key]);
     } else {
-      merged[key] = obj2[key];
+      // if this is an array, slice
+      if (Array.isArray(obj2[key])) {
+        merged[key] = obj2[key].slice();
+      } else {
+        merged[key] = obj2[key];
+      }
     }
   }
 

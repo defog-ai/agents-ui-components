@@ -10,12 +10,12 @@ interface DagNode {
   id: string;
   title: string;
   key: string;
-  isError?: string;
+  isError?: string | null;
   name?: string;
   isTool: boolean;
   parents: string[] | Set<string>;
   children: DagNode[];
-  step: Step;
+  step: Partial<Step>;
   isAddStepNode?: boolean;
   isOutput?: boolean;
   data?: {
@@ -60,8 +60,8 @@ interface StepsDagProps {
   activeNode?: DagNode | null;
   stageDone?: boolean;
   reRunningSteps?: Step[];
-  dag?: DagResult['dag'] | null;
-  setDag?: (dag: DagResult['dag']) => void;
+  dag?: DagResult["dag"] | null;
+  setDag?: (dag: DagResult["dag"]) => void;
   dagLinks?: DagLink[];
   setDagLinks?: (links: DagLink[]) => void;
   setActiveNode?: (node: DagNode) => void;
@@ -70,7 +70,7 @@ interface StepsDagProps {
   disablePopovers?: boolean;
   onPopoverOpenChange?: (node: DagNode, open: boolean) => void;
   alwaysShowPopover?: boolean;
-  toolIcon?: (node: DagNode) => JSX.Element;
+  toolIcon?: (node: DagNode) => React.ReactNode;
   extraNodeClasses?: (node: DagNode) => string;
 }
 
@@ -117,8 +117,8 @@ export default function StepsDag({
       const stepId = step.id;
       g.nodes[stepId] = {
         id: stepId,
-        title: step.tool_name || '',
-        key: step.tool_name || '',
+        title: step.tool_name || "",
+        key: step.tool_name || "",
         isError: step.error_message,
         name: step.outputs_storage_keys?.[0],
         isTool: true,
@@ -129,24 +129,27 @@ export default function StepsDag({
         y: 0,
       };
 
-      let parents = Object.values(step.inputs).reduce((acc: Set<string>, input) => {
-        let inp = Array.isArray(input) ? input : [input];
+      let parents = Object.values(step.inputs).reduce(
+        (acc: Set<string>, input) => {
+          let inp = Array.isArray(input) ? input : [input];
 
-        inp.forEach((i) => {
-          if (typeof i !== "string") return;
+          inp.forEach((i) => {
+            if (typeof i !== "string") return;
 
-          let matches = [...i.matchAll(/(?:global_dict\.)(\w+)/g)];
-          matches.forEach(([_, globalDictInput]) => {
-            for (let i = 0; i < steps.length; i++) {
-              const step = steps[i];
-              if (step.outputs_storage_keys.includes(globalDictInput)) {
-                acc.add(step.id);
+            let matches = [...i.matchAll(/(?:global_dict\.)(\w+)/g)];
+            matches.forEach(([_, globalDictInput]) => {
+              for (let i = 0; i < steps.length; i++) {
+                const step = steps[i];
+                if (step.outputs_storage_keys.includes(globalDictInput)) {
+                  acc.add(step.id);
+                }
               }
-            }
+            });
           });
-        });
-        return acc;
-      }, new Set<string>());
+          return acc;
+        },
+        new Set<string>()
+      );
 
       const parentIds = Array.from(parents);
 
@@ -166,7 +169,9 @@ export default function StepsDag({
         g.nodes[parentId].children.push(g.nodes[stepId]);
       });
 
-      g.nodes[stepId].parents = Array.from(g.nodes[stepId].parents as Set<string>);
+      g.nodes[stepId].parents = Array.from(
+        g.nodes[stepId].parents as Set<string>
+      );
 
       if (!step.error_message && !skipAddStepNode) {
         const source = step.id;
@@ -185,7 +190,7 @@ export default function StepsDag({
             tool_name: null,
             outputs_storage_keys: [],
             inputs: {},
-            parent_step: step
+            parent_step: step,
           },
           isAddStepNode: true,
           x: 0,
@@ -200,7 +205,11 @@ export default function StepsDag({
       }
     });
 
-    const { dag: newDag, width, height } = createDag(
+    const {
+      dag: newDag,
+      width,
+      height,
+    } = createDag(
       Object.values(g.nodes).map((d) => ({
         ...d,
         parentIds: Array.isArray(d.parents) ? d.parents : Array.from(d.parents),
@@ -210,8 +219,8 @@ export default function StepsDag({
           isTool: d.isTool,
           isError: d.isError,
           step: d.step,
-          isOutput: d.isOutput
-        }
+          isOutput: d.isOutput,
+        },
       })),
       nodeSize,
       nodeGap
@@ -260,9 +269,11 @@ export default function StepsDag({
             {dagLinks.map((d) => {
               const source = d.source;
               const target = d.target;
-              const source_x = nodeCssSize / 2 + (horizontal ? source.y : source.x);
+              const source_x =
+                nodeCssSize / 2 + (horizontal ? source.y : source.x);
               const source_y = horizontal ? source.x : source.y + nodeCssSize;
-              const target_x = nodeCssSize / 2 + (horizontal ? target.y : target.x);
+              const target_x =
+                nodeCssSize / 2 + (horizontal ? target.y : target.x);
               const target_y = horizontal ? target.x : target.y;
               const pathData = `M ${source_x} ${source_y} L ${target_x} ${target_y}`;
 
@@ -276,7 +287,9 @@ export default function StepsDag({
                   d={pathData}
                   stroke="black"
                   fill="none"
-                  key={source.data?.id + " - " + target.data?.id + "-" + pathData}
+                  key={
+                    source.data?.id + " - " + target.data?.id + "-" + pathData
+                  }
                 />
               );
             })}
@@ -307,7 +320,9 @@ export default function StepsDag({
                   >
                     <Popover
                       {...extraProps}
-                      onOpenChange={(visible) => onPopoverOpenChange(d, visible)}
+                      onOpenChange={(visible) =>
+                        onPopoverOpenChange(d, visible)
+                      }
                       rootClassName={twMerge(
                         "graph-node-popover pointer-events-auto",
                         d.data?.isError ? "popover-error" : ""
@@ -318,16 +333,17 @@ export default function StepsDag({
                         (d.data?.isAddStepNode
                           ? ""
                           : d.data?.isTool
-                          ? toolDisplayNames[d.data?.step?.tool_name || ''] || null
-                          : `Output`)
+                            ? toolDisplayNames[d.data?.step?.tool_name || ""] ||
+                              null
+                            : `Output`)
                       }
                       content={
                         !disablePopovers &&
                         (d.data?.isAddStepNode
                           ? "Do additional tasks with this data"
                           : d.data?.isTool
-                          ? d.data?.step?.description || d.data?.id
-                          : null)
+                            ? d.data?.step?.description || d.data?.id
+                            : null)
                       }
                     >
                       <div
@@ -335,10 +351,14 @@ export default function StepsDag({
                           "graph-node pointer-events-auto max-w-[100px]",
                           d.data?.isTool ? "tool" : "var",
                           d.data?.isOutput ? " output" : "",
-                          activeNode?.data?.id === d.data?.id ? "graph-node-active" : "",
+                          activeNode?.data?.id === d.data?.id
+                            ? "graph-node-active"
+                            : "",
                           d.data?.isError ? "graph-node-error" : "",
                           `tool-run-${d.data?.id}`,
-                          d.data?.isAddStepNode ? "graph-node-add bg-transparent" : "bg-white",
+                          d.data?.isAddStepNode
+                            ? "graph-node-add bg-transparent"
+                            : "bg-white",
                           reRunningSteps.some((s) => s.id === d.data?.id)
                             ? "graph-node-re-running"
                             : "",
