@@ -32,7 +32,7 @@ export function ChartContainer({
 }: {
   rows?: any[];
   columns?: any[];
-  stepData: ParsedOutput;
+  stepData?: ParsedOutput;
   initialQuestion: string | null;
   initialOptionsExpanded?: boolean;
 }) {
