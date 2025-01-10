@@ -302,14 +302,16 @@ export function AnalysisTreeViewer({
 
   const disableScrollEvent = useRef<boolean>(false);
 
-  const changeActiveAnalysis = useCallback(() => {
+  const setMostVisibleAnalysisAsActive = useCallback(() => {
     const allAnalyses = analysisTreeManager.getAll();
     const { id: visibleAnalysisId, element } = getMostVisibleAnalysis(
       Object.keys(allAnalyses)
     );
     if (!visibleAnalysisId) return;
     if (visibleAnalysisId === activeAnalysisId) return;
+    const rootAnalysisId = allAnalyses[visibleAnalysisId].rootAnalysisId;
     analysisTreeManager.setActiveAnalysisId(visibleAnalysisId);
+    analysisTreeManager.setActiveRootAnalysisId(rootAnalysisId);
   }, []);
 
   // w-0
@@ -410,21 +412,34 @@ export function AnalysisTreeViewer({
                               analysis={root}
                               activeAnalysisId={activeAnalysisId}
                               onClick={(analysis) => {
-                                disableScrollEvent.current = false;
+                                // if the root analysis clicked now is different then the active one
+                                // means react will take a sec to render the new root and the divs
+                                // if so, we will wrap this inside a settimeout to let react render those
+                                // if the active root is the same as this one, we just set timeout to 0
+                                let timeout = 0;
+                                if (activeRootAnalysisId === rootAnalysisId) {
+                                  timeout = 0;
+                                } else {
+                                  timeout = 500;
+                                }
 
+                                // we will set immediately, but scroll based on timeout above
                                 analysisTreeManager.setActiveRootAnalysisId(
-                                  root?.analysisId
+                                  rootAnalysisId
                                 );
                                 analysisTreeManager.setActiveAnalysisId(
                                   analysis ? analysis?.analysisId : null
                                 );
 
-                                if (autoScroll && analysis) {
-                                  scrollTo(analysis.analysisId);
-                                }
-
                                 if (window.innerWidth < breakpoints.lg)
                                   setSidebarOpen(false);
+
+                                setTimeout(() => {
+                                  disableScrollEvent.current = false;
+                                  if (autoScroll && analysis) {
+                                    scrollTo(analysis.analysisId);
+                                  }
+                                }, timeout);
                               }}
                               extraClasses={twMerge("ml-4")}
                             />
@@ -458,82 +473,83 @@ export function AnalysisTreeViewer({
               // when we scroll, we want to update the active analysis id
               // so that we can show the active analysis in the sidebar
               e.stopPropagation();
-              changeActiveAnalysis();
+              setMostVisibleAnalysisAsActive();
             }, 100)}
           >
             {activeAnalysisId &&
               activeRootAnalysisId &&
-              Object.keys(nestedTree).map((rootId) => {
-                const analysis = nestedTree[rootId];
-
-                return (
-                  <>
-                    <AnalysisAgent
-                      key={analysis.analysisId}
-                      metadata={metadata}
-                      rootClassNames={
-                        "w-full mb-4 [&_.analysis-content]:min-h-96 shadow-md analysis-" +
-                        analysis.analysisId
+              nestedTree[activeRootAnalysisId] && (
+                <>
+                  <AnalysisAgent
+                    key={nestedTree[activeRootAnalysisId].analysisId}
+                    metadata={metadata}
+                    rootClassNames={
+                      "w-full mb-4 [&_.analysis-content]:min-h-96 shadow-md analysis-" +
+                      nestedTree[activeRootAnalysisId].analysisId
+                    }
+                    analysisId={nestedTree[activeRootAnalysisId].analysisId}
+                    createAnalysisRequestBody={
+                      nestedTree[activeRootAnalysisId].createAnalysisRequestBody
+                    }
+                    initiateAutoSubmit={true}
+                    hasExternalSearchBar={true}
+                    // we store this at the time of creation of the analysis
+                    // and don't change it for this specific analysis afterwards.
+                    sqlOnly={nestedTree[activeRootAnalysisId].sqlOnly}
+                    isTemp={nestedTree[activeRootAnalysisId].isTemp}
+                    keyName={nestedTree[activeRootAnalysisId].keyName}
+                    previousQuestions={[]}
+                    onManagerCreated={(
+                      analysisManager: AnalysisManager,
+                      id: string,
+                      ctr: HTMLDivElement | null
+                    ) => {
+                      analysisDomRefs.current[id] = {
+                        ctr,
+                        analysisManager,
+                        id,
+                      };
+                      if (autoScroll) {
+                        // scroll to ctr
+                        // scrollTo(id);
                       }
-                      analysisId={analysis.analysisId}
-                      createAnalysisRequestBody={
-                        analysis.createAnalysisRequestBody
+
+                      analysisTreeManager.updateAnalysis({
+                        analysisId: nestedTree[activeRootAnalysisId].analysisId,
+                        isRoot: nestedTree[activeRootAnalysisId].isRoot,
+                        updateObj: {
+                          analysisManager: analysisManager,
+                        },
+                      });
+                    }}
+                    onManagerDestroyed={(
+                      analysisManager: AnalysisManager,
+                      id: string
+                    ) => {
+                      // remove the analysis from the analysisTree
+                      analysisTreeManager.removeAnalysis({
+                        analysisId: nestedTree[activeRootAnalysisId].analysisId,
+                        isRoot: nestedTree[activeRootAnalysisId].isRoot,
+                        rootAnalysisId:
+                          nestedTree[activeRootAnalysisId].rootAnalysisId,
+                      });
+
+                      analysisTreeManager.setActiveAnalysisId(null);
+                      if (activeRootAnalysisId === id) {
+                        analysisTreeManager.setActiveRootAnalysisId(null);
                       }
-                      initiateAutoSubmit={true}
-                      hasExternalSearchBar={true}
-                      // we store this at the time of creation of the analysis
-                      // and don't change it for this specific analysis afterwards.
-                      sqlOnly={analysis.sqlOnly}
-                      isTemp={analysis.isTemp}
-                      keyName={analysis.keyName}
-                      previousQuestions={[]}
-                      onManagerCreated={(
-                        analysisManager: AnalysisManager,
-                        id: string,
-                        ctr: HTMLDivElement | null
-                      ) => {
-                        analysisDomRefs.current[id] = {
-                          ctr,
-                          analysisManager,
-                          id,
-                        };
-                        if (autoScroll) {
-                          // scroll to ctr
-                          // scrollTo(id);
-                        }
+                    }}
+                    initialConfig={{
+                      analysisManager:
+                        nestedTree[activeRootAnalysisId].analysisManager ||
+                        null,
+                    }}
+                    setCurrentQuestion={setCurrentQuestion}
+                  />
 
-                        analysisTreeManager.updateAnalysis({
-                          analysisId: analysis.analysisId,
-                          isRoot: analysis.isRoot,
-                          updateObj: {
-                            analysisManager: analysisManager,
-                          },
-                        });
-                      }}
-                      onManagerDestroyed={(
-                        analysisManager: AnalysisManager,
-                        id: string
-                      ) => {
-                        // remove the analysis from the analysisTree
-                        analysisTreeManager.removeAnalysis({
-                          analysisId: analysis.analysisId,
-                          isRoot: analysis.isRoot,
-                          rootAnalysisId: analysis.rootAnalysisId,
-                        });
-
-                        analysisTreeManager.setActiveAnalysisId(null);
-                        if (activeRootAnalysisId === id) {
-                          analysisTreeManager.setActiveRootAnalysisId(null);
-                        }
-                      }}
-                      initialConfig={{
-                        analysisManager: analysis.analysisManager || null,
-                      }}
-                      setCurrentQuestion={setCurrentQuestion}
-                    />
-
-                    {/* render the children */}
-                    {analysis.flatOrderedChildren.map((child) => {
+                  {/* render the children */}
+                  {nestedTree[activeRootAnalysisId].flatOrderedChildren.map(
+                    (child) => {
                       return (
                         <AnalysisAgent
                           key={child.analysisId}
@@ -599,10 +615,10 @@ export function AnalysisTreeViewer({
                           setCurrentQuestion={setCurrentQuestion}
                         />
                       );
-                    })}
-                  </>
-                );
-              })}
+                    }
+                  )}
+                </>
+              )}
 
             {!activeAnalysisId && (
               <div className="grow flex flex-col place-content-center m-auto max-w-full relative z-[1]">
