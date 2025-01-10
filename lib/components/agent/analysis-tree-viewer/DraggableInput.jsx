@@ -1,31 +1,34 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, forwardRef } from "react";
 import { Move, ArrowRight } from "lucide-react";
 import { TextArea, Toggle } from "@ui-components";
 import { twMerge } from "tailwind-merge";
 
-export function DraggableInput({
-  searchBarClasses = "",
-  searchBarDraggable = true,
-  loading = false,
-  handleSubmit,
-  activeRootAnalysisId,
-  activeAnalysisId,
-  showToggle = true,
-  forceSqlOnly = false,
-  setSqlOnly,
-  sqlOnly,
-  question,
-  onNewConversationTextClick = () => {},
-}) {
+let DraggableInput = forwardRef(function DraggableInput(
+  {
+    searchBarClasses = "",
+    searchBarDraggable = true,
+    loading = false,
+    handleSubmit,
+    activeRootAnalysisId,
+    activeAnalysisId,
+    showToggle = true,
+    forceSqlOnly = false,
+    setSqlOnly,
+    sqlOnly,
+    question,
+    onNewConversationTextClick = () => {},
+  },
+  ref
+) {
   const searchCtr = useRef(null);
-  const searchRef = useRef(null);
+  // const ref = useRef(null);
   const isDragging = useRef(false);
 
   useEffect(() => {
     if (question) {
-      searchRef.current.value = question;
+      ref.current.value = question;
     }
-  }, [question]);
+  }, [question, ref]);
 
   useEffect(() => {
     if (!searchBarDraggable) return;
@@ -129,7 +132,7 @@ export function DraggableInput({
               <TextArea
                 rootClassNames="grow border-none bg-transparent py-1.5 text-gray-900 dark:text-gray-100 px-2 placeholder:text-gray-400 dark:placeholder:text-gray-500 sm:leading-6 text-sm break-all focus:ring-0 focus:outline-none"
                 textAreaClassNames="resize-none"
-                ref={searchRef}
+                ref={ref}
                 id="main-searchbar"
                 disabled={loading}
                 defaultRows={1}
@@ -138,12 +141,12 @@ export function DraggableInput({
                     ev.preventDefault();
                     ev.stopPropagation();
                     handleSubmit(
-                      searchRef.current.value,
+                      ref.current.value,
                       activeRootAnalysisId,
                       !activeRootAnalysisId,
                       activeAnalysisId
                     );
-                    searchRef.current.value = "";
+                    // ref.current.value = "";
                   }
                 }}
                 placeholder={
@@ -172,13 +175,13 @@ export function DraggableInput({
               className="relative -ml-px inline-flex items-center gap-x-1.5 rounded-r-md px-3 p-0 text-sm font-semibold text-gray-900 dark:text-gray-100 ring-1 ring-inset ring-blue-500 hover:bg-blue-500 hover:text-white dark:hover:text-white"
               onClick={() => {
                 handleSubmit(
-                  searchRef.current.value,
+                  ref.current.value,
                   activeRootAnalysisId,
                   !activeRootAnalysisId,
                   activeAnalysisId
                 );
 
-                searchRef.current.value = "";
+                // ref.current.value = "";
               }}
             >
               <ArrowRight
@@ -198,4 +201,6 @@ export function DraggableInput({
       </div>
     </div>
   );
-}
+});
+
+export { DraggableInput };

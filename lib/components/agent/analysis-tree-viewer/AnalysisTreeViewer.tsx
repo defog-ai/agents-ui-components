@@ -80,6 +80,7 @@ export function AnalysisTreeViewer({
     };
   }>({});
 
+  const [loading, setLoading] = useState(false);
   const [sqlOnly, setSqlOnly] = useState(true);
   const [currentQuestion, setCurrentQuestion] = useState("");
 
@@ -183,6 +184,7 @@ export function AnalysisTreeViewer({
   );
 
   useEffect(() => {
+    setLoading(false);
     analysisDomRefs.current = {};
   }, [analysisTreeManager]);
 
@@ -202,6 +204,7 @@ export function AnalysisTreeViewer({
       directParentId = null
     ) {
       try {
+        setLoading(true);
         if (!analysisTreeManager)
           throw new Error("Analysis tree manager not found");
 
@@ -283,9 +286,19 @@ export function AnalysisTreeViewer({
 
         analysisTreeManager.setActiveAnalysisId(newAnalysis.analysisId);
         analysisTreeManager.setActiveRootAnalysisId(newAnalysis.rootAnalysisId);
+
+        // once state has flushed, scroll to the new analysis
+        raf(() => {
+          scrollTo(newId);
+        });
       } catch (e: any) {
         messageManager.error("Failed to create analysis");
         console.log(e.stack);
+      } finally {
+        if (searchRef.current) {
+          searchRef.current.value = "";
+        }
+        setLoading(false);
       }
     },
     [analysisTreeManager, forceSqlOnly, sqlOnly, isTemp, keyName, metadata]
@@ -299,6 +312,8 @@ export function AnalysisTreeViewer({
       block: "start",
     });
   }
+
+  const searchRef = useRef<HTMLInputElement>(null);
 
   const disableScrollEvent = useRef<boolean>(false);
 
@@ -482,6 +497,7 @@ export function AnalysisTreeViewer({
                 <>
                   <AnalysisAgent
                     key={activeRootAnalysisId}
+                    setGlobalLoading={setLoading}
                     metadata={metadata}
                     rootClassNames={
                       "w-full mb-4 [&_.analysis-content]:min-h-96 shadow-md analysis-" +
@@ -563,6 +579,7 @@ export function AnalysisTreeViewer({
                           createAnalysisRequestBody={
                             child.createAnalysisRequestBody
                           }
+                          setGlobalLoading={setLoading}
                           initiateAutoSubmit={true}
                           hasExternalSearchBar={true}
                           // we store this at the time of creation of the analysis
@@ -620,6 +637,8 @@ export function AnalysisTreeViewer({
                             if (activeRootAnalysisId === id) {
                               analysisTreeManager.setActiveRootAnalysisId(null);
                             }
+
+                            setLoading(false);
                           }}
                           initialConfig={{
                             analysisManager: child.analysisManager || null,
@@ -666,9 +685,11 @@ export function AnalysisTreeViewer({
             )}
             <div className={searchBarDraggable ? "" : "sticky bottom-1"}>
               <DraggableInput
+                ref={searchRef}
                 searchBarClasses={searchBarClasses}
                 searchBarDraggable={searchBarDraggable}
                 handleSubmit={handleSubmit}
+                loading={loading}
                 activeRootAnalysisId={activeRootAnalysisId}
                 activeAnalysisId={activeAnalysisId}
                 showToggle={showToggle}

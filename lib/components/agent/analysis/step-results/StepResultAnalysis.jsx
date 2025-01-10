@@ -128,6 +128,23 @@ export default function StepResultAnalysis({
             <SpinningLoader />
             Loading Analysis
           </div>
+
+          {/* // create three loaders for follow on questions */}
+          <div className="p-4">
+            <div className="max-w-[600px] m-auto flex flex-row gap-4 justify-center">
+              <>
+                <div className="text-sm p-2 m-1 border border-gray-200 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-600 text-gray-300 dark:text-gray-200">
+                  <SpinningLoader /> Loading
+                </div>
+                <div className="text-sm p-2 m-1 border border-gray-200 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-600 text-gray-300 dark:text-gray-200">
+                  <SpinningLoader /> Loading
+                </div>
+                <div className="text-sm p-2 m-1 border border-gray-200 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-600 text-gray-300 dark:text-gray-200">
+                  <SpinningLoader /> Loading
+                </div>
+              </>
+            </div>
+          </div>
         </>
       ) : (
         <>
@@ -176,7 +193,8 @@ export default function StepResultAnalysis({
           {/* show buttons for follow on questions */}
           <div className="p-4">
             <div className="max-w-[600px] m-auto flex flex-row gap-4 justify-center">
-              {followOnQuestions && followOnQuestions.length ? (
+              {followOnQuestions &&
+                followOnQuestions.length &&
                 followOnQuestions.map((followOnQuestion, index) => (
                   <button
                     key={index}
@@ -192,21 +210,7 @@ export default function StepResultAnalysis({
                   >
                     {followOnQuestion}
                   </button>
-                ))
-              ) : (
-                // create three loaders
-                <>
-                  <div className="text-sm p-2 m-1 border border-gray-200 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-600 text-gray-300 dark:text-gray-200">
-                    <SpinningLoader /> Loading
-                  </div>
-                  <div className="text-sm p-2 m-1 border border-gray-200 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-600 text-gray-300 dark:text-gray-200">
-                    <SpinningLoader /> Loading
-                  </div>
-                  <div className="text-sm p-2 m-1 border border-gray-200 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-600 text-gray-300 dark:text-gray-200">
-                    <SpinningLoader /> Loading
-                  </div>
-                </>
-              )}
+                ))}
             </div>
           </div>
         </>
