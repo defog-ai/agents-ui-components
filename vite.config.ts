@@ -37,11 +37,7 @@ export default ({ mode }) => {
         // make sure to externalize deps that shouldn't be bundled
         // into your library
         external: [
-          ...Object.keys(peerDependencies),
-          "react",
-          /^react\/.*/,
-          "react-dom",
-          /react-dom\/.*/,
+          ...Object.keys(peerDependencies)
         ],
         target: "esnext",
         sourcemap: true,
