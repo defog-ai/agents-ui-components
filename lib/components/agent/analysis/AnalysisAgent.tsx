@@ -41,6 +41,11 @@ interface Props {
    * Analysis ID
    */
   analysisId: string;
+
+  /**
+   * Root of this analysis. Is the same as analysisId if this is the root analysis.
+   */
+  rootAnalysisId: string;
   /**
    * Api key name
    */
@@ -93,9 +98,9 @@ interface Props {
    */
   plannerQuestionSuffix?: string | null;
   /**
-   * Questions that the user has asked so far before this analysis. Has to be an array of Objects.
+   * Details about parent questions that the user has asked so far before this analysis. Has to be an array of Objects.
    */
-  previousQuestions?: any[] | null;
+  previousContext?: PreviousContext;
   /**
    * Global loading. Useful if you are handling multiple analysis..
    */
@@ -138,6 +143,7 @@ interface Props {
  * */
 export const AnalysisAgent = ({
   analysisId,
+  rootAnalysisId,
   keyName,
   isTemp = false,
   metadata = null,
@@ -149,7 +155,7 @@ export const AnalysisAgent = ({
   searchBarPlaceholder = null,
   extraTools = [],
   plannerQuestionSuffix = null,
-  previousQuestions = [],
+  previousContext = [],
   setGlobalLoading = (...args) => {},
   onManagerCreated = (...args) => {},
   onManagerDestroyed = (...args) => {},
@@ -264,6 +270,7 @@ export const AnalysisAgent = ({
       initialConfig.analysisManager ||
       createAnalysisManager({
         analysisId,
+        rootAnalysisId,
         apiEndpoint,
         token,
         keyName,
@@ -273,7 +280,7 @@ export const AnalysisAgent = ({
         sqlOnly,
         extraTools,
         plannerQuestionSuffix,
-        previousQuestions,
+        previousContext,
         onNewData: onMainSocketMessage,
         onAbortError: (e) => {
           messageManager.error(e);

@@ -185,6 +185,7 @@ export interface AnalysisManager {
 
 export interface AnalysisManagerConfig {
   analysisId: string;
+  rootAnalysisId?: string;
   apiEndpoint: string;
   token: string | null;
   keyName: string;
@@ -200,7 +201,7 @@ export interface AnalysisManagerConfig {
     output_metadata: any;
   }>;
   plannerQuestionSuffix?: string | null;
-  previousQuestions?: string[] | null;
+  previousContext?: PreviousContext;
   onNewData?: (...args: any[]) => void;
   onManagerDestroyed?: (...args: any[]) => void;
   onAbortError?: (...args: any[]) => void;
@@ -209,6 +210,7 @@ export interface AnalysisManagerConfig {
 
 function createAnalysisManager({
   analysisId,
+  rootAnalysisId,
   apiEndpoint,
   token,
   keyName,
@@ -218,7 +220,7 @@ function createAnalysisManager({
   sqlOnly = false,
   extraTools = [],
   plannerQuestionSuffix = "",
-  previousQuestions = [],
+  previousContext = [],
   onNewData = (...args: any[]) => {},
   onManagerDestroyed = (...args: any[]) => {},
   onAbortError = (...args: any[]) => {},
@@ -313,10 +315,10 @@ function createAnalysisManager({
     question: string;
     existingData?: AnalysisData | null;
     sqliteConn?: any;
-  }): Promise<void | {analysisData?: AnalysisData;}> {
+  }): Promise<void | { analysisData?: AnalysisData }> {
     didInit = true;
 
-    if (analysisData) return { };
+    if (analysisData) return {};
 
     // console.log("Analysis Manager init");
     // get analysis data
@@ -529,7 +531,8 @@ function createAnalysisManager({
           key_name: keyName,
           db_creds: null,
           dev: devMode,
-          previous_questions: previousQuestions,
+          previous_context: previousContext,
+          root_analysis_id: rootAnalysisId,
           extra_tools: extraTools,
           planner_question_suffix: plannerQuestionSuffix,
         };
@@ -742,7 +745,7 @@ function createAnalysisManager({
       })),
       keyName: keyName,
       apiEndpoint: apiEndpoint,
-      previousQuestions: previousQuestions,
+      previousContext: previousContext,
     });
 
     const stepId = crypto.randomUUID();

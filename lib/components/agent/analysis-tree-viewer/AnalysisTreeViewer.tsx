@@ -481,13 +481,14 @@ export function AnalysisTreeViewer({
               nestedTree[activeRootAnalysisId] && (
                 <>
                   <AnalysisAgent
-                    key={nestedTree[activeRootAnalysisId].analysisId}
+                    key={activeRootAnalysisId}
                     metadata={metadata}
                     rootClassNames={
                       "w-full mb-4 [&_.analysis-content]:min-h-96 shadow-md analysis-" +
-                      nestedTree[activeRootAnalysisId].analysisId
+                      activeRootAnalysisId
                     }
-                    analysisId={nestedTree[activeRootAnalysisId].analysisId}
+                    analysisId={activeRootAnalysisId}
+                    rootAnalysisId={activeRootAnalysisId}
                     createAnalysisRequestBody={
                       nestedTree[activeRootAnalysisId].createAnalysisRequestBody
                     }
@@ -498,7 +499,7 @@ export function AnalysisTreeViewer({
                     sqlOnly={nestedTree[activeRootAnalysisId].sqlOnly}
                     isTemp={nestedTree[activeRootAnalysisId].isTemp}
                     keyName={nestedTree[activeRootAnalysisId].keyName}
-                    previousQuestions={[]}
+                    previousContext={[]}
                     onManagerCreated={(
                       analysisManager: AnalysisManager,
                       id: string,
@@ -515,7 +516,7 @@ export function AnalysisTreeViewer({
                       }
 
                       analysisTreeManager.updateAnalysis({
-                        analysisId: nestedTree[activeRootAnalysisId].analysisId,
+                        analysisId: activeRootAnalysisId,
                         isRoot: nestedTree[activeRootAnalysisId].isRoot,
                         updateObj: {
                           analysisManager: analysisManager,
@@ -528,10 +529,9 @@ export function AnalysisTreeViewer({
                     ) => {
                       // remove the analysis from the analysisTree
                       analysisTreeManager.removeAnalysis({
-                        analysisId: nestedTree[activeRootAnalysisId].analysisId,
+                        analysisId: activeRootAnalysisId,
                         isRoot: nestedTree[activeRootAnalysisId].isRoot,
-                        rootAnalysisId:
-                          nestedTree[activeRootAnalysisId].rootAnalysisId,
+                        rootAnalysisId: activeRootAnalysisId,
                       });
 
                       analysisTreeManager.setActiveAnalysisId(null);
@@ -559,6 +559,7 @@ export function AnalysisTreeViewer({
                             child.analysisId
                           }
                           analysisId={child.analysisId}
+                          rootAnalysisId={child.rootAnalysisId}
                           createAnalysisRequestBody={
                             child.createAnalysisRequestBody
                           }
@@ -569,7 +570,18 @@ export function AnalysisTreeViewer({
                           sqlOnly={child.sqlOnly}
                           isTemp={child.isTemp}
                           keyName={child.keyName}
-                          previousQuestions={[]}
+                          // all parents goes up the tree from this analysis
+                          // so reverse it to get the parents top down
+                          previousContext={child.allParents
+                            .reverse()
+                            .map((parent) => ({
+                              analysis_id: parent.analysisId,
+                              user_question: parent.user_question,
+                              steps:
+                                parent?.analysisManager?.analysisData.gen_steps
+                                  ?.steps || [],
+                            }))
+                            .filter((d) => d.steps.length > 0)}
                           onManagerCreated={(
                             analysisManager: AnalysisManager,
                             id: string,
