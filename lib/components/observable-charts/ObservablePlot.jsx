@@ -48,8 +48,6 @@ export default function ObservablePlot() {
   const observableOptions = useMemo(() => {
     let generatedOptions = null;
     let uniqueLabels = new Set();
-    let tooManyCategories = false;
-
     let wasSampled = false;
 
     const {
@@ -136,8 +134,6 @@ export default function ObservablePlot() {
         }
       }
 
-      tooManyCategories = uniqueLabels.size > 200;
-
       if (selectedChart !== "bar" && selectedChart !== "line") {
         // if we have more than 10k categories in the x axis, and this is a boxplot, sample 100 unique values
         let uniqueX = new Set(processedData.map((d) => d[selectedColumns.x]));
@@ -184,7 +180,7 @@ export default function ObservablePlot() {
           selectedColumns,
           availableColumns
         );
-      } else if (selectedChart === "bar" && !tooManyCategories) {
+      } else if (selectedChart === "bar") {
         generatedOptions = getObservableOptions(
           dimensions,
           {
@@ -241,7 +237,7 @@ export default function ObservablePlot() {
       // always reset the padding or it messes with boundclient calculation below
       containerRef.current.style.padding = "0 0 0 0";
 
-      if (chartManager.config.selectedChart === "bar" && !tooManyCategories) {
+      if (chartManager.config.selectedChart === "bar") {
         // we will create a custom scale
         // and use (if specified) options.lineOptions
         const { colorScheme } = getColorScheme(
@@ -267,52 +263,56 @@ export default function ObservablePlot() {
           }
         });
 
-        containerRef.current.appendChild(
-          Plot.plot({
-            ...generatedOptions,
-            color: chartSpecificOptions[selectedChart].colorBy
-              ? {
-                  legend: true,
-                  tickFormat: (d) => {
-                    if (
-                      chartManager.config.chartSpecificOptions[selectedChart]
-                        .colorByIsDate
-                    ) {
-                      // this is already coming in as a unix timestamp
+        const finalOptions = {
+          ...generatedOptions,
+          color: chartSpecificOptions[selectedChart].colorBy
+            ? {
+                legend: true,
+                tickFormat: (d) => {
+                  if (
+                    chartManager.config.chartSpecificOptions[selectedChart]
+                      .colorByIsDate
+                  ) {
+                    // this is already coming in as a unix timestamp
 
-                      return timeFormat(chartStyle.dateFormat)(unix(d));
-                    } else {
-                      return d;
-                    }
-                  },
-                }
-              : {
-                  ...generatedOptions.color,
-                  // override the scheme
-                  scheme: undefined,
-                  domain: colorDomain,
-                  range: colorRange,
+                    return timeFormat(chartStyle.dateFormat)(unix(d));
+                  } else {
+                    return d;
+                  }
                 },
-            fx: {
-              grid: false,
-              tickRotate: -90,
-              tickFormat: (d) => {
-                if (xColumn.isDate && dayjs(d).isValid()) {
-                  // if date, format it
-                  // convert from unix to date
-                  const date = timeFormat(chartStyle.dateFormat)(unix(d));
-                  return date;
-                } else {
-                  return d;
-                }
+              }
+            : {
+                ...generatedOptions.color,
+                // override the scheme
+                scheme: undefined,
+                domain: colorDomain,
+                range: colorRange,
               },
-              axis: "bottom",
+          fx: {
+            grid: false,
+            tickRotate: -90,
+            tickFormat: (d) => {
+              if (xColumn.isDate && dayjs(d).isValid()) {
+                // if date, format it
+                // convert from unix to date
+                const date = timeFormat(chartStyle.dateFormat)(unix(d));
+                return date;
+              } else {
+                return d;
+              }
             },
-            x: {
-              axis: null,
-              label: "",
-            },
-          })
+            axis: "bottom",
+          },
+          x: {
+            axis: null,
+            label: "",
+          },
+        };
+
+        console.log(finalOptions);
+
+        containerRef.current.appendChild(
+          Plot.plot(finalOptions)
         );
       } else if (chartManager.config.selectedChart === "line") {
         // we will create a custom scale
@@ -491,9 +491,7 @@ export default function ObservablePlot() {
         chart.style.padding = `0 0 ${paddingBottom}px ${paddingLeft}px`;
       }
     } else {
-      const errorMessage = tooManyCategories
-        ? `Too many bars: ${uniqueLabels.size}. Please use a subset of your data, or try a line chart.`
-        : "Please select X and Y axes to display the chart.";
+      const errorMessage = "Please select X and Y axes to display the chart.";
       containerRef.current.innerHTML = `<div class='flex items-center justify-center h-full w-full'>${errorMessage}</div>`;
     }
 
