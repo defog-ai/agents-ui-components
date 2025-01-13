@@ -290,13 +290,13 @@ export default function ObservablePlot() {
               },
           fx: {
             grid: false,
-            tickRotate: -90,
+            tickRotate: -45,
             tickFormat: (d) => {
-              if (xColumn.isDate && dayjs(d).isValid()) {
+              if (xColumn?.isDate) {
                 // if date, format it
                 // convert from unix to date
-                const date = timeFormat(chartStyle.dateFormat)(unix(d));
-                return date;
+                const date = dayjs(d);
+                return date.format('MMM D, YYYY');
               } else {
                 return d;
               }
