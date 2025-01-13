@@ -309,8 +309,6 @@ export default function ObservablePlot() {
           },
         };
 
-        console.log(finalOptions);
-
         containerRef.current.appendChild(
           Plot.plot(finalOptions)
         );
