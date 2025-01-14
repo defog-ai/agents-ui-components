@@ -116,6 +116,39 @@ const useAnalysisGroups = (nestedTree: any, analysisTree: any) => {
   }, [nestedTree, analysisTree]);
 };
 
+const createNewAnalysis = async (
+  analysisTreeManager: AnalysisTreeManager,
+  question: string,
+  isRoot: boolean,
+  rootAnalysisId: string | null,
+  keyName: string,
+  directParentId: string | null,
+  sqlOnly: boolean,
+  forceSqlOnly: boolean,
+  isTemp: boolean,
+  newActiveTab: "table" | "chart"
+) => {
+  const newId = "analysis-" + crypto.randomUUID();
+  const { newAnalysis } = await analysisTreeManager.submit({
+    question,
+    analysisId: newId,
+    rootAnalysisId: isRoot ? newId : rootAnalysisId,
+    keyName,
+    isRoot,
+    directParentId,
+    sqlOnly: forceSqlOnly || sqlOnly,
+    isTemp,
+    activeTab: newActiveTab,
+  });
+
+  if (!rootAnalysisId) {
+    analysisTreeManager.setActiveRootAnalysisId(newAnalysis.analysisId);
+  }
+
+  analysisTreeManager.setActiveAnalysisId(newAnalysis.analysisId);
+  analysisTreeManager.setActiveRootAnalysisId(newAnalysis.rootAnalysisId);
+}
+
 const useAnalysisSubmit = (
   analysisTreeManager: AnalysisTreeManager,
   keyName: string,
@@ -158,35 +191,44 @@ const useAnalysisSubmit = (
         }
 
         if (questionType === "edit-chart") {
-          await handleChartQuestion(
-            allAnalyses,
-            question,
-            chartEditUrl,
-            messageManager,
-            analysisTreeManager
-          );
+          // if this is a new question, then we want to create a new analysis
+          if (!rootAnalysisId) {
+            await createNewAnalysis(
+              analysisTreeManager,
+              question,
+              isRoot,
+              rootAnalysisId,
+              keyName,
+              directParentId,
+              sqlOnly,
+              forceSqlOnly,
+              isTemp,
+              "chart"
+            );
+          } else {
+            await handleChartQuestion(
+              allAnalyses,
+              question,
+              chartEditUrl,
+              messageManager,
+              analysisTreeManager
+            );
+          }
           return;
         }
 
-        const newId = "analysis-" + crypto.randomUUID();
-        const { newAnalysis } = await analysisTreeManager.submit({
+        await createNewAnalysis(
+          analysisTreeManager,
           question,
-          analysisId: newId,
-          rootAnalysisId: isRoot ? newId : rootAnalysisId,
-          keyName,
           isRoot,
+          rootAnalysisId,
+          keyName,
           directParentId,
-          sqlOnly: forceSqlOnly || sqlOnly,
+          sqlOnly,
+          forceSqlOnly,
           isTemp,
-          activeTab: newActiveTab,
-        });
-
-        if (!rootAnalysisId) {
-          analysisTreeManager.setActiveRootAnalysisId(newAnalysis.analysisId);
-        }
-
-        analysisTreeManager.setActiveAnalysisId(newAnalysis.analysisId);
-        analysisTreeManager.setActiveRootAnalysisId(newAnalysis.rootAnalysisId);
+          newActiveTab
+        );
 
         raf(() => {
           scrollToAnalysis(newId, analysisDomRefs);
