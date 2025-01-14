@@ -283,7 +283,13 @@ export function AnalysisTreeManager(
       activeTabChangeListeners[analysisId] = [];
     }
 
-    activeTabChangeListeners[analysisId].forEach((l) => l());
+    activeTabChangeListeners[analysisId].forEach((l) => {
+      try {
+        l();
+      } catch (e) {
+        console.error("Error in active tab listener", e);
+      }
+    });
   }
 
   /** */
@@ -291,12 +297,20 @@ export function AnalysisTreeManager(
     analysisId: string,
     listener: Listener
   ): Unsubscribe {
-    if (!activeTabChangeListeners[analysisId]) {
+    if (!analysisId) return () => {};
+
+    if (
+      !activeTabChangeListeners[analysisId] ||
+      !Array.isArray(activeTabChangeListeners[analysisId])
+    ) {
       activeTabChangeListeners[analysisId] = [];
     }
+
     activeTabChangeListeners[analysisId].push(listener);
 
     return function unsubscribe() {
+      if (!analysisId || !activeTabChangeListeners[analysisId]) return;
+
       activeTabChangeListeners[analysisId] = activeTabChangeListeners[
         analysisId
       ].filter((l) => l !== listener);
