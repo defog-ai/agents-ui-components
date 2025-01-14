@@ -279,6 +279,7 @@ const useInitialScroll = (
   disableScrollEvent: React.RefObject<boolean>
 ) => {
   useEffect(() => {
+    console.log(currentScrollTimeout.current);
     if (currentScrollTimeout.current) {
       clearTimeout(currentScrollTimeout.current);
       currentScrollTimeout.current = null;
@@ -350,7 +351,8 @@ const AnalysisTreeContent = ({
             updateObj: { analysisManager },
           });
         }}
-        onManagerDestroyed={(analysisManager: AnalysisManager, id: string) => {
+        onManagerDestroyed={(id: string) => {
+          console.log(activeRootAnalysisId, id);
           analysisTreeManager.removeAnalysis({
             analysisId: activeRootAnalysisId,
             isRoot: nestedTree[activeRootAnalysisId].isRoot,
@@ -406,10 +408,9 @@ const AnalysisTreeContent = ({
                 updateObj: { analysisManager },
               });
             }}
-            onManagerDestroyed={(
-              analysisManager: AnalysisManager,
-              id: string
-            ) => {
+            onManagerDestroyed={(id: string) => {
+              console.log(activeRootAnalysisId, id);
+
               analysisTreeManager.removeAnalysis({
                 analysisId: child.analysisId,
                 isRoot: child.isRoot,
@@ -623,6 +624,8 @@ export function AnalysisTreeViewer({
     analysisTreeManager.setActiveRootAnalysisId(rootAnalysisId);
   }, []);
 
+  console.log(activeAnalysisId, activeRootAnalysisId);
+
   return (
     <ErrorBoundary>
       <div className="relative h-full">
@@ -645,6 +648,8 @@ export function AnalysisTreeViewer({
                     className="text-xs font-light underline text-gray-400 dark:text-gray-500 inline hover:text-blue-500 dark:hover:text-blue-500 cursor-pointer"
                     onClick={() => {
                       analysisTreeManager.reset();
+                      analysisTreeManager.setActiveAnalysisId(null);
+                      analysisTreeManager.setActiveRootAnalysisId(null);
                     }}
                   >
                     Clear
@@ -736,18 +741,21 @@ export function AnalysisTreeViewer({
                                   disableScrollEvent.current = false;
                                 }
 
-                                setTimeout(() => {
-                                  disableScrollEvent.current = true;
-                                  if (autoScroll) {
-                                    const targetAnalysisId =
-                                      analysis?.analysisId || rootAnalysisId;
-                                    scrollToAnalysis(
-                                      targetAnalysisId,
-                                      analysisDomRefs
-                                    );
-                                  }
-                                  disableScrollEvent.current = false;
-                                }, 0);
+                                currentScrollTimeout.current = setTimeout(
+                                  () => {
+                                    disableScrollEvent.current = true;
+                                    if (autoScroll) {
+                                      const targetAnalysisId =
+                                        analysis?.analysisId || rootAnalysisId;
+                                      scrollToAnalysis(
+                                        targetAnalysisId,
+                                        analysisDomRefs
+                                      );
+                                    }
+                                    disableScrollEvent.current = false;
+                                  },
+                                  200
+                                );
                               }}
                               extraClasses={twMerge("ml-4")}
                             />
