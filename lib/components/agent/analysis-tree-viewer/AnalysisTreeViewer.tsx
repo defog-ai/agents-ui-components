@@ -659,7 +659,8 @@ export function AnalysisTreeViewer({
                                 if (window.innerWidth < breakpoints.lg) {
                                   setSidebarOpen(false);
                                 }
-
+                                // if there's a current timeout, clear it
+                                // and also make sure we reset scroll events till our new one fires
                                 if (currentScrollTimeout.current) {
                                   clearTimeout(currentScrollTimeout.current);
                                   currentScrollTimeout.current = null;
