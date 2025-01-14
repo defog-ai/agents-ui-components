@@ -25,9 +25,12 @@ export interface DagNode {
     isError?: string;
     step?: Step;
     isOutput?: boolean;
+    name?: string;
   };
   x: number;
   y: number;
+  descendants?: () => DagNode[];
+  ancestors?: DagNode[];
 }
 
 export interface DagLink {
