@@ -1,6 +1,6 @@
 import { Select, Tooltip, Space } from "antd";
 import * as d3 from "d3";
-import { ChartStateContext } from "../ChartStateContext";
+import { ChartManagerContext } from "../ChartManagerContext";
 import { useContext } from "react";
 import { getColorScheme } from "../plotUtils";
 import { Info } from "lucide-react";
@@ -24,8 +24,8 @@ const COLOR_SCHEMES = {
 };
 
 const ColorSchemeSelector = ({ value, onChange }) => {
-  const chartState = useContext(ChartStateContext);
-  const { selectedColumns, selectedChart } = chartState;
+  const chartManager = useContext(ChartManagerContext);
+  const { selectedColumns } = chartManager.config;
 
   const colorBy = selectedColumns.fill;
 

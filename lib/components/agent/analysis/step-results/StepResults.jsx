@@ -6,7 +6,7 @@ import { StepOutputs } from "./StepOutputs";
 import { StepReRun } from "./StepReRun";
 import AgentLoader from "../../../common/AgentLoader";
 import ErrorBoundary from "../../../common/ErrorBoundary";
-import { parseData, toolDisplayNames } from "../../../utils/utils";
+import { toolDisplayNames } from "../../../utils/utils";
 import { AddStepUI } from "../../add-step/AddStepUI";
 import { Modal } from "antd";
 import { Tabs } from "../../../core-ui/Tabs";
@@ -15,38 +15,6 @@ import { SpinningLoader } from "@ui-components";
 import SQLFeedback from "./SQLFeedback";
 import StepResultAnalysis from "./StepResultAnalysis";
 import { CodeEditor } from "./CodeEditor";
-
-function parseOutputs(data, analysisData) {
-  let parsedOutputs = {};
-  // go through data and parse all tables
-  Object.keys(data?.outputs || {}).forEach((k, i) => {
-    parsedOutputs[k] = {};
-    // check if this has data, reactive_vars and chart_images
-    parsedOutputs[k].csvString = data.outputs[k].data;
-    if (data.outputs[k].data) {
-      parsedOutputs[k].data = parseData(data.outputs[k].data);
-    }
-    if (data.outputs[k].reactive_vars) {
-      parsedOutputs[k].reactive_vars = data.outputs[k].reactive_vars;
-
-      // check if title is defined
-      if (!parsedOutputs[k]?.reactive_vars?.title) {
-        Object.defineProperty(parsedOutputs[k].reactive_vars, "title", {
-          get() {
-            return analysisData?.user_question;
-          },
-        });
-      }
-    }
-    if (data.outputs[k].chart_images) {
-      parsedOutputs[k].chart_images = data.outputs[k].chart_images;
-    }
-    if (data.outputs[k].analysis) {
-      parsedOutputs[k].analysis = data.outputs[k].analysis;
-    }
-  });
-  return parsedOutputs;
-}
 
 export function StepResults({
   analysisId,
@@ -71,7 +39,10 @@ export function StepResults({
   const agentConfigContext = useContext(AgentConfigContext);
   const { hideSqlTab } = agentConfigContext.val;
   const parsedOutputs = useMemo(() => {
-    return parseOutputs(step, analysisData);
+    return (
+      analysisData?.gen_steps?.steps?.find((s) => s.id === step.id)
+        ?.parsedOutputs || {}
+    );
   }, [step, analysisData]);
 
   const stepId = step.id;
@@ -201,7 +172,9 @@ export function StepResults({
         .reduce((acc, d) => {
           try {
             // i don't trust LLMs
-            const parsedOutputs = parseOutputs(d, analysisData);
+            const parsedOutputs =
+              analysisData?.gen_steps?.steps?.find((s) => s.id === d.id)
+                ?.parsedOutputs || {};
             Object.keys(parsedOutputs).forEach((k) => {
               acc[k] = parsedOutputs[k]?.data;
             });
@@ -299,13 +272,16 @@ export function StepResults({
                 {step?.reference_queries?.length > 0 ? (
                   <>
                     <p className="mt-8 mb-2 text-sm font-mono">
-                      <span className="font-bold dark:text-gray-200">Reference Queries</span>:
+                      <span className="font-bold dark:text-gray-200">
+                        Reference Queries
+                      </span>
+                      :
                       <span className="dark:text-gray-300">
-                      these queries were selected as reference queries, among
-                      all the golden queries you uploaded. If the query
-                      generated above is not correct, consider adding some
-                      related golden queries to help Defog answer your questions
-                      correctly.
+                        these queries were selected as reference queries, among
+                        all the golden queries you uploaded. If the query
+                        generated above is not correct, consider adding some
+                        related golden queries to help Defog answer your
+                        questions correctly.
                       </span>
                     </p>
                     <Tabs
@@ -335,9 +311,13 @@ export function StepResults({
                 {step.instructions_used && (
                   <>
                     <p className="mt-8 mb-2 text-sm font-mono">
-                      <span className="font-bold dark:text-gray-200">Relevant Instructions</span>:
+                      <span className="font-bold dark:text-gray-200">
+                        Relevant Instructions
+                      </span>
+                      :
                       <span className="dark:text-gray-300">
-                      these instructions were selected to create this SQL query
+                        these instructions were selected to create this SQL
+                        query
                       </span>
                     </p>
                     <p className="text-sm mt-2 mb-4 pl-4 rounded whitespace-break-spaces leading-relaxed dark:text-gray-300">
@@ -361,7 +341,7 @@ export function StepResults({
                 <StepResultsTable
                   stepId={stepId}
                   keyName={keyName}
-                  tableData={output["data"]}
+                  stepData={output}
                   apiEndpoint={apiEndpoint}
                   chartImages={output["chart_images"]}
                   reactiveVars={output["reactive_vars"]}

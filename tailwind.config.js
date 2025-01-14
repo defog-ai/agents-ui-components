@@ -1,6 +1,6 @@
-const plugin = require("tailwindcss/plugin");
+import plugin from "tailwindcss/plugin";
 
-module.exports = {
+export default {
   content: [
     "./index.html",
     "./lib/**/*.{js,ts,jsx,tsx,mdx}",
@@ -59,7 +59,7 @@ module.exports = {
   },
 
   plugins: [
-    require("@tailwindcss/forms"),
+    import("@tailwindcss/forms"),
     plugin(function ({ addUtilities }) {
       addUtilities({
         ".arrow-up": {

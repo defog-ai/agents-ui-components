@@ -8,6 +8,12 @@ const AgentLoader = ({
   svg = null,
   children = null,
   classNames,
+}: {
+  type?: string | null;
+  message?: string | null;
+  svg?: React.ReactNode;
+  children?: React.ReactNode;
+  classNames?: string;
 }) => {
   return (
     <div className={twMerge("agent-loader", classNames)}>

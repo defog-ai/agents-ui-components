@@ -1,14 +1,14 @@
 import { useContext, useState, useCallback, useRef, useEffect } from "react";
 import { Select, Button, Space, Card, Tag } from "antd";
 import { Input as TextInput } from "@ui-components";
-import { ChartStateContext } from "./ChartStateContext";
+import { ChartManagerContext } from "./ChartManagerContext";
 import { HashIcon, CaseSensitive, Trash2, CirclePlus } from "lucide-react";
 
 const { Option } = Select;
 
 const FilterBuilder = ({ columns }) => {
   const [filters, setFilters] = useState([]);
-  const chartState = useContext(ChartStateContext);
+  const chartManager = useContext(ChartManagerContext);
   const timeoutRef = useRef(null);
 
   const debounce = (func, delay) => {
@@ -67,11 +67,11 @@ const FilterBuilder = ({ columns }) => {
             })
         : null;
 
-      chartState
+      chartManager
         .updateChartSpecificOptions({ filter: filterFunction })
         .render();
     },
-    [chartState, columns]
+    [chartManager.config, columns]
   );
 
   const debouncedUpdateFilterFunction = useCallback(
@@ -79,7 +79,9 @@ const FilterBuilder = ({ columns }) => {
     [updateFilterFunction]
   );
   useEffect(() => {
-    const selectedColumnKeys = Object.values(chartState.selectedColumns).flat();
+    const selectedColumnKeys = Object.values(
+      chartManager.config.selectedColumns
+    ).flat();
     const newFilters = filters.map((filter) => ({
       ...filter,
       isValid:
@@ -90,7 +92,11 @@ const FilterBuilder = ({ columns }) => {
       setFilters(newFilters);
       debouncedUpdateFilterFunction(newFilters);
     }
-  }, [chartState.selectedColumns, filters, debouncedUpdateFilterFunction]);
+  }, [
+    chartManager.config.selectedColumns,
+    filters,
+    debouncedUpdateFilterFunction,
+  ]);
 
   const addFilter = () => {
     setFilters([

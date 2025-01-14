@@ -1,31 +1,90 @@
-/**
- * @typedef {Object} CreateAnalysisRequestBody
- * @property {Object} initialisation_details
- * @property {string | null} direct_parent_id - Id of the direct parent of this analysis. `null` if this is a root analysis (aka `is_root_analysis` is true)
- * @property {boolean} is_root_analysis - If this is a root analysis (aka `direct_parent_id` is null).
- * @property {string | null} root_analysis_id - ID of the root. If this is a root analysis (aka `is_root_analysis` is `true`), it is the id of this analysis itself.
- * @property {string | null} user_question - User question to initialise this analysis with, if any. If null, a blank analysis will be created.
- */
+import { AnalysisManager } from "../analysis/analysisManager.js";
 
-/**
- * @typedef {Object} Analysis
- * @property {import("../analysis/analysisManager.js").AnalysisManager} analysisManager - This analysis's manager.
- * @property {string} analysisId - ID of the analysis
- * @property {CreateAnalysisRequestBody} createAnalysisRequestBody - HTTP Request body that is sent when creating an analysis. Useful if we want the analysis to be initialised and run with a pre defined question, rather than a blank analysis.
- * @property {string | null} directParentId - Id of the direct parent of this analysis. `null` if this is a root analysis (aka `is_root_analysis` is true)
- * @property {Date} timestamp - Timestamp in milliseconds of when this analysis was created.
- * @property {boolean} isRoot - Is this a root analysis?
- * @property {boolean} isTemp: false
- * @property {string} keyName: "Restaurants"
- * @property {string} rootAnalysisId - ID of the root.If this is a root analysis (aka `isRoot` is `true`), it is equal to analysisId.
- * @property {boolean} sqlOnly - Is this an SQL only analysis?
- * @property {string} user_question - User question of this analysis.
- *
- */
+export interface CreateAnalysisRequestBody {
+  initialisation_details?: { [key: string]: any };
+  direct_parent_id?: string | null;
+  is_root_analysis?: boolean;
+  root_analysis_id?: string | null;
+  user_question?: string | null;
+  key_name?: string | null;
+  sql_only?: boolean;
+}
 
-/**
- * @typedef {{[analysisId: string]: {root: Analysis, analysisList: Analysis[]}}} AnalysisTree
- */
+interface Analysis {
+  analysisManager?: AnalysisManager;
+  analysisId: string;
+  createAnalysisRequestBody: CreateAnalysisRequestBody;
+  directParentId: string | null;
+  timestamp: number;
+  isRoot: boolean;
+  isTemp: boolean;
+  keyName: string;
+  rootAnalysisId: string;
+  sqlOnly: boolean;
+  user_question: string;
+}
+
+export type AnalysisTree = {
+  [analysisId: string]: { root: Analysis; analysisList: Analysis[] };
+};
+
+type Listener = () => void;
+
+type FlatAnalysisTree = { [analysisId: string]: Analysis };
+
+type Unsubscribe = () => void;
+
+export interface AnalysisTreeNode extends Analysis {
+  children: AnalysisTreeNode[];
+  parent: AnalysisTreeNode | null;
+  /**
+   * Returns a flat list of all children of this node, ordered by depth first.
+   */
+  flatOrderedChildren: AnalysisTreeNode[];
+  /**
+   * Flat list of all parents of this node, going up the tree from this node.
+   */
+  allParents: AnalysisTreeNode[];
+}
+
+export interface NestedAnalysisTree {
+  [analysisId: string]: AnalysisTreeNode;
+}
+
+export interface AnalysisTreeManager {
+  subscribeToDataChanges: (listener: Listener) => Unsubscribe;
+  getTree: () => AnalysisTree;
+  getNestedTree: () => NestedAnalysisTree;
+  getAll: () => FlatAnalysisTree;
+  subscribeToActiveAnalysisIdChanges: (listener: Listener) => Unsubscribe;
+  setActiveAnalysisId: (analysisId: string | null) => void;
+  setActiveRootAnalysisId: (analysisId: string | null) => void;
+  getActiveAnalysisId: () => string | null;
+  getActiveRootAnalysisId: () => string | null;
+  submit: (params: {
+    question: string;
+    keyName: string;
+    analysisId: string;
+    rootAnalysisId: string | null;
+    isRoot?: boolean;
+    directParentId?: string | null;
+    sqlOnly?: boolean;
+    isTemp?: boolean;
+  }) => Promise<{ newAnalysis: Analysis }>;
+  removeAnalysis: (params: {
+    analysisId: string;
+    isRoot: boolean;
+    rootAnalysisId: string;
+  }) => void;
+  updateAnalysis: (params: {
+    analysisId: string;
+    isRoot: boolean;
+    updateObj: Partial<Analysis>;
+    emit?: boolean;
+  }) => void;
+  getMgrId: () => string;
+  reset: () => void;
+}
 
 /**
  * Manages a hierarchical structure of analyses, allowing for operations on a tree of analysis items.
@@ -34,7 +93,10 @@
  * @param {AnalysisTree} initialTree - The initial structure of the analysis tree. Defaults to an empty object.
  * @param {string} id - The unique identifier for the root of the analysis tree. Defaults to a generated UUID.
  */
-export function AnalysisTreeManager(initialTree = {}, id = crypto.randomUUID()) {
+export function AnalysisTreeManager(
+  initialTree: AnalysisTree = {},
+  id: string | null = crypto.randomUUID()
+) {
   // Initializes the unique identifier for this analysis tree manager instance.
   let _id = id;
 
@@ -71,41 +133,100 @@ export function AnalysisTreeManager(initialTree = {}, id = crypto.randomUUID()) 
    * Flattens the analysis tree into a single object for easy access to any analysis by its ID.
    * Just a duplicate of the analysisTree but in a flat object
    * structure:
-   * @type {object}
    */
-  let allAnalyses = Object.values(analysisTree).reduce((acc, item) => {
-    return {
-      ...acc,
-      [item.root.analysisId]: item.root,
-      // Accumulates child analyses into the flat object, mapping their IDs to their data.
-      ...item.analysisList.reduce((acc, child) => {
-        return {
-          ...acc,
-          [child.analysisId]: child,
-        };
-      }, {}),
-    };
-  }, {});
+  let allAnalyses: FlatAnalysisTree = Object.values(analysisTree).reduce(
+    (acc, item) => {
+      return {
+        ...acc,
+        [item.root.analysisId]: item.root,
+        // Accumulates child analyses into the flat object, mapping their IDs to their data.
+        ...item.analysisList.reduce((acc, child) => {
+          return {
+            ...acc,
+            [child.analysisId]: child,
+          };
+        }, {}),
+      };
+    },
+    {}
+  );
 
-  let dataListeners = [];
-  let activeAnalysisIdChangeListeners = [];
-  let activeAnalysisId = null;
-  let activeRootAnalysisId = null;
+  let dataListeners: Listener[] = [];
+  let activeAnalysisIdChangeListeners: Listener[] = [];
+  let activeAnalysisId: string | null = null;
+  let activeRootAnalysisId: string | null = null;
 
   let destroyed = false;
 
-  function setAnalysisTree(newAnalysisTree, newAllAnalyses) {
+  function setAnalysisTree(
+    newAnalysisTree: AnalysisTree,
+    newAllAnalyses: FlatAnalysisTree
+  ) {
     analysisTree = newAnalysisTree;
     allAnalyses = newAllAnalyses;
     emitDataChange();
   }
 
-  function getAll() {
+  function getAll(): FlatAnalysisTree {
     return allAnalyses;
   }
 
-  function getTree() {
+  function getTree(): AnalysisTree {
     return analysisTree;
+  }
+
+  function flatOrderedChildren(node: AnalysisTreeNode): AnalysisTreeNode[] {
+    return [...node.children, ...node.children.flatMap(flatOrderedChildren)];
+  }
+
+  function getAllParents(node: AnalysisTreeNode): AnalysisTreeNode[] {
+    const parents: AnalysisTreeNode[] = [];
+    let current: AnalysisTreeNode | null = node;
+    while (current) {
+      parents.push(current);
+      current = current.parent;
+    }
+    return parents;
+  }
+
+  function getNestedTree(): NestedAnalysisTree {
+    const nestedTree: NestedAnalysisTree = {};
+
+    Object.keys(allAnalyses).forEach((analysisId) => {
+      nestedTree[analysisId] = {
+        ...allAnalyses[analysisId],
+        children: [],
+        parent: null,
+        flatOrderedChildren: [],
+        allParents: [],
+      };
+    });
+
+    Object.keys(nestedTree).forEach((analysisId) => {
+      if (nestedTree[analysisId].directParentId) {
+        const parent = nestedTree[nestedTree[analysisId].directParentId];
+        if (parent) {
+          nestedTree[analysisId].parent = parent;
+          nestedTree[analysisId].allParents = getAllParents(parent);
+          parent.children.push(nestedTree[analysisId]);
+          // sort the new children by timestamp
+          parent.children.sort((a, b) => b.timestamp - a.timestamp);
+        }
+      }
+    });
+
+    // only keep root analyses at the top level
+    for (const analysisId in nestedTree) {
+      if (!nestedTree[analysisId].isRoot) {
+        delete nestedTree[analysisId];
+      } else {
+        nestedTree[analysisId].flatOrderedChildren = flatOrderedChildren(
+          nestedTree[analysisId]
+        );
+      }
+    }
+
+    return nestedTree;
   }
 
   function emitDataChange() {
@@ -116,7 +237,7 @@ export function AnalysisTreeManager(initialTree = {}, id = crypto.randomUUID()) 
     activeAnalysisIdChangeListeners.forEach((l) => l());
   }
 
-  function subscribeToDataChanges(listener) {
+  function subscribeToDataChanges(listener: Listener): Unsubscribe {
     dataListeners = [...dataListeners, listener];
 
     return function unsubscribe() {
@@ -124,7 +245,7 @@ export function AnalysisTreeManager(initialTree = {}, id = crypto.randomUUID()) 
     };
   }
 
-  function subscribeToActiveAnalysisIdChanges(listener) {
+  function subscribeToActiveAnalysisIdChanges(listener: Listener): Unsubscribe {
     activeAnalysisIdChangeListeners.push(listener);
 
     return function unsubscribe() {
@@ -134,25 +255,33 @@ export function AnalysisTreeManager(initialTree = {}, id = crypto.randomUUID()) 
     };
   }
 
-  function setActiveAnalysisId(analysisId) {
+  function setActiveAnalysisId(analysisId: string | null) {
     activeAnalysisId = analysisId;
     emitActiveAnalysisIdChange();
   }
 
-  function setActiveRootAnalysisId(analysisId) {
+  function setActiveRootAnalysisId(analysisId: string | null) {
     activeRootAnalysisId = analysisId;
     emitActiveAnalysisIdChange();
   }
 
-  function getActiveAnalysisId() {
+  function getActiveAnalysisId(): string | null {
     return activeAnalysisId;
   }
 
-  function getActiveRootAnalysisId() {
+  function getActiveRootAnalysisId(): string | null {
     return activeRootAnalysisId;
   }
 
-  function removeAnalysis({ analysisId, isRoot, rootAnalysisId }) {
+  function removeAnalysis({
+    analysisId,
+    isRoot,
+    rootAnalysisId,
+  }: {
+    analysisId: string;
+    isRoot: boolean;
+    rootAnalysisId: string;
+  }) {
     const newAnalysisTree = { ...analysisTree };
 
     // if is root, just delete
@@ -161,11 +290,11 @@ export function AnalysisTreeManager(initialTree = {}, id = crypto.randomUUID()) 
     } else {
       // else find the root analysis and remove the child
       if (rootAnalysisId) {
-        const rootAnalysis = newAnalysisTree[rootAnalysisId];
+        const rootAnalysis = analysisTree[rootAnalysisId].root;
         if (rootAnalysis) {
-          rootAnalysis.analysisList = rootAnalysis.analysisList.filter(
-            (item) => item.analysisId !== analysisId
-          );
+          newAnalysisTree[analysisId].analysisList = newAnalysisTree[
+            analysisId
+          ].analysisList.filter((item) => item.analysisId !== analysisId);
         }
       }
     }
@@ -176,7 +305,17 @@ export function AnalysisTreeManager(initialTree = {}, id = crypto.randomUUID()) 
     setAnalysisTree(newAnalysisTree, newAllAnalyses);
   }
 
-  function updateAnalysis({ analysisId, isRoot, updateObj, emit = true }) {
+  function updateAnalysis({
+    analysisId,
+    isRoot,
+    updateObj,
+    emit = true,
+  }: {
+    analysisId: string;
+    isRoot: boolean;
+    updateObj: Partial<Analysis>;
+    emit?: boolean;
+  }) {
     const newAnalysisTree = { ...analysisTree };
 
     if (!allAnalyses[analysisId]) {
@@ -215,25 +354,34 @@ export function AnalysisTreeManager(initialTree = {}, id = crypto.randomUUID()) 
     };
 
     // don't emit in this case to prevent unnecessary re renders
-    setAnalysisTree(newAnalysisTree, newAllAnalyses, emit);
+    setAnalysisTree(newAnalysisTree, newAllAnalyses);
   }
 
   async function submit({
     question,
     keyName,
     analysisId,
-    rootAnalysisId = null,
+    rootAnalysisId,
     isRoot = false,
     directParentId = null,
     sqlOnly = false,
     isTemp = false,
+  }: {
+    question: string;
+    keyName: string;
+    analysisId: string;
+    rootAnalysisId: string;
+    isRoot?: boolean;
+    directParentId?: string | null;
+    sqlOnly?: boolean;
+    isTemp?: boolean;
   }) {
-    let newAnalysis = {
+    // @ts-ignore
+    let newAnalysis: Analysis = {
       analysisId: analysisId,
       isRoot: isRoot,
       rootAnalysisId: isRoot ? analysisId : rootAnalysisId,
       user_question: question,
-      existingAnalysisData: null,
       isTemp,
       keyName,
       sqlOnly,
@@ -293,6 +441,7 @@ export function AnalysisTreeManager(initialTree = {}, id = crypto.randomUUID()) 
   return {
     subscribeToDataChanges,
     getTree,
+    getNestedTree,
     getAll,
     subscribeToActiveAnalysisIdChanges,
     setActiveAnalysisId,
@@ -311,7 +460,7 @@ export function AnalysisTreeManager(initialTree = {}, id = crypto.randomUUID()) 
  * Validates an analysis object. This is to prevent UI crashes in case of illegal/abnormal analyses being stored in localStorage/passed down for some reason.
  *
  * An analysis should:
- * - Be an object with the following keys: analysisId, createAnalysisRequestBody, directParentId, isRoot, isTemp, keyName, rootAnalysisId, sqlOnly, user_question
+ * - Be an object with the following keys: analysisId, createAnalysisRequestBody, directParentId, isRoot, isTemp, keyName, rootAnalysisId, sqlOnly, userQuestion
  * - analysisId should be a string
  * - createAnalysisRequestBody should be an object
  * - directParentId should be a string or null
@@ -320,14 +469,13 @@ export function AnalysisTreeManager(initialTree = {}, id = crypto.randomUUID()) 
  * - keyName should be a string
  * - rootAnalysisId should be a string
  * - sqlOnly should be a boolean
- * - user_question should be a string
+ * - userQuestion should be a string
  *
- * @param {Analysis} analysis
  * @returns {boolean} If this analysis is valid or not
  */
 
-export function validateAnalysis(analysis) {
-  if (!analysis) return null;
+export function validateAnalysis(analysis: Analysis): boolean {
+  if (!analysis) return false;
 
   if (typeof analysis !== "object") return false;
 
@@ -360,11 +508,10 @@ export function validateAnalysis(analysis) {
  * - analysisList should be an array of analyses.
  * - The first item of the analysisList should be exactly the same as the root.
  *
- * @param {AnalysisTree} tree
  * @returns {boolean} If this tree is valid or not
  */
-export function validateAnalysisTree(tree) {
-  if (!tree) return null;
+export function validateAnalysisTree(tree: AnalysisTree): boolean {
+  if (!tree) return false;
 
   if (typeof tree !== "object") return false;
 

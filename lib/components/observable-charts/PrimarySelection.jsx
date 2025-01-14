@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { reorderColumns } from "./columnOrdering.js";
 import { Input as TextInput, Button } from "@ui-components";
-import { ChartStateContext } from "./ChartStateContext.jsx";
+import { ChartManagerContext } from "./ChartManagerContext";
 import { AgentConfigContext } from "../context/AgentContext";
 
 const { Option } = Select;
@@ -44,10 +44,10 @@ const COLUMN_ICONS = {
 };
 
 export function PrimarySelection({ columns }) {
-  const chartState = useContext(ChartStateContext);
+  const chartManager = useContext(ChartManagerContext);
 
   const { selectedChart, selectedColumns, chartStyle, chartSpecificOptions } =
-    chartState;
+    chartManager.config;
 
   const [orderedColumns, setOrderedColumns] = useState(columns);
   const [axisLabel, setAxisLabel] = useState({
@@ -60,14 +60,14 @@ export function PrimarySelection({ columns }) {
 
   // Reorder columns when chart type or available columns change
   useEffect(() => {
-    chartState.setAvailableColumns(columns).render();
+    chartManager.setAvailableColumns(columns).render();
 
     setOrderedColumns(reorderColumns(columns, selectedChart));
   }, [columns, selectedChart]);
 
   // Handle chart type change
   const handleChartChange = (value) => {
-    chartState
+    chartManager
       .setSelectedChart(value)
       .updateChartStyle({ xLabel: null, yLabel: null })
       .autoSelectVariables()
@@ -84,12 +84,12 @@ export function PrimarySelection({ columns }) {
     } else {
       setAxisLabel({ x: "Horizontal", y: "Vertical" });
     }
-  }, [selectedChart, chartSpecificOptions, chartState]);
+  }, [selectedChart, chartSpecificOptions, chartManager]);
 
   // Handle axis selection change
   const handleAxisChange = useCallback(
     (axis) => (value) => {
-      let newChartState = chartState.setSelectedColumns({
+      let newChartManager = chartManager.setSelectedColumns({
         ...selectedColumns,
         [axis]: value,
       });
@@ -101,11 +101,11 @@ export function PrimarySelection({ columns }) {
       ) {
         const selectedColumn = columns.find((col) => col.key === value);
         if (selectedColumn && selectedColumn.variableType === "categorical") {
-          newChartState = newChartState.updateChartSpecificOptions({
+          newChartManager = newChartManager.updateChartSpecificOptions({
             useCount: true,
           });
         } else {
-          newChartState = newChartState.updateChartSpecificOptions({
+          newChartManager = newChartManager.updateChartSpecificOptions({
             useCount: false,
           });
         }
@@ -113,15 +113,15 @@ export function PrimarySelection({ columns }) {
 
       // reset color by if we are changing the y axis
       if (axis === "y") {
-        newChartState = newChartState.updateChartSpecificOptions({
+        newChartManager = newChartManager.updateChartSpecificOptions({
           colorBy: null,
           colorByIsDate: false,
         });
       }
 
-      newChartState.render();
+      newChartManager.render();
     },
-    [chartState, selectedColumns, selectedChart, columns]
+    [chartManager, selectedColumns, selectedChart, columns]
   );
 
   const handleAggregateChange = (value) => {
@@ -149,7 +149,7 @@ export function PrimarySelection({ columns }) {
       newColorByIsDate = false;
     }
 
-    chartState
+    chartManager
       .updateChartSpecificOptions({
         aggregateFunction: value || "sum",
         colorBy: newColorBy,
@@ -162,7 +162,7 @@ export function PrimarySelection({ columns }) {
     const selectedColumn = columns.find((col) => col.key === value) || {};
     const newColorByIsDate = selectedColumn.isDate || false;
 
-    chartState
+    chartManager
       .updateChartSpecificOptions({
         colorBy: value,
         colorByIsDate: newColorByIsDate,
@@ -219,7 +219,7 @@ export function PrimarySelection({ columns }) {
 
   // Handle axis label change
   const handleAxisLabelChange = (axis) => (e) => {
-    chartState
+    chartManager
       .updateChartStyle({
         [`${axis}Label`]: e.target.value,
       })
@@ -244,7 +244,7 @@ export function PrimarySelection({ columns }) {
         placeholder="Enter y axis label"
         value={chartStyle.yLabel || undefined}
         onChange={(e) =>
-          chartState.updateChartStyle({ yLabel: e.target.value }).render()
+          chartManager.updateChartStyle({ yLabel: e.target.value }).render()
         }
       />
     </div>
@@ -324,7 +324,7 @@ export function PrimarySelection({ columns }) {
   const colorBySelection = useMemo(() => {
     const colorSchemeSelection = (value) => {
       if (selectedChart !== "line") {
-        chartState
+        chartManager
           .updateChartSpecificOptions({ fill: value })
           .setSelectedColumns({
             ...selectedColumns,
@@ -332,7 +332,7 @@ export function PrimarySelection({ columns }) {
           })
           .render();
       } else if (selectedChart === "line") {
-        chartState
+        chartManager
           .updateChartSpecificOptions({ stroke: value })
           .setSelectedColumns({
             ...selectedColumns,
@@ -340,7 +340,7 @@ export function PrimarySelection({ columns }) {
           })
           .render();
       } else {
-        chartState
+        chartManager
           .updateChartSpecificOptions({ fill: value })
           .setSelectedColumns({
             ...selectedColumns,
@@ -368,7 +368,7 @@ export function PrimarySelection({ columns }) {
         </Select>
       </div>
     );
-  }, [chartState, selectedColumns, orderedColumns, selectedChart]);
+  }, [chartManager, selectedColumns, orderedColumns, selectedChart]);
 
   return (
     <div className="grid grid-rows-[auto_1fr_auto] h-full gap-4 pl-1">

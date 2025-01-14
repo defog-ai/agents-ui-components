@@ -9,14 +9,15 @@ import React, {
   useSyncExternalStore,
 } from "react";
 import AgentLoader from "../../common/AgentLoader";
-import StepsDag from "./StepsDag";
+import StepsDag, { DagLink, DagResult } from "./StepsDag";
 import {
+  raf,
   sentenceCase,
   toolShortNames,
   trimStringToLength,
 } from "../../utils/utils";
 import Clarify from "./Clarify";
-import AnalysisManager from "./analysisManager";
+import type { AnalysisData, AnalysisManager } from "./analysisManager";
 import setupBaseUrl from "../../utils/setupBaseUrl";
 // import { AnalysisFeedback } from "../feedback/AnalysisFeedback";
 import {
@@ -32,36 +33,117 @@ import { AgentConfigContext } from "../../context/AgentContext";
 import ErrorBoundary from "../../common/ErrorBoundary";
 import { CircleStop } from "lucide-react";
 import { StepResults } from "./step-results/StepResults";
+import createAnalysisManager from "./analysisManager";
+import { CreateAnalysisRequestBody } from "../analysis-tree-viewer/analysisTreeManager";
+
+interface Props {
+  /**
+   * Analysis ID
+   */
+  analysisId: string;
+
+  /**
+   * Root of this analysis. Is the same as analysisId if this is the root analysis.
+   */
+  rootAnalysisId: string;
+  /**
+   * Api key name
+   */
+  keyName: string;
+  /**
+   * Whether this is a temp analysis. Used in CSVs.
+   */
+  isTemp?: boolean;
+  /**
+   * Metadata for this database.
+   */
+  metadata?: ColumnMetadata[] | null;
+  /**
+   * Whether this is a sql only analysis.
+   */
+  sqlOnly?: boolean;
+  /**
+   * Root class names.
+   */
+  rootClassNames?: string;
+  /**
+   * Object that will be sent as the body of the fetch request to create_analysis.
+   */
+  createAnalysisRequestBody?: Partial<CreateAnalysisRequestBody>;
+  /**
+   * Whether to initiate auto submit.
+   */
+  initiateAutoSubmit?: boolean;
+  /**
+   * Whether this is being controlled by an external search bar.
+   */
+  hasExternalSearchBar?: boolean;
+  /**
+   * Placeholder for the internal search bar (useful only if hasExternalSearchBar is false).
+   */
+  searchBarPlaceholder?: string | null;
+  /**
+   * if this analysis uses any extra tools. Used in the add tool UI.
+   */
+  extraTools?: Array<{
+    code: string;
+    tool_name: string;
+    function_name: string;
+    tool_description: string;
+    input_metadata: object;
+    output_metadata: object;
+  }>;
+  /**
+   * suffix for the planner model's question. Used in the add tool UI.
+   */
+  plannerQuestionSuffix?: string | null;
+  /**
+   * Details about parent questions that the user has asked so far before this analysis. Has to be an array of Objects.
+   */
+  previousContext?: PreviousContext;
+  /**
+   * Global loading. Useful if you are handling multiple analysis..
+   */
+  setGlobalLoading?: (loading: boolean) => void;
+  /**
+   * Callback when analysis manager is created.
+   */
+  onManagerCreated?: (
+    analysisManager: AnalysisManager,
+    analysisId: string,
+    ctr: HTMLDivElement | null
+  ) => void;
+  /**
+   * Callback when analysis manager is destroyed.
+   */
+  onManagerDestroyed?: (
+    analysisManager: AnalysisManager,
+    analysisId: string,
+    ctr: HTMLDivElement | null
+  ) => void;
+  /**
+   * Disable the search bar.
+   */
+  disabled?: boolean;
+  /**
+   * Initial config if any.
+   */
+  initialConfig?: {
+    analysisManager?: AnalysisManager | null;
+  };
+  setCurrentQuestion?: (question: string) => void;
+  /**
+   * Callback when container height changes
+   */
+  onHeightChange?: (height: number) => void;
+}
 
 /**
- *
- * @typedef {Object} AnalysisAgentProps
- * @property {string} analysisId - Analysis ID.
- * @property {string} keyName - Api Key name.
- * @property {boolean} isTemp - Whether this is a temp analysis. Used in CSVs.
- * @property {Object} metadata - Metadata for this database.
- * @property {boolean} sqlOnly - Whether this is a sql only analysis.
- * @property {string} rootClassNames - Root class names.
- * @property {Object} createAnalysisRequestBody - Object that will be sent as the body of the fetch request to create_analysis.
- * @property {boolean} initiateAutoSubmit - Whether to initiate auto submit.
- * @property {boolean} hasExternalSearchBar - Whether this is being controlled by an external search bar.
- * @property {string} searchBarPlaceholder - Placeholder for the internal search bar (useful only if hasExternalSearchBar is false).
- * @property {Array<{code:string, tool_name: string, function_name: string, tool_description: string, input_metadata: object, output_metadata: object}>} extraTools - if this analysis uses any extra tools. Used in the add tool UI.
- * @property {string} plannerQuestionSuffix - suffix for the planner model's question. Used in the add tool UI.
- * @property {Array.<Object>} previousQuestions - Questions that the user has asked so far before this analysis. has to be an array of Objects.
- * @property {Function} setGlobalLoading - Global loading. Useful if you are handling multiple analysis..
- * @property {Function} onManagerCreated - Callback when analysis manager is created.
- * @property {Function} onManagerDestroyed - Callback when analysis manager is destroyed.
- * @property {boolean} disabled - Disable the search bar.
- * @property {{analysisManager?: Object}} initialConfig - Initial config if any.
- */
-
-/**
- * Analysis Agent
- * @param {AnalysisAgentProps} props
+ * Analysis Agent. Handles a single analysis. Chonker.
  * */
 export const AnalysisAgent = ({
   analysisId,
+  rootAnalysisId,
   keyName,
   isTemp = false,
   metadata = null,
@@ -69,11 +151,11 @@ export const AnalysisAgent = ({
   rootClassNames = "",
   createAnalysisRequestBody = {},
   initiateAutoSubmit = false,
-  hasExternalSearchBar = null,
+  hasExternalSearchBar = false,
   searchBarPlaceholder = null,
   extraTools = [],
   plannerQuestionSuffix = null,
-  previousQuestions = [], // questions that the user has asked so far in the analysis
+  previousContext = [],
   setGlobalLoading = (...args) => {},
   onManagerCreated = (...args) => {},
   onManagerDestroyed = (...args) => {},
@@ -82,7 +164,8 @@ export const AnalysisAgent = ({
     analysisManager: null,
   },
   setCurrentQuestion = (...args) => {},
-}) => {
+  onHeightChange = (...args) => {},
+}: Props) => {
   const agentConfigContext = useContext(AgentConfigContext);
   const { devMode, apiEndpoint, token } = agentConfigContext.val;
 
@@ -94,14 +177,14 @@ export const AnalysisAgent = ({
 
   const [reRunningSteps, setRerunningSteps] = useState([]);
   const [activeNode, setActiveNodePrivate] = useState(null);
-  const [dag, setDag] = useState(null);
-  const [dagLinks, setDagLinks] = useState([]);
+  const [dag, setDag] = useState<DagResult["dag"] | null>(null);
+  const [dagLinks, setDagLinks] = useState<DagLink[]>([]);
 
   // we use this to prevent multiple rerender/updates when a user edits the step inputs
   // we flush these pending updates to the actual analysis data when:
   // 1. the active node changes
   // 2. the user submits the step for re running
-  const pendingStepUpdates = useRef({});
+  const pendingStepUpdates = useRef<{ [stepId: string]: any }>({});
 
   const windowSize = useWindowSize();
   const collapsed = useMemo(() => {
@@ -110,15 +193,40 @@ export const AnalysisAgent = ({
 
   // in case this isn't called from analysis tree viewer (which has a central singular search bar)
   // we will have an independent search bar for each analysis as well
-  const independentAnalysisSearchRef = useRef();
+  const independentAnalysisSearchRef = useRef<HTMLInputElement>(null);
 
   const [tools, setTools] = useState({});
 
-  const ctr = useRef(null);
+  const ctr = useRef<HTMLDivElement>(null);
+  const observerRef = useRef<ResizeObserver | null>(null);
+
+  // Setup resize observer for container div
+  useEffect(() => {
+    if (!ctr.current || !onHeightChange) return;
+
+    observerRef.current?.disconnect();
+
+    const observer = new ResizeObserver((entries) => {
+      entries.forEach((entry) => {
+        onHeightChange(entry.contentRect.height);
+      });
+    });
+
+    observer.observe(ctr.current);
+    observerRef.current = observer;
+
+    return () => {
+      observerRef.current?.disconnect();
+      observerRef.current = null;
+    };
+  }, [onHeightChange]);
 
   const messageManager = useContext(MessageManagerContext);
 
-  function onMainSocketMessage(response, newAnalysisData) {
+  function onMainSocketMessage(
+    response: DefaultResponse,
+    newAnalysisData: AnalysisData
+  ) {
     try {
       if (response.error_message) {
         // messageManager.error(response.error_message);
@@ -152,19 +260,17 @@ export const AnalysisAgent = ({
 
       // if the current stage is null, just destroy this analysis
       if (!newAnalysisData.currentStage) {
-        analysisManager.destroy();
+        // analysisManager.destroy();
       }
     }
   }
 
-  /**
-   * @type {import("./analysisManager").AnalysisManager}
-   */
-  const analysisManager = useMemo(() => {
+  const analysisManager = useMemo<AnalysisManager>(() => {
     return (
       initialConfig.analysisManager ||
-      AnalysisManager({
+      createAnalysisManager({
         analysisId,
+        rootAnalysisId,
         apiEndpoint,
         token,
         keyName,
@@ -174,7 +280,7 @@ export const AnalysisAgent = ({
         sqlOnly,
         extraTools,
         plannerQuestionSuffix,
-        previousQuestions,
+        previousContext,
         onNewData: onMainSocketMessage,
         onAbortError: (e) => {
           messageManager.error(e);
@@ -182,7 +288,6 @@ export const AnalysisAgent = ({
         },
         onManagerDestroyed: onManagerDestroyed,
         createAnalysisRequestBody,
-        mainSocket: null, // Add mainSocket property
       })
     );
   }, [analysisId, messageManager]);
@@ -212,15 +317,6 @@ export const AnalysisAgent = ({
       setGlobalLoading(false);
     }
   }, [analysisData]);
-
-  const setActiveNode = useCallback(
-    (node) => {
-      setActiveNodePrivate(node);
-      analysisManager.updateStepData(pendingStepUpdates.current);
-      pendingStepUpdates.current = {};
-    },
-    [setActiveNodePrivate, analysisManager]
-  );
 
   useEffect(() => {
     if (analysisManager.didInit) return;
@@ -261,7 +357,7 @@ export const AnalysisAgent = ({
             },
           });
         }
-      } catch (e) {
+      } catch (e: any) {
         messageManager.error(e.message);
         console.log(e.stack);
         analysisManager.destroy();
@@ -277,14 +373,20 @@ export const AnalysisAgent = ({
     }
   }, [analysisManager]);
 
-  const handleSubmit = useCallback(
-    (query, stageInput = {}, submitStage = null) => {
+  const handleSubmit = useCallback<{
+    (
+      query?: string,
+      stageInput?: Record<string, any>,
+      submitStage?: string | null
+    ): void;
+  }>(
+    (query?: string, stageInput = {}, submitStage = null) => {
       try {
         if (!query) throw new Error("Query is empty");
 
         setGlobalLoading(true);
-        analysisManager.submit(query, { ...stageInput }, submitStage);
-      } catch (e) {
+        analysisManager.submit(query, { ...stageInput });
+      } catch (e: any) {
         messageManager.error(e);
         console.log(e.stack);
 
@@ -306,7 +408,7 @@ export const AnalysisAgent = ({
   );
 
   const handleReRun = useCallback(
-    async (stepId) => {
+    async (stepId: string) => {
       if (!stepId || !dag || !analysisId || !activeNode || !analysisManager) {
         console.log(stepId, dag, analysisId, activeNode, analysisManager);
         messageManager.error("Invalid step id or analysis data");
@@ -323,7 +425,7 @@ export const AnalysisAgent = ({
           stepId,
           agentConfigContext?.val?.sqliteConn
         );
-      } catch (e) {
+      } catch (e: any) {
         messageManager.error(e);
         console.log(e.stack);
       }
@@ -340,63 +442,68 @@ export const AnalysisAgent = ({
   );
 
   const titleDiv = (
-    <div className="flex flex-row flex-wrap gap-4 p-6 items-center lg:items-start">
-      <h1 className="font-bold text-xl text-gray-700 dark:text-gray-200 basis-0 grow min-w-[50%]">
-        {sentenceCase(
-          analysisData?.user_question ||
-            createAnalysisRequestBody.user_question ||
-            ""
-        )}
-      </h1>
-      {!analysisBusy &&
-      analysisData &&
-      !(
-        !analysisData ||
-        (!analysisData.currentStage && hasExternalSearchBar)
-      ) ? null : (
-        // <div className="basis-0 text-nowrap whitespace-nowrap">
-        //   <AnalysisFeedback
-        //     analysisSteps={analysisData?.gen_steps?.steps || []}
-        //     analysisId={analysisId}
-        //     user_question={analysisData?.user_question}
-        //     apiEndpoint={apiEndpoint}
-        //     token={token}
-        //     keyName={keyName}
-        //   />
-        // </div>
-        <div className="basis-0 text-nowrap whitespace-nowrap group cursor-pointer">
-          <CircleStop
-            className="w-6 h-6 text-rose-300 group-hover:text-rose-500 dark:text-rose-400 dark:group-hover:text-rose-600"
-            onClick={() => {
-              setGlobalLoading(false);
+    <>
+      <div className="flex flex-row flex-wrap gap-4 p-6 items-center lg:items-start transition-all duration-200">
+        <h1 className="font-bold text-xl text-gray-700 dark:text-gray-200 basis-0 grow min-w-[50%]">
+          {sentenceCase(
+            analysisData?.user_question ||
+              createAnalysisRequestBody.user_question ||
+              ""
+          )}
+        </h1>
+        {!analysisBusy &&
+        analysisData &&
+        !(
+          !analysisData ||
+          (!analysisData.currentStage && hasExternalSearchBar)
+        ) ? null : (
+          // <div className="basis-0 text-nowrap whitespace-nowrap">
+          //   <AnalysisFeedback
+          //     analysisSteps={analysisData?.gen_steps?.steps || []}
+          //     analysisId={analysisId}
+          //     user_question={analysisData?.user_question}
+          //     apiEndpoint={apiEndpoint}
+          //     token={token}
+          //     keyName={keyName}
+          //   />
+          // </div>
+          <div className="basis-0 text-nowrap whitespace-nowrap group cursor-pointer">
+            <CircleStop
+              className="w-6 h-6 text-rose-300 group-hover:text-rose-500 dark:text-rose-400 dark:group-hover:text-rose-600"
+              onClick={() => {
+                setGlobalLoading(false);
 
-              analysisManager.destroy();
-            }}
-          ></CircleStop>
-        </div>
-      )}
-    </div>
+                analysisManager.destroy();
+              }}
+            ></CircleStop>
+          </div>
+        )}
+      </div>
+    </>
+  );
+
+  const setActiveNode = useCallback(
+    (node: any) => {
+      setActiveNodePrivate(node);
+      analysisManager.setActiveStepId(node?.data?.id || null);
+      if (Object.keys(pendingStepUpdates.current).length) {
+        analysisManager.updateStepData(pendingStepUpdates.current);
+        pendingStepUpdates.current = {};
+      }
+    },
+    [setActiveNodePrivate, analysisManager]
   );
 
   const activeStep = useMemo(() => {
     if (!activeNode || !analysisData || !analysisData.gen_steps) return null;
-    try {
-      let stepId = activeNode.data.id;
-      // if this is an addStepNode, then the id can be figured out by removing the ending "-add"
-      if (activeNode.data.id.endsWith("-add")) {
-        stepId = activeNode.data.id.replace("-add", "");
-      }
-      return analysisData.gen_steps.steps.find((s) => s.id === stepId);
-    } catch (e) {
-      console.log(e);
-      return null;
-    }
-  }, [activeNode, analysisData]);
+    return analysisManager.getActiveStep();
+  }, [activeNode, analysisData, analysisManager]);
 
   return (
     <ErrorBoundary>
       <div
         ref={ctr}
+        id={analysisId}
         className={twMerge(
           "analysis-agent-container h-max min-h-20 relative grow outline-none focus:outline-none rounded-3xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800",
           independentAnalysisSearchRef
@@ -428,7 +535,7 @@ export const AnalysisAgent = ({
               <div className="w-10/12 mx-auto relative top-6">
                 <Input
                   ref={independentAnalysisSearchRef}
-                  onPressEnter={(ev) => {
+                  onPressEnter={(ev: any) => {
                     handleSubmit(ev.target.value);
                     ev.target.value = "";
                   }}
@@ -445,7 +552,7 @@ export const AnalysisAgent = ({
                 {titleDiv}
                 <Clarify
                   data={analysisData.clarify}
-                  handleSubmit={(stageInput, submitStage) => {
+                  handleSubmit={(stageInput: Object, submitStage: string) => {
                     handleSubmit(
                       analysisData?.user_question,
                       stageInput,
@@ -483,6 +590,7 @@ export const AnalysisAgent = ({
                               analysisData={analysisData}
                               step={activeStep}
                               apiEndpoint={apiEndpoint}
+                              // @ts-ignore
                               dag={dag}
                               setActiveNode={setActiveNode}
                               handleReRun={handleReRun}
@@ -520,7 +628,7 @@ export const AnalysisAgent = ({
                               handleDeleteSteps={async (stepIds) => {
                                 try {
                                   await analysisManager.deleteSteps(stepIds);
-                                } catch (e) {
+                                } catch (e: any) {
                                   messageManager.error(e);
                                   console.log(e.stack);
                                 }
@@ -582,7 +690,7 @@ export const AnalysisAgent = ({
                         dagLinks={dagLinks}
                         setDagLinks={setDagLinks}
                         extraNodeClasses={(node) => {
-                          return node.data.isTool
+                          return node?.data?.isTool
                             ? `rounded-md px-1 text-center`
                             : "";
                         }}
@@ -590,7 +698,9 @@ export const AnalysisAgent = ({
                           return (
                             <p className="text-sm truncate m-0 dark:text-gray-300">
                               {trimStringToLength(
+                                // @ts-ignore
                                 toolShortNames[node?.data?.step?.tool_name] ||
+                                  // @ts-ignore
                                   tools[node?.data?.step?.tool_name]?.[
                                     "tool_name"
                                   ] ||

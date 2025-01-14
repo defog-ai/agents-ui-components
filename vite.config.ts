@@ -21,6 +21,7 @@ export default ({ mode }) => {
         "@ui-components": resolve(__dirname, "./lib/core-ui.ts"),
       },
     },
+
     build: {
       lib: {
         // Could also be a dictionary or array of multiple entry points
@@ -35,7 +36,9 @@ export default ({ mode }) => {
       rollupOptions: {
         // make sure to externalize deps that shouldn't be bundled
         // into your library
-        external: [...Object.keys(peerDependencies)],
+        external: [
+          ...Object.keys(peerDependencies)
+        ],
         target: "esnext",
         sourcemap: true,
       },

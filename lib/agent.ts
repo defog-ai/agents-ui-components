@@ -1,4 +1,4 @@
-export { ChartContainer } from "./components/observable-charts/ChartContainer.jsx";
+export { ChartContainer } from "./components/observable-charts/ChartContainer";
 
 export { parseData } from "./components/utils/utils.js";
 
@@ -10,8 +10,8 @@ export {
   AgentConfigContext,
   createAgentConfig,
   defaultAgentConfig,
-} from "./components/context/AgentContext.jsx";
+} from "./components/context/AgentContext";
 
-export { AnalysisAgent } from "./components/agent/analysis/AnalysisAgent.jsx";
+export { AnalysisAgent } from "./components/agent/analysis/AnalysisAgent";
 
 export { DefogAnalysisAgentEmbed } from "./components/defog-analysis-agent-embed/DefogAnalysisAgentEmbed.jsx";

@@ -1,5 +1,5 @@
 import { ColorPicker, Button } from "antd";
-import { ChartStateContext } from "../ChartStateContext";
+import { ChartManagerContext } from "../ChartManagerContext";
 import { useContext } from "react";
 import {
   ArrowUpNarrowWide,
@@ -8,11 +8,11 @@ import {
 } from "lucide-react";
 
 const BarChartControls = () => {
-  const chartState = useContext(ChartStateContext);
-  const { chartSpecificOptions, selectedColumns } = chartState;
+  const chartManager = useContext(ChartManagerContext);
+  const { chartSpecificOptions, selectedColumns } = chartManager.config;
 
   const handleOptionChange = (key, value) => {
-    chartState.updateChartSpecificOptions({ [key]: value }).render();
+    chartManager.updateChartSpecificOptions({ [key]: value }).render();
   };
 
   // Handle changes for individual bar options
@@ -26,7 +26,7 @@ const BarChartControls = () => {
       [key]: value,
     };
 
-    chartState
+    chartManager
       .updateChartSpecificOptions({ barOptions: updatedBarOptions })
       .render();
   };
@@ -34,25 +34,29 @@ const BarChartControls = () => {
   // Render controls for individual bars
   const renderIndividualBarControls = () =>
     Array.isArray(selectedColumns.y) &&
-    selectedColumns.y.map((column) => (
-      <div key={column} className="">
-        <h4 className="mb-2 font-bold">{`${column}`}</h4>
-        <div className="mb-2">
-          <ColorPicker
-            disabledAlpha={true}
-            allowClear={true}
-            value={chartSpecificOptions.bar.barOptions?.[column]?.fill || ""}
-            onChange={(color) =>
-              handleBarOptionChange(
-                column,
-                "fill",
-                color.cleared ? null : color.toHexString()
-              )
-            }
-          />
+    selectedColumns.y.map((column) => {
+      return (
+        <div key={column} className="">
+          <h4 className="mb-2 font-bold">{`${column}`}</h4>
+          <div className="mb-2">
+            <ColorPicker
+              disabledAlpha={true}
+              allowClear={true}
+              value={
+                chartSpecificOptions.bar.barOptions?.[column]?.fill || null
+              }
+              onChange={(color) =>
+                handleBarOptionChange(
+                  column,
+                  "fill",
+                  color.cleared ? null : color.toHexString()
+                )
+              }
+            />
+          </div>
         </div>
-      </div>
-    ));
+      );
+    });
 
   return (
     <div className="flex gap-4 flex-col text-xs">

@@ -50,6 +50,7 @@ function QueryDataPage() {
       </nav>
       <div className="h-screen">
         <DefogAnalysisAgentEmbed
+          hiddenCharts={["boxplot", "histogram"]}
           token={import.meta.env.VITE_TOKEN}
           searchBarDraggable={false}
           apiEndpoint={import.meta.env.VITE_API_ENDPOINT}

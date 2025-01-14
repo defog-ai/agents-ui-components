@@ -442,6 +442,9 @@ export const reFormatData = (data, columns) => {
         key: cols[i],
         // simple typeof. if a number is coming in as string, this will be string.
         simpleTypeOf: typeof rows[0][i],
+        colType: inferredColumnType.colType,
+        variableType: inferredColumnType.variableType,
+        numeric: inferredColumnType.numeric,
         sorter:
           rows.length > 0 && typeof rows[0][i] === "number"
             ? (a, b, dataIndex) => a[dataIndex] - b[dataIndex]
@@ -550,4 +553,38 @@ export const chartNames = {
   kmc: "Kaplan-Meier Curves",
   boxplot: "Boxplot",
   heatmap: "Heatmap",
+};
+
+/**
+ * Returns the analysisId and DOM node of the most visible analysis container in the viewport
+ * @param {string[]} analysisIds - Array of analysis IDs to check
+ * @returns {{id: string, element: HTMLElement}} Object containing ID and DOM node of most visible analysis
+ */
+export const getMostVisibleAnalysis = (analysisIds) => {
+  let maxVisibility = 0;
+  let mostVisibleId = analysisIds[0]; // Default to first if none visible
+  let mostVisibleElement = document.getElementById(mostVisibleId);
+
+  analysisIds.forEach(id => {
+    const element = document.getElementById(id);
+    if (!element) return;
+
+    const rect = element.getBoundingClientRect();
+    const containerRect = element.parentElement.getBoundingClientRect();
+    
+    // Calculate how much of the element is visible relative to container
+    const visibleHeight = Math.min(rect.bottom, containerRect.bottom) - Math.max(rect.top, containerRect.top);
+    const visibility = Math.max(0, visibleHeight / containerRect.height);
+
+    if (visibility > maxVisibility) {
+      maxVisibility = visibility;
+      mostVisibleId = id;
+      mostVisibleElement = element;
+    }
+  });
+
+  return {
+    id: mostVisibleId,
+    element: mostVisibleElement
+  };
 };

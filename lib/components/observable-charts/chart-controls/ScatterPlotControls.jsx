@@ -1,18 +1,18 @@
 import { ColorPicker, Slider } from "antd";
 import { useContext } from "react";
-import { ChartStateContext } from "../ChartStateContext";
+import { ChartManagerContext } from "../ChartManagerContext";
 
 const ScatterPlotControls = () => {
-  const chartState = useContext(ChartStateContext);
-  const { chartSpecificOptions } = chartState;
+  const chartManager = useContext(ChartManagerContext);
+  const { chartSpecificOptions } = chartManager.config;
 
   const handleOptionChange = (key, value) => {
-    chartState.updateChartSpecificOptions({ [key]: value }).render();
+    chartManager.updateChartSpecificOptions({ [key]: value }).render();
   };
 
   return (
     <div className="flex flex-col gap-4 p-2 text-xs">
-      {!chartState.selectedColumns.fill && (
+      {!chartManager.config.selectedColumns.fill && (
         <div>
           <h3 className="mb-2">Override dot color</h3>
           <ColorPicker

@@ -124,10 +124,27 @@ export default function StepResultAnalysis({
     >
       {loading === true ? (
         <>
-          <p className="small code p-4 bg-gray-100 dark:bg-gray-800">
+          <div className="h-96 small flex items-center justify-center code p-4 bg-gray-50 border dark:bg-gray-800">
             <SpinningLoader />
             Loading Analysis
-          </p>
+          </div>
+
+          {/* // create three loaders for follow on questions */}
+          <div className="p-4">
+            <div className="max-w-[600px] m-auto flex flex-row gap-4 justify-center">
+              <>
+                <div className="text-sm p-2 m-1 border border-gray-200 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-600 text-gray-300 dark:text-gray-200">
+                  <SpinningLoader /> Loading
+                </div>
+                <div className="text-sm p-2 m-1 border border-gray-200 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-600 text-gray-300 dark:text-gray-200">
+                  <SpinningLoader /> Loading
+                </div>
+                <div className="text-sm p-2 m-1 border border-gray-200 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-600 text-gray-300 dark:text-gray-200">
+                  <SpinningLoader /> Loading
+                </div>
+              </>
+            </div>
+          </div>
         </>
       ) : (
         <>
@@ -135,7 +152,7 @@ export default function StepResultAnalysis({
             <ErrorBoundary customErrorMessage={toolRunAnalysis}>
               {hideRawAnalysis ? (
                 <div
-                  className="p-4 pb-0 bg-gray-100 dark:bg-gray-800 text-sm text-gray-600 dark:text-gray-300 analysis-markdown"
+                  className="text-sm text-gray-600 dark:text-gray-300 border analysis-markdown"
                   dangerouslySetInnerHTML={{
                     __html: sanitizeHtml(marked(toolRunAnalysis)),
                   }}
@@ -144,12 +161,14 @@ export default function StepResultAnalysis({
                 <Tabs
                   size="small"
                   defaultSelected="Formatted"
+                  contentClassNames="h-96 overflow-y-scroll bg-gray-50 border dark:bg-gray-800"
                   tabs={[
                     {
                       name: "Formatted",
+                      classNames: "bg-gray-50 dark:bg-gray-800",
                       content: (
                         <div
-                          className="p-4 pb-0 bg-gray-100 dark:bg-gray-800 text-sm text-gray-600 dark:text-gray-300 analysis-markdown"
+                          className="text-sm text-gray-600 dark:text-gray-300 analysis-markdown"
                           dangerouslySetInnerHTML={{
                             __html: sanitizeHtml(marked(toolRunAnalysis)),
                           }}
@@ -158,8 +177,9 @@ export default function StepResultAnalysis({
                     },
                     {
                       name: "Raw",
+                      classNames: "bg-gray-50 dark:bg-gray-800",
                       content: (
-                        <div className="p-4 bg-gray-100 dark:bg-gray-800 text-sm text-gray-600 dark:text-gray-300">
+                        <div className="text-sm text-gray-600 dark:text-gray-300">
                           {toolRunAnalysis}
                         </div>
                       ),
@@ -171,24 +191,26 @@ export default function StepResultAnalysis({
           ) : null}
 
           {/* show buttons for follow on questions */}
-          <div className="bg-gray-100 dark:bg-gray-800 p-4">
-            <div className="max-w-[600px] m-auto flex flex-row gap-4">
-              {followOnQuestions.map((followOnQuestion, index) => (
-                <button
-                  key={index}
-                  data-testid="follow-on-question"
-                  className="cursor-pointer text-sm p-2 m-1 border border-gray-200 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200"
-                  onClick={() => {
-                    console.log(
-                      "clicked on follow on question",
-                      followOnQuestion
-                    );
-                    setCurrentQuestion(followOnQuestion);
-                  }}
-                >
-                  {followOnQuestion}
-                </button>
-              ))}
+          <div className="p-4">
+            <div className="max-w-[600px] m-auto flex flex-row gap-4 justify-center">
+              {followOnQuestions &&
+                followOnQuestions.length &&
+                followOnQuestions.map((followOnQuestion, index) => (
+                  <button
+                    key={index}
+                    data-testid="follow-on-question"
+                    className="grow basis-1 cursor-pointer text-sm p-2 m-1 border border-gray-200 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200"
+                    onClick={() => {
+                      console.log(
+                        "clicked on follow on question",
+                        followOnQuestion
+                      );
+                      setCurrentQuestion(followOnQuestion);
+                    }}
+                  >
+                    {followOnQuestion}
+                  </button>
+                ))}
             </div>
           </div>
         </>

@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useContext } from "react";
 import { twMerge } from "tailwind-merge";
 import { LucideChevronsUpDown, CircleHelp } from "lucide-react";
 import { Popover } from "antd";
-import { ChartStateContext } from "../ChartStateContext";
+import { ChartManagerContext } from "../ChartManagerContext";
 
 const formatMappings = {
   // Years
@@ -131,8 +131,8 @@ const FormatHelpContent = () => (
 );
 
 const D3DateFormatBuilder = () => {
-  const chartState = useContext(ChartStateContext);
-  const { chartStyle } = chartState;
+  const chartManager = useContext(ChartManagerContext);
+  const { chartStyle } = chartManager.config;
   const [isOpen, setIsOpen] = useState(false);
   const [userFormat, setUserFormat] = useState(
     formatOptions.find(
@@ -145,14 +145,14 @@ const D3DateFormatBuilder = () => {
   const handleFormatChange = (e) => {
     const newFormat = e.target.value;
     setUserFormat(newFormat);
-    chartState
+    chartManager
       .updateChartStyle({ dateFormat: convertToD3Format(newFormat) })
       .render();
   };
 
   const handleOptionClick = (format) => {
     setUserFormat(format);
-    chartState
+    chartManager
       .updateChartStyle({ dateFormat: convertToD3Format(format) })
       .render();
     setIsOpen(false);

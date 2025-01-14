@@ -31,7 +31,11 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "suppressExcessPropertyErrors": false,
+    "suppressImplicitAnyIndexErrors": false,
+    "noImplicitAny": false,
+    "strictNullChecks": false
   },
   "include": ["test", "lib"],
   "references": [{ "path": "./tsconfig.node.json" }]

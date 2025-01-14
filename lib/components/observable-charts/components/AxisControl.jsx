@@ -1,18 +1,18 @@
 import { Slider } from "@ui-components";
 import GridToggleButton from "./GridToggle";
 import { useContext } from "react";
-import { ChartStateContext } from "../ChartStateContext";
+import { ChartManagerContext } from "../ChartManagerContext";
 
 const AxisControl = () => {
-  const chartState = useContext(ChartStateContext);
-  const { chartStyle } = chartState;
+  const chartManager = useContext(ChartManagerContext);
+  const { chartStyle } = chartManager.config;
 
   const handleTickChange = (axis, value) => {
-    chartState.updateChartStyle({ [`${axis}Ticks`]: Number(value) }).render();
+    chartManager.updateChartStyle({ [`${axis}Ticks`]: Number(value) }).render();
   };
 
   const handleGridToggle = (axis) => {
-    chartState
+    chartManager
       .updateChartStyle({ [`${axis}Grid`]: !chartStyle[`${axis}Grid`] })
       .render();
   };
