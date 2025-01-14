@@ -128,7 +128,7 @@ export const getObservableOptions = (
   const isHorizontalOrientation =
     mergedOptions?.boxplotOrientation === "horizontal";
 
-  const chartMarks = getChartSpecificMarks(
+  const chartMarks = getMarks(
     filteredData,
     {
       ...mergedOptions,
@@ -285,7 +285,7 @@ function getXAxis(options: ChartOptions): Plot.Mark {
       if (options.type === "bar") {
         return null;
       }
-      
+
       if (options.xIsDate) {
         let dateXTick;
         try {
