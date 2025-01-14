@@ -475,11 +475,7 @@ function getBarMarks(
       facet: d[options.facet || "facet"]
     };
   });
-  console.log(transformedData);
-
   const aggregatedData = aggregateData(transformedData, aggregateFunction);
-  console.log(aggregatedData);
-
   const marks = [];
   marks.push(
     Plot.barY(
@@ -495,15 +491,16 @@ function getBarMarks(
             limit: 10,
           },
         },
-      }
+      },
     )
   );
   marks.push(
     Plot.tip(
       aggregatedData,
       Plot.pointerX({
-        px: "label",
-        py: "value"
+        px: options.x,
+        py: options.y,
+        facet: true
       })
     )
   )
