@@ -318,17 +318,19 @@ export function Table({
   useEffect(() => {
     if (sortColumn && sortOrder) {
       // each column has a sorter function defined
-      const sorter = columnsToDisplay.find((column) => column.dataIndex === sortColumn)?.sorter || defaultSorter;
+      const column = columnsToDisplay.find((column) => column.dataIndex === sortColumn);
+      const sorterFn = typeof column?.sorter === 'function' ? column.sorter : defaultSorter;
+      
       const sortedRows = rows.slice().sort((a, b) => {
         return sortOrder === "asc"
-          ? sorter(a, b, sortColumn)
-          : sorter(b, a, sortColumn);
+          ? sorterFn(a, b, sortColumn)
+          : sorterFn(b, a, sortColumn);
       });
       setSortedRows(sortedRows);
     } else {
       setSortedRows(rows);
     }
-  }, [sortColumn, rows, sortOrder]);
+  }, [sortColumn, rows, sortOrder, columnsToDisplay]);
 
   const pager = useMemo(
     () => (
