@@ -11,7 +11,7 @@ import {
   defaultOptions,
   getColorScheme,
   getObservableOptions,
-} from "./plotUtils";
+} from "./plotUtils.ts";
 import { saveAsPNG } from "./utils/saveChart";
 import { Button } from "@ui-components";
 import { Download } from "lucide-react";

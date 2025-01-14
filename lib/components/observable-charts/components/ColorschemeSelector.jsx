@@ -2,7 +2,7 @@ import { Select, Tooltip, Space } from "antd";
 import * as d3 from "d3";
 import { ChartManagerContext } from "../ChartManagerContext";
 import { useContext } from "react";
-import { getColorScheme } from "../plotUtils";
+import { getColorScheme } from "../plotUtils.ts";
 import { Info } from "lucide-react";
 
 const { Option, OptGroup } = Select;
