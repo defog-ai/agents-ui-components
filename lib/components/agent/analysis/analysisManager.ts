@@ -101,7 +101,7 @@ export interface Step {
   id: string;
   instructions_used: string;
   outputs_storage_keys: string[];
-  reference_queries: string[];
+  reference_queries: { question: string; sql: string }[];
   sql?: string;
   parent_step?: Step | null;
   tool_name: string | null;

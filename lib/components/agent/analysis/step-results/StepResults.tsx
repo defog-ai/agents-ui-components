@@ -49,9 +49,9 @@ export function StepResults({
   dag: DagResult["dag"];
   apiEndpoint: string;
   setActiveNode: (node: DagNode) => void;
-  handleReRun: (...args: any) => Promise<void>;
-  reRunningSteps: string[];
-  updateStepData: (update: Record<string, any>) => void;
+  handleReRun: (...args: any) => void;
+  reRunningSteps: Step[];
+  updateStepData: (stepId: string, update: Record<string, any>) => void;
   onCreateNewStep: (...args: any) => Promise<void>;
   // toolRunDataCache: any;
   handleDeleteSteps: (...args: any) => Promise<void>;
@@ -312,6 +312,7 @@ export function StepResults({
                       disableSingleSelect={true}
                       size="small"
                       defaultSelected="Question 1"
+                      // @ts-ignore
                       tabs={step.reference_queries.map((query, i) => ({
                         name: `Question ${i + 1}`,
                         content: (
@@ -451,8 +452,6 @@ export function StepResults({
         <AddStepUI
           analysisId={analysisId}
           activeNode={activeNode}
-          apiEndpoint={apiEndpoint}
-          dag={dag}
           onSubmit={onCreateNewStep}
           parentNodeOutputs={parentNodeOutputs}
           tools={tools}
@@ -465,6 +464,7 @@ export function StepResults({
         <Tabs
           disableSingleSelect={true}
           defaultSelected="Analysis"
+          // @ts-ignore
           tabs={tabs}
         />
       )}

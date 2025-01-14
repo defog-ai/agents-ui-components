@@ -22,7 +22,9 @@ export function AddStepUI({
   const messageManager = useContext(MessageManagerContext);
 
   const [inputs, setInputs] = useState(activeNode?.data?.step?.inputs || {});
-  const [outputs, setOutputs] = useState(["output_" + crypto.randomUUID().split("-")[0]]);
+  const [outputs, setOutputs] = useState([
+    "output_" + crypto.randomUUID().split("-")[0],
+  ]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
