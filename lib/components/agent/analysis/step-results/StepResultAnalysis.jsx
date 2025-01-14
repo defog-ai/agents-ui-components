@@ -35,12 +35,12 @@ export default function StepResultAnalysis({
       if (!analysis) {
         // fetch from backend
         const urlToConnect = setupBaseUrl({
-          protocol: "http",
-          path: "analyse_data",
+          protocol: "ws",
+          path: "analyse_data_streaming",
           apiEndpoint: apiEndpoint,
         });
 
-        // send data to the server
+        // prepare data
         const data = {
           question: question,
           data_csv: data_csv,
@@ -48,34 +48,29 @@ export default function StepResultAnalysis({
           key_name: keyName,
         };
 
-        setLoading(true);
-        const response = await fetch(urlToConnect, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(data),
-        });
+        // open a websocket connection
+        const ws = new WebSocket(urlToConnect);
 
-        if (!response.ok) {
-          setLoading(false);
-          // throw new Error("Error analysing data");
-          // return quitely, for backwards compatibility
-          return;
-        }
+        // listen to messages
+        let analysis = "";
+        ws.onmessage = (event) => {
+          const message = event.data;
+          analysis += message;
+          setToolRunAnalysis(analysis);
+          if (message === "Defog data analysis has ended") {
+            ws.close();
+            addStepAnalysisToLocalStorage(stepId, analysis);
+            return;
+          }
+        };
 
-        const responseJson = await response.json();
-
-        analysis = responseJson.model_analysis;
-
-        addStepAnalysisToLocalStorage(stepId, analysis);
+        // send data to the server
+        ws.onopen = () => {
+          ws.send(JSON.stringify(data));
+        };
       }
-
-      setToolRunAnalysis(analysis);
     } catch (error) {
       console.error(error);
-    } finally {
-      setLoading(false);
     }
   }
 
