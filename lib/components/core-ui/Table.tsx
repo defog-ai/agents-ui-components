@@ -376,6 +376,24 @@ export function Table({
                 );
               }}
             />
+            {maxPage > 1 && (
+              <div className="flex items-center ml-2">
+                <input
+                  type="number"
+                  min={1}
+                  max={maxPage}
+                  value={currentPage}
+                  onChange={(e) => {
+                    const value = parseInt(e.target.value);
+                    if (!isNaN(value) && value >= 1 && value <= maxPage) {
+                      setCurrentPage(value);
+                    }
+                  }}
+                  className="w-16 px-2 py-1 text-sm border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+                  placeholder="Page"
+                />
+              </div>
+            )}
           </div>
           {(pagination.showSizeChanger === undefined
             ? true
