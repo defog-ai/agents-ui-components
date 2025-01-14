@@ -13,6 +13,51 @@ import { MessageManagerContext } from "./Message";
 
 const allowedPageSizes = [5, 10, 20, 50, 100];
 
+interface Column {
+  title: string;
+  dataIndex: string;
+  key?: string;
+  width?: number | string;
+  sorter?: boolean | ((a: any, b: any) => number);
+  render?: (value: any, record: any, index: number) => React.ReactNode;
+}
+
+interface TableProps {
+  columns: Column[];
+  rows: any[];
+  rootClassNames?: string;
+  pagerClassNames?: string;
+  paginationPosition?: 'top' | 'bottom' | 'both';
+  pagination?: {
+    defaultPageSize?: number;
+    showSizeChanger?: boolean;
+  };
+  skipColumns?: string[];
+  rowCellRender?: (props: RowCellRenderProps) => React.ReactNode;
+  columnHeaderClassNames?: string;
+}
+
+interface ColumnHeaderRenderProps {
+  column: Column;
+  i: number;
+  allColumns: Column[];
+  toggleSort: (dataIndex: string) => void;
+  sortOrder: 'asc' | 'desc' | null;
+  sortColumn: string | null;
+  columnHeaderClassNames?: string;
+}
+
+interface RowCellRenderProps {
+  cellValue: any;
+  colIdx: number;
+  row: any;
+  dataIndex: string;
+  column: Column;
+  dataIndexes: string[];
+  allColumns: Column[];
+  dataIndexToColumnMap: Record<string, Column>;
+}
+
 const defaultColumnHeaderRender = ({
   column,
   i,
@@ -21,7 +66,7 @@ const defaultColumnHeaderRender = ({
   sortOrder,
   sortColumn,
   columnHeaderClassNames,
-}) => {
+}: ColumnHeaderRenderProps) => {
   return (
     <th
       key={column.dataIndex}
@@ -78,7 +123,7 @@ const defaultRowCellRender = ({
   dataIndexes,
   allColumns,
   dataIndexToColumnMap,
-}) => {
+}: RowCellRenderProps) => {
   return (
     <td
       key={(row.key || colIdx) + "-" + dataIndex}
@@ -96,7 +141,7 @@ const defaultRowCellRender = ({
   );
 };
 
-const defaultSorter = (a, b, dataIndex) => {
+const defaultSorter = (a: any, b: any, dataIndex: string): number => {
   return String(a[dataIndex]).localeCompare(String(b[dataIndex]));
 };
 
@@ -107,6 +152,12 @@ const TableBody = React.memo(
     rowCellRender,
     dataIndexToColumnMap,
     columnsToDisplay,
+  }: {
+    rows: any[];
+    dataIndexes: string[];
+    rowCellRender?: (props: RowCellRenderProps) => React.ReactNode;
+    dataIndexToColumnMap: Record<string, Column>;
+    columnsToDisplay: Column[];
   }) => {
     return (
       <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
@@ -114,7 +165,7 @@ const TableBody = React.memo(
           <tr key={row.originalIndex + "-" + rowIdx}>
             {dataIndexes.map(
               (dataIndex, colIdx) =>
-                rowCellRender({
+                rowCellRender?.({
                   cellValue: row[dataIndex],
                   colIdx,
                   row,
@@ -185,7 +236,7 @@ export function Table({
   skipColumns = [],
   rowCellRender = (_) => null,
   columnHeaderClassNames = "",
-}) {
+}: TableProps) {
   const messageManager = useContext(MessageManagerContext);
   // name of the property in the rows objects where each column's data is stored
   const [currentPage, setCurrentPage] = useState(1);
@@ -324,7 +375,7 @@ export function Table({
                 rootClassNames="w-24"
                 options={allowedPageSizes.map((d) => ({ value: d, label: d }))}
                 value={pageSize}
-                onChange={(val) => {
+                onChange={(val: number) => {
                   startTransition(() => {
                     setPageSize(val || 10);
                     setCurrentPage(1);
@@ -338,13 +389,6 @@ export function Table({
     ),
     [currentPage, maxPage, pageSize, allowedPageSizes]
   );
-
-  const handlePageSizeChange = (newSize) => {
-    startTransition(() => {
-      setPageSize(newSize || 10);
-      setCurrentPage(1);
-    });
-  };
 
   const visibleRows = useMemo(
     () =>
