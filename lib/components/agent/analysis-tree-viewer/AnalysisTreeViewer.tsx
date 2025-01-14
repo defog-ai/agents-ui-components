@@ -364,8 +364,10 @@ export function AnalysisTreeViewer({
           scrollTo(activeAnalysisId);
         }
       }
-      disableScrollEvent.current = false;
-    }, 500);
+      setTimeout(() => {
+        disableScrollEvent.current = false;
+      }, 100);
+    }, 200);
   }, []);
 
   // w-0
@@ -477,14 +479,6 @@ export function AnalysisTreeViewer({
                                   timeout = 500;
                                 }
 
-                                // we will set immediately, but scroll based on timeout above
-                                analysisTreeManager.setActiveRootAnalysisId(
-                                  rootAnalysisId
-                                );
-                                analysisTreeManager.setActiveAnalysisId(
-                                  analysis ? analysis?.analysisId : null
-                                );
-
                                 if (window.innerWidth < breakpoints.lg)
                                   setSidebarOpen(false);
 
@@ -496,14 +490,25 @@ export function AnalysisTreeViewer({
                                   disableScrollEvent.current = false;
                                 }
 
-                                setTimeout(() => {
-                                  // disable scroll events while we are scrolling
-                                  disableScrollEvent.current = true;
-                                  if (autoScroll && analysis) {
-                                    scrollTo(analysis.analysisId);
-                                  }
-                                  disableScrollEvent.current = false;
-                                }, timeout);
+                                // we will set immediately, but scroll based on timeout above
+                                analysisTreeManager.setActiveRootAnalysisId(
+                                  rootAnalysisId
+                                );
+                                analysisTreeManager.setActiveAnalysisId(
+                                  analysis ? analysis?.analysisId : null
+                                );
+
+                                currentScrollTimeout.current = setTimeout(
+                                  () => {
+                                    // disable scroll events while we are scrolling
+                                    disableScrollEvent.current = true;
+                                    if (autoScroll && analysis) {
+                                      scrollTo(analysis.analysisId);
+                                    }
+                                    disableScrollEvent.current = false;
+                                  },
+                                  timeout
+                                );
                               }}
                               extraClasses={twMerge("ml-4")}
                             />
@@ -747,9 +752,19 @@ export function AnalysisTreeViewer({
                 sqlOnly={sqlOnly}
                 question={currentQuestion}
                 onNewConversationTextClick={() => {
-                  // start a new root analysis
-                  analysisTreeManager.setActiveRootAnalysisId(null);
-                  analysisTreeManager.setActiveAnalysisId(null);
+                  if (currentScrollTimeout.current) {
+                    clearTimeout(currentScrollTimeout.current);
+                    currentScrollTimeout.current = null;
+                    disableScrollEvent.current = false;
+                  }
+
+                  disableScrollEvent.current = true;
+
+                  setTimeout(() => {
+                    // start a new root analysis
+                    analysisTreeManager.setActiveRootAnalysisId(null);
+                    analysisTreeManager.setActiveAnalysisId(null);
+                  }, 0);
 
                   // on ipad/phone, close sidebar when new button is clicked
                   if (window.innerWidth < breakpoints.lg) setSidebarOpen(false);
