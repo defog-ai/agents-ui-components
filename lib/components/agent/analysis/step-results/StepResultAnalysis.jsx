@@ -48,29 +48,79 @@ export default function StepResultAnalysis({
           key_name: keyName,
         };
 
-        // open a websocket connection
-        const ws = new WebSocket(urlToConnect);
+        let reconnectAttempts = 0;
+        const maxReconnectAttempts = 3;
+        const reconnectDelay = 2000; // 2 seconds
 
-        // listen to messages
-        let analysis = "";
-        ws.onmessage = (event) => {
-          const message = event.data;
-          analysis += message;
-          setToolRunAnalysis(analysis);
-          if (message === "Defog data analysis has ended") {
-            ws.close();
-            addStepAnalysisToLocalStorage(stepId, analysis);
-            return;
-          }
+        const connectWebSocket = () => {
+          const ws = new WebSocket(urlToConnect);
+          let analysisText = "";
+          let connectionTimeout;
+
+          // Set connection timeout
+          connectionTimeout = setTimeout(() => {
+            if (ws.readyState === WebSocket.CONNECTING) {
+              ws.close();
+              if (reconnectAttempts < maxReconnectAttempts) {
+                reconnectAttempts++;
+                setTimeout(connectWebSocket, reconnectDelay);
+              } else {
+                setToolRunAnalysis("Connection timeout with the websocket server. Please try again.");
+              }
+            }
+          }, 10000); // 10 second timeout
+
+          ws.onopen = () => {
+            clearTimeout(connectionTimeout);
+            ws.send(JSON.stringify(data));
+          };
+
+          ws.onmessage = (event) => {
+            const message = event.data;
+            if (message === "Defog data analysis has ended") {
+              ws.close();
+              addStepAnalysisToLocalStorage(stepId, analysisText);
+            }
+
+            analysisText += message;
+            setToolRunAnalysis(analysisText);
+          };
+
+          ws.onerror = (error) => {
+            console.error("WebSocket error:", error);
+            if (reconnectAttempts < maxReconnectAttempts) {
+              reconnectAttempts++;
+              setTimeout(connectWebSocket, reconnectDelay);
+            } else {
+              setToolRunAnalysis("Error connecting to server. Please try again.");
+            }
+          };
+
+          ws.onclose = (event) => {
+            clearTimeout(connectionTimeout);
+            if (!event.wasClean && reconnectAttempts < maxReconnectAttempts) {
+              reconnectAttempts++;
+              setTimeout(connectWebSocket, reconnectDelay);
+            }
+          };
+
+          // Cleanup function
+          return () => {
+            clearTimeout(connectionTimeout);
+            if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) {
+              ws.close();
+            }
+          };
         };
 
-        // send data to the server
-        ws.onopen = () => {
-          ws.send(JSON.stringify(data));
-        };
+        const cleanup = connectWebSocket();
+        return cleanup;
+      } else {
+        setToolRunAnalysis(analysis);
       }
     } catch (error) {
       console.error(error);
+      setToolRunAnalysis("An error occurred while analyzing data. Please try again.");
     }
   }
 
