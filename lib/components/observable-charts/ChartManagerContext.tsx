@@ -51,11 +51,8 @@ interface LineChartOptions {
   colorByIsDate?: boolean;
   aggregateFunction:
     | "sum"
-    | "proportion"
     | "count"
-    | "median"
     | "mean"
-    | "variance";
 }
 
 interface BarChartOptions {
