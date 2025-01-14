@@ -81,7 +81,7 @@ const defaultColumnHeaderRender = ({
       <div
         className="flex flex-row items-center cursor-pointer"
         onClick={() => {
-          toggleSort(column);
+          toggleSort(column.dataIndex);
         }}
       >
         <p className="pointer-events-none grow">{column.title}</p>
@@ -91,7 +91,7 @@ const defaultColumnHeaderRender = ({
               className={twMerge(
                 "arrow-up cursor-pointer",
                 "border-b-[5px] border-b-gray-300 dark:border-b-gray-600",
-                sortOrder === "asc" && sortColumn.title === column.title
+                sortOrder === "asc" && sortColumn === column.dataIndex
                   ? "border-b-gray-500 dark:border-b-gray-300"
                   : ""
               )}
@@ -102,7 +102,7 @@ const defaultColumnHeaderRender = ({
               className={twMerge(
                 "arrow-down cursor-pointer",
                 "border-t-[5px] border-t-gray-300 dark:border-t-gray-600",
-                sortOrder === "desc" && sortColumn.title === column.title
+                sortOrder === "desc" && sortColumn === column.dataIndex
                   ? "border-t-gray-500 dark:border-t-gray-300"
                   : ""
               )}
@@ -283,12 +283,12 @@ export function Table({
 
   const maxPage = Math.max(1, Math.ceil(rows.length / pageSize));
 
-  function toggleSort(newColumn) {
+  function toggleSort(newColumn: string) {
     let newOrder;
 
     // if it's not the same column that was earlier sorted, then force "restart" the sort "cycle"
     // and set to ascending order
-    if (newColumn.dataIndex !== sortColumn?.dataIndex) {
+    if (newColumn !== sortColumn) {
       newOrder = "asc";
     } else {
       // else, if it's the same column being clicked again,
@@ -310,11 +310,11 @@ export function Table({
   useEffect(() => {
     if (sortColumn && sortOrder) {
       // each column has a sorter function defined
-      const sorter = sortColumn.sorter || defaultSorter;
+      const sorter = columnsToDisplay.find((column) => column.dataIndex === sortColumn)?.sorter || defaultSorter;
       const sortedRows = rows.slice().sort((a, b) => {
         return sortOrder === "asc"
-          ? sorter(a, b, sortColumn.dataIndex)
-          : sorter(b, a, sortColumn.dataIndex);
+          ? sorter(a, b, sortColumn)
+          : sorter(b, a, sortColumn);
       });
       setSortedRows(sortedRows);
     } else {
