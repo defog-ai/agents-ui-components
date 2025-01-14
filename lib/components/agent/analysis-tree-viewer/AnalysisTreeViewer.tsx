@@ -506,12 +506,6 @@ export function AnalysisTreeViewer({
     setAllAnalyses(analysisTreeManager.getAll());
   }, [analysisTree]);
 
-  console.log('Render with states:', {
-    activeAnalysisId,
-    activeRootAnalysisId,
-    allAnalyses: Object.keys(allAnalyses).length
-  });
-
   const handleSubmit = useAnalysisSubmit(
     analysisTreeManager,
     keyName,
