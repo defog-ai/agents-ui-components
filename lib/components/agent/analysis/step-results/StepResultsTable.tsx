@@ -1,5 +1,11 @@
 // @ts-nocheck
-import { useEffect, useState, useMemo, useRef } from "react";
+import {
+  useEffect,
+  useState,
+  useMemo,
+  useRef,
+  useSyncExternalStore,
+} from "react";
 import { Tabs, message, Popover } from "antd";
 import { chartNames, roundColumns } from "../../agentUtils";
 
@@ -22,6 +28,7 @@ import { Button, Table } from "@ui-components";
 import { ChartContainer } from "../../../observable-charts/ChartContainer";
 
 import type { ParsedOutput, Step } from "../analysisManager";
+import type { AnalysisTreeManager } from "../../analysis-tree-viewer/analysisTreeManager";
 
 // tabBarLeftContent: extra content for the tab bar on the left side
 export function StepResultsTable({
@@ -37,7 +44,7 @@ export function StepResultsTable({
   reactiveVars = null,
   initialQuestion = null,
   handleEdit = (...args) => {},
-  defaultActiveTab = "table",
+  analysisTreeManager = null,
 }: {
   stepId: string;
   keyName: string;
@@ -51,7 +58,7 @@ export function StepResultsTable({
   reactiveVars?: any;
   initialQuestion: string | null;
   handleEdit?: (...args: any) => void;
-  defaultActiveTab: "table" | "chart";
+  analysisTreeManager?: AnalysisTreeManager;
 }) {
   const downloadCsvEndpoint = setupBaseUrl({
     protocol: "http",
@@ -162,6 +169,11 @@ export function StepResultsTable({
   //   });
   // }, [reactiveVars]);
 
+  const activeTab = useSyncExternalStore(
+    (l) => analysisTreeManager.subscribeToActiveTabChanges(analysisId, l),
+    () => analysisTreeManager.getActiveTab(analysisId)
+  );
+
   const updateCodeAndSql = (
     updateProp: string | null = null,
     newVal: string
@@ -190,15 +202,6 @@ export function StepResultsTable({
   }, [sql, codeStr]);
 
   const [results, setResults] = useState<any>([]);
-
-  const [activeTab, setActiveTab] = useState(defaultActiveTab);
-
-  useEffect(() => {
-    if (activeTab !== defaultActiveTab) {
-      setActiveTab(defaultActiveTab);
-    }
-  }, [defaultActiveTab]);
-  console.log(activeTab, defaultActiveTab);
 
   useEffect(() => {
     // extra tabs should be an array and all elements should be jsx components
@@ -325,7 +328,7 @@ export function StepResultsTable({
         }}
         activeKey={activeTab}
         onChange={(key) => {
-          setActiveTab(key);
+          analysisTreeManager.setActiveTab(analysisId, key);
         }}
         items={tabs.map((d, i) => ({
           key: d.key,
