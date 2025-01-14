@@ -20,11 +20,20 @@ import { AgentConfigContext } from "../../context/AgentContext";
 import { DraggableInput } from "./DraggableInput";
 import { getMostVisibleAnalysis } from "../agentUtils";
 import setupBaseUrl from "../../utils/setupBaseUrl";
-import type { AnalysisTreeManager, AnalysisTree } from "./analysisTreeManager";
+import type {
+  AnalysisTreeManager,
+  AnalysisTree,
+  FlatAnalysisTree,
+} from "./analysisTreeManager";
 import { AnalysisManager } from "../analysis/analysisManager";
 import debounce from "lodash.debounce";
 
-type GroupClass = "Today" | "Yesterday" | "Past week" | "Past month" | "Earlier";
+type GroupClass =
+  | "Today"
+  | "Yesterday"
+  | "Past week"
+  | "Past month"
+  | "Earlier";
 type AnalysisGrouped = { [K in GroupClass]: string[] };
 
 interface AnalysisDomRefs {
@@ -38,7 +47,7 @@ interface AnalysisDomRefs {
 // Utility functions
 const scrollToAnalysis = (
   id: string,
-  refs: React.MutableRefObject<AnalysisDomRefs>,
+  refs: React.RefObject<AnalysisDomRefs>,
   behavior: ScrollBehavior = "smooth"
 ) => {
   if (!refs.current?.[id]?.ctr) return;
@@ -51,8 +60,9 @@ const scrollToAnalysis = (
 const useAnalysisGroups = (nestedTree: any, analysisTree: any) => {
   return useMemo(() => {
     try {
-      const sorted = Object.keys(nestedTree).sort((a, b) => 
-        (nestedTree?.[b]?.timestamp || 0) - (nestedTree?.[a]?.timestamp || 0)
+      const sorted = Object.keys(nestedTree).sort(
+        (a, b) =>
+          (nestedTree?.[b]?.timestamp || 0) - (nestedTree?.[a]?.timestamp || 0)
       );
 
       const grouped: AnalysisGrouped = {
@@ -89,8 +99,10 @@ const useAnalysisGroups = (nestedTree: any, analysisTree: any) => {
       });
 
       Object.keys(grouped).forEach((key) => {
-        grouped[key as GroupClass].sort((a, b) => 
-          (analysisTree?.[b]?.root?.timestamp || 0) - (analysisTree?.[a]?.root?.timestamp || 0)
+        grouped[key as GroupClass].sort(
+          (a, b) =>
+            (analysisTree?.[b]?.root?.timestamp || 0) -
+            (analysisTree?.[a]?.root?.timestamp || 0)
         );
       });
 
@@ -113,8 +125,8 @@ const useAnalysisSubmit = (
   messageManager: any,
   chartEditUrl: string,
   searchRef: React.RefObject<HTMLTextAreaElement>,
-  analysisDomRefs: React.MutableRefObject<AnalysisDomRefs>,
-  setLoading: (loading: boolean) => void,
+  analysisDomRefs: React.RefObject<AnalysisDomRefs>,
+  setLoading: (loading: boolean) => void
 ) => {
   return useCallback(
     async (
@@ -125,16 +137,25 @@ const useAnalysisSubmit = (
     ) => {
       try {
         setLoading(true);
-        if (!analysisTreeManager) throw new Error("Analysis tree manager not found");
+        if (!analysisTreeManager)
+          throw new Error("Analysis tree manager not found");
 
         const allAnalyses = analysisTreeManager.getAll();
-        let questionType = "analysis";
+        let questionType: QuestionType = "analysis";
+        let defaultActiveTab: "table" | "chart" = "table";
 
         if (Object.keys(allAnalyses).length > 0) {
-          questionType = await getQuestionType(token, keyName, apiEndpoint, question);
+          const res = await getQuestionType(
+            token,
+            keyName,
+            apiEndpoint,
+            question
+          );
+          questionType = res.question_type;
+          defaultActiveTab = res.default_open_tab;
         }
 
-        if (questionType === "chart") {
+        if (questionType === "edit-chart") {
           await handleChartQuestion(
             allAnalyses,
             question,
@@ -155,6 +176,7 @@ const useAnalysisSubmit = (
           directParentId,
           sqlOnly: forceSqlOnly || sqlOnly,
           isTemp,
+          initialActiveTab: defaultActiveTab,
         });
 
         if (!rootAnalysisId) {
@@ -177,12 +199,19 @@ const useAnalysisSubmit = (
         setLoading(false);
       }
     },
-    [analysisTreeManager, forceSqlOnly, sqlOnly, isTemp, keyName, analysisDomRefs]
+    [
+      analysisTreeManager,
+      forceSqlOnly,
+      sqlOnly,
+      isTemp,
+      keyName,
+      analysisDomRefs,
+    ]
   );
 };
 
 const handleChartQuestion = async (
-  allAnalyses: any,
+  allAnalyses: FlatAnalysisTree,
   question: string,
   chartEditUrl: string,
   messageManager: any,
@@ -190,14 +219,14 @@ const handleChartQuestion = async (
 ) => {
   const mostVisibleElement = getMostVisibleAnalysis(Object.keys(allAnalyses));
   const visibleAnalysis = allAnalyses[mostVisibleElement.id];
-  
+
   if (!visibleAnalysis?.analysisManager?.getAnalysisData?.()) {
     messageManager.error("No visible analysis found to edit chart");
     return;
   }
-  
+
   const activeStep = visibleAnalysis.analysisManager.getActiveStep();
-  if (!activeStep?.parsedOutputs) return;
+  if (!activeStep || !activeStep?.parsedOutputs) return;
 
   const stepOutputs = Object.values(activeStep.parsedOutputs);
   if (stepOutputs.length === 0) {
@@ -212,6 +241,7 @@ const handleChartQuestion = async (
   }
 
   try {
+    activeStep.activeTab = "chart";
     await stepOutput.chartManager.editChart(question, chartEditUrl, {
       onError: (e) => {
         messageManager.error(e.message);
@@ -224,7 +254,10 @@ const handleChartQuestion = async (
   }
 };
 
-const useAnalysisRefs = (allAnalyses: any, analysisDomRefs: React.MutableRefObject<AnalysisDomRefs>) => {
+const useAnalysisRefs = (
+  allAnalyses: FlatAnalysisTree,
+  analysisDomRefs: React.RefObject<AnalysisDomRefs>
+) => {
   useEffect(() => {
     Object.values(allAnalyses).forEach((analysis) => {
       analysisDomRefs.current[analysis.analysisId] = {
@@ -239,9 +272,9 @@ const useAnalysisRefs = (allAnalyses: any, analysisDomRefs: React.MutableRefObje
 const useInitialScroll = (
   activeAnalysisId: string | null,
   autoScroll: boolean,
-  analysisDomRefs: React.MutableRefObject<AnalysisDomRefs>,
-  currentScrollTimeout: React.MutableRefObject<NodeJS.Timeout | null>,
-  disableScrollEvent: React.MutableRefObject<boolean>
+  analysisDomRefs: React.RefObject<AnalysisDomRefs>,
+  currentScrollTimeout: React.RefObject<NodeJS.Timeout | null>,
+  disableScrollEvent: React.RefObject<boolean>
 ) => {
   useEffect(() => {
     if (currentScrollTimeout.current) {
@@ -252,7 +285,11 @@ const useInitialScroll = (
 
     disableScrollEvent.current = true;
     currentScrollTimeout.current = setTimeout(() => {
-      if (activeAnalysisId && autoScroll && analysisDomRefs.current[activeAnalysisId]) {
+      if (
+        activeAnalysisId &&
+        autoScroll &&
+        analysisDomRefs.current[activeAnalysisId]
+      ) {
         scrollToAnalysis(activeAnalysisId, analysisDomRefs);
       }
       disableScrollEvent.current = false;
@@ -273,7 +310,7 @@ const AnalysisTreeContent = ({
   activeRootAnalysisId: string;
   nestedTree: any;
   metadata: any;
-  analysisDomRefs: React.MutableRefObject<AnalysisDomRefs>;
+  analysisDomRefs: React.RefObject<AnalysisDomRefs>;
   analysisTreeManager: AnalysisTreeManager;
   autoScroll: boolean;
   setLoading: (loading: boolean) => void;
@@ -290,14 +327,20 @@ const AnalysisTreeContent = ({
         rootClassNames={`w-full mb-4 [&_.analysis-content]:min-h-96 shadow-md analysis-${activeRootAnalysisId}`}
         analysisId={activeRootAnalysisId}
         rootAnalysisId={activeRootAnalysisId}
-        createAnalysisRequestBody={nestedTree[activeRootAnalysisId].createAnalysisRequestBody}
+        createAnalysisRequestBody={
+          nestedTree[activeRootAnalysisId].createAnalysisRequestBody
+        }
         initiateAutoSubmit={true}
         hasExternalSearchBar={true}
         sqlOnly={nestedTree[activeRootAnalysisId].sqlOnly}
         isTemp={nestedTree[activeRootAnalysisId].isTemp}
         keyName={nestedTree[activeRootAnalysisId].keyName}
         previousContext={[]}
-        onManagerCreated={(analysisManager: AnalysisManager, id: string, ctr: HTMLDivElement | null) => {
+        onManagerCreated={(
+          analysisManager: AnalysisManager,
+          id: string,
+          ctr: HTMLDivElement | null
+        ) => {
           analysisDomRefs.current[id] = { ctr, analysisManager, id };
           analysisTreeManager.updateAnalysis({
             analysisId: activeRootAnalysisId,
@@ -318,64 +361,80 @@ const AnalysisTreeContent = ({
           setLoading(false);
         }}
         initialConfig={{
-          analysisManager: nestedTree[activeRootAnalysisId].analysisManager || null,
+          analysisManager:
+            nestedTree[activeRootAnalysisId].analysisManager || null,
         }}
         setCurrentQuestion={setCurrentQuestion}
       />
 
-      {nestedTree[activeRootAnalysisId].flatOrderedChildren.map((child: any) => (
-        <AnalysisAgent
-          key={child.analysisId}
-          metadata={metadata}
-          rootClassNames={`w-full mb-4 [&_.analysis-content]:min-h-96 shadow-md analysis-${child.analysisId}`}
-          analysisId={child.analysisId}
-          rootAnalysisId={child.rootAnalysisId}
-          createAnalysisRequestBody={child.createAnalysisRequestBody}
-          setGlobalLoading={setLoading}
-          initiateAutoSubmit={true}
-          hasExternalSearchBar={true}
-          sqlOnly={child.sqlOnly}
-          isTemp={child.isTemp}
-          keyName={child.keyName}
-          previousContext={child.allParents
-            .reverse()
-            .map((parent: any) => ({
-              analysis_id: parent.analysisId,
-              user_question: parent.user_question,
-              steps: parent?.analysisManager?.analysisData.gen_steps?.steps || [],
-            }))
-            .filter((d: any) => d.steps.length > 0)}
-          onManagerCreated={(analysisManager: AnalysisManager, id: string, ctr: HTMLDivElement | null) => {
-            analysisDomRefs.current[id] = { ctr, analysisManager, id };
-            analysisTreeManager.updateAnalysis({
-              analysisId: child.analysisId,
-              isRoot: child.isRoot,
-              updateObj: { analysisManager },
-            });
-          }}
-          onManagerDestroyed={(analysisManager: AnalysisManager, id: string) => {
-            analysisTreeManager.removeAnalysis({
-              analysisId: child.analysisId,
-              isRoot: child.isRoot,
-              rootAnalysisId: child.rootAnalysisId,
-            });
-            analysisTreeManager.setActiveAnalysisId(null);
-            if (activeRootAnalysisId === id) {
-              analysisTreeManager.setActiveRootAnalysisId(null);
-            }
-            setLoading(false);
-          }}
-          initialConfig={{
-            analysisManager: child.analysisManager || null,
-          }}
-          setCurrentQuestion={setCurrentQuestion}
-        />
-      ))}
+      {nestedTree[activeRootAnalysisId].flatOrderedChildren.map(
+        (child: any) => (
+          <AnalysisAgent
+            key={child.analysisId}
+            metadata={metadata}
+            rootClassNames={`w-full mb-4 [&_.analysis-content]:min-h-96 shadow-md analysis-${child.analysisId}`}
+            analysisId={child.analysisId}
+            rootAnalysisId={child.rootAnalysisId}
+            createAnalysisRequestBody={child.createAnalysisRequestBody}
+            setGlobalLoading={setLoading}
+            initiateAutoSubmit={true}
+            hasExternalSearchBar={true}
+            sqlOnly={child.sqlOnly}
+            isTemp={child.isTemp}
+            keyName={child.keyName}
+            previousContext={child.allParents
+              .reverse()
+              .map((parent: any) => ({
+                analysis_id: parent.analysisId,
+                user_question: parent.user_question,
+                steps:
+                  parent?.analysisManager?.analysisData.gen_steps?.steps || [],
+              }))
+              .filter((d: any) => d.steps.length > 0)}
+            onManagerCreated={(
+              analysisManager: AnalysisManager,
+              id: string,
+              ctr: HTMLDivElement | null
+            ) => {
+              analysisDomRefs.current[id] = { ctr, analysisManager, id };
+              analysisTreeManager.updateAnalysis({
+                analysisId: child.analysisId,
+                isRoot: child.isRoot,
+                updateObj: { analysisManager },
+              });
+            }}
+            onManagerDestroyed={(
+              analysisManager: AnalysisManager,
+              id: string
+            ) => {
+              analysisTreeManager.removeAnalysis({
+                analysisId: child.analysisId,
+                isRoot: child.isRoot,
+                rootAnalysisId: child.rootAnalysisId,
+              });
+              analysisTreeManager.setActiveAnalysisId(null);
+              if (activeRootAnalysisId === id) {
+                analysisTreeManager.setActiveRootAnalysisId(null);
+              }
+              setLoading(false);
+            }}
+            initialConfig={{
+              analysisManager: child.analysisManager || null,
+            }}
+            setCurrentQuestion={setCurrentQuestion}
+          />
+        )
+      )}
     </>
   );
 };
 
-const QuickstartSection = ({ predefinedQuestions, handleSubmit, activeRootAnalysisId, activeAnalysisId }: any) => (
+const QuickstartSection = ({
+  predefinedQuestions,
+  handleSubmit,
+  activeRootAnalysisId,
+  activeAnalysisId,
+}: any) => (
   <div className="grow flex flex-col place-content-center m-auto max-w-full relative z-[1]">
     <div className="text-center text-gray-400 dark:text-gray-500 rounded-md">
       <p className="block mb-4 text-sm font-bold cursor-default">Quickstart</p>
@@ -453,8 +512,12 @@ export function AnalysisTreeViewer({
   const [sqlOnly, setSqlOnly] = useState(true);
   const [currentQuestion, setCurrentQuestion] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(defaultSidebarOpen);
-  const [activeAnalysisId, setActiveAnalysisId] = useState<string | null>(analysisTreeManager.getActiveAnalysisId());
-  const [activeRootAnalysisId, setActiveRootAnalysisId] = useState<string | null>(analysisTreeManager.getActiveRootAnalysisId());
+  const [activeAnalysisId, setActiveAnalysisId] = useState<string | null>(
+    analysisTreeManager.getActiveAnalysisId()
+  );
+  const [activeRootAnalysisId, setActiveRootAnalysisId] = useState<
+    string | null
+  >(analysisTreeManager.getActiveRootAnalysisId());
   const [allAnalyses, setAllAnalyses] = useState(analysisTreeManager.getAll());
 
   // URLs
@@ -491,13 +554,15 @@ export function AnalysisTreeViewer({
 
   // Effect to sync active root analysis ID
   useEffect(() => {
-    const originalSetActiveRootAnalysisId = analysisTreeManager.setActiveRootAnalysisId;
+    const originalSetActiveRootAnalysisId =
+      analysisTreeManager.setActiveRootAnalysisId;
     analysisTreeManager.setActiveRootAnalysisId = (id: string | null) => {
       setActiveRootAnalysisId(id);
       return originalSetActiveRootAnalysisId.call(analysisTreeManager, id);
     };
     return () => {
-      analysisTreeManager.setActiveRootAnalysisId = originalSetActiveRootAnalysisId;
+      analysisTreeManager.setActiveRootAnalysisId =
+        originalSetActiveRootAnalysisId;
     };
   }, [analysisTreeManager]);
 
@@ -506,10 +571,10 @@ export function AnalysisTreeViewer({
     setAllAnalyses(analysisTreeManager.getAll());
   }, [analysisTree]);
 
-  console.log('Render with states:', {
+  console.log("Render with states:", {
     activeAnalysisId,
     activeRootAnalysisId,
-    allAnalyses: Object.keys(allAnalyses).length
+    allAnalyses: Object.keys(allAnalyses).length,
   });
 
   const handleSubmit = useAnalysisSubmit(
@@ -595,7 +660,9 @@ export function AnalysisTreeViewer({
               iconClassNames={`${sidebarOpen ? "" : "text-white dark:text-gray-500 bg-secondary-highlight-2"}`}
               openClassNames={"border-gray-300 dark:border-gray-700 shadow-md"}
               closedClassNames={"border-transparent bg-transparent shadow-none"}
-              contentClassNames={"w-72 p-4 rounded-tl-lg relative sm:block min-h-96 h-full"}
+              contentClassNames={
+                "w-72 p-4 rounded-tl-lg relative sm:block min-h-96 h-full"
+              }
             >
               <div className="relative flex flex-col text-sm history-list">
                 <AnalysisTreeViewerLinks
@@ -653,8 +720,12 @@ export function AnalysisTreeViewer({
                               analysis={root}
                               activeAnalysisId={activeAnalysisId}
                               onClick={(analysis) => {
-                                analysisTreeManager.setActiveRootAnalysisId(rootAnalysisId);
-                                analysisTreeManager.setActiveAnalysisId(analysis?.analysisId || rootAnalysisId);
+                                analysisTreeManager.setActiveRootAnalysisId(
+                                  rootAnalysisId
+                                );
+                                analysisTreeManager.setActiveAnalysisId(
+                                  analysis?.analysisId || rootAnalysisId
+                                );
 
                                 if (window.innerWidth < breakpoints.lg) {
                                   setSidebarOpen(false);
@@ -670,8 +741,12 @@ export function AnalysisTreeViewer({
                                 setTimeout(() => {
                                   disableScrollEvent.current = true;
                                   if (autoScroll) {
-                                    const targetAnalysisId = analysis?.analysisId || rootAnalysisId;
-                                    scrollToAnalysis(targetAnalysisId, analysisDomRefs);
+                                    const targetAnalysisId =
+                                      analysis?.analysisId || rootAnalysisId;
+                                    scrollToAnalysis(
+                                      targetAnalysisId,
+                                      analysisDomRefs
+                                    );
                                   }
                                   disableScrollEvent.current = false;
                                 }, 0);
@@ -707,18 +782,20 @@ export function AnalysisTreeViewer({
               setMostVisibleAnalysisAsActive();
             }, 100)}
           >
-            {activeAnalysisId && activeRootAnalysisId && nestedTree[activeRootAnalysisId] && (
-              <AnalysisTreeContent
-                activeRootAnalysisId={activeRootAnalysisId}
-                nestedTree={nestedTree}
-                metadata={metadata}
-                analysisDomRefs={analysisDomRefs}
-                analysisTreeManager={analysisTreeManager}
-                autoScroll={autoScroll}
-                setLoading={setLoading}
-                setCurrentQuestion={setCurrentQuestion}
-              />
-            )}
+            {activeAnalysisId &&
+              activeRootAnalysisId &&
+              nestedTree[activeRootAnalysisId] && (
+                <AnalysisTreeContent
+                  activeRootAnalysisId={activeRootAnalysisId}
+                  nestedTree={nestedTree}
+                  metadata={metadata}
+                  analysisDomRefs={analysisDomRefs}
+                  analysisTreeManager={analysisTreeManager}
+                  autoScroll={autoScroll}
+                  setLoading={setLoading}
+                  setCurrentQuestion={setCurrentQuestion}
+                />
+              )}
 
             {!activeAnalysisId && (
               <QuickstartSection
