@@ -15,6 +15,9 @@ import { SpinningLoader } from "@ui-components";
 import SQLFeedback from "./SQLFeedback";
 import StepResultAnalysis from "./StepResultAnalysis";
 import { CodeEditor } from "./CodeEditor";
+import type { AnalysisTreeManager } from "../../analysis-tree-viewer/analysisTreeManager";
+import { AnalysisData, ParsedOutput, Step } from "../analysisManager";
+import { DagNode, DagResult } from "../StepsDag";
 
 export function StepResults({
   analysisId,
@@ -35,10 +38,31 @@ export function StepResults({
   tools = {},
   analysisBusy = false,
   setCurrentQuestion = (...args) => {},
+  analysisTreeManager = null,
+}: {
+  analysisId: string;
+  analysisData: AnalysisData;
+  step: Step;
+  keyName: string;
+  token: string;
+  activeNode: DagNode;
+  dag: DagResult["dag"];
+  apiEndpoint: string;
+  setActiveNode: (node: DagNode) => void;
+  handleReRun: (...args: any) => Promise<void>;
+  reRunningSteps: string[];
+  updateStepData: (update: Record<string, any>) => void;
+  onCreateNewStep: (...args: any) => Promise<void>;
+  // toolRunDataCache: any;
+  handleDeleteSteps: (...args: any) => Promise<void>;
+  tools: any;
+  analysisBusy: boolean;
+  setCurrentQuestion: (...args: any) => void;
+  analysisTreeManager: AnalysisTreeManager;
 }) {
   const agentConfigContext = useContext(AgentConfigContext);
   const { hideSqlTab } = agentConfigContext.val;
-  const parsedOutputs = useMemo(() => {
+  const parsedOutputs = useMemo<{ [key: string]: ParsedOutput }>(() => {
     return (
       analysisData?.gen_steps?.steps?.find((s) => s.id === step.id)
         ?.parsedOutputs || {}
@@ -91,7 +115,7 @@ export function StepResults({
       } catch (e) {
         console.log(e);
       } finally {
-        handleCancel();
+        handleCancel(ev);
       }
     },
     [activeNode]
@@ -191,8 +215,6 @@ export function StepResults({
 
     getAvailableInputDfs();
   }, [activeNode, reRunningSteps]);
-
-  console.log("inside step results", step.activeTab);
 
   const tabs = useMemo(() => {
     return [
@@ -350,7 +372,7 @@ export function StepResults({
                   nodeName={activeNode?.data?.name}
                   analysisId={analysisId}
                   initialQuestion={step?.inputs?.question}
-                  defaultActiveTab={step?.activeTab || "table"}
+                  analysisTreeManager={analysisTreeManager}
                 />
                 {step?.sql && (
                   // get feedback from user if the sql is good or not
@@ -392,7 +414,7 @@ export function StepResults({
         ),
       },
     ];
-  }, [step, showDeleteModal, step.activeTab]);
+  }, [step, showDeleteModal]);
 
   // rerunningstepsis array of object: {id: res.pre_tool_run_message,
   // timeout: funciton

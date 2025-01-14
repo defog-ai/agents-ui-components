@@ -8,7 +8,7 @@ export function StepOutputs({
   step,
   sql = null,
   codeStr = null,
-  handleEdit = () => {},
+  handleEdit = (...args) => {},
   availableOutputNodes = [],
   setActiveNode,
   showCode = true,

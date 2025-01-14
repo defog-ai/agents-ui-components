@@ -34,7 +34,10 @@ import ErrorBoundary from "../../common/ErrorBoundary";
 import { CircleStop } from "lucide-react";
 import { StepResults } from "./step-results/StepResults";
 import createAnalysisManager from "./analysisManager";
-import { CreateAnalysisRequestBody } from "../analysis-tree-viewer/analysisTreeManager";
+import type {
+  AnalysisTreeManager,
+  CreateAnalysisRequestBody,
+} from "../analysis-tree-viewer/analysisTreeManager";
 
 interface Props {
   /**
@@ -71,9 +74,13 @@ interface Props {
    */
   createAnalysisRequestBody?: Partial<CreateAnalysisRequestBody>;
   /**
-   * Which tab (table or chart) to open initially.
+   * Which tab (table or chart) to open.
    */
-  initialActiveTab?: "table" | "chart";
+  activeTab?: "table" | "chart";
+  /**
+   * Callback when active tab changes.
+   */
+  setActiveTab?: (tab: "table" | "chart") => void;
   /**
    * Whether to initiate auto submit.
    */
@@ -134,6 +141,7 @@ interface Props {
    */
   initialConfig?: {
     analysisManager?: AnalysisManager | null;
+    analysisTreeManager?: AnalysisTreeManager | null;
   };
   setCurrentQuestion?: (question: string) => void;
   /**
@@ -163,7 +171,6 @@ interface Props {
  * - rootClassNames: string - Additional class names for styling.
  * - createAnalysisRequestBody: Partial<CreateAnalysisRequestBody> - Initial request
  *   body for creating the analysis.
- * - initialActiveTab: "table" | "chart" - Initial active tab in the UI.
  * - initiateAutoSubmit: boolean - Flag to automatically submit initial analysis.
  * - hasExternalSearchBar: boolean - Indicates if an external search bar is used.
  * - searchBarPlaceholder: string | null - Placeholder text for the search bar.
@@ -187,7 +194,6 @@ export const AnalysisAgent = ({
   sqlOnly = false,
   rootClassNames = "",
   createAnalysisRequestBody = {},
-  initialActiveTab = "table",
   initiateAutoSubmit = false,
   hasExternalSearchBar = false,
   searchBarPlaceholder = null,
@@ -200,6 +206,7 @@ export const AnalysisAgent = ({
   disabled = false,
   initialConfig = {
     analysisManager: null,
+    analysisTreeManager: null,
   },
   setCurrentQuestion = (...args) => {},
   onHeightChange = (...args) => {},
@@ -326,7 +333,9 @@ export const AnalysisAgent = ({
         },
         onManagerDestroyed: onManagerDestroyed,
         createAnalysisRequestBody,
-        initialActiveTab: initialActiveTab,
+        activeTab: initialConfig.analysisTreeManager
+          ? initialConfig.analysisTreeManager.getActiveTab(analysisId)
+          : "table",
       })
     );
   }, [analysisId, messageManager]);
@@ -673,6 +682,9 @@ export const AnalysisAgent = ({
                                 }
                               }}
                               setCurrentQuestion={setCurrentQuestion}
+                              analysisTreeManager={
+                                initialConfig.analysisTreeManager
+                              }
                             ></StepResults>
                           )}
                         </div>
@@ -716,7 +728,7 @@ export const AnalysisAgent = ({
                         nodeSize={[40, 10]}
                         nodeGap={[30, 50]}
                         setActiveNode={setActiveNode}
-                        skipAddStepNode={isTemp}
+                        skipAddStepNode={true}
                         reRunningSteps={reRunningSteps}
                         activeNode={activeNode}
                         stageDone={

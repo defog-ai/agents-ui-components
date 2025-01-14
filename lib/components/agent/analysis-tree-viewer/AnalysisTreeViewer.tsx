@@ -24,6 +24,8 @@ import type {
   AnalysisTreeManager,
   AnalysisTree,
   FlatAnalysisTree,
+  NestedAnalysisTree,
+  AnalysisTreeNode,
 } from "./analysisTreeManager";
 import { AnalysisManager } from "../analysis/analysisManager";
 import debounce from "lodash.debounce";
@@ -142,7 +144,7 @@ const useAnalysisSubmit = (
 
         const allAnalyses = analysisTreeManager.getAll();
         let questionType: QuestionType = "analysis";
-        let defaultActiveTab: "table" | "chart" = "table";
+        let newActiveTab: "table" | "chart" = "table";
 
         if (Object.keys(allAnalyses).length > 0) {
           const res = await getQuestionType(
@@ -152,7 +154,7 @@ const useAnalysisSubmit = (
             question
           );
           questionType = res.question_type;
-          defaultActiveTab = res.default_open_tab;
+          newActiveTab = res.default_open_tab;
         }
 
         if (questionType === "edit-chart") {
@@ -176,7 +178,7 @@ const useAnalysisSubmit = (
           directParentId,
           sqlOnly: forceSqlOnly || sqlOnly,
           isTemp,
-          initialActiveTab: defaultActiveTab,
+          activeTab: newActiveTab,
         });
 
         if (!rootAnalysisId) {
@@ -241,13 +243,13 @@ const handleChartQuestion = async (
   }
 
   try {
-    activeStep.activeTab = "chart";
     await stepOutput.chartManager.editChart(question, chartEditUrl, {
       onError: (e) => {
         messageManager.error(e.message);
         console.error(e);
       },
     });
+    analysisTreeManager.setActiveTab(mostVisibleElement.id, "chart");
   } catch (e: any) {
     messageManager.error(e.message);
     console.error(e);
@@ -308,7 +310,7 @@ const AnalysisTreeContent = ({
   setCurrentQuestion,
 }: {
   activeRootAnalysisId: string;
-  nestedTree: any;
+  nestedTree: NestedAnalysisTree;
   metadata: any;
   analysisDomRefs: React.RefObject<AnalysisDomRefs>;
   analysisTreeManager: AnalysisTreeManager;
@@ -363,12 +365,13 @@ const AnalysisTreeContent = ({
         initialConfig={{
           analysisManager:
             nestedTree[activeRootAnalysisId].analysisManager || null,
+          analysisTreeManager,
         }}
         setCurrentQuestion={setCurrentQuestion}
       />
 
       {nestedTree[activeRootAnalysisId].flatOrderedChildren.map(
-        (child: any) => (
+        (child: AnalysisTreeNode) => (
           <AnalysisAgent
             key={child.analysisId}
             metadata={metadata}
@@ -420,6 +423,7 @@ const AnalysisTreeContent = ({
             }}
             initialConfig={{
               analysisManager: child.analysisManager || null,
+              analysisTreeManager,
             }}
             setCurrentQuestion={setCurrentQuestion}
           />
@@ -570,12 +574,6 @@ export function AnalysisTreeViewer({
   useEffect(() => {
     setAllAnalyses(analysisTreeManager.getAll());
   }, [analysisTree]);
-
-  console.log("Render with states:", {
-    activeAnalysisId,
-    activeRootAnalysisId,
-    allAnalyses: Object.keys(allAnalyses).length,
-  });
 
   const handleSubmit = useAnalysisSubmit(
     analysisTreeManager,

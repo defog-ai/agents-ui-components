@@ -209,7 +209,7 @@ export interface AnalysisManagerConfig {
   onManagerDestroyed?: (...args: any[]) => void;
   onAbortError?: (...args: any[]) => void;
   createAnalysisRequestBody?: any;
-  initialActiveTab?: "table" | "chart" | null;
+  activeTab?: "table" | "chart" | null;
 }
 
 function createAnalysisManager({
@@ -229,7 +229,7 @@ function createAnalysisManager({
   onManagerDestroyed = (...args: any[]) => {},
   onAbortError = (...args: any[]) => {},
   createAnalysisRequestBody = {},
-  initialActiveTab = "table",
+  activeTab = "table",
 }: AnalysisManagerConfig): AnalysisManager {
   let analysisData: AnalysisData | null = null;
   let reRunningSteps: string[] = [];
@@ -242,7 +242,7 @@ function createAnalysisManager({
   let analysisBusy = false;
   let analysisBusyListeners: ((busy: boolean) => void)[] = [];
   let activeStepId: string | null = null;
-  let _initialActiveTab = initialActiveTab || "table";
+  let _activeTab = activeTab || "table";
 
   const clarifyEndpoint = setupBaseUrl({
     protocol: "http",
@@ -683,7 +683,7 @@ function createAnalysisManager({
               // by default initialise all steps to show the initial active tab we determined when we created the question the first time.
               response[prop].map((d) => ({
                 ...d,
-                activeTab: _initialActiveTab,
+                activeTab: _activeTab,
               }))
             );
           }

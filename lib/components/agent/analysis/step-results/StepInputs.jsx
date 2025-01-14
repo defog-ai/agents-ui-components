@@ -369,8 +369,8 @@ export function StepInputs({
   stepId,
   step,
   availableOutputNodes = [],
-  setActiveNode = () => {},
-  handleEdit = () => {},
+  setActiveNode = (...args) => {},
+  handleEdit = (...args) => {},
   parentNodeOutputs = {},
 }) {
   // parse inputs

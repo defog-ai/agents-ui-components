@@ -6,7 +6,7 @@ import { CirclePlus, Wrench } from "lucide-react";
 import { createDag } from "../../utils/draw-dag";
 import { Step } from "./analysisManager";
 
-interface DagNode {
+export interface DagNode {
   id: string;
   title: string;
   key: string;

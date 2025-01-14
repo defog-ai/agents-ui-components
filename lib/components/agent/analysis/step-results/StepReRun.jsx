@@ -2,7 +2,7 @@ import { Button } from "@ui-components";
 import { twMerge } from "tailwind-merge";
 
 export function StepReRun({
-  onClick = () => {},
+  onClick = (...args) => {},
   text = "Re run",
   loading = false,
   className = "tool-re-run",

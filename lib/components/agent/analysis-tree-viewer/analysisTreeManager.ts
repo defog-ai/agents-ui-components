@@ -22,7 +22,7 @@ interface Analysis {
   rootAnalysisId: string;
   sqlOnly: boolean;
   user_question: string;
-  initialActiveTab: "table" | "chart" | null;
+  activeTab: "table" | "chart" | null;
 }
 
 export type AnalysisTree = {
@@ -52,12 +52,31 @@ export interface NestedAnalysisTree {
   [analysisId: string]: AnalysisTreeNode;
 }
 
+/**
+ * We store the active tabs for each analysis in this object.
+ * These are not in the main object to prevent rerendering.
+ */
+export interface ActiveTabs {
+  [analysisId: string]: "table" | "chart" | null;
+}
+
 export interface AnalysisTreeManager {
   subscribeToDataChanges: (listener: Listener) => Unsubscribe;
   getTree: () => AnalysisTree;
   getNestedTree: () => NestedAnalysisTree;
   getAll: () => FlatAnalysisTree;
   subscribeToActiveAnalysisIdChanges: (listener: Listener) => Unsubscribe;
+  getActiveTab: (analysisId: string) => "table" | "chart";
+  setActiveTab: (analysisId: string, tab: "table" | "chart") => void;
+  /**
+   * Subscribe to changes in the active tab in StepResultsTable.
+   * This is a little different from other subscription methods. It also takes in analysisId as a parameter.
+   * This is to prevent unnecessary rerendering and only call the changed listeners, and not all of them.
+   */
+  subscribeToActiveTabChanges: (
+    analysisId: string,
+    listener: Listener
+  ) => Unsubscribe;
   setActiveAnalysisId: (analysisId: string | null) => void;
   setActiveRootAnalysisId: (analysisId: string | null) => void;
   getActiveAnalysisId: () => string | null;
@@ -71,7 +90,7 @@ export interface AnalysisTreeManager {
     directParentId?: string | null;
     sqlOnly?: boolean;
     isTemp?: boolean;
-    initialActiveTab?: "table" | "chart" | null;
+    activeTab?: "table" | "chart" | null;
   }) => Promise<{ newAnalysis: Analysis }>;
   removeAnalysis: (params: {
     analysisId: string;
@@ -98,7 +117,7 @@ export interface AnalysisTreeManager {
 export function AnalysisTreeManager(
   initialTree: AnalysisTree = {},
   id: string | null = crypto.randomUUID()
-) {
+): AnalysisTreeManager {
   // Initializes the unique identifier for this analysis tree manager instance.
   let _id = id;
 
@@ -130,6 +149,7 @@ export function AnalysisTreeManager(
    * */
 
   let analysisTree = validateAnalysisTree(initialTree) ? initialTree : {};
+  let activeTabs: ActiveTabs = {};
 
   /**
    * Flattens the analysis tree into a single object for easy access to any analysis by its ID.
@@ -155,6 +175,7 @@ export function AnalysisTreeManager(
 
   let dataListeners: Listener[] = [];
   let activeAnalysisIdChangeListeners: Listener[] = [];
+  let activeTabChangeListeners: { [analysisId: string]: Listener[] } = {};
   let activeAnalysisId: string | null = null;
   let activeRootAnalysisId: string | null = null;
 
@@ -257,6 +278,36 @@ export function AnalysisTreeManager(
     };
   }
 
+  function emitActiveTabChange(analysisId: string) {
+    if (!activeTabChangeListeners[analysisId]) {
+      activeTabChangeListeners[analysisId] = [];
+    }
+
+    activeTabChangeListeners[analysisId].forEach((l) => l());
+  }
+
+  /** */
+  function subscribeToActiveTabChanges(
+    analysisId: string,
+    listener: Listener
+  ): Unsubscribe {
+    if (!activeTabChangeListeners[analysisId]) {
+      activeTabChangeListeners[analysisId] = [];
+    }
+    activeTabChangeListeners[analysisId].push(listener);
+
+    return function unsubscribe() {
+      activeTabChangeListeners[analysisId] = activeTabChangeListeners[
+        analysisId
+      ].filter((l) => l !== listener);
+    };
+  }
+
+  function setActiveTab(analysisId: string, tab: "table" | "chart") {
+    activeTabs[analysisId] = tab;
+    emitActiveTabChange(analysisId);
+  }
+
   function setActiveAnalysisId(analysisId: string | null) {
     activeAnalysisId = analysisId;
     emitActiveAnalysisIdChange();
@@ -273,6 +324,10 @@ export function AnalysisTreeManager(
 
   function getActiveRootAnalysisId(): string | null {
     return activeRootAnalysisId;
+  }
+
+  function getActiveTab(analysisId: string): "table" | "chart" {
+    return activeTabs[analysisId] || "table";
   }
 
   function removeAnalysis({
@@ -368,7 +423,7 @@ export function AnalysisTreeManager(
     directParentId = null,
     sqlOnly = false,
     isTemp = false,
-    initialActiveTab,
+    activeTab,
   }: {
     question: string;
     keyName: string;
@@ -378,7 +433,7 @@ export function AnalysisTreeManager(
     directParentId?: string | null;
     sqlOnly?: boolean;
     isTemp?: boolean;
-    initialActiveTab?: "table" | "chart" | null;
+    activeTab?: "table" | "chart" | null;
   }) {
     // @ts-ignore
     let newAnalysis: Analysis = {
@@ -390,7 +445,7 @@ export function AnalysisTreeManager(
       keyName,
       sqlOnly,
       timestamp: Date.now(),
-      initialActiveTab,
+      activeTab,
     };
 
     newAnalysis.directParentId = directParentId;
@@ -430,6 +485,8 @@ export function AnalysisTreeManager(
       [newAnalysis.analysisId]: newAnalysis,
     };
 
+    setActiveTab(newAnalysis.analysisId, activeTab || "table");
+
     setAnalysisTree(newAnalysisTree, newAllAnalyses);
 
     return {
@@ -449,6 +506,9 @@ export function AnalysisTreeManager(
     getNestedTree,
     getAll,
     subscribeToActiveAnalysisIdChanges,
+    getActiveTab,
+    setActiveTab,
+    subscribeToActiveTabChanges,
     setActiveAnalysisId,
     setActiveRootAnalysisId,
     getActiveAnalysisId,
