@@ -27,13 +27,9 @@ const CHART_TYPES = [
 ];
 
 const AGGREGATE_OPTIONS = [
-  { value: "none", label: "None" },
   { value: "count", label: "Count" },
   { value: "sum", label: "Sum" },
-  { value: "proportion", label: "Proportion" },
-  { value: "median", label: "Median" },
   { value: "mean", label: "Mean" },
-  { value: "variance", label: "Variance" },
 ];
 
 // Icons for different column types
