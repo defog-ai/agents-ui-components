@@ -22,8 +22,8 @@ const CHART_TYPES = [
   { value: "line", label: "Line", Icon: ChartLine },
   { value: "bar", label: "Bar", Icon: ChartColumnIncreasing },
   { value: "scatter", label: "Scatter", Icon: ChartScatter },
-  { value: "histogram", label: "Histogram", Icon: ChartNoAxesColumn },
-  { value: "boxplot", label: "Box Plot", Icon: ChartCandlestick },
+  // { value: "histogram", label: "Histogram", Icon: ChartNoAxesColumn },
+  // { value: "boxplot", label: "Box Plot", Icon: ChartCandlestick },
 ];
 
 const AGGREGATE_OPTIONS = [
