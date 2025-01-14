@@ -20,6 +20,16 @@ interface Column {
   width?: number | string;
   sorter?: boolean | ((a: any, b: any) => number);
   render?: (value: any, record: any, index: number) => React.ReactNode;
+  columnHeaderCellRender: (value: Object) => false | React.ReactNode;
+}
+
+interface ExtendedColumn extends Column {
+  columnHeaderCellRender: (value: Object) => false | React.ReactNode;
+}
+
+interface RowWithIndex {
+  originalIndex: number;
+  [key: string]: any;
 }
 
 interface TableProps {
@@ -234,19 +244,19 @@ export function Table({
   paginationPosition = "bottom",
   pagination = { defaultPageSize: 10, showSizeChanger: true },
   skipColumns = [],
-  rowCellRender = (_) => null,
+  rowCellRender = (_: any) => null,
   columnHeaderClassNames = "",
 }: TableProps) {
   const messageManager = useContext(MessageManagerContext);
   // name of the property in the rows objects where each column's data is stored
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(pagination.defaultPageSize || 10);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(pagination?.defaultPageSize || 10);
   const [isPending, startTransition] = useTransition();
 
-  const columnsToDisplay = useMemo(
+  const columnsToDisplay = useMemo<ExtendedColumn[]>(
     () =>
       columns
-        .filter((column) => !skipColumns.includes(column.dataIndex))
+        .filter((d) => !skipColumns.includes(d.dataIndex))
         .map((d) => ({
           ...d,
           columnHeaderCellRender: d.columnHeaderCellRender || (() => false),
@@ -254,13 +264,13 @@ export function Table({
     [columns, skipColumns]
   );
 
-  const [sortColumn, setSortColumn] = useState(null);
-  const [sortOrder, setSortOrder] = useState(null);
-  const [sortedRows, setSortedRows] = useState(
-    rows.map((d, i) => {
-      d.originalIndex = i;
-      return d;
-    })
+  const [sortColumn, setSortColumn] = useState<string | null>(null);
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc' | null>(null);
+  const [sortedRows, setSortedRows] = useState<RowWithIndex[]>(
+    rows.map((d, i) => ({
+      ...d,
+      originalIndex: i,
+    }))
   );
 
   useEffect(() => {
@@ -273,10 +283,10 @@ export function Table({
         "There seem to be duplicate columns. Table shown might be garbled."
       );
     }
-  }, [rows, columns]);
+  }, [rows, columns, messageManager]);
 
   const dataIndexes = columnsToDisplay.map((d) => d.dataIndex);
-  const dataIndexToColumnMap = columnsToDisplay.reduce((acc, column) => {
+  const dataIndexToColumnMap = columnsToDisplay.reduce<Record<string, Column>>((acc, column) => {
     acc[column.dataIndex] = column;
     return acc;
   }, {});
@@ -284,7 +294,7 @@ export function Table({
   const maxPage = Math.max(1, Math.ceil(rows.length / pageSize));
 
   function toggleSort(newColumn: string) {
-    let newOrder;
+    let newOrder: 'asc' | 'desc' | null = null;
 
     // if it's not the same column that was earlier sorted, then force "restart" the sort "cycle"
     // and set to ascending order
@@ -298,8 +308,6 @@ export function Table({
         newOrder = "asc";
       } else if (sortOrder === "asc") {
         newOrder = "desc";
-      } else if (sortOrder === "desc") {
-        newOrder = null;
       }
     }
 
