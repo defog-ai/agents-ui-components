@@ -462,9 +462,7 @@ function getLineMarks(
 
 function getBarMarks(
   data: any[],
-  options: ChartOptions,
-  selectedColumns: string[],
-  availableColumns: string[]
+  options: ChartOptions
 ): ChartMark[] {
   const aggregateFunction = options.aggregateFunction || "sum";
   
@@ -491,19 +489,15 @@ function getBarMarks(
             limit: 10,
           },
         },
+        tip: {
+          format: {
+            x: (d) => d,
+            y: (d) => d,
+          },
+        }
       },
     )
   );
-  marks.push(
-    Plot.tip(
-      aggregatedData,
-      Plot.pointerX({
-        px: options.x,
-        py: options.y,
-        facet: true
-      })
-    )
-  )
   return marks;
 }
 
