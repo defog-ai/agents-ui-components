@@ -192,6 +192,8 @@ export function StepResults({
     getAvailableInputDfs();
   }, [activeNode, reRunningSteps]);
 
+  console.log("inside step results", step.activeTab);
+
   const tabs = useMemo(() => {
     return [
       {
@@ -348,6 +350,7 @@ export function StepResults({
                   nodeName={activeNode?.data?.name}
                   analysisId={analysisId}
                   initialQuestion={step?.inputs?.question}
+                  defaultActiveTab={step?.activeTab || "table"}
                 />
                 {step?.sql && (
                   // get feedback from user if the sql is good or not
@@ -389,7 +392,7 @@ export function StepResults({
         ),
       },
     ];
-  }, [step, showDeleteModal]);
+  }, [step, showDeleteModal, step.activeTab]);
 
   // rerunningstepsis array of object: {id: res.pre_tool_run_message,
   // timeout: funciton

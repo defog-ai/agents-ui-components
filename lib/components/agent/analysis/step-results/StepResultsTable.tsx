@@ -37,6 +37,7 @@ export function StepResultsTable({
   reactiveVars = null,
   initialQuestion = null,
   handleEdit = (...args) => {},
+  defaultActiveTab = "table",
 }: {
   stepId: string;
   keyName: string;
@@ -50,6 +51,7 @@ export function StepResultsTable({
   reactiveVars?: any;
   initialQuestion: string | null;
   handleEdit?: (...args: any) => void;
+  defaultActiveTab: "table" | "chart";
 }) {
   const downloadCsvEndpoint = setupBaseUrl({
     protocol: "http",
@@ -189,6 +191,15 @@ export function StepResultsTable({
 
   const [results, setResults] = useState<any>([]);
 
+  const [activeTab, setActiveTab] = useState(defaultActiveTab);
+
+  useEffect(() => {
+    if (activeTab !== defaultActiveTab) {
+      setActiveTab(defaultActiveTab);
+    }
+  }, [defaultActiveTab]);
+  console.log(activeTab, defaultActiveTab);
+
   useEffect(() => {
     // extra tabs should be an array and all elements should be jsx components
     let tabs = [];
@@ -200,7 +211,6 @@ export function StepResultsTable({
       tabs.push({
         component: (
           <Table
-            key="0"
             rows={roundedData}
             // don't show index column in table
             columns={tableData.columns
@@ -239,6 +249,7 @@ export function StepResultsTable({
             pagination={{ defaultPageSize: 10, showSizeChanger: true }}
           />
         ),
+        key: "table",
         tabLabel: "Table",
         icon: <TableIcon className="w-4 h-4 mb-0.5 mr-1 inline" />,
       });
@@ -256,6 +267,7 @@ export function StepResultsTable({
             </ErrorBoundary>
           ),
           tabLabel: "Chart",
+          key: "chart",
           icon: <ChartBarIcon className="w-4 h-4 mb-0.5 mr-1 inline" />,
         });
       }
@@ -267,30 +279,8 @@ export function StepResultsTable({
             <ChartImage apiEndpoint={apiEndpoint} images={chartImages} />
           </ErrorBoundary>
         ),
+        key: "chart",
         tabLabel: chartNames[chartImages[0].type] || "Chart",
-      });
-    }
-    if (sqlQuery !== null) {
-      // show the sql query
-      tabs.push({
-        component: (
-          <ErrorBoundary>
-            <>
-              <p>The following query was generated:</p>
-              <Editor
-                className="language-sql table-code-ctr"
-                value={sqlQuery}
-                highlight={(code) => {
-                  return highlight(code, languages.sql, "sql");
-                }}
-                onValueChange={(newVal) => {
-                  updateCodeAndSql("sql", newVal);
-                }}
-              />
-            </>
-          </ErrorBoundary>
-        ),
-        tabLabel: "SQL",
       });
     }
 
@@ -333,9 +323,12 @@ export function StepResultsTable({
             </Button>
           ),
         }}
-        defaultActiveKey={!chartImages || !chartImages.length ? "0" : "1"}
+        activeKey={activeTab}
+        onChange={(key) => {
+          setActiveTab(key);
+        }}
         items={tabs.map((d, i) => ({
-          key: String(i),
+          key: d.key,
           label: (
             <span>
               {d.icon ? d.icon : null}
@@ -348,7 +341,7 @@ export function StepResultsTable({
     );
 
     setResults(tabs);
-  }, [stepData, chartImages, toolCode, sqlQuery]);
+  }, [stepData, chartImages, toolCode, sqlQuery, activeTab]);
 
   function nestedDivsUntilNumericKeys(
     key: string,

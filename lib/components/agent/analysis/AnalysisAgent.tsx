@@ -71,6 +71,10 @@ interface Props {
    */
   createAnalysisRequestBody?: Partial<CreateAnalysisRequestBody>;
   /**
+   * Which tab (table or chart) to open initially.
+   */
+  initialActiveTab?: "table" | "chart";
+  /**
    * Whether to initiate auto submit.
    */
   initiateAutoSubmit?: boolean;
@@ -141,6 +145,39 @@ interface Props {
 /**
  * Analysis Agent. Handles a single analysis. Chonker.
  * */
+/**
+ * AnalysisAgent is a React component that manages the lifecycle and user interactions
+ * for a single analysis session. It integrates with an AnalysisManager to handle
+ * data processing and updates. The component includes support for various stages
+ * of analysis, such as clarification and step generation, and displays relevant
+ * UI elements for each stage. It also handles external configurations and contexts
+ * to provide a dynamic analysis environment.
+ *
+ * Props:
+ * - analysisId: string - Unique identifier for the analysis.
+ * - rootAnalysisId: string - Root identifier for a series of analyses.
+ * - keyName: string - Key name used for identification.
+ * - isTemp: boolean - Flag to indicate if the analysis is temporary.
+ * - metadata: ColumnMetadata[] | null - Metadata associated with the analysis.
+ * - sqlOnly: boolean - Indicates if the analysis is SQL-only.
+ * - rootClassNames: string - Additional class names for styling.
+ * - createAnalysisRequestBody: Partial<CreateAnalysisRequestBody> - Initial request
+ *   body for creating the analysis.
+ * - initialActiveTab: "table" | "chart" - Initial active tab in the UI.
+ * - initiateAutoSubmit: boolean - Flag to automatically submit initial analysis.
+ * - hasExternalSearchBar: boolean - Indicates if an external search bar is used.
+ * - searchBarPlaceholder: string | null - Placeholder text for the search bar.
+ * - extraTools: Array - Additional tools available for the analysis.
+ * - plannerQuestionSuffix: string | null - Suffix for planner questions.
+ * - previousContext: PreviousContext - Context from previous analyses.
+ * - setGlobalLoading: Function - Callback to set global loading state.
+ * - onManagerCreated: Function - Callback when AnalysisManager is created.
+ * - onManagerDestroyed: Function - Callback when AnalysisManager is destroyed.
+ * - disabled: boolean - Flag to disable the component.
+ * - initialConfig: Object - Initial configuration for the analysis.
+ * - setCurrentQuestion: Function - Callback to set the current question.
+ * - onHeightChange: Function - Callback for height changes of the component.
+ */
 export const AnalysisAgent = ({
   analysisId,
   rootAnalysisId,
@@ -150,6 +187,7 @@ export const AnalysisAgent = ({
   sqlOnly = false,
   rootClassNames = "",
   createAnalysisRequestBody = {},
+  initialActiveTab = "table",
   initiateAutoSubmit = false,
   hasExternalSearchBar = false,
   searchBarPlaceholder = null,
@@ -288,6 +326,7 @@ export const AnalysisAgent = ({
         },
         onManagerDestroyed: onManagerDestroyed,
         createAnalysisRequestBody,
+        initialActiveTab: initialActiveTab,
       })
     );
   }, [analysisId, messageManager]);

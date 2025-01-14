@@ -11,6 +11,8 @@ declare interface ColumnMetadata {
   table_name: string;
 }
 
+declare type QuestionType = "analysis" | "follow-on-analysis" | "edit-chart";
+
 declare type PreviousContext =
   | {
       analysis_id: string;

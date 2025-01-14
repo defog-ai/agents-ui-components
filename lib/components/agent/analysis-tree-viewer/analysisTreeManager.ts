@@ -22,6 +22,7 @@ interface Analysis {
   rootAnalysisId: string;
   sqlOnly: boolean;
   user_question: string;
+  initialActiveTab: "table" | "chart" | null;
 }
 
 export type AnalysisTree = {
@@ -30,7 +31,7 @@ export type AnalysisTree = {
 
 type Listener = () => void;
 
-type FlatAnalysisTree = { [analysisId: string]: Analysis };
+export type FlatAnalysisTree = { [analysisId: string]: Analysis };
 
 type Unsubscribe = () => void;
 
@@ -70,6 +71,7 @@ export interface AnalysisTreeManager {
     directParentId?: string | null;
     sqlOnly?: boolean;
     isTemp?: boolean;
+    initialActiveTab?: "table" | "chart" | null;
   }) => Promise<{ newAnalysis: Analysis }>;
   removeAnalysis: (params: {
     analysisId: string;
@@ -366,6 +368,7 @@ export function AnalysisTreeManager(
     directParentId = null,
     sqlOnly = false,
     isTemp = false,
+    initialActiveTab,
   }: {
     question: string;
     keyName: string;
@@ -375,6 +378,7 @@ export function AnalysisTreeManager(
     directParentId?: string | null;
     sqlOnly?: boolean;
     isTemp?: boolean;
+    initialActiveTab?: "table" | "chart" | null;
   }) {
     // @ts-ignore
     let newAnalysis: Analysis = {
@@ -386,6 +390,7 @@ export function AnalysisTreeManager(
       keyName,
       sqlOnly,
       timestamp: Date.now(),
+      initialActiveTab,
     };
 
     newAnalysis.directParentId = directParentId;

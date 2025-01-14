@@ -106,6 +106,7 @@ export interface Step {
   parent_step?: Step | null;
   tool_name: string | null;
   outputs: Record<string, { data: string }>;
+  activeTab?: "chart" | "table" | null;
   input_metadata: Record<
     string,
     {
@@ -182,6 +183,7 @@ export interface AnalysisManager {
   getActiveStepId: () => string | null;
   setActiveStepId: (stepId: string | null) => void;
   getActiveStep: () => Step | null;
+  questionType: QuestionType | null;
 }
 
 export interface AnalysisManagerConfig {
@@ -207,6 +209,7 @@ export interface AnalysisManagerConfig {
   onManagerDestroyed?: (...args: any[]) => void;
   onAbortError?: (...args: any[]) => void;
   createAnalysisRequestBody?: any;
+  initialActiveTab?: "table" | "chart" | null;
 }
 
 function createAnalysisManager({
@@ -226,6 +229,7 @@ function createAnalysisManager({
   onManagerDestroyed = (...args: any[]) => {},
   onAbortError = (...args: any[]) => {},
   createAnalysisRequestBody = {},
+  initialActiveTab = "table",
 }: AnalysisManagerConfig): AnalysisManager {
   let analysisData: AnalysisData | null = null;
   let reRunningSteps: string[] = [];
@@ -238,6 +242,7 @@ function createAnalysisManager({
   let analysisBusy = false;
   let analysisBusyListeners: ((busy: boolean) => void)[] = [];
   let activeStepId: string | null = null;
+  let _initialActiveTab = initialActiveTab || "table";
 
   const clarifyEndpoint = setupBaseUrl({
     protocol: "http",
@@ -674,7 +679,13 @@ function createAnalysisManager({
           } else {
             newAnalysisData[requestType][prop] = newAnalysisData[requestType][
               prop
-            ].concat(response[prop]);
+            ].concat(
+              // by default initialise all steps to show the initial active tab we determined when we created the question the first time.
+              response[prop].map((d) => ({
+                ...d,
+                activeTab: _initialActiveTab,
+              }))
+            );
           }
         }
       }
