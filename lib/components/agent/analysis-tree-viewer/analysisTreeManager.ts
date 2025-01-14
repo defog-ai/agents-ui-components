@@ -363,8 +363,8 @@ export function AnalysisTreeManager(
       if (rootAnalysisId) {
         const rootAnalysis = analysisTree[rootAnalysisId].root;
         if (rootAnalysis) {
-          newAnalysisTree[analysisId].analysisList = newAnalysisTree[
-            analysisId
+          newAnalysisTree[rootAnalysisId].analysisList = newAnalysisTree[
+            rootAnalysisId
           ].analysisList.filter((item) => item.analysisId !== analysisId);
         }
       }
@@ -510,8 +510,6 @@ export function AnalysisTreeManager(
 
   function reset() {
     setAnalysisTree({}, {});
-    setActiveAnalysisId(null);
-    setActiveRootAnalysisId(null);
   }
 
   return {

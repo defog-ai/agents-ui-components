@@ -183,7 +183,6 @@ export interface AnalysisManager {
   getActiveStepId: () => string | null;
   setActiveStepId: (stepId: string | null) => void;
   getActiveStep: () => Step | null;
-  questionType: QuestionType | null;
 }
 
 export interface AnalysisManagerConfig {
@@ -277,6 +276,8 @@ function createAnalysisManager({
   }
 
   function destroy(): void {
+    if (destroyed) console.warn("Already destroyed");
+
     console.groupCollapsed("Destroying. Open for trace");
     console.log("Destroying");
     console.trace();

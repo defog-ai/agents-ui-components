@@ -127,11 +127,7 @@ interface Props {
   /**
    * Callback when analysis manager is destroyed.
    */
-  onManagerDestroyed?: (
-    analysisManager: AnalysisManager,
-    analysisId: string,
-    ctr: HTMLDivElement | null
-  ) => void;
+  onManagerDestroyed?: (analysisId: string, ctr: HTMLDivElement | null) => void;
   /**
    * Disable the search bar.
    */
@@ -331,7 +327,7 @@ export const AnalysisAgent = ({
           messageManager.error(e);
           setGlobalLoading(false);
         },
-        onManagerDestroyed: onManagerDestroyed,
+        onManagerDestroyed: () => onManagerDestroyed(analysisId, ctr.current),
         createAnalysisRequestBody,
         activeTab: initialConfig.analysisTreeManager
           ? initialConfig.analysisTreeManager.getActiveTab(analysisId)
@@ -505,25 +501,16 @@ export const AnalysisAgent = ({
           !analysisData ||
           (!analysisData.currentStage && hasExternalSearchBar)
         ) ? null : (
-          // <div className="basis-0 text-nowrap whitespace-nowrap">
-          //   <AnalysisFeedback
-          //     analysisSteps={analysisData?.gen_steps?.steps || []}
-          //     analysisId={analysisId}
-          //     user_question={analysisData?.user_question}
-          //     apiEndpoint={apiEndpoint}
-          //     token={token}
-          //     keyName={keyName}
-          //   />
-          // </div>
-          <div className="basis-0 text-nowrap whitespace-nowrap group cursor-pointer">
-            <CircleStop
-              className="w-6 h-6 text-rose-300 group-hover:text-rose-500 dark:text-rose-400 dark:group-hover:text-rose-600"
-              onClick={() => {
-                setGlobalLoading(false);
+          <div
+            className="basis-0 text-nowrap whitespace-nowrap group cursor-pointer"
+            onClick={() => {
+              console.log("clicked");
+              setGlobalLoading(false);
 
-                analysisManager.destroy();
-              }}
-            ></CircleStop>
+              analysisManager.destroy();
+            }}
+          >
+            <CircleStop className="w-6 h-6 text-rose-300 group-hover:text-rose-500 dark:text-rose-400 dark:group-hover:text-rose-600"></CircleStop>
           </div>
         )}
       </div>
