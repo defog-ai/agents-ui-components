@@ -1,6 +1,6 @@
 import { useRef, useEffect, forwardRef, Ref } from "react";
-import { Move, ArrowRight } from "lucide-react";
-import { TextArea, Toggle } from "@ui-components";
+import { Move, ArrowRight, SquarePen } from "lucide-react";
+import { TextArea } from "@ui-components";
 import { twMerge } from "tailwind-merge";
 
 interface DraggableInputProps {
@@ -15,7 +15,6 @@ interface DraggableInputProps {
   ) => void;
   activeRootAnalysisId?: string | null;
   activeAnalysisId?: string | null;
-  showToggle?: boolean;
   forceSqlOnly?: boolean;
   setSqlOnly?: (sqlOnly: boolean) => void;
   sqlOnly?: boolean;
@@ -31,7 +30,6 @@ let DraggableInput = forwardRef(function DraggableInput(
     handleSubmit,
     activeRootAnalysisId,
     activeAnalysisId,
-    showToggle = true,
     forceSqlOnly = false,
     setSqlOnly,
     sqlOnly,
@@ -177,20 +175,21 @@ let DraggableInput = forwardRef(function DraggableInput(
                     : "Type your question here"
                 }
               />
-              {showToggle && (
-                <Toggle
-                  disabled={forceSqlOnly || loading}
-                  titleClassNames="font-bold text-gray-400 dark:text-gray-500"
-                  onToggle={(v) => {
-                    if (forceSqlOnly) return;
-                    setSqlOnly(!v);
-                  }}
-                  defaultOn={!sqlOnly}
-                  offLabel="Advanced"
-                  onLabel={"Advanced"}
-                  rootClassNames="items-start lg:border-r dark:border-gray-600 py-2 lg:py-0 px-2 w-32"
-                />
-              )}
+              <span
+                className="relative inline-block group pl-2 hover:cursor-pointer hover:bg-gray-100 hover:text-blue-600"
+                onClick={() => {
+                  onNewConversationTextClick();
+                }}
+              >
+                <SquarePen />
+                <span
+                  className={
+                    "absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-max px-3 py-2 bg-gray-800 text-white text-xs rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                  }
+                >
+                  Start New Thread
+                </span>
+              </span>
             </div>
             <button
               type="button"
@@ -215,12 +214,6 @@ let DraggableInput = forwardRef(function DraggableInput(
             </button>
           </div>
         </div>
-      </div>
-      <div
-        className="w-full text-xs p-1 px-2 pt-0 text-gray-400 dark:text-gray-500 hover:underline underline-offset-2 group hover:decoration-blue-500 cursor-pointer hover:text-blue-500 dark:hover:text-blue-400"
-        onClick={onNewConversationTextClick}
-      >
-        Or click here to start a new conversation instead
       </div>
     </div>
   );
