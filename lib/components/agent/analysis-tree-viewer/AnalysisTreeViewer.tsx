@@ -147,7 +147,8 @@ const createNewAnalysis = async (
 
   analysisTreeManager.setActiveAnalysisId(newAnalysis.analysisId);
   analysisTreeManager.setActiveRootAnalysisId(newAnalysis.rootAnalysisId);
-}
+  return newId;
+};
 
 const useAnalysisSubmit = (
   analysisTreeManager: AnalysisTreeManager,
@@ -217,7 +218,7 @@ const useAnalysisSubmit = (
           return;
         }
 
-        await createNewAnalysis(
+        const analysisId = await createNewAnalysis(
           analysisTreeManager,
           question,
           isRoot,
@@ -231,7 +232,7 @@ const useAnalysisSubmit = (
         );
 
         raf(() => {
-          scrollToAnalysis(newId, analysisDomRefs);
+          scrollToAnalysis(analysisId, analysisDomRefs);
         });
       } catch (e: any) {
         messageManager.error("Failed to create analysis");
