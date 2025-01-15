@@ -1,6 +1,7 @@
 import { twMerge } from "tailwind-merge";
 import { sentenceCase } from "../../utils/utils";
 import { AnalysisTreeNode } from "./analysisTreeManager";
+import { SquarePen } from "lucide-react";
 
 export function AnalysisTreeItem({
   analysis = null,
@@ -23,8 +24,10 @@ export function AnalysisTreeItem({
         "flex flex-row items-center dark:text-gray-300",
 
         isDummy
-          ? "dummy-analysis border-l-4 bg-gray-100 dark:bg-gray-800 border-l-blue-500 text-blue-500 m-0"
-          : analysis && analysis.analysisId && "border-b border-gray-100 dark:border-gray-800",
+          ? "dummy-analysis bg-gray-100 dark:bg-gray-800 text-gray-900 hover:text-blue-600 m-0"
+          : analysis &&
+              analysis.analysisId &&
+              "border-b border-gray-100 dark:border-gray-800",
         extraClasses
       )}
     >
@@ -32,13 +35,21 @@ export function AnalysisTreeItem({
         <div
           className={twMerge(
             "title hover:cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 history-item p-2 text-sm",
-            isActive ? "font-medium bg-gray-100 dark:bg-gray-800 border-l-2 border-l-blue-500" : ""
+            isActive
+              ? "font-medium bg-gray-100 dark:bg-gray-800 border-l-2 border-l-blue-500"
+              : ""
           )}
           onClick={() => {
             onClick(analysis);
           }}
         >
-          {isDummy ? "New" : sentenceCase(analysis?.user_question)}
+          {isDummy ? (
+            <span>
+              <SquarePen /> New
+            </span>
+          ) : (
+            sentenceCase(analysis?.user_question)
+          )}
         </div>
         {!isDummy &&
           analysis &&
