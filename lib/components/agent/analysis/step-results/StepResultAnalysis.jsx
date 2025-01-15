@@ -214,33 +214,11 @@ export default function StepResultAnalysis({
                   }}
                 />
               ) : (
-                <Tabs
-                  size="small"
-                  defaultSelected="Formatted"
-                  contentClassNames="h-96 overflow-y-scroll bg-gray-50 border dark:bg-gray-800"
-                  tabs={[
-                    {
-                      name: "Formatted",
-                      classNames: "bg-gray-50 dark:bg-gray-800",
-                      content: (
-                        <div
-                          className="text-sm text-gray-600 dark:text-gray-300 analysis-markdown"
-                          dangerouslySetInnerHTML={{
-                            __html: sanitizeHtml(marked(toolRunAnalysis)),
-                          }}
-                        />
-                      ),
-                    },
-                    {
-                      name: "Raw",
-                      classNames: "bg-gray-50 dark:bg-gray-800",
-                      content: (
-                        <div className="text-sm text-gray-600 dark:text-gray-300">
-                          {toolRunAnalysis}
-                        </div>
-                      ),
-                    },
-                  ]}
+                <div
+                  className="text-sm text-gray-600 dark:text-gray-300 analysis-markdown"
+                  dangerouslySetInnerHTML={{
+                    __html: sanitizeHtml(marked(toolRunAnalysis)),
+                  }}
                 />
               )}
             </ErrorBoundary>
