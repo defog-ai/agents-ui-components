@@ -713,7 +713,7 @@ export function AnalysisTreeViewer({
             >
               <div className="flex flex-col h-full w-full overflow-y-auto">
                 {/* New Analysis */}
-                <div className="mb-4">
+                <div className="mb-4 sticky top-0">
                   <AnalysisTreeItem
                     isDummy={true}
                     onClick={() => {
@@ -854,8 +854,8 @@ export function AnalysisTreeViewer({
                 sqlOnly={sqlOnly}
                 question={currentQuestion}
                 onNewConversationTextClick={() => {
-                  analysisTreeManager.setActiveAnalysisId(null);
-                  analysisTreeManager.setActiveRootAnalysisId(null);
+                  setActiveRootAnalysisId(null);
+                  setActiveAnalysisId(null);
                   if (window.innerWidth < breakpoints.lg) {
                     setSidebarOpen(false);
                   }
