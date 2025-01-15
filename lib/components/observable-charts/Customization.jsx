@@ -17,7 +17,7 @@ export function Customization() {
     chartManager.config;
 
   const handleStyleChange = (key, value) => {
-    chartManager.editChart({ [key]: value }).render();
+    chartManager.updateChartStyle({ [key]: value }).render();
   };
 
   const renderChartSpecificControls = () => {
