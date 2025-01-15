@@ -41,7 +41,6 @@ export function StepResultsTable({
   codeStr = null,
   sql = null,
   chartImages = null,
-  reactiveVars = null,
   initialQuestion = null,
   handleEdit = (...args) => {},
   analysisTreeManager = null,
@@ -55,7 +54,6 @@ export function StepResultsTable({
   codeStr?: string | null;
   sql?: string | null;
   chartImages?: any;
-  reactiveVars?: any;
   initialQuestion: string | null;
   handleEdit?: (...args: any) => void;
   analysisTreeManager?: AnalysisTreeManager;
@@ -141,33 +139,6 @@ export function StepResultsTable({
       setCsvLoading(false);
     }
   }
-
-  // if reactive vars change, add dragstart handler to them
-  // useEffect(() => {
-  //   if (!tableChartRef.current) return;
-  //   const reactiveEls = tableChartRef.current.getElementsByClassName(
-  //     "table-chart-reactive-var"
-  //   );
-
-  //   Array.from(reactiveEls).forEach((el) => {
-  //     el.ondragstart = (e) => {
-  //       e.stopPropagation();
-  //       e.dataTransfer.clearData();
-  //       e.dataTransfer.setData(
-  //         "text/html",
-  //         `<reactive-var
-  //             data-reactive-var='true'
-  //             data-reactive-var-name=${el.dataset.reactiveVarName}
-  //             data-val=${roundNumber(+el.dataset.val)}
-  //             data-reactive-var-nest-location=${
-  //               el.dataset.reactiveVarNestLocation
-  //             }
-  //             data-table-id=${el.dataset.stepId}>
-  //           </reactive-var>`
-  //       );
-  //     };
-  //   });
-  // }, [reactiveVars]);
 
   const activeTab = useSyncExternalStore(
     (l) => analysisTreeManager.subscribeToActiveTabChanges(analysisId, l),
@@ -440,42 +411,9 @@ export function StepResultsTable({
     );
   }
 
-  const reactiveVarJsx = useMemo(() => {
-    if (
-      !reactiveVars ||
-      typeof reactiveVars !== "object" ||
-      Object.keys(reactiveVars).length <= 0
-    )
-      return <></>;
-
-    if (
-      reactiveVars &&
-      typeof reactiveVars === "object" &&
-      Object.keys(reactiveVars).length > 0
-    ) {
-      // keep nesting into divs until we get to the keys that are not objects
-
-      let keys = Object.keys(reactiveVars);
-
-      return (
-        <>
-          <div className="table-chart-reactive-var-ctr">
-            <div className="sticky">
-              <p className="small">STATISTICS</p>
-              {keys.map((key) =>
-                nestedDivsUntilNumericKeys(key, reactiveVars, key)
-              )}
-            </div>
-          </div>
-        </>
-      );
-    }
-  }, [reactiveVars]);
-
   return (
     <div className="table-chart-ctr" ref={tableChartRef}>
       {results}
-      {reactiveVarJsx}
     </div>
   );
 }
