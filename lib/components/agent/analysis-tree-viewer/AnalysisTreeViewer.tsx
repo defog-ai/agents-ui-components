@@ -844,7 +844,6 @@ export function AnalysisTreeViewer({
                 loading={loading}
                 activeRootAnalysisId={activeRootAnalysisId}
                 activeAnalysisId={activeAnalysisId}
-                showToggle={showToggle}
                 forceSqlOnly={forceSqlOnly}
                 setSqlOnly={setSqlOnly}
                 sqlOnly={sqlOnly}
