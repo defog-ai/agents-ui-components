@@ -49,10 +49,7 @@ interface LineChartOptions {
   filter: string | null;
   colorBy?: string | null;
   colorByIsDate?: boolean;
-  aggregateFunction:
-    | "sum"
-    | "count"
-    | "mean"
+  aggregateFunction: "sum" | "count" | "mean";
 }
 
 interface BarChartOptions {
@@ -423,12 +420,12 @@ export const defaultChartManager: ChartManager = {
       xTicks: 10,
       dateFormat: "%b %-d, %Y",
       yTicks: 10,
-      selectedScheme: "Accent",
+      selectedScheme: "Tableau10",
       yAxisUnitLabel: "",
     },
     chartSpecificOptions: {
       line: {
-        lineWidth: 2,
+        lineWidth: 4,
         curve: "linear",
         marker: false,
         filter: null,
