@@ -689,7 +689,7 @@ export function AnalysisTreeViewer({
                   History
                   <span
                     title="Clear history"
-                    className="text-xs font-light underline text-gray-400 dark:text-gray-500 inline hover:text-blue-500 dark:hover:text-blue-500 cursor-pointer"
+                    className="text-xs font-light underline text-gray-400 dark:text-gray-500 inline hover:text-blue-500 dark:hover:text-blue-500 cursor-pointer pl-2"
                     onClick={() => {
                       analysisTreeManager.reset();
                       analysisTreeManager.setActiveAnalysisId(null);
