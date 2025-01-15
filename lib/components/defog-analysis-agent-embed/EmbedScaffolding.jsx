@@ -33,38 +33,42 @@ export function EmbedScaffolding({
         typeof rootClassNames === "function" ? rootClassNames(selectedDb) : ""
       )}
     >
-      <div className="w-full relative mb-4 text-gray-500 text-xs flex flex-row">
-        <div className="h-full mr-2 font-bold z-10 whitespace-nowrap py-2">
-          Dataset:
-        </div>
-        <div className="overflow-auto flex flex-row gap-2 px-2 items-center rounded-md">
-          {availableDbs.map((db, i) => {
-            return (
-              <span
-                data-testid="db-tab"
-                data-selected-db={selectedDb === db}
-                key={db + "-" + i}
-                onClick={() => {
-                  if (fileUploading) return;
+      <div className="w-full relative mb-4 text-gray-500 text-xs flex flex-row z-10">
+        {availableDbs.length > 1 && (
+          <>
+            <div className="h-full mr-2 font-bold z-10 whitespace-nowrap py-2">
+              Dataset:
+            </div>
+            <div className="overflow-auto flex flex-row gap-2 px-2 items-center rounded-md">
+              {availableDbs.map((db, i) => {
+                return (
+                  <span
+                    data-testid="db-tab"
+                    data-selected-db={selectedDb === db}
+                    key={db + "-" + i}
+                    onClick={() => {
+                      if (fileUploading) return;
 
-                  setSelectedDb(db);
-                  onDbChange(db);
-                }}
-                className={twMerge(
-                  "p-2 bg-gray-200 border border-gray-300 rounded-full cursor-pointer whitespace-nowrap",
-                  selectedDb === db
-                    ? "bg-gray-600 border-transparent text-white"
-                    : "hover:bg-gray-300",
-                  fileUploading
-                    ? "cursor-not-allowed bg-gray-200 text-gray-400 hover:bg-gray-200"
-                    : ""
-                )}
-              >
-                {db}
-              </span>
-            );
-          })}
-        </div>
+                      setSelectedDb(db);
+                      onDbChange(db);
+                    }}
+                    className={twMerge(
+                      "p-2 bg-gray-200 border border-gray-300 rounded-full cursor-pointer whitespace-nowrap",
+                      selectedDb === db
+                        ? "bg-gray-600 border-transparent text-white"
+                        : "hover:bg-gray-300",
+                      fileUploading
+                        ? "cursor-not-allowed bg-gray-200 text-gray-400 hover:bg-gray-200"
+                        : ""
+                    )}
+                  >
+                    {db}
+                  </span>
+                );
+              })}
+            </div>
+          </>
+        )}
         <div className="self-end ml-auto pl-3">
           <span
             data-testid="db-selection-file-upload"
@@ -86,7 +90,7 @@ export function EmbedScaffolding({
           </span>
         </div>
       </div>
-      {children}
+      <div className={availableDbs.length > 1 ? "" : "-mt-16"}>{children}</div>
     </div>
   );
 }
