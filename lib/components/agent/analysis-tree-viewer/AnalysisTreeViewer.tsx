@@ -677,7 +677,7 @@ export function AnalysisTreeViewer({
           <div className="lg:hidden absolute bottom-0 left-0 w-full h-[5%] pointer-events-none bg-gradient-to-b from-transparent to-gray-300 z-10"></div>
         )}
         <div className="flex flex-row w-full h-full max-w-full text-gray-600 bg-white dark:bg-gray-900 analysis-tree-viewer">
-          <div className="absolute left-0 top-0 z-[20] lg:sticky h-full">
+          <div className="absolute left-0 top-0 z-[20] lg:sticky h-screen">
             <Sidebar
               location="left"
               open={sidebarOpen}
@@ -798,7 +798,7 @@ export function AnalysisTreeViewer({
           />
           <div
             className={twMerge(
-              "relative w-full h-full min-w-0 p-2 pt-10 overflow-auto rounded-tr-lg sm:pt-0 grow lg:p-4",
+              "relative w-full h-screen min-w-0 p-2 pt-10 overflow-auto rounded-tr-lg sm:pt-0 grow lg:p-4",
               activeAnalysisId ? "" : "flex flex-col"
             )}
             onScroll={debounce((e: SyntheticEvent) => {
@@ -835,7 +835,11 @@ export function AnalysisTreeViewer({
                   activeAnalysisId={activeAnalysisId}
                 />
               ))}
-            <div className={searchBarDraggable ? "" : "sticky bottom-1"}>
+            <div
+              className={
+                searchBarDraggable ? "" : "fixed bottom-0 left-20 right-20 z-40"
+              }
+            >
               <DraggableInput
                 ref={searchRef}
                 searchBarClasses={searchBarClasses}
@@ -850,9 +854,8 @@ export function AnalysisTreeViewer({
                 sqlOnly={sqlOnly}
                 question={currentQuestion}
                 onNewConversationTextClick={() => {
-                  analysisTreeManager.setActiveRootAnalysisId(null);
                   analysisTreeManager.setActiveAnalysisId(null);
-
+                  analysisTreeManager.setActiveRootAnalysisId(null);
                   if (window.innerWidth < breakpoints.lg) {
                     setSidebarOpen(false);
                   }
