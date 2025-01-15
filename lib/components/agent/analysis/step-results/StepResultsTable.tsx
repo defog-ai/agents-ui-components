@@ -6,7 +6,7 @@ import {
   useRef,
   useSyncExternalStore,
 } from "react";
-import { Tabs, message, Popover } from "antd";
+import { message, Popover } from "antd";
 import { chartNames, roundColumns } from "../../agentUtils";
 
 import { Download, ChartBarIcon, Copy, TableIcon } from "lucide-react";
@@ -29,6 +29,13 @@ import { ChartContainer } from "../../../observable-charts/ChartContainer";
 
 import type { ParsedOutput, Step } from "../analysisManager";
 import type { AnalysisTreeManager } from "../../analysis-tree-viewer/analysisTreeManager";
+
+interface TabItem {
+  key: string;
+  tabLabel: string;
+  icon?: React.ReactNode;
+  component: React.ReactNode;
+}
 
 // tabBarLeftContent: extra content for the tab bar on the left side
 export function StepResultsTable({
@@ -172,52 +179,44 @@ export function StepResultsTable({
     setToolCode(codeStr);
   }, [sql, codeStr]);
 
-  const [results, setResults] = useState<any>([]);
+  const [results, setResults] = useState<TabItem[]>([]);
 
   useEffect(() => {
-    // extra tabs should be an array and all elements should be jsx components
-    let tabs = [];
+    let tabs: TabItem[] = [];
     const tableData = stepData?.data;
     if (tableData) {
       const roundedData = roundColumns(tableData.data, tableData.columns);
 
-      // find which dataset is the current node
       tabs.push({
         component: (
           <Table
             rows={roundedData}
-            // don't show index column in table
             columns={tableData.columns
               .filter((d) => d.title !== "index")
               .map((d) => {
-                d.render = (text: string) => {
-                  // popover with a copy button
-                  return (
-                    <Popover
-                      content={() => (
-                        <div
-                          style={{
-                            padding: 8,
-                          }}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            e.preventDefault();
-                            navigator.clipboard.writeText(text).then(() => {
-                              message.success("Copied to clipboard.");
-                            });
-                          }}
-                        >
-                          <Copy className="w-3 h-3 table-chart-cell-copy-icon" />
-                        </div>
-                      )}
-                      arrow={false}
-                      placement="right"
-                      rootClassName="table-chart-cell-copy-popover"
-                    >
-                      <div style={{ padding: 8 }}>{text}</div>
-                    </Popover>
-                  );
-                };
+                d.render = (text: string) => (
+                  <Popover
+                    content={() => (
+                      <div
+                        className="p-2"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                          navigator.clipboard.writeText(text).then(() => {
+                            message.success("Copied to clipboard.");
+                          });
+                        }}
+                      >
+                        <Copy className="w-3 h-3 table-chart-cell-copy-icon" />
+                      </div>
+                    )}
+                    arrow={false}
+                    placement="right"
+                    rootClassName="table-chart-cell-copy-popover"
+                  >
+                    <div className="p-2">{text}</div>
+                  </Popover>
+                );
                 return d;
               })}
             pagination={{ defaultPageSize: 10, showSizeChanger: true }}
@@ -246,7 +245,6 @@ export function StepResultsTable({
         });
       }
     } else {
-      // if chartImagePath is present, load the image of the chart instead
       tabs.push({
         component: (
           <ErrorBoundary>
@@ -259,7 +257,6 @@ export function StepResultsTable({
     }
 
     if (toolCode !== null) {
-      // show the codeStr query
       tabs.push({
         component: (
           <ErrorBoundary>
@@ -268,23 +265,43 @@ export function StepResultsTable({
               <Editor
                 className="language-python table-code-ctr"
                 value={toolCode}
-                highlight={(code) => {
-                  return highlight(code, languages.python, "python");
-                }}
+                highlight={(code) => highlight(code, languages.python, "python")}
                 onValueChange={(newVal) => updateCodeAndSql("code", newVal)}
               />
             </>
           </ErrorBoundary>
         ),
+        key: "code",
         tabLabel: "Code",
       });
     }
 
-    // convert to antd tabs
-    tabs = (
-      <Tabs
-        tabBarExtraContent={{
-          right: (
+    setResults(tabs);
+  }, [stepData, chartImages, toolCode, sqlQuery]);
+
+  return (
+    <div className="table-chart-ctr" ref={tableChartRef}>
+      <div className="flex flex-col w-full">
+        <div className="border-b border-gray-200">
+          <div className="flex items-center justify-between">
+            <nav className="flex space-x-4" aria-label="Tabs">
+              {results.map((tab) => (
+                <button
+                  key={tab.key}
+                  onClick={() => analysisTreeManager.setActiveTab(analysisId, tab.key)}
+                  className={`
+                    px-3 py-2 text-sm font-medium rounded-t-lg
+                    ${activeTab === tab.key
+                      ? 'border-b-2 border-blue-500 text-blue-600'
+                      : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }
+                  `}
+                >
+                  {tab.icon}
+                  {tab.tabLabel}
+                </button>
+              ))}
+            </nav>
             <Button
               onClick={async () => {
                 await saveCsv();
@@ -292,34 +309,16 @@ export function StepResultsTable({
               title="Download CSV"
               disabled={csvLoading}
               variant="primary"
+              className="ml-4"
             >
               Download CSV <Download className="w-4 h-4" />
             </Button>
-          ),
-        }}
-        activeKey={activeTab}
-        onChange={(key) => {
-          analysisTreeManager.setActiveTab(analysisId, key);
-        }}
-        items={tabs.map((d, i) => ({
-          key: d.key,
-          label: (
-            <span>
-              {d.icon ? d.icon : null}
-              {d.tabLabel ? d.tabLabel : `Tab-${i}`}
-            </span>
-          ),
-          children: d.component,
-        }))}
-      ></Tabs>
-    );
-
-    setResults(tabs);
-  }, [stepData, chartImages, toolCode, sqlQuery, activeTab]);
-
-  return (
-    <div className="table-chart-ctr" ref={tableChartRef}>
-      {results}
+          </div>
+        </div>
+        <div className="mt-4">
+          {results.find(tab => tab.key === activeTab)?.component}
+        </div>
+      </div>
     </div>
   );
 }
