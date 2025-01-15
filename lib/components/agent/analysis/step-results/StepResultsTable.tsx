@@ -182,6 +182,29 @@ export function StepResultsTable({
 
   const [results, setResults] = useState<TabItem[]>([]);
 
+  const resultAnalysis = useMemo(() => {
+    return (
+      stepData?.csvString && (
+        <StepResultAnalysis
+          stepId={stepId}
+          keyName={keyName}
+          question={initialQuestion}
+          data_csv={stepData?.csvString}
+          sql={sql}
+          apiEndpoint={apiEndpoint}
+        />
+      )
+    );
+  }, [stepData, stepId, keyName, initialQuestion, sql, apiEndpoint]);
+
+  const chartContainer = useMemo(() => {
+    return (
+      stepData && (
+        <ChartContainer stepData={stepData} initialQuestion={initialQuestion} />
+      )
+    );
+  }, [stepData, initialQuestion]);
+
   useEffect(() => {
     let tabs: TabItem[] = [];
     const tableData = stepData?.data;
@@ -190,38 +213,41 @@ export function StepResultsTable({
 
       tabs.push({
         component: (
-          <Table
-            rows={roundedData}
-            columns={tableData.columns
-              .filter((d) => d.title !== "index")
-              .map((d) => {
-                d.render = (text: string) => (
-                  <Popover
-                    content={() => (
-                      <div
-                        className="p-2"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          e.preventDefault();
-                          navigator.clipboard.writeText(text).then(() => {
-                            message.success("Copied to clipboard.");
-                          });
-                        }}
-                      >
-                        <Copy className="w-3 h-3 table-chart-cell-copy-icon" />
-                      </div>
-                    )}
-                    arrow={false}
-                    placement="right"
-                    rootClassName="table-chart-cell-copy-popover"
-                  >
-                    <div className="p-2">{text}</div>
-                  </Popover>
-                );
-                return d;
-              })}
-            pagination={{ defaultPageSize: 10, showSizeChanger: true }}
-          />
+          <div className="grid grid-cols-2 gap-8">
+            <Table
+              rows={roundedData}
+              columns={tableData.columns
+                .filter((d) => d.title !== "index")
+                .map((d) => {
+                  d.render = (text: string) => (
+                    <Popover
+                      content={() => (
+                        <div
+                          className="p-2"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            navigator.clipboard.writeText(text).then(() => {
+                              message.success("Copied to clipboard.");
+                            });
+                          }}
+                        >
+                          <Copy className="w-3 h-3 table-chart-cell-copy-icon" />
+                        </div>
+                      )}
+                      arrow={false}
+                      placement="right"
+                      rootClassName="table-chart-cell-copy-popover"
+                    >
+                      <div className="p-2">{text}</div>
+                    </Popover>
+                  );
+                  return d;
+                })}
+              pagination={{ defaultPageSize: 10, showSizeChanger: true }}
+            />
+            {resultAnalysis}
+          </div>
         ),
         key: "table",
         tabLabel: "Table",
@@ -233,12 +259,10 @@ export function StepResultsTable({
       if (stepData) {
         tabs.push({
           component: (
-            <ErrorBoundary>
-              <ChartContainer
-                stepData={stepData}
-                initialQuestion={initialQuestion}
-              />
-            </ErrorBoundary>
+            <div className="grid grid-cols-2 gap-8">
+              <ErrorBoundary>{chartContainer}</ErrorBoundary>
+              {resultAnalysis}
+            </div>
           ),
           tabLabel: "Chart",
           key: "chart",
@@ -282,8 +306,6 @@ export function StepResultsTable({
     setResults(tabs);
   }, [stepData, chartImages, toolCode, sqlQuery]);
 
-  console.log(stepData);
-
   return (
     <div className="table-chart-ctr" ref={tableChartRef}>
       <div className="flex flex-col w-full">
@@ -325,16 +347,6 @@ export function StepResultsTable({
         </div>
         <div className="mt-4">
           {results.find((tab) => tab.key === activeTab)?.component}
-          {stepData?.csvString && (
-            <StepResultAnalysis
-              stepId={stepId}
-              keyName={keyName}
-              question={initialQuestion}
-              data_csv={stepData?.csvString}
-              sql={sql}
-              apiEndpoint={apiEndpoint}
-            />
-          )}
         </div>
       </div>
     </div>
