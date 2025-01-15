@@ -149,7 +149,7 @@ let DraggableInput = forwardRef(function DraggableInput(
           <div className="flex flex-row grow">
             <div className="flex flex-col lg:flex-row-reverse lg:items-center grow">
               <TextArea
-                rootClassNames="grow border-none bg-transparent py-1.5 text-gray-900 dark:text-gray-100 px-2 placeholder:text-gray-400 dark:placeholder:text-gray-500 sm:leading-6 text-sm break-all focus:ring-0 focus:outline-none"
+                rootClassNames="grow border-none bg-transparent py-1.5 text-gray-900 dark:text-gray-100 px-2 placeholder:text-gray-400 dark:placeholder:text-gray-500 sm:leading-6 text-sm break-words focus:ring-0 focus:outline-none"
                 textAreaClassNames="resize-none"
                 ref={ref}
                 id="main-searchbar"
