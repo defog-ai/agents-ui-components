@@ -33,6 +33,7 @@ export default function StepResultAnalysis({
       let analysis = getStepAnalysisFromLocalStorage(stepId);
 
       if (!analysis) {
+        setLoading(true);
         // fetch from backend
         const urlToConnect = setupBaseUrl({
           protocol: "ws",
@@ -65,7 +66,9 @@ export default function StepResultAnalysis({
                 reconnectAttempts++;
                 setTimeout(connectWebSocket, reconnectDelay);
               } else {
-                setToolRunAnalysis("Connection timeout with the websocket server. Please try again.");
+                setToolRunAnalysis(
+                  "Connection timeout with the websocket server. Please try again."
+                );
               }
             }
           }, 10000); // 10 second timeout
@@ -76,14 +79,15 @@ export default function StepResultAnalysis({
           };
 
           ws.onmessage = (event) => {
+            setLoading(false);
             const message = event.data;
             if (message === "Defog data analysis has ended") {
               ws.close();
               addStepAnalysisToLocalStorage(stepId, analysisText);
+            } else {
+              analysisText += message;
+              setToolRunAnalysis(analysisText);
             }
-
-            analysisText += message;
-            setToolRunAnalysis(analysisText);
           };
 
           ws.onerror = (error) => {
@@ -92,7 +96,9 @@ export default function StepResultAnalysis({
               reconnectAttempts++;
               setTimeout(connectWebSocket, reconnectDelay);
             } else {
-              setToolRunAnalysis("Error connecting to server. Please try again.");
+              setToolRunAnalysis(
+                "Error connecting to server. Please try again."
+              );
             }
           };
 
@@ -107,7 +113,10 @@ export default function StepResultAnalysis({
           // Cleanup function
           return () => {
             clearTimeout(connectionTimeout);
-            if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) {
+            if (
+              ws.readyState === WebSocket.OPEN ||
+              ws.readyState === WebSocket.CONNECTING
+            ) {
               ws.close();
             }
           };
@@ -120,7 +129,9 @@ export default function StepResultAnalysis({
       }
     } catch (error) {
       console.error(error);
-      setToolRunAnalysis("An error occurred while analyzing data. Please try again.");
+      setToolRunAnalysis(
+        "An error occurred while analyzing data. Please try again."
+      );
     }
   }
 
