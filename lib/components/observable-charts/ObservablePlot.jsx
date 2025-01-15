@@ -125,10 +125,6 @@ export default function ObservablePlot() {
             selectedColumns.y,
             chartSpecificOptions[selectedChart].colorBy
           );
-          // if this has more than 50 unique values in the x axis, then will will not render the chart and ask to use line chart instead
-          uniqueLabels = new Set(
-            processedData.map((d) => d[selectedColumns.x])
-          );
         } catch (e) {
           console.error("Error converting wide to long format", e);
         }
@@ -296,7 +292,7 @@ export default function ObservablePlot() {
                 // if date, format it
                 // convert from unix to date
                 const date = dayjs(d);
-                return date.format('MMM D, YYYY');
+                return date.format("MMM D, YYYY");
               } else {
                 return d;
               }
@@ -309,9 +305,7 @@ export default function ObservablePlot() {
           },
         };
 
-        containerRef.current.appendChild(
-          Plot.plot(finalOptions)
-        );
+        containerRef.current.appendChild(Plot.plot(finalOptions));
       } else if (chartManager.config.selectedChart === "line") {
         // we will create a custom scale
         // and use (if specified) options.lineOptions
@@ -501,29 +495,25 @@ export default function ObservablePlot() {
     <div className="grow bg-white">
       <div className="flex justify-end mb-2">
         {observableOptions && observableOptions?.wasSampled && (
-          <div className="text-sm self-start mr-auto text-rose-500">
-            Chart was sampled to show 200 unique values
+          <div className="text-gray-500 text-sm">
+            * Data has been sampled for better visualization
           </div>
         )}
         <Button
-          className="flex flex-row items-center text-sm text-gray-800 border bg-gray-50 hover:bg-gray-200 z-[10]"
-          onClick={() => {
-            if (containerRef.current && observableOptions) {
-              // get the first child inside container because container has overflow scroll
-              const chart = containerRef.current.children[0];
-              if (chart) {
-                saveAsPNG(chart, observableOptions.backgroundColor);
-              }
-            }
-          }}
+          onClick={() => saveAsPNG(containerRef.current)}
+          variant="ghost"
+          className="ml-2"
+          title="Download as PNG"
         >
-          <Download size={16} className="mr-2" /> Save as PNG
+          <Download size={16} className="mr-1" /> Save as PNG
         </Button>
       </div>
       <div
-        className="w-full h-[560px] text-gray-500 bg-white observable-plot overflow-auto"
         ref={containerRef}
-      ></div>
+        className="w-full observable-plot h-[500px] overflow-visible observable-plot"
+      >
+        {/* Chart will be rendered here */}
+      </div>
     </div>
   );
 }
