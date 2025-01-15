@@ -26,6 +26,7 @@ import { roundNumber } from "../../../utils/utils";
 import setupBaseUrl from "../../../utils/setupBaseUrl";
 import { Button, Table } from "@ui-components";
 import { ChartContainer } from "../../../observable-charts/ChartContainer";
+import StepResultAnalysis from "./StepResultAnalysis";
 
 import type { ParsedOutput, Step } from "../analysisManager";
 import type { AnalysisTreeManager } from "../../analysis-tree-viewer/analysisTreeManager";
@@ -265,7 +266,9 @@ export function StepResultsTable({
               <Editor
                 className="language-python table-code-ctr"
                 value={toolCode}
-                highlight={(code) => highlight(code, languages.python, "python")}
+                highlight={(code) =>
+                  highlight(code, languages.python, "python")
+                }
                 onValueChange={(newVal) => updateCodeAndSql("code", newVal)}
               />
             </>
@@ -279,6 +282,8 @@ export function StepResultsTable({
     setResults(tabs);
   }, [stepData, chartImages, toolCode, sqlQuery]);
 
+  console.log(stepData);
+
   return (
     <div className="table-chart-ctr" ref={tableChartRef}>
       <div className="flex flex-col w-full">
@@ -288,12 +293,15 @@ export function StepResultsTable({
               {results.map((tab) => (
                 <button
                   key={tab.key}
-                  onClick={() => analysisTreeManager.setActiveTab(analysisId, tab.key)}
+                  onClick={() =>
+                    analysisTreeManager.setActiveTab(analysisId, tab.key)
+                  }
                   className={`
                     px-3 py-2 text-sm font-medium rounded-t-lg
-                    ${activeTab === tab.key
-                      ? 'border-b-2 border-blue-500 text-blue-600'
-                      : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ${
+                      activeTab === tab.key
+                        ? "border-b-2 border-blue-500 text-blue-600"
+                        : "text-gray-500 hover:text-gray-700 hover:border-gray-300"
                     }
                   `}
                 >
@@ -316,7 +324,17 @@ export function StepResultsTable({
           </div>
         </div>
         <div className="mt-4">
-          {results.find(tab => tab.key === activeTab)?.component}
+          {results.find((tab) => tab.key === activeTab)?.component}
+          {stepData?.csvString && (
+            <StepResultAnalysis
+              stepId={stepId}
+              keyName={keyName}
+              question={initialQuestion}
+              data_csv={stepData?.csvString}
+              sql={sql}
+              apiEndpoint={apiEndpoint}
+            />
+          )}
         </div>
       </div>
     </div>

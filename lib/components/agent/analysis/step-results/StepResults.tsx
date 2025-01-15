@@ -13,7 +13,7 @@ import { Tabs } from "../../../core-ui/Tabs";
 import { AgentConfigContext } from "../../../context/AgentContext";
 import { SpinningLoader } from "@ui-components";
 import SQLFeedback from "./SQLFeedback";
-import StepResultAnalysis from "./StepResultAnalysis";
+import StepFollowOn from "./StepFollowOn";
 import { CodeEditor } from "./CodeEditor";
 import type { AnalysisTreeManager } from "../../analysis-tree-viewer/analysisTreeManager";
 import { AnalysisData, ParsedOutput, Step } from "../analysisManager";
@@ -387,21 +387,12 @@ export function StepResults({
                     analysisId={analysisId}
                   />
                 )}
-
-                {parsedOutputs &&
-                  Object.values(parsedOutputs) &&
-                  Object.values(parsedOutputs).length &&
-                  Object.values(parsedOutputs)[0]?.csvString && (
-                    <StepResultAnalysis
-                      stepId={stepId}
-                      keyName={keyName}
-                      question={step?.inputs?.question}
-                      data_csv={Object.values(parsedOutputs)[0]?.csvString}
-                      sql={step?.sql}
-                      apiEndpoint={apiEndpoint}
-                      setCurrentQuestion={setCurrentQuestion}
-                    />
-                  )}
+                <StepFollowOn
+                  question={step?.inputs?.question}
+                  keyName={keyName}
+                  apiEndpoint={apiEndpoint}
+                  setCurrentQuestion={setCurrentQuestion}
+                />
               </div>
             );
           })
