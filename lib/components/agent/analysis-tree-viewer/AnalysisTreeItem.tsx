@@ -24,15 +24,15 @@ export function AnalysisTreeItem({
 
         isDummy
           ? "dummy-analysis border-l-4 bg-gray-100 dark:bg-gray-800 border-l-blue-500 text-blue-500 m-0"
-          : analysis && analysis.analysisId,
+          : analysis && analysis.analysisId && "border-b border-gray-100 dark:border-gray-800",
         extraClasses
       )}
     >
       <div className="grow">
         <div
           className={twMerge(
-            "title hover:cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 history-item p-1",
-            isActive ? "font-bold bg-gray-200 dark:bg-gray-700 border-l-1" : ""
+            "title hover:cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 history-item p-2 text-sm",
+            isActive ? "font-medium bg-gray-100 dark:bg-gray-800 border-l-2 border-l-blue-500" : ""
           )}
           onClick={() => {
             onClick(analysis);
