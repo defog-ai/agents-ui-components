@@ -56,7 +56,7 @@ export const defaultOptions: ChartOptions = {
   backgroundColor: "#ffffff",
   fontSize: 12,
   title: "",
-  lineWidth: 2,
+  lineWidth: 3,
   pointColor: "steelblue",
   yAxisUnitLabel: "",
   yAxisUnitPosition: "suffix",
