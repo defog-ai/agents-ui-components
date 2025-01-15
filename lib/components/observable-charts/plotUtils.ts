@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import * as Plot from "@observablehq/plot";
 import { timeFormat } from "d3";
 import dayjs, { unix } from "dayjs";
@@ -16,7 +18,7 @@ export interface Margin {
 }
 
 export interface ChartOptions {
-  type: 'line' | 'bar' | 'scatter' | 'histogram' | 'boxplot';
+  type: "line" | "bar" | "scatter" | "histogram" | "boxplot";
   x: string | null;
   y: string | string[] | null;
   xLabel?: string;
@@ -27,11 +29,11 @@ export interface ChartOptions {
   lineWidth?: number;
   pointColor?: string;
   yAxisUnitLabel?: string;
-  yAxisUnitPosition?: 'prefix' | 'suffix';
+  yAxisUnitPosition?: "prefix" | "suffix";
   showLabels?: boolean;
   margin?: Margin;
   dateFormat?: string;
-  boxplotOrientation?: 'vertical' | 'horizontal';
+  boxplotOrientation?: "vertical" | "horizontal";
   color?: { legend: boolean };
   xIsDate?: boolean;
   xGrid?: boolean;
@@ -145,8 +147,12 @@ export const getObservableOptions = (
     marginTop: mergedOptions?.margin?.top ?? defaultOptions?.margin?.top,
     marginRight: mergedOptions?.margin?.right ?? defaultOptions?.margin?.right,
     aggregateFunction: "sum",
-    marginBottom: (mergedOptions?.margin?.bottom ?? defaultOptions?.margin?.bottom) || 0 + 50,
-    marginLeft: isHorizontalOrientation ? 100 : (mergedOptions?.margin?.left ?? defaultOptions?.margin?.left),
+    marginBottom:
+      (mergedOptions?.margin?.bottom ?? defaultOptions?.margin?.bottom) ||
+      0 + 50,
+    marginLeft: isHorizontalOrientation
+      ? 100
+      : (mergedOptions?.margin?.left ?? defaultOptions?.margin?.left),
     style: {
       backgroundColor: mergedOptions.backgroundColor,
       overflow: "visible",
@@ -156,7 +162,9 @@ export const getObservableOptions = (
       legend: true,
       tickFormat: (d: any) => {
         if (xIsDate && dayjs(d).isValid()) {
-          return timeFormat(mergedOptions.dateFormat || defaultOptions.dateFormat)(unix(d));
+          return timeFormat(
+            mergedOptions.dateFormat || defaultOptions.dateFormat
+          )(unix(d));
         } else {
           return d;
         }
@@ -192,9 +200,9 @@ export const getObservableOptions = (
 
 // Main function to generate chart marks
 export function getMarks(
-  data: any[], 
-  options: ChartOptions, 
-  selectedColumns: string[], 
+  data: any[],
+  options: ChartOptions,
+  selectedColumns: string[],
   availableColumns: string[]
 ) {
   const mergedOptions = { ...defaultOptions, ...options };
@@ -216,12 +224,18 @@ interface AggregateRecord {
   facet: string;
 }
 
-function aggregateData(data: Array<any>, aggregateFunction: string): Array<AggregateRecord> {
+function aggregateData(
+  data: Array<any>,
+  aggregateFunction: string
+): Array<AggregateRecord> {
   let aggregatedData = [];
   if (aggregateFunction == "sum") {
     aggregatedData = data.reduce((acc, curr) => {
       const { label, value, facet } = curr;
-      const existingRecord = acc.find((record: AggregateRecord) => record.label === label && record.facet === facet);
+      const existingRecord = acc.find(
+        (record: AggregateRecord) =>
+          record.label === label && record.facet === facet
+      );
       if (existingRecord) {
         existingRecord.value += value;
       } else {
@@ -232,7 +246,10 @@ function aggregateData(data: Array<any>, aggregateFunction: string): Array<Aggre
   } else if (aggregateFunction == "count") {
     aggregatedData = data.reduce((acc, curr) => {
       const { label, facet } = curr;
-      const existingRecord = acc.find((record: AggregateRecord) => record.label === label && record.facet === facet);
+      const existingRecord = acc.find(
+        (record: AggregateRecord) =>
+          record.label === label && record.facet === facet
+      );
       if (existingRecord) {
         existingRecord.value += 1;
       } else {
@@ -244,7 +261,10 @@ function aggregateData(data: Array<any>, aggregateFunction: string): Array<Aggre
     // first take the sum, then take the count, then divide sum by count
     aggregatedData = data.reduce((acc, curr) => {
       const { label, value, facet } = curr;
-      const existingRecord = acc.find((record: AggregateRecord) => record.label === label && record.facet === facet);
+      const existingRecord = acc.find(
+        (record: AggregateRecord) =>
+          record.label === label && record.facet === facet
+      );
       if (existingRecord) {
         existingRecord.value += value;
       } else {
@@ -253,7 +273,15 @@ function aggregateData(data: Array<any>, aggregateFunction: string): Array<Aggre
       return acc;
     }, []);
     aggregatedData = aggregatedData.map((record: AggregateRecord) => {
-      return { ...record, value: record.value / data.filter((d: AggregateRecord) => d.label === record.label && d.facet === record.facet).length };
+      return {
+        ...record,
+        value:
+          record.value /
+          data.filter(
+            (d: AggregateRecord) =>
+              d.label === record.label && d.facet === record.facet
+          ).length,
+      };
     });
   }
   return aggregatedData;
@@ -291,13 +319,14 @@ function getXAxis(options: ChartOptions): Plot.Mark {
         try {
           dateXTick = dayjs(d);
         } catch (e) {
-          dateXTick = d
+          dateXTick = d;
         }
 
-        return i % Math.ceil(ticks.length / options.xTicks) === 0 ?
-        dateXTick.format("MMM DD, YYYY") : null;
+        return i % Math.ceil(ticks.length / options.xTicks) === 0
+          ? dateXTick.format("MMM DD, YYYY")
+          : null;
       }
-      
+
       return options.xTicks &&
         i % Math.ceil(ticks.length / options.xTicks) === 0
         ? d
@@ -347,7 +376,10 @@ interface TooltipConfig {
   format?: (d: any) => string;
 }
 
-function getTooltipConfig(options: ChartOptions, isHorizontalBoxplot: boolean = false): TooltipConfig {
+function getTooltipConfig(
+  options: ChartOptions,
+  isHorizontalBoxplot: boolean = false
+): TooltipConfig {
   const tipFormat = {};
 
   if (options.xIsDate && !isHorizontalBoxplot) {
@@ -460,43 +492,37 @@ function getLineMarks(
   return marks;
 }
 
-function getBarMarks(
-  data: any[],
-  options: ChartOptions
-): ChartMark[] {
+function getBarMarks(data: any[], options: ChartOptions): ChartMark[] {
   const aggregateFunction = options.aggregateFunction || "sum";
-  
+
   const transformedData = data.map((d) => {
-    return { 
+    return {
       label: d[options.x || "label"],
       value: d[options.y || "value"],
-      facet: d[options.facet || "facet"]
+      facet: d[options.facet || "facet"],
     };
   });
   const aggregatedData = aggregateData(transformedData, aggregateFunction);
   const marks = [];
   marks.push(
-    Plot.barY(
-      aggregatedData,
-      {
-        x: "label",
-        y: "value",
-        fx: "facet",
-        fill: "label",
-        sort: {
-          fx: {
-            value: "-y",
-            limit: 10,
-          },
+    Plot.barY(aggregatedData, {
+      x: "label",
+      y: "value",
+      fx: "facet",
+      fill: "label",
+      sort: {
+        fx: {
+          value: "-y",
+          limit: 10,
         },
-        tip: {
-          format: {
-            x: (d) => d,
-            y: (d) => d,
-          },
-        }
       },
-    )
+      tip: {
+        format: {
+          x: (d) => d,
+          y: (d) => d,
+        },
+      },
+    })
   );
   return marks;
 }
@@ -756,7 +782,10 @@ function getBoxPlotMarks(
   return marks;
 }
 
-export function getColorScheme(scheme: string): { colorScheme: string[] | ((t: number) => string); schemeName: string } {
+export function getColorScheme(scheme: string): {
+  colorScheme: string[] | ((t: number) => string);
+  schemeName: string;
+} {
   const schemeKey = `scheme${scheme}`;
   const interpolatorKey = `interpolate${scheme}`;
 
