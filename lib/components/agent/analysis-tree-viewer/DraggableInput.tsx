@@ -145,9 +145,9 @@ let DraggableInput = forwardRef(function DraggableInput(
             <Move className="w-3 h-3 text-gray-400 dark:text-gray-500 group-hover:text-primary-text dark:group-hover:text-gray-300" />
           </div>
         )}
-        <div className="flex flex-col-reverse rounded-md grow lg:items-center lg:flex-row">
+        <div className="flex flex-row rounded-md grow items-center">
           <div className="flex flex-row grow">
-            <div className="flex flex-col lg:flex-row-reverse lg:items-center grow">
+            <div className="flex flex-row-reverse items-center grow">
               <TextArea
                 rootClassNames="grow border-none bg-transparent py-1.5 text-gray-900 dark:text-gray-100 px-2 placeholder:text-gray-400 dark:placeholder:text-gray-500 sm:leading-6 text-sm break-words focus:ring-0 focus:outline-none"
                 textAreaClassNames="resize-none"
