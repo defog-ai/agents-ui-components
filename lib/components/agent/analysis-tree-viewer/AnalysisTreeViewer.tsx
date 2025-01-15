@@ -711,53 +711,28 @@ export function AnalysisTreeViewer({
                 "w-72 p-4 rounded-tl-lg relative sm:block min-h-96 h-full"
               }
             >
-              <div className="relative flex flex-col text-sm history-list">
-                <AnalysisTreeViewerLinks
-                  analyses={allAnalyses}
-                  activeAnalysisId={
-                    activeAnalysisId && allAnalyses?.[activeAnalysisId]
-                      ? activeAnalysisId
-                      : null
-                  }
-                />
-                {!activeRootAnalysisId ? (
-                  <div className="py-3">
-                    <AnalysisTreeItem isDummy={true} />
-                  </div>
-                ) : (
-                  <div className="sticky w-full top-0 py-3 bg-gray-100 dark:bg-gray-800">
-                    <div
-                      data-enabled={true}
-                      className={twMerge(
-                        "flex items-center cursor-pointer z-20 relative",
-                        "bg-blue-500 dark:bg-blue-500 hover:bg-blue-500 dark:hover:bg-blue-500 text-white dark:text-white p-2 shadow-md border border-blue-500 dark:border-blue-500"
-                      )}
-                      onClick={() => {
-                        disableScrollEvent.current = true;
-                        analysisTreeManager.setActiveRootAnalysisId(null);
-                        analysisTreeManager.setActiveAnalysisId(null);
+              <div className="flex flex-col h-full w-full overflow-y-auto">
+                {/* New Analysis */}
+                <div className="mb-4">
+                  <AnalysisTreeItem
+                    isDummy={true}
+                    onClick={() => {
+                      setCurrentQuestion("");
+                      setActiveRootAnalysisId(null);
+                      setActiveAnalysisId(null);
+                    }}
+                  />
+                </div>
 
-                        if (window.innerWidth < breakpoints.lg) {
-                          setSidebarOpen(false);
-                        }
-                      }}
-                    >
-                      Start new thread
-                      <PlusIcon className="inline w-4 h-4 ml-2" />
-                    </div>
-                  </div>
-                )}
-
-                {Object.keys(analysisIdsGrouped).map((groupName) => {
-                  const analysesInGroup = analysisIdsGrouped[groupName];
-                  if (!analysesInGroup.length) return null;
-
+                {/* Groups */}
+                {Object.entries(analysisIdsGrouped).map(([group, analyses]) => {
+                  if (analyses.length === 0) return null;
                   return (
-                    <div key={groupName}>
-                      <h3 className="text-lg font-bold text-gray-400 dark:text-gray-500 mt-4 mb-2">
-                        {groupName}
-                      </h3>
-                      {analysesInGroup.map((rootAnalysisId: string) => {
+                    <div key={group} className="mb-6">
+                      <div className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2 px-2">
+                        {group}
+                      </div>
+                      {analyses.map((rootAnalysisId: string) => {
                         const root = nestedTree[rootAnalysisId];
 
                         return (
