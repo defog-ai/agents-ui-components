@@ -482,17 +482,33 @@ export function EmbedInner({
       }}
       fileUploading={fileUploading}
     >
-      <Tabs
-        disableSingleSelect={true}
-        vertical={true}
-        rootClassNames="grow h-[90%] w-full"
-        contentClassNames="mt-2 sm:mt-0 bg-white grow overflow-hidden shadow-custom rounded-2xl sm:rounded-tl-none"
-        defaultTabClassNames="pl-0 sm:mt-0 h-full"
-        selectedTabHeaderClasses={(nm) =>
-          nm === "Analysis" ? "bg-transparent" : ""
-        }
-        tabs={tabs}
-      />
+      {hidePreviewTabs ? (
+        <AnalysisTabContent
+          key={selectedDbKeyName}
+          predefinedQuestions={selectedDbPredefinedQuestions}
+          isTemp={selectedDbIsTemp}
+          keyName={selectedDbKeyName}
+          treeManager={selectedDbManager}
+          forceSqlOnly={selectedDbIsSqlOnly}
+          metadata={selectedDbMetadata}
+          searchBarDraggable={searchBarDraggable}
+          searchBarClasses={searchBarClasses}
+          defaultSidebarOpen={defaultSidebarOpen}
+          onTreeChange={onTreeChange}
+        />
+      ) : (
+        <Tabs
+          disableSingleSelect={true}
+          vertical={true}
+          rootClassNames="grow h-[90%] w-full"
+          contentClassNames="mt-2 sm:mt-0 bg-white grow overflow-hidden shadow-custom rounded-2xl sm:rounded-tl-none"
+          defaultTabClassNames="pl-0 sm:mt-0 h-full"
+          selectedTabHeaderClasses={(nm) =>
+            nm === "Analysis" ? "bg-transparent" : ""
+          }
+          tabs={tabs}
+        />
+      )}
     </EmbedScaffolding>
   );
 }
