@@ -425,7 +425,7 @@ export const defaultChartManager: ChartManager = {
     },
     chartSpecificOptions: {
       line: {
-        lineWidth: 4,
+        lineWidth: 3,
         curve: "linear",
         marker: false,
         filter: null,
