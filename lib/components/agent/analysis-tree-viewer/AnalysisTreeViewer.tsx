@@ -665,9 +665,6 @@ export function AnalysisTreeViewer({
     analysisTreeManager.setActiveRootAnalysisId(rootAnalysisId);
   }, []);
 
-  console.log("activeAnalysisId", activeAnalysisId);
-  console.log("activeRootAnalysisId", activeRootAnalysisId);
-
   return (
     <ErrorBoundary>
       <div className="relative h-full">
@@ -836,7 +833,7 @@ export function AnalysisTreeViewer({
               ))}
             <div
               className={
-                searchBarDraggable ? "" : "fixed bottom-1 left-40 right-40 z-40"
+                searchBarDraggable ? "" : "fixed bottom-1 z-40 lg:w-4/6 w-11/12"
               }
             >
               <DraggableInput
