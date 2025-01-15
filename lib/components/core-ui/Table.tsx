@@ -20,11 +20,11 @@ interface Column {
   width?: number | string;
   sorter?: boolean | ((a: any, b: any) => number);
   render?: (value: any, record: any, index: number) => React.ReactNode;
-  columnHeaderCellRender: (value: Object) => false | React.ReactNode;
+  columnHeaderCellRender?: (value: Object) => false | React.ReactNode;
 }
 
 interface ExtendedColumn extends Column {
-  columnHeaderCellRender: (value: Object) => false | React.ReactNode;
+  columnHeaderCellRender?: (value: Object) => false | React.ReactNode;
 }
 
 interface RowWithIndex {
@@ -37,7 +37,7 @@ interface TableProps {
   rows: any[];
   rootClassNames?: string;
   pagerClassNames?: string;
-  paginationPosition?: 'top' | 'bottom' | 'both';
+  paginationPosition?: "top" | "bottom" | "both";
   pagination?: {
     defaultPageSize?: number;
     showSizeChanger?: boolean;
@@ -52,7 +52,7 @@ interface ColumnHeaderRenderProps {
   i: number;
   allColumns: Column[];
   toggleSort: (dataIndex: string) => void;
-  sortOrder: 'asc' | 'desc' | null;
+  sortOrder: "asc" | "desc" | null;
   sortColumn: string | null;
   columnHeaderClassNames?: string;
 }
@@ -250,7 +250,9 @@ export function Table({
   const messageManager = useContext(MessageManagerContext);
   // name of the property in the rows objects where each column's data is stored
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [pageSize, setPageSize] = useState<number>(pagination?.defaultPageSize || 10);
+  const [pageSize, setPageSize] = useState<number>(
+    pagination?.defaultPageSize || 10
+  );
   const [isPending, startTransition] = useTransition();
 
   const columnsToDisplay = useMemo<ExtendedColumn[]>(
@@ -265,7 +267,7 @@ export function Table({
   );
 
   const [sortColumn, setSortColumn] = useState<string | null>(null);
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc' | null>(null);
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc" | null>(null);
   const [sortedRows, setSortedRows] = useState<RowWithIndex[]>(
     rows.map((d, i) => ({
       ...d,
@@ -286,15 +288,18 @@ export function Table({
   }, [rows, columns, messageManager]);
 
   const dataIndexes = columnsToDisplay.map((d) => d.dataIndex);
-  const dataIndexToColumnMap = columnsToDisplay.reduce<Record<string, Column>>((acc, column) => {
-    acc[column.dataIndex] = column;
-    return acc;
-  }, {});
+  const dataIndexToColumnMap = columnsToDisplay.reduce<Record<string, Column>>(
+    (acc, column) => {
+      acc[column.dataIndex] = column;
+      return acc;
+    },
+    {}
+  );
 
   const maxPage = Math.max(1, Math.ceil(rows.length / pageSize));
 
   function toggleSort(newColumn: string) {
-    let newOrder: 'asc' | 'desc' | null = null;
+    let newOrder: "asc" | "desc" | null = null;
 
     // if it's not the same column that was earlier sorted, then force "restart" the sort "cycle"
     // and set to ascending order
@@ -318,9 +323,12 @@ export function Table({
   useEffect(() => {
     if (sortColumn && sortOrder) {
       // each column has a sorter function defined
-      const column = columnsToDisplay.find((column) => column.dataIndex === sortColumn);
-      const sorterFn = typeof column?.sorter === 'function' ? column.sorter : defaultSorter;
-      
+      const column = columnsToDisplay.find(
+        (column) => column.dataIndex === sortColumn
+      );
+      const sorterFn =
+        typeof column?.sorter === "function" ? column.sorter : defaultSorter;
+
       const sortedRows = rows.slice().sort((a, b) => {
         return sortOrder === "asc"
           ? sorterFn(a, b, sortColumn)
