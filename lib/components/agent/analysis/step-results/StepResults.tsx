@@ -369,7 +369,6 @@ export function StepResults({
                   stepData={output}
                   apiEndpoint={apiEndpoint}
                   chartImages={output["chart_images"]}
-                  reactiveVars={output["reactive_vars"]}
                   nodeName={activeNode?.data?.name}
                   analysisId={analysisId}
                   initialQuestion={step?.inputs?.question}
