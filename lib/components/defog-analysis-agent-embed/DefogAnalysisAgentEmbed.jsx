@@ -483,19 +483,23 @@ export function EmbedInner({
       fileUploading={fileUploading}
     >
       {hidePreviewTabs ? (
-        <AnalysisTabContent
-          key={selectedDbKeyName}
-          predefinedQuestions={selectedDbPredefinedQuestions}
-          isTemp={selectedDbIsTemp}
-          keyName={selectedDbKeyName}
-          treeManager={selectedDbManager}
-          forceSqlOnly={selectedDbIsSqlOnly}
-          metadata={selectedDbMetadata}
-          searchBarDraggable={searchBarDraggable}
-          searchBarClasses={searchBarClasses}
-          defaultSidebarOpen={defaultSidebarOpen}
-          onTreeChange={onTreeChange}
-        />
+        !selectedDbManager || !selectedDbKeyName || !token ? (
+          nullTab
+        ) : (
+          <AnalysisTabContent
+            key={selectedDbKeyName}
+            predefinedQuestions={selectedDbPredefinedQuestions}
+            isTemp={selectedDbIsTemp}
+            keyName={selectedDbKeyName}
+            treeManager={selectedDbManager}
+            forceSqlOnly={selectedDbIsSqlOnly}
+            metadata={selectedDbMetadata}
+            searchBarDraggable={searchBarDraggable}
+            searchBarClasses={searchBarClasses}
+            defaultSidebarOpen={defaultSidebarOpen}
+            onTreeChange={onTreeChange}
+          />
+        )
       ) : (
         <Tabs
           disableSingleSelect={true}
