@@ -28,7 +28,7 @@ export function ChartContainer({
   columns,
   stepData,
   initialQuestion = null,
-  initialOptionsExpanded = true,
+  initialOptionsExpanded = false,
 }: {
   rows?: any[];
   columns?: any[];

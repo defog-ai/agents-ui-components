@@ -444,7 +444,7 @@ export function Table({
     <div className={twMerge("overflow-auto", rootClassNames)}>
       {paginationPosition === "top" && pager}
       <div
-        className="flex flex-row mx-auto overflow-auto max-w-7xl relative"
+        className="flex flex-row mx-auto overflow-auto relative"
         style={{ minHeight: `${minTableHeight}px` }}
       >
         {isPending && <TableLoader />}
