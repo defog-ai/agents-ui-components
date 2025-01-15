@@ -10,12 +10,10 @@ import {
 } from "react";
 import { AnalysisAgent } from "../analysis/AnalysisAgent";
 import { AnalysisTreeItem } from "./AnalysisTreeItem";
-import { PlusIcon } from "lucide-react";
 import { getQuestionType, raf, sentenceCase } from "../../utils/utils";
 import { twMerge } from "tailwind-merge";
 import { Sidebar, MessageManagerContext, breakpoints } from "@ui-components";
 import ErrorBoundary from "../../common/ErrorBoundary";
-import { AnalysisTreeViewerLinks } from "./AnalysisTreeViewerLinks";
 import { AgentConfigContext } from "../../context/AgentContext";
 import { DraggableInput } from "./DraggableInput";
 import { getMostVisibleAnalysis } from "../agentUtils";
@@ -323,7 +321,6 @@ const useInitialScroll = (
   disableScrollEvent: React.RefObject<boolean>
 ) => {
   useEffect(() => {
-    console.log(currentScrollTimeout.current);
     if (currentScrollTimeout.current) {
       clearTimeout(currentScrollTimeout.current);
       currentScrollTimeout.current = null;
@@ -668,7 +665,8 @@ export function AnalysisTreeViewer({
     analysisTreeManager.setActiveRootAnalysisId(rootAnalysisId);
   }, []);
 
-  console.log(activeAnalysisId, activeRootAnalysisId);
+  console.log("activeAnalysisId", activeAnalysisId);
+  console.log("activeRootAnalysisId", activeRootAnalysisId);
 
   return (
     <ErrorBoundary>
@@ -718,8 +716,9 @@ export function AnalysisTreeViewer({
                     isDummy={true}
                     onClick={() => {
                       setCurrentQuestion("");
-                      setActiveRootAnalysisId(null);
-                      setActiveAnalysisId(null);
+                      disableScrollEvent.current = true;
+                      analysisTreeManager.setActiveRootAnalysisId(null);
+                      analysisTreeManager.setActiveAnalysisId(null);
                     }}
                   />
                 </div>
@@ -729,7 +728,7 @@ export function AnalysisTreeViewer({
                   if (analyses.length === 0) return null;
                   return (
                     <div key={group} className="mb-6">
-                      <div className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2 px-2">
+                      <div className="text-xs font-medium text-blue-400 uppercase tracking-wide mb-2 px-2">
                         {group}
                       </div>
                       {analyses.map((rootAnalysisId: string) => {
@@ -837,7 +836,7 @@ export function AnalysisTreeViewer({
               ))}
             <div
               className={
-                searchBarDraggable ? "" : "fixed bottom-0 left-20 right-20 z-40"
+                searchBarDraggable ? "" : "fixed bottom-1 left-40 right-40 z-40"
               }
             >
               <DraggableInput
@@ -854,8 +853,9 @@ export function AnalysisTreeViewer({
                 sqlOnly={sqlOnly}
                 question={currentQuestion}
                 onNewConversationTextClick={() => {
-                  setActiveRootAnalysisId(null);
-                  setActiveAnalysisId(null);
+                  disableScrollEvent.current = true;
+                  analysisTreeManager.setActiveRootAnalysisId(null);
+                  analysisTreeManager.setActiveAnalysisId(null);
                   if (window.innerWidth < breakpoints.lg) {
                     setSidebarOpen(false);
                   }
