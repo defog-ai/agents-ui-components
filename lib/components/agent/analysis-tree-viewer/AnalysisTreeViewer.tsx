@@ -20,6 +20,7 @@ import { AgentConfigContext } from "../../context/AgentContext";
 import { DraggableInput } from "./DraggableInput";
 import { getMostVisibleAnalysis } from "../agentUtils";
 import setupBaseUrl from "../../utils/setupBaseUrl";
+import { SpinningLoader } from "@ui-components";
 import type {
   AnalysisTreeManager,
   AnalysisTree,
@@ -846,14 +847,19 @@ export function AnalysisTreeViewer({
                 />
               )}
 
-            {!activeAnalysisId && (
-              <QuickstartSection
-                predefinedQuestions={predefinedQuestions}
-                handleSubmit={handleSubmit}
-                activeRootAnalysisId={activeRootAnalysisId}
-                activeAnalysisId={activeAnalysisId}
-              />
-            )}
+            {!activeAnalysisId &&
+              (loading ? (
+                <div className="flex items-center justify-center h-full">
+                  <SpinningLoader />
+                </div>
+              ) : (
+                <QuickstartSection
+                  predefinedQuestions={predefinedQuestions}
+                  handleSubmit={handleSubmit}
+                  activeRootAnalysisId={activeRootAnalysisId}
+                  activeAnalysisId={activeAnalysisId}
+                />
+              ))}
             <div className={searchBarDraggable ? "" : "sticky bottom-1"}>
               <DraggableInput
                 ref={searchRef}
