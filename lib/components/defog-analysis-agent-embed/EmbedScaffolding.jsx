@@ -29,11 +29,18 @@ export function EmbedScaffolding({
   return (
     <div
       className={twMerge(
-        "w-full h-full p-2",
+        "w-full h-full p-2 flex flex-col",
         typeof rootClassNames === "function" ? rootClassNames(selectedDb) : ""
       )}
     >
-      <div className="w-full relative mb-4 text-gray-500 text-xs flex flex-row z-10">
+      <div
+        className={twMerge(
+          "relative mb-2 text-gray-500 text-xs  z-10",
+          availableDbs.length > 1
+            ? "w-full flex flex-row items-center"
+            : "absolute right-0 top-0"
+        )}
+      >
         {availableDbs.length > 1 && (
           <>
             <div className="h-full mr-2 font-bold z-10 whitespace-nowrap py-2">
@@ -69,7 +76,7 @@ export function EmbedScaffolding({
             </div>
           </>
         )}
-        <div className="self-end ml-auto pl-3">
+        <div className={"self-end ml-auto pl-3"}>
           <span
             data-testid="db-selection-file-upload"
             onClick={() => {
@@ -90,7 +97,7 @@ export function EmbedScaffolding({
           </span>
         </div>
       </div>
-      <div className={availableDbs.length > 1 ? "" : "-mt-16"}>{children}</div>
+      <div className={"grow min-h-0"}>{children}</div>
     </div>
   );
 }
