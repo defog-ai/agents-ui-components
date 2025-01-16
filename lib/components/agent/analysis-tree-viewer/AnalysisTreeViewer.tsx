@@ -833,7 +833,9 @@ export function AnalysisTreeViewer({
               ))}
             <div
               className={
-                searchBarDraggable ? "" : "fixed bottom-1 z-40 lg:w-4/6 w-11/12"
+                searchBarDraggable
+                  ? ""
+                  : "fixed bottom-1 z-40 lg:w-4/6 w-11/12 mx-auto left-0 right-0"
               }
             >
               <DraggableInput
