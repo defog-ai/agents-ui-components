@@ -23,7 +23,7 @@ export function TabNullState({
   const messageManager = useContext(MessageManagerContext);
 
   return (
-    <div className="w-full h-full flex flex-col gap-4 items-center justify-center">
+    <div className="w-full h-full flex flex-col gap-4 items-center justify-center bg-white">
       <SingleSelect
         rootClassNames="w-96 max-w-[90%] border p-4 rounded-md"
         label={"Please select a database"}
