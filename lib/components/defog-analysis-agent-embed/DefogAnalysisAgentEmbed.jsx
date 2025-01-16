@@ -474,12 +474,7 @@ export function EmbedInner({
       defaultSelectedDb={selectedDbName}
       availableDbs={availableDbs.map((d) => d.name)}
       onDbChange={(selectedDbName) => setSelectedDbName(selectedDbName)}
-      rootClassNames={(selectedDbName) => {
-        return (
-          "flex flex-col " +
-          (!selectedDbName ? "items-center justify-center" : "")
-        );
-      }}
+      rootClassNames=""
       fileUploading={fileUploading}
     >
       {hidePreviewTabs ? (
@@ -504,9 +499,9 @@ export function EmbedInner({
         <Tabs
           disableSingleSelect={true}
           vertical={true}
-          rootClassNames="grow h-[90%] w-full"
+          rootClassNames="relative grow h-full w-full"
           contentClassNames="mt-2 sm:mt-0 bg-white grow overflow-hidden shadow-custom rounded-2xl sm:rounded-tl-none"
-          defaultTabClassNames="pl-0 sm:mt-0 h-full"
+          defaultTabClassNames="p-0 sm:mt-0 h-full"
           selectedTabHeaderClasses={(nm) =>
             nm === "Analysis" ? "bg-transparent" : ""
           }
@@ -604,7 +599,7 @@ export function DefogAnalysisAgentEmbed({
   );
 
   return (
-    <div className="w-full bg-gradient-to-br from-[#6E00A2]/10 to-[#FFA20D]/10 p-2 lg:px-0 py-2 h-full flex items-center shadow-inner relative">
+    <div className="w-full bg-gradient-to-br from-[#6E00A2]/10 to-[#FFA20D]/10 h-full flex items-center shadow-inner relative">
       <div className="w-full lg:w-full min-h-96 h-full overflow-y-hidden mx-auto">
         <Setup
           token={token}
