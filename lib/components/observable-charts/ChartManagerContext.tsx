@@ -80,32 +80,6 @@ interface ScatterChartOptions {
   pointSize: number;
 }
 
-interface HistogramOptions {
-  /** Number of bins in the histogram */
-  binCount: number;
-  /** Fill color of the bars */
-  fillColor: string;
-  /** Thresholds for binning */
-  thresholds: string | number[];
-  /** Whether to normalize the histogram */
-  normalize: boolean;
-  /** Whether to show cumulative distribution */
-  cumulative: boolean;
-}
-
-interface BoxplotOptions {
-  /** Fill color of the box */
-  fill: string;
-  /** Stroke color of the box */
-  stroke: string;
-  /** Width of the stroke */
-  strokeWidth: number;
-  /** Opacity of the box */
-  opacity: number;
-  /** Orientation of the boxplot */
-  boxplotOrientation: string;
-}
-
 interface ChartSpecificOptions {
   /** Options for line charts */
   line: LineChartOptions;
@@ -113,10 +87,6 @@ interface ChartSpecificOptions {
   bar: BarChartOptions;
   /** Options for scatter plots */
   scatter: ScatterChartOptions;
-  /** Options for histograms */
-  histogram: HistogramOptions;
-  /** Options for boxplots */
-  boxplot: BoxplotOptions;
 }
 
 interface SelectedColumns {
@@ -455,20 +425,6 @@ export const defaultChartManager: ChartManager = {
         colorByIsDate: false,
       },
       scatter: { pointColor: "#f54242", pointSize: 3 },
-      histogram: {
-        binCount: 10,
-        fillColor: "#4287f5",
-        thresholds: "auto",
-        normalize: false,
-        cumulative: false,
-      },
-      boxplot: {
-        fill: "#8AA7E2",
-        stroke: "#355DA3",
-        strokeWidth: 1,
-        opacity: 1,
-        boxplotOrientation: "vertical",
-      },
     },
     loading: false,
     data: [],

@@ -12,12 +12,7 @@ type ColumnType = {
   isDate?: boolean;
 };
 
-type ChartType =
-  | "Line Chart"
-  | "Scatter Plot"
-  | "Bar Chart"
-  | "Box Plot"
-  | "Histogram";
+type ChartType = "Line Chart" | "Scatter Plot" | "Bar Chart";
 
 type ChartSuggestion = {
   chartType: ChartType;
@@ -60,22 +55,6 @@ function suggestCharts(columns: ColumnType[]): ChartSuggestion[] {
   if (numericColumns.length > 0) {
     addSuggestion({
       chartType: "Bar Chart",
-      xAxis: numericColumns[0].title,
-    });
-  }
-
-  // Suggest a box plot for a numeric column
-  if (numericColumns.length > 0) {
-    addSuggestion({
-      chartType: "Box Plot",
-      xAxis: numericColumns[0].title,
-    });
-  }
-
-  // Suggest a histogram for a numeric column
-  if (numericColumns.length > 0) {
-    addSuggestion({
-      chartType: "Histogram",
       xAxis: numericColumns[0].title,
     });
   }

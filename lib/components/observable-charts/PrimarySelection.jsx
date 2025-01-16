@@ -7,8 +7,6 @@ import {
   ChartLine,
   ChartScatter,
   ChartColumnIncreasing,
-  ChartCandlestick,
-  ChartNoAxesColumn,
 } from "lucide-react";
 import { reorderColumns } from "./columnOrdering.js";
 import { Input as TextInput, Button } from "@ui-components";
@@ -22,8 +20,6 @@ const CHART_TYPES = [
   { value: "line", label: "Line", Icon: ChartLine },
   { value: "bar", label: "Bar", Icon: ChartColumnIncreasing },
   { value: "scatter", label: "Scatter", Icon: ChartScatter },
-  // { value: "histogram", label: "Histogram", Icon: ChartNoAxesColumn },
-  // { value: "boxplot", label: "Box Plot", Icon: ChartCandlestick },
 ];
 
 const AGGREGATE_OPTIONS = [
@@ -75,18 +71,6 @@ export function PrimarySelection({ columns }) {
       .autoSelectVariables()
       .render();
   };
-
-  // if we have a vertically oriented boxplot, we need to switch the x and y axis labels
-  useEffect(() => {
-    if (
-      selectedChart === "boxplot" &&
-      chartSpecificOptions.boxplotOrientation === "vertical"
-    ) {
-      setAxisLabel({ x: "Vertical", y: "Horizontal" });
-    } else {
-      setAxisLabel({ x: "Horizontal", y: "Vertical" });
-    }
-  }, [selectedChart, chartSpecificOptions, chartManager]);
 
   // Handle axis selection change
   const handleAxisChange = useCallback(
@@ -258,25 +242,12 @@ export function PrimarySelection({ columns }) {
     </div>
   );
 
-  const renderHistogramYAxisLabel = () => (
-    <div>
-      <h3 className="mb-2 input-label">Axis Label</h3>
-      <TextInput
-        placeholder="Enter y axis label"
-        value={chartStyle.yLabel || undefined}
-        onChange={(e) =>
-          chartManager.updateChartStyle({ yLabel: e.target.value }).render()
-        }
-      />
-    </div>
-  );
-
   // Render column option for Select
   const renderColumnOption = ({ key, title, isDate, variableType }) => {
     const IconComponent = COLUMN_ICONS[isDate ? "date" : variableType];
     return (
       <Option key={key} value={key}>
-        <div className="flex items-center gap-2">
+        <div className="flex gap-2 items-center">
           {IconComponent && <IconComponent className="opacity-50" size={14} />}
           <span>{title}</span>
         </div>
@@ -286,14 +257,7 @@ export function PrimarySelection({ columns }) {
 
   // Render axis selection dropdown
   const renderAxisSelection = (axis, label, mode) => {
-    if (selectedChart === "histogram" && axis === "y") {
-      return null;
-    }
-
-    let selectedColumnKey = selectedColumns[axis];
-    const selectedColumn = columns.find((col) => col.key === selectedColumnKey);
-    const isCategorical =
-      selectedColumn && selectedColumn.variableType === "categorical";
+    const selectedColumnKey = selectedColumns[axis];
 
     if (axis === "x" && selectedColumns.x) {
       // while we do have multi select in x axis' dropdown
@@ -305,9 +269,7 @@ export function PrimarySelection({ columns }) {
 
     return (
       <div>
-        <h3 className="mb-2 input-label">
-          Variable {selectedChart === "histogram" ? "" : ""}
-        </h3>
+        <h3 className="mb-2 input-label">Variable</h3>
         <Select
           style={{ width: "100%" }}
           placeholder={`Select ${label}-Axis`}
@@ -317,11 +279,7 @@ export function PrimarySelection({ columns }) {
           mode={mode}
           rootClassName={`${axis}-axis-selector`}
         >
-          {selectedChart === "histogram"
-            ? orderedColumns
-                .filter((i) => i.numeric === true && i.key !== "index")
-                .map(renderColumnOption)
-            : orderedColumns.map(renderColumnOption)}
+          {orderedColumns.map(renderColumnOption)}
         </Select>
         {(selectedChart === "bar" || selectedChart === "line") &&
           axis === "x" &&
@@ -443,7 +401,7 @@ export function PrimarySelection({ columns }) {
         <h3 className="pb-1 font-bold border-b input-label border-black/20">
           Vertical Axis
         </h3>
-        {selectedChart !== "histogram" ? (
+        {
           <div className="grid grid-cols-2 gap-2">
             {renderAxisSelection(
               "y",
@@ -452,16 +410,12 @@ export function PrimarySelection({ columns }) {
                 ? "multiple"
                 : undefined
             )}
-            <div className="flex items-center gap-4">
+            <div className="flex gap-4 items-center">
               {renderAxisLabel("y")}
               {/* {renderVerticalAxisUnit()} */}
             </div>
           </div>
-        ) : (
-          <div className="flex flex-col gap-2">
-            {renderHistogramYAxisLabel()}
-          </div>
-        )}
+        }
       </div>
       {/* Facet Selection and color */}
 
@@ -471,7 +425,7 @@ export function PrimarySelection({ columns }) {
             Groups
           </h3>
 
-          <div className="grid grid-cols-2 gap-2 pt-4 ">
+          <div className="grid grid-cols-2 gap-2 pt-4">
             {FacetSelection}
             {colorBySelection}
           </div>

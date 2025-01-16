@@ -130,31 +130,6 @@ export default function ObservablePlot() {
       }
 
       if (selectedChart !== "bar" && selectedChart !== "line") {
-        // if we have more than 10k categories in the x axis, and this is a boxplot, sample 100 unique values
-        let uniqueX = new Set(processedData.map((d) => d[selectedColumns.x]));
-
-        if (selectedChart === "boxplot" && uniqueX.size > 10000) {
-          wasSampled = true;
-          const sampledLabels = new Set();
-          const step = Math.floor(uniqueX.size / 200);
-          let i = 0;
-          for (const label of uniqueX) {
-            if (i % step === 0) {
-              sampledLabels.add(label);
-            }
-            i++;
-
-            if (sampledLabels.size >= 200) {
-              break;
-            }
-          }
-
-          // filter processedData to only include the unique labels
-          processedData = processedData.filter((d) =>
-            sampledLabels.has(d[selectedColumns.x])
-          );
-        }
-
         generatedOptions = getObservableOptions(
           dimensions,
           {
@@ -292,6 +267,7 @@ export default function ObservablePlot() {
                 // convert from unix to date
                 const date = dayjs(d);
                 return date.format("MMM D, YYYY");
+                return date.format("MMM D, YYYY");
               } else {
                 return d;
               }
@@ -304,6 +280,7 @@ export default function ObservablePlot() {
           },
         };
 
+        containerRef.current.appendChild(Plot.plot(finalOptions));
         containerRef.current.appendChild(Plot.plot(finalOptions));
       } else if (chartManager.config.selectedChart === "line") {
         // we will create a custom scale
@@ -483,7 +460,7 @@ export default function ObservablePlot() {
       }
     } else {
       const errorMessage = "Please select X and Y axes to display the chart.";
-      containerRef.current.innerHTML = `<div class='flex items-center justify-center h-full w-full'>${errorMessage}</div>`;
+      containerRef.current.innerHTML = `<div class='flex justify-center items-center w-full h-full'>${errorMessage}</div>`;
     }
 
     if (generatedOptions) generatedOptions.wasSampled = wasSampled;
@@ -491,10 +468,10 @@ export default function ObservablePlot() {
   }, [chartManager.config, dimensions]);
 
   return (
-    <div className="grow bg-white">
+    <div className="bg-white grow">
       <div className="flex justify-end mb-2">
         {observableOptions && observableOptions?.wasSampled && (
-          <div className="text-gray-500 text-sm">
+          <div className="text-sm text-gray-500">
             * Data has been sampled for better visualization
           </div>
         )}
@@ -503,12 +480,21 @@ export default function ObservablePlot() {
           variant="ghost"
           className="ml-2"
           title="Download as PNG"
+          onClick={() => saveAsPNG(containerRef.current)}
+          variant="ghost"
+          className="ml-2"
+          title="Download as PNG"
         >
+          <Download size={16} className="mr-1" /> Save as PNG
           <Download size={16} className="mr-1" /> Save as PNG
         </Button>
       </div>
       <div
         ref={containerRef}
+        className="w-full observable-plot h-[500px] overflow-visible observable-plot"
+      >
+        {/* Chart will be rendered here */}
+      </div>
         className="w-full observable-plot h-[500px] overflow-visible observable-plot"
       >
         {/* Chart will be rendered here */}

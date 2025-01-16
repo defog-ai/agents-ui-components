@@ -18,7 +18,7 @@ export interface Margin {
 }
 
 export interface ChartOptions {
-  type: "line" | "bar" | "scatter" | "histogram" | "boxplot";
+  type: "line" | "bar" | "scatter";
   x: string | null;
   y: string | string[] | null;
   xLabel?: string;
@@ -33,7 +33,6 @@ export interface ChartOptions {
   showLabels?: boolean;
   margin?: Margin;
   dateFormat?: string;
-  boxplotOrientation?: "vertical" | "horizontal";
   color?: { legend: boolean };
   xIsDate?: boolean;
   xGrid?: boolean;
@@ -63,7 +62,6 @@ export const defaultOptions: ChartOptions = {
   showLabels: false,
   margin: { top: 20, right: 20, bottom: 80, left: 50 },
   dateFormat: "%Y-%m-%d",
-  boxplotOrientation: "vertical",
   color: { legend: true },
 };
 
@@ -126,9 +124,6 @@ export const getObservableOptions = (
   const filteredData = mergedOptions.filter
     ? processedData.filter(mergedOptions.filter)
     : processedData;
-
-  const isHorizontalOrientation =
-    mergedOptions?.boxplotOrientation === "horizontal";
 
   const chartMarks = getMarks(
     filteredData,
@@ -357,8 +352,6 @@ function getChartSpecificMarks(
     line: getLineMarks,
     bar: getBarMarks,
     scatter: getScatterMarks,
-    histogram: getHistogramMarks,
-    boxplot: getBoxPlotMarks,
   };
 
   return (
@@ -376,26 +369,15 @@ interface TooltipConfig {
   format?: (d: any) => string;
 }
 
-function getTooltipConfig(
-  options: ChartOptions,
-  isHorizontalBoxplot: boolean = false
-): TooltipConfig {
+function getTooltipConfig(options: ChartOptions): TooltipConfig {
   const tipFormat = {};
 
-  if (options.xIsDate && !isHorizontalBoxplot) {
+  if (options.xIsDate) {
     tipFormat.x = (d) => {
       const parseUnix = unix(d);
       // this is already coming in as unix date from ObservablePlot.jsx
       return parseUnix ? timeFormat(options.dateFormat)(parseUnix) : d;
     };
-  } else if (options.xIsDate && isHorizontalBoxplot) {
-    tipFormat.y = (d) => {
-      const parseUnix = unix(d);
-      // this is already coming in as unix date from ObservablePlot.jsx
-      return parseUnix ? timeFormat(options.dateFormat)(parseUnix) : d;
-    };
-  } else {
-    tipFormat.x = (d) => d;
   }
 
   return { format: tipFormat };
@@ -582,207 +564,7 @@ function getScatterMarks(
   ];
 }
 
-function getHistogramMarks(data: any[], options: ChartOptions): ChartMark[] {
-  const { x, binCount, fill, fillColor, normalize, cumulative } = options;
-
-  return [
-    Plot.rectY(
-      data,
-
-      Plot.binX(
-        { y: "count" },
-        {
-          tip: getTooltipConfig(options),
-          x,
-          thresholds: binCount,
-          fill: fill || fillColor,
-
-          normalize,
-          cumulative,
-        }
-      )
-    ),
-    Plot.ruleY([0]),
-  ];
-}
-
-function getBoxPlotMarks(
-  data: any[],
-  options: ChartOptions,
-  selectedColumns: string[],
-  availableColumns: string[]
-): ChartMark[] {
-  const { x, y, stroke, opacity, boxplotOrientation, xIsDate, dateFormat } =
-    options;
-
-  // use a max of 5 categorical columns to add to the tooltip's title
-  const categoricalColumnsNotXOrY = availableColumns
-    .filter(
-      (col) =>
-        col.variableType === "categorical" && col.title !== x && col.title !== y
-    )
-    .slice(0, 5);
-
-  const boxplotOptions = {
-    // fill,
-    stroke,
-    filter: options.filter,
-    fillOpacity: opacity,
-  };
-
-  let marks;
-
-  if (boxplotOrientation === "horizontal") {
-    marks = [
-      Plot.boxX(data, {
-        y: x,
-        x: y,
-        ...boxplotOptions,
-        tip: getTooltipConfig(options, true),
-        title: function (row) {
-          const xValue = row[x];
-          const yValue = row[y];
-
-          const extraInfo = categoricalColumnsNotXOrY
-            .map((col) => {
-              if (row[col.title] === undefined) {
-                return "";
-              }
-              return `${col.title}: ${row[col.title]}`;
-            })
-            .join("\n");
-
-          if (xIsDate) {
-            // if date, format it
-            // convert from unix to date
-            const dateFormatted =
-              timeFormat(dateFormat)(unix(row?.unixDateValues?.[x])) || xValue;
-
-            return `${x}: ${dateFormatted}\n${y}: ${yValue}\n${extraInfo}`
-              .replace("\n\n", "\n")
-              .trim();
-          } else {
-            // simply parse and return
-            return `${x}: ${xValue}\n${y}: ${yValue}\n${extraInfo}`
-              .replace("\n\n", "\n")
-              .trim();
-          }
-        },
-      }),
-
-      Plot.axisY({
-        label: x,
-        ticks: options.xTicks,
-        grid: options.yGrid,
-        tickFormat: (d, i, ticks) => {
-          if (xIsDate) {
-            const parseUnix = unix(d);
-
-            // this is already coming in as unix date from ObservablePlot.jsx
-
-            const date = parseUnix
-              ? // parse using dayjs. for some reason d3's wasn't giving the correct answer.
-                // IF this is parseable using dateToUnix, then it is already coming in as unix date from ObservablePlot.jsx
-                // if this isn't parseable using dateToUnix, just leave it as it is
-                parseUnix
-              : // don't parse. just leave however it is
-                d;
-
-            return options.xTicks &&
-              i % Math.ceil(ticks.length / options.xTicks) !== 0
-              ? ""
-              : parseUnix
-                ? timeFormat(dateFormat)(date)
-                : date;
-          }
-
-          return options.xTicks &&
-            i % Math.ceil(ticks.length / options.xTicks) !== 0
-            ? ""
-            : d;
-        },
-      }),
-    ];
-  } else {
-    marks = [
-      Plot.boxY(data, {
-        x,
-        y,
-        ...boxplotOptions,
-        tip: getTooltipConfig(options),
-        title: function (row) {
-          const xValue = row[x];
-          const yValue = row[y];
-
-          const extraInfo = categoricalColumnsNotXOrY
-            .map((col) => {
-              if (row[col.title] === undefined) {
-                return "";
-              }
-              return `${col.title}: ${row[col.title]}`;
-            })
-            .join("\n");
-
-          if (xIsDate) {
-            // if date, format it
-            // convert from unix to date
-            const dateFormatted =
-              timeFormat(dateFormat)(unix(row?.unixDateValues?.[x])) || xValue;
-
-            return `${x}: ${dateFormatted}\n${y}: ${yValue}\n${extraInfo}`
-              .replace("\n\n", "\n")
-              .trim();
-          } else {
-            // simply parse and return
-            return `${x}: ${xValue}\n${y}: ${yValue}\n${extraInfo}`
-              .replace("\n\n", "\n")
-              .trim();
-          }
-        },
-      }),
-      Plot.axisY({
-        label: y,
-        ticks: options.yTicks,
-        grid: options.yGrid,
-      }),
-    ];
-  }
-
-  // boxplot is a composite mark
-  // when we pass the tip and title above, it will show up for all the marks
-  // we want to remove the tip and title for all the marks except the dot
-  // if there are a lot of elements, then boxplot creates a rule mark instead of showing individual dots
-  const boxMarks = marks[0];
-
-  boxMarks.forEach((mark) => {
-    if (
-      !(mark instanceof Plot.Dot) &&
-      !(mark instanceof Plot.RuleY) &&
-      !(mark instanceof Plot.RuleX)
-    ) {
-      mark.tip = null;
-      mark.title = null;
-    }
-    // if these are rules, then
-    // if this is a horizontal boxplot, make the anchor top
-    // if this is a vertical boxplot, make the anchor right
-    // so that it doesn't interfere with the tooltips of the rules/dots
-    if (mark instanceof Plot.RuleY || mark instanceof Plot.RuleX) {
-      mark.tip = {
-        ...mark.tip,
-        anchor: boxplotOrientation === "horizontal" ? "top" : "right",
-      };
-
-      if (mark.channels) {
-        // use the default title if it's a rule
-        delete mark.channels.title;
-      }
-    }
-  });
-  return marks;
-}
-
-export function getColorScheme(scheme: string): {
+function getColorScheme(scheme: string): {
   colorScheme: string[] | ((t: number) => string);
   schemeName: string;
 } {
