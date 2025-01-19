@@ -42,8 +42,14 @@ const COLUMN_ICONS = {
 export function PrimarySelection({ columns }) {
   const chartManager = useContext(ChartManagerContext);
 
-  const { selectedChart, selectedColumns, chartStyle, chartSpecificOptions } =
-    chartManager.config;
+  const {
+    selectedChart,
+    selectedColumns,
+    chartStyle,
+    chartSpecificOptions,
+    data,
+    separator,
+  } = chartManager.config;
 
   const [orderedColumns, setOrderedColumns] = useState(columns);
   const [axisLabel, setAxisLabel] = useState({
@@ -85,9 +91,28 @@ export function PrimarySelection({ columns }) {
   // Handle axis selection change
   const handleAxisChange = useCallback(
     (axis) => (value) => {
+      // if this is x, and there are multiple columns selected:
+      // 1. join the values with a dash
+      // 2. add that value to all rows in the data
+      let selected = value;
+      if (axis === "x") {
+        if (Array.isArray(value) && value.length > 1) {
+          selected = value.join(separator);
+
+          const createXEntry = (row) => {
+            row[selected] = value.map((v) => row[v] ?? "").join("-");
+            return row;
+          };
+
+          data.forEach(createXEntry);
+        } else {
+          selected = value[0];
+        }
+      }
+
       let newChartManager = chartManager.setSelectedColumns({
         ...selectedColumns,
-        [axis]: value,
+        [axis]: selected,
       });
 
       // Enable use count by default if the y selection is categorical in bar chart
@@ -265,10 +290,14 @@ export function PrimarySelection({ columns }) {
       return null;
     }
 
-    const selectedColumnKey = selectedColumns[axis];
+    let selectedColumnKey = selectedColumns[axis];
     const selectedColumn = columns.find((col) => col.key === selectedColumnKey);
     const isCategorical =
       selectedColumn && selectedColumn.variableType === "categorical";
+
+    if (axis === "x" && selectedColumns.x) {
+      selectedColumnKey = selectedColumns.x.split(separator);
+    }
 
     return (
       <div>
@@ -403,7 +432,7 @@ export function PrimarySelection({ columns }) {
           Horizontal Axis
         </h3>
         <div className="grid grid-cols-2 gap-2">
-          {renderAxisSelection("x", axisLabel.x)}
+          {renderAxisSelection("x", axisLabel.x, "multiple")}
           {renderAxisLabel("x")}
         </div>
         {/* Vertical Axis Selection */}
