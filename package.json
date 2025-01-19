@@ -68,6 +68,7 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
+    "@microlink/react-json-view": "^1.24.0",
     "@playwright/test": "^1.49.1",
     "@storybook/addon-essentials": "^8.4.7",
     "@storybook/addon-interactions": "^8.4.7",

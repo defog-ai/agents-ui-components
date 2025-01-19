@@ -307,6 +307,7 @@ export function createActionHandlers(): ActionHandlers {
 
       this.config = {
         ...this.config,
+        loading: false,
         selectedColumns: {
           x: xAxis,
           y:
