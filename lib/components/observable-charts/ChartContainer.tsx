@@ -80,6 +80,8 @@ export function ChartContainer({
           console.error(e);
         },
       });
+    } else {
+      chartManager.autoSelectVariables().render();
     }
   }, [initialQuestion]);
 

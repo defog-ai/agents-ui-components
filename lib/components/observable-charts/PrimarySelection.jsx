@@ -52,7 +52,7 @@ export function PrimarySelection({ columns }) {
   });
 
   const agentConfigContext = useContext(AgentConfigContext);
-  const { hiddenCharts } = agentConfigContext.val;
+  const { hiddenCharts = [] } = agentConfigContext.val;
 
   // Reorder columns when chart type or available columns change
   useEffect(() => {
