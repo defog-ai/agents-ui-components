@@ -47,7 +47,6 @@ export default function ObservablePlot() {
 
   const observableOptions = useMemo(() => {
     let generatedOptions = null;
-    let uniqueLabels = new Set();
     let wasSampled = false;
 
     const {

@@ -146,11 +146,17 @@ interface Column {
   description: string;
   /** Column type */
   colType: string;
+  /** Actual column name in the data */
+  dataIndex: string;
+  /** Convert this to a unix timestamp */
+  dateToUnix: (date: string) => number;
 }
 
 interface ChartConfig {
   /**Currently selected chart type */
   selectedChart: string;
+  /**Separator for merging the selected x columns with */
+  separator: string;
   /**Selected columns for the chart */
   selectedColumns: SelectedColumns;
   /**Style options for the chart */
@@ -402,6 +408,8 @@ function deepMergeObjects(
 export const defaultChartManager: ChartManager = {
   config: {
     selectedChart: "bar",
+    // create a ridiculous separator
+    separator: "%%%%^^^%%%%",
     selectedColumns: {
       x: null,
       y: null,
