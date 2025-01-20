@@ -296,6 +296,10 @@ export function PrimarySelection({ columns }) {
       selectedColumn && selectedColumn.variableType === "categorical";
 
     if (axis === "x" && selectedColumns.x) {
+      // while we do have multi select in x axis' dropdown
+      // the actual name of the selected column is still stored as one string: the columns joined by the separator
+      // so to get back all the columns selected as an array
+      // we always split the string by the separator
       selectedColumnKey = selectedColumns.x.split(separator);
     }
 
