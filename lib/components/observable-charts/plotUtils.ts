@@ -564,7 +564,7 @@ function getScatterMarks(
   ];
 }
 
-function getColorScheme(scheme: string): {
+export function getColorScheme(scheme: string): {
   colorScheme: string[] | ((t: number) => string);
   schemeName: string;
 } {
