@@ -1,7 +1,6 @@
 import { twMerge } from "tailwind-merge";
 import { TriangleAlert, Info } from "lucide-react";
-
-import ReactJson from "@microlink/react-json-view";
+import { JsonPrettyPrint } from "./utils/JsonPrettyPrint";
 
 import sampleAnalysisData from "./assets/sample-analysis-data.json";
 
@@ -85,7 +84,13 @@ Probably the most important piece of this repo - the [analysisManager](https://g
 For reference, this is what the analysis data looks like for a completed analysis with the user question: "show me 5 rows". You can click this and expand it to see the full data.
 
 <div className="p-3 bg-gray-50 border">
-  <ReactJson src={sampleAnalysisData} collapsed={2} />
+  <pre className="text-sm">
+    <JsonPrettyPrint
+      data={sampleAnalysisData}
+      initialExpanded={true}
+      indentSize={2}
+    />
+  </pre>
 </div>
 
 <Note
