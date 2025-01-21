@@ -145,9 +145,7 @@ export const getObservableOptions = (
     marginBottom:
       (mergedOptions?.margin?.bottom ?? defaultOptions?.margin?.bottom) ||
       0 + 50,
-    marginLeft: isHorizontalOrientation
-      ? 100
-      : (mergedOptions?.margin?.left ?? defaultOptions?.margin?.left),
+    marginLeft: mergedOptions?.margin?.left ?? defaultOptions?.margin?.left,
     style: {
       backgroundColor: mergedOptions.backgroundColor,
       overflow: "visible",

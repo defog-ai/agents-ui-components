@@ -6,11 +6,17 @@ import {
   ChartLine,
   ChartScatter,
   ChartColumnIncreasing,
+  Settings,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
-import { reorderColumns } from "./columnOrdering.js";
+import {
+  reorderColumns,
+} from "./columnOrdering.js";
 import { Input as TextInput, Button } from "@ui-components";
 import { ChartManagerContext } from "./ChartManagerContext";
 import { AgentConfigContext } from "../context/AgentContext";
+import FilterBuilder from "./Filtering";
 
 const { Option } = Select;
 
@@ -55,6 +61,7 @@ export function PrimarySelection({ columns }) {
 
   const [orderedColumns, setOrderedColumns] = useState(columns);
   const [axisLabel, setAxisLabel] = useState(DEFAULT_AXIS_LABELS);
+  const [showFilters, setShowFilters] = useState(false);
 
   const {
     selectedChart,
@@ -380,74 +387,98 @@ export function PrimarySelection({ columns }) {
   ]);
 
   return (
-    <div className="grid grid-rows-[auto_1fr_auto] h-full gap-4 pl-1">
-      <div className="flex flex-col gap-4">
-        {/* Chart type selector with icons */}
-        <div>
-          <h3 className="mb-2 font-bold input-label">Chart Type</h3>
-          <div className="flex flex-wrap gap-2">
-            {CHART_TYPES.filter((d) => !hiddenCharts.includes(d.value)).map(
-              ({ value, label, Icon }) => (
-                <Button
-                  key={value}
-                  onClick={() => handleChartChange(value)}
-                  className={`
-                  p-2 rounded-sm min-w-20 border-[1px] flex items-center justify-center font-semibold transition-colors duration-200 text-[11px] font-sans ease-in-out
-                  ${
-                    selectedChart === value
-                      ? "bg-blue-500 border-blue-600 text-white"
-                      : "bg-blue-100 text-blue-600/50 border-blue-200 hover:bg-blue-300"
-                  }
-                `}
-                >
-                  <Icon size={16} className="mr-2" />
-                  <span>{label}</span>
-                </Button>
-              )
-            )}
+    <div className="flex flex-col h-full">
+      <div className="flex-1 overflow-y-auto px-4">
+        <div className="flex flex-col gap-4">
+          {/* Chart type selector with icons */}
+          <div>
+            <h3 className="mb-2 font-bold input-label">Chart Type</h3>
+            <div className="flex flex-wrap gap-2">
+              {CHART_TYPES.filter((d) => !hiddenCharts.includes(d.value)).map(
+                ({ value, label, Icon }) => (
+                  <Button
+                    key={value}
+                    onClick={() => handleChartChange(value)}
+                    className={`
+                      p-2 rounded-sm min-w-20 border-[1px] flex items-center justify-center font-semibold transition-colors duration-200 text-[11px] font-sans ease-in-out
+                      ${
+                        selectedChart === value
+                          ? "bg-blue-500 border-blue-600 text-white"
+                          : "bg-blue-100 text-blue-600/50 border-blue-200 hover:bg-blue-300"
+                      }
+                    `}
+                  >
+                    <Icon size={16} className="mr-2" />
+                    <span>{label}</span>
+                  </Button>
+                )
+              )}
+            </div>
           </div>
-        </div>
 
-        {/* Horizontal axis configuration */}
-        <h3 className="pb-1 font-bold border-b input-label border-black/20">
-          Horizontal Axis
-        </h3>
-        <div className="grid grid-cols-2 gap-2">
-          {renderAxisSelection("x", axisLabel.x, "multiple")}
-          {renderAxisLabel("x")}
-        </div>
+          {/* Horizontal axis configuration */}
+          <h3 className="pb-1 font-bold border-b input-label border-black/20">
+            Horizontal Axis
+          </h3>
+          <div className="grid grid-cols-2 gap-2">
+            {renderAxisSelection("x", axisLabel.x, "multiple")}
+            {renderAxisLabel("x")}
+          </div>
 
-        {/* Vertical axis configuration */}
-        <h3 className="pb-1 font-bold border-b input-label border-black/20">
-          Vertical Axis
-        </h3>
-        <div className="grid grid-cols-2 gap-2">
-          {renderAxisSelection(
-            "y",
-            axisLabel.y,
-            selectedChart === "line" || selectedChart === "bar"
-              ? "multiple"
-              : undefined
+          {/* Vertical axis configuration */}
+          <h3 className="pb-1 font-bold border-b input-label border-black/20">
+            Vertical Axis
+          </h3>
+          <div className="grid grid-cols-2 gap-2">
+            {renderAxisSelection(
+              "y",
+              axisLabel.y,
+              selectedChart === "line" || selectedChart === "bar"
+                ? "multiple"
+                : undefined
+            )}
+            <div className="flex gap-4 items-center">{renderAxisLabel("y")}</div>
+          </div>
+
+          {/* Additional grouping options for scatter plots */}
+          {selectedChart !== "bar" && selectedChart !== "line" && (
+            <div>
+              <h3 className="pb-1 font-bold border-b input-label border-black/20">
+                Groups
+              </h3>
+              {/* Split view into two columns for faceting and coloring options */}
+              <div className="grid grid-cols-2 gap-2 pt-4">
+                {/* Left column: Allow splitting the chart into subplots by a categorical variable */}
+                {FacetSelection}
+                {/* Right column: Enable color-coding data points by a categorical variable */}
+                {colorBySelection}
+              </div>
+            </div>
           )}
-          <div className="flex gap-4 items-center">{renderAxisLabel("y")}</div>
+
+          {/* Advanced options section */}
+          <div>
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className="w-full py-2 flex items-center justify-between text-sm text-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors rounded"
+            >
+              <div className="flex items-center gap-2">
+                <Settings size={16} />
+                <span>Show advanced options</span>
+              </div>
+              {showFilters ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            </button>
+
+            <div className={`mt-3 ${showFilters ? 'block' : 'hidden'}`}>
+              <FilterBuilder
+                columns={columns.filter((col) =>
+                  Object.values(chartManager.config.selectedColumns || {}).includes(col.key)
+                )}
+              />
+            </div>
+          </div>
         </div>
       </div>
-
-      {/* Additional grouping options for scatter plots */}
-      {selectedChart !== "bar" && selectedChart !== "line" && (
-        <div>
-          <h3 className="pb-1 font-bold border-b input-label border-black/20">
-            Groups
-          </h3>
-          {/* Split view into two columns for faceting and coloring options */}
-          <div className="grid grid-cols-2 gap-2 pt-4">
-            {/* Left column: Allow splitting the chart into subplots by a categorical variable */}
-            {FacetSelection}
-            {/* Right column: Enable color-coding data points by a categorical variable */}
-            {colorBySelection}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

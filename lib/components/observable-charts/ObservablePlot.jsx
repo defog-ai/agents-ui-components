@@ -281,7 +281,6 @@ export default function ObservablePlot() {
         };
 
         containerRef.current.appendChild(Plot.plot(finalOptions));
-        containerRef.current.appendChild(Plot.plot(finalOptions));
       } else if (chartManager.config.selectedChart === "line") {
         // we will create a custom scale
         // and use (if specified) options.lineOptions
@@ -480,25 +479,14 @@ export default function ObservablePlot() {
           variant="ghost"
           className="ml-2"
           title="Download as PNG"
-          onClick={() => saveAsPNG(containerRef.current)}
-          variant="ghost"
-          className="ml-2"
-          title="Download as PNG"
         >
-          <Download size={16} className="mr-1" /> Save as PNG
           <Download size={16} className="mr-1" /> Save as PNG
         </Button>
       </div>
       <div
         ref={containerRef}
         className="w-full observable-plot h-[500px] overflow-visible observable-plot"
-      >
-        {/* Chart will be rendered here */}
-      </div>
-        className="w-full observable-plot h-[500px] overflow-visible observable-plot"
-      >
-        {/* Chart will be rendered here */}
-      </div>
+      ></div>
     </div>
   );
 }

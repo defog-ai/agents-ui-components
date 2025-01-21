@@ -1,17 +1,10 @@
 import { useState, useEffect, useMemo, useContext } from "react";
 import { Tabs } from "antd";
-import {
-  ChartNoAxesCombined,
-  SlidersHorizontal,
-  FilterIcon,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { PrimarySelection } from "./PrimarySelection";
 import { Customization } from "./Customization";
 import ObservablePlot from "./ObservablePlot";
 import TabPaneWrapper from "./utils/TabPaneWrapper";
-import FilterBuilder from "./Filtering";
 import {
   ChartManager,
   ChartManagerContext,
@@ -90,8 +83,8 @@ export function ChartContainer({
 
     return [
       {
-        key: "1",
-        label: <ChartNoAxesCombined size={24} />,
+        key: "general",
+        label: "General",
         children: (
           <TabPaneWrapper className="overflow-x-hidden">
             <PrimarySelection columns={columns} />
@@ -99,26 +92,13 @@ export function ChartContainer({
         ),
       },
       {
-        key: "2",
-        label: <SlidersHorizontal size={24} />,
+        key: "customize",
+        label: "Customize",
         children: (
           <TabPaneWrapper className="overflow-x-hidden">
             <Customization />
           </TabPaneWrapper>
         ),
-      },
-      {
-        key: "3",
-        label: <FilterIcon size={24} />,
-        children: columns ? (
-          <TabPaneWrapper className="overflow-x-hidden">
-            <FilterBuilder
-              columns={columns.filter((col) =>
-                Object.values(selectedColumns || {}).includes(col.key)
-              )}
-            />
-          </TabPaneWrapper>
-        ) : null,
       },
     ];
   }, [selectedColumns]);
@@ -128,54 +108,83 @@ export function ChartContainer({
       value={{ ...chartManager, config: chartConfig }}
     >
       <div className="relative">
-        <div className="flex flex-row gap-3 relative">
+        <div className="flex relative flex-row gap-3">
           <div
             className={twMerge(
-              "relative min-w-[350px] max-w-[350px] h-full border-r chart-options-container",
+              "relative h-full border-r min-w-[350px] max-w-[350px] chart-options-container",
               isOptionsExpanded ? "" : "min-w-0"
             )}
           >
             {isOptionsExpanded && (
-              <Tabs
-                tabPosition="left"
-                className="h-full pl-0"
-                size="small"
-                tabBarStyle={{
-                  width: "60px",
-                  height: "100%",
-                  display: "flex",
-                  paddingLeft: "0px !important",
-                  marginLeft: "-20px",
-                  flexDirection: "column",
-                  justifyContent: "space-between",
-                }}
-                items={tabItems}
-              />
+              <>
+                <Tabs
+                  className="pl-0 h-full flex flex-col"
+                  size="small"
+                  items={tabItems}
+                  tabBarStyle={{
+                    margin: "16px",
+                    padding: "4px",
+                    background: "#f0f0f0",
+                    borderRadius: "3px",
+                  }}
+                  tabBarGutter={0}
+                  tabPosition="top"
+                  centered={true}
+                  tabBarClassName="!border-0"
+                  className="chart-tabs"
+                />
+                <style>
+                  {`
+                    .chart-tabs {
+                      display: flex;
+                      flex-direction: column;
+                      height: 100%;
+                    }
+                    .chart-tabs .ant-tabs-content-holder {
+                      overflow-y: auto;
+                      flex: 1;
+                    }
+                    .chart-tabs .ant-tabs-nav::before {
+                      border: none !important;
+                    }
+                    .chart-tabs .ant-tabs-nav-list {
+                      width: 100% !important;
+                    }
+                    .chart-tabs .ant-tabs-tab {
+                      flex: 1 !important;
+                      margin: 0 !important;
+                      padding: 8px 16px !important;
+                      border-radius: 3px !important;
+                      transition: all 0.2s !important;
+                      display: flex !important;
+                      justify-content: center !important;
+                      width: 50% !important;
+                    }
+                    .chart-tabs .ant-tabs-tab-active {
+                      background: white !important;
+                      box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+                    }
+                    .chart-tabs .ant-tabs-ink-bar {
+                      display: none !important;
+                    }
+                  `}
+                </style>
+              </>
             )}
-
-            <span
+            <button
               onClick={() => setIsOptionsExpanded(!isOptionsExpanded)}
-              className={twMerge(
-                "text-gray-400 underline cursor-pointer flex items-center text-xs font-medium absolute top-0 z-10",
-                isOptionsExpanded ? "right-3" : "left-0"
-              )}
+              className="absolute -right-3 top-1/2 transform -translate-y-1/2 z-10 bg-white dark:bg-gray-800 border rounded-full p-0.5 shadow-sm"
             >
               {isOptionsExpanded ? (
-                <>
-                  <ChevronLeft size={16} />
-                  <span>Hide Options</span>
-                </>
+                <ChevronLeft size={16} />
               ) : (
-                <>
-                  <ChevronRight size={16} />
-                  <span>Customize Chart</span>
-                </>
+                <ChevronRight size={16} />
               )}
-            </span>
+            </button>
           </div>
 
           {chartConfig.loading ? (
-            <div className="w-full flex items-center justify-center">
+            <div className="flex justify-center items-center w-full">
               <SpinningLoader classNames="ml-2 w-8 h-8 text-gray-400"></SpinningLoader>
             </div>
           ) : (
