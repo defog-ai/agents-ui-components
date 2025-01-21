@@ -1,7 +1,7 @@
 export function TabPaneWrapper({ children, className, ...props }) {
   return (
     <div
-      className={`h-[500px] px-2 overflow-y-auto scrollbar ${className || ""}`}
+      className={`h-[500px] w-full overflow-y-auto scrollbar ${className || ""}`}
       {...props}
     >
       {children}

@@ -474,14 +474,6 @@ export default function ObservablePlot() {
             * Data has been sampled for better visualization
           </div>
         )}
-        <Button
-          onClick={() => saveAsPNG(containerRef.current)}
-          variant="ghost"
-          className="ml-2"
-          title="Download as PNG"
-        >
-          <Download size={16} className="mr-1" /> Save as PNG
-        </Button>
       </div>
       <div
         ref={containerRef}

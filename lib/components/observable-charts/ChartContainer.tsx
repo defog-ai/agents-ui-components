@@ -118,11 +118,11 @@ export function ChartContainer({
             {isOptionsExpanded && (
               <>
                 <Tabs
-                  className="pl-0 h-full flex flex-col"
+                  className="flex flex-col pl-0 h-full"
                   size="small"
                   items={tabItems}
                   tabBarStyle={{
-                    margin: "16px",
+                    margin: "2px 4px 2px 4px",
                     padding: "4px",
                     background: "#f0f0f0",
                     borderRadius: "3px",

@@ -1,4 +1,11 @@
-import { useCallback, useContext, useEffect, useMemo, useState } from "react";
+import {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  useRef,
+} from "react";
 import { Select } from "antd";
 import {
   HashIcon,
@@ -9,14 +16,14 @@ import {
   Settings,
   ChevronDown,
   ChevronUp,
+  Download,
 } from "lucide-react";
-import {
-  reorderColumns,
-} from "./columnOrdering.js";
+import { reorderColumns } from "./columnOrdering.js";
 import { Input as TextInput, Button } from "@ui-components";
 import { ChartManagerContext } from "./ChartManagerContext";
 import { AgentConfigContext } from "../context/AgentContext";
 import FilterBuilder from "./Filtering";
+import { saveAsPNG } from "./utils/saveChart";
 
 const { Option } = Select;
 
@@ -62,6 +69,7 @@ export function PrimarySelection({ columns }) {
   const [orderedColumns, setOrderedColumns] = useState(columns);
   const [axisLabel, setAxisLabel] = useState(DEFAULT_AXIS_LABELS);
   const [showFilters, setShowFilters] = useState(false);
+  const containerRef = useRef(null);
 
   const {
     selectedChart,
@@ -388,19 +396,19 @@ export function PrimarySelection({ columns }) {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex-1 overflow-y-auto px-4">
+      <div className="overflow-y-auto flex-1 px-1 py-2">
         <div className="flex flex-col gap-4">
           {/* Chart type selector with icons */}
           <div>
-            <h3 className="mb-2 font-bold input-label">Chart Type</h3>
-            <div className="flex flex-wrap gap-2">
+            {/* <h3 className="mb-2 font-bold input-label">Chart Type</h3> */}
+            <div className="flex gap-2 w-full">
               {CHART_TYPES.filter((d) => !hiddenCharts.includes(d.value)).map(
                 ({ value, label, Icon }) => (
                   <Button
                     key={value}
                     onClick={() => handleChartChange(value)}
                     className={`
-                      p-2 rounded-sm min-w-20 border-[1px] flex items-center justify-center font-semibold transition-colors duration-200 text-[11px] font-sans ease-in-out
+                      p-2 rounded-sm w-full min-w-20 border-[1px] flex items-center justify-center font-semibold transition-colors duration-200 text-[11px] font-sans ease-in-out
                       ${
                         selectedChart === value
                           ? "bg-blue-500 border-blue-600 text-white"
@@ -437,7 +445,9 @@ export function PrimarySelection({ columns }) {
                 ? "multiple"
                 : undefined
             )}
-            <div className="flex gap-4 items-center">{renderAxisLabel("y")}</div>
+            <div className="flex gap-4 items-center">
+              {renderAxisLabel("y")}
+            </div>
           </div>
 
           {/* Additional grouping options for scatter plots */}
@@ -460,24 +470,48 @@ export function PrimarySelection({ columns }) {
           <div>
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className="w-full py-2 flex items-center justify-between text-sm text-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors rounded"
+              className="flex justify-between items-center py-2 w-full text-sm text-gray-600 rounded transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50"
             >
-              <div className="flex items-center gap-2">
+              <div className="flex gap-2 items-center">
                 <Settings size={16} />
                 <span>Show advanced options</span>
               </div>
-              {showFilters ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+              {showFilters ? (
+                <ChevronUp size={16} />
+              ) : (
+                <ChevronDown size={16} />
+              )}
             </button>
 
-            <div className={`mt-3 ${showFilters ? 'block' : 'hidden'}`}>
+            <div className={`mt-3 ${showFilters ? "block" : "hidden"}`}>
               <FilterBuilder
                 columns={columns.filter((col) =>
-                  Object.values(chartManager.config.selectedColumns || {}).includes(col.key)
+                  Object.values(
+                    chartManager.config.selectedColumns || {}
+                  ).includes(col.key)
                 )}
               />
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Footer with export button */}
+      <div className="flex justify-end px-1">
+        <Button
+          onClick={() => {
+            const plotElement = document.querySelector(".observable-plot");
+            if (plotElement) {
+              saveAsPNG(plotElement);
+            }
+          }}
+          variant="primary"
+          className="px-2 py-1 text-center"
+          size="md"
+        >
+          <Download size={16} className="mr-2" />
+          Save as Image
+        </Button>
       </div>
     </div>
   );
