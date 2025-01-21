@@ -1,7 +1,6 @@
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { Select } from "antd";
 import {
-  CalendarIcon,
   HashIcon,
   CaseSensitive,
   ChartLine,
@@ -15,28 +14,47 @@ import { AgentConfigContext } from "../context/AgentContext";
 
 const { Option } = Select;
 
-// Chart type options with icons
+// Available chart types with their icons and labels
 const CHART_TYPES = [
   { value: "line", label: "Line", Icon: ChartLine },
   { value: "bar", label: "Bar", Icon: ChartColumnIncreasing },
   { value: "scatter", label: "Scatter", Icon: ChartScatter },
 ];
 
+// Options for data aggregation in bar/line charts
 const AGGREGATE_OPTIONS = [
   { value: "count", label: "Count" },
   { value: "sum", label: "Sum" },
   { value: "mean", label: "Mean" },
 ];
 
-// Icons for different column types
+// Icons to represent different data types in column selection
 const COLUMN_ICONS = {
-  date: CalendarIcon,
+  date: HashIcon,
   quantitative: HashIcon,
   categorical: CaseSensitive,
 };
 
+// Default labels for chart axes
+const DEFAULT_AXIS_LABELS = {
+  x: "Horizontal",
+  y: "Vertical",
+};
+
+/**
+ * Primary chart configuration component that allows users to:
+ * - Select chart type (line, bar, scatter)
+ * - Configure X and Y axes
+ * - Set data aggregation methods
+ * - Apply color schemes and grouping
+ */
 export function PrimarySelection({ columns }) {
+  // Access chart configuration and agent settings
   const chartManager = useContext(ChartManagerContext);
+  const { hiddenCharts = [] } = useContext(AgentConfigContext).val;
+
+  const [orderedColumns, setOrderedColumns] = useState(columns);
+  const [axisLabel, setAxisLabel] = useState(DEFAULT_AXIS_LABELS);
 
   const {
     selectedChart,
@@ -47,51 +65,40 @@ export function PrimarySelection({ columns }) {
     separator,
   } = chartManager.config;
 
-  const [orderedColumns, setOrderedColumns] = useState(columns);
-  const [axisLabel, setAxisLabel] = useState({
-    x: "Horizontal",
-    y: "Vertical",
-  });
-
-  const agentConfigContext = useContext(AgentConfigContext);
-  const { hiddenCharts = [] } = agentConfigContext.val;
-
-  // Reorder columns when chart type or available columns change
+  // Update column ordering when chart type changes
   useEffect(() => {
     chartManager.setAvailableColumns(columns).render();
-
     setOrderedColumns(reorderColumns(columns, selectedChart));
-  }, [columns, selectedChart]);
+  }, [columns, selectedChart, chartManager]);
 
-  // Handle chart type change
-  const handleChartChange = (value) => {
-    chartManager
-      .setSelectedChart(value)
-      .updateChartStyle({ xLabel: null, yLabel: null })
-      .autoSelectVariables()
-      .render();
-  };
+  // Reset axis labels when chart type changes
+  useEffect(() => {
+    setAxisLabel(DEFAULT_AXIS_LABELS);
+  }, [selectedChart, chartSpecificOptions]);
 
-  // Handle axis selection change
+  const handleChartChange = useCallback(
+    (value) => {
+      chartManager
+        .setSelectedChart(value)
+        .updateChartStyle({ xLabel: null, yLabel: null })
+        .autoSelectVariables()
+        .render();
+    },
+    [chartManager]
+  );
+
   const handleAxisChange = useCallback(
     (axis) => (value) => {
-      // if this is x, and there are multiple columns selected:
-      // 1. join the values with a dash
-      // 2. add that value to all rows in the data
       let selected = value;
-      if (axis === "x") {
-        if (Array.isArray(value) && value.length > 1) {
-          selected = value.join(separator);
 
-          const createXEntry = (row) => {
-            row[selected] = value.map((v) => row[v] ?? "").join("-");
-            return row;
-          };
-
-          data.forEach(createXEntry);
-        } else {
-          selected = value[0];
-        }
+      // For X-axis, handle multiple column selection by joining values
+      if (axis === "x" && Array.isArray(value) && value.length > 1) {
+        selected = value.join(separator);
+        data.forEach((row) => {
+          row[selected] = value.map((v) => row[v] ?? "").join("-");
+        });
+      } else if (axis === "x") {
+        selected = value[0];
       }
 
       let newChartManager = chartManager.setSelectedColumns({
@@ -99,24 +106,18 @@ export function PrimarySelection({ columns }) {
         [axis]: selected,
       });
 
-      // Enable use count by default if the y selection is categorical in bar chart
+      // Auto-enable count for categorical Y-axis in bar/line charts
       if (
-        (selectedChart === "bar" || selectedChart == "line") &&
+        (selectedChart === "bar" || selectedChart === "line") &&
         axis === "y"
       ) {
         const selectedColumn = columns.find((col) => col.key === value);
-        if (selectedColumn && selectedColumn.variableType === "categorical") {
-          newChartManager = newChartManager.updateChartSpecificOptions({
-            useCount: true,
-          });
-        } else {
-          newChartManager = newChartManager.updateChartSpecificOptions({
-            useCount: false,
-          });
-        }
+        newChartManager = newChartManager.updateChartSpecificOptions({
+          useCount: selectedColumn?.variableType === "categorical",
+        });
       }
 
-      // reset color by if we are changing the y axis
+      // Clear color settings when Y-axis changes to prevent conflicts
       if (axis === "y") {
         newChartManager = newChartManager.updateChartSpecificOptions({
           colorBy: null,
@@ -126,58 +127,107 @@ export function PrimarySelection({ columns }) {
 
       newChartManager.render();
     },
-    [chartManager, selectedColumns, selectedChart, columns]
+    [chartManager, selectedColumns, selectedChart, columns, data, separator]
   );
 
-  const handleAggregateChange = (value) => {
-    // if this is a bar chart, we need to reset the color by selection to the first quantitative column
-    let newColorBy = null;
-    let newColorByIsDate = false;
+  // Update aggregation method and handle related color settings
+  const handleAggregateChange = useCallback(
+    (value) => {
+      let newColorBy = null;
+      let newColorByIsDate = false;
 
-    // only do this if:
-    // - this is a bar chart
-    // - we are aggregating by none
-    // - we have columns
-    // - we have <=1 y columns
-    if (
-      selectedChart === "bar" &&
-      value === "none" &&
-      columns.length > 0 &&
-      selectedColumns.y.length <= 1
-    ) {
-      newColorBy =
-        chartSpecificOptions[selectedChart].colorBy || columns[0].dataIndex;
-      const selectedColumn = columns.find((col) => col.key === newColorBy);
-      newColorByIsDate = selectedColumn.isDate;
-    } else {
-      newColorBy = null;
-      newColorByIsDate = false;
-    }
+      // For bar charts with no aggregation, set default color column
+      if (
+        selectedChart === "bar" &&
+        value === "none" &&
+        columns.length > 0 &&
+        selectedColumns.y.length <= 1
+      ) {
+        newColorBy =
+          chartSpecificOptions[selectedChart].colorBy || columns[0].dataIndex;
+        const selectedColumn = columns.find((col) => col.key === newColorBy);
+        newColorByIsDate = selectedColumn?.isDate || false;
+      }
 
-    chartManager
-      .updateChartSpecificOptions({
-        aggregateFunction: value || "sum",
-        colorBy: newColorBy,
-        colorByIsDate: newColorByIsDate,
-      })
-      .render();
-  };
+      chartManager
+        .updateChartSpecificOptions({
+          aggregateFunction: value || "sum",
+          colorBy: newColorBy,
+          colorByIsDate: newColorByIsDate,
+        })
+        .render();
+    },
+    [
+      chartManager,
+      selectedChart,
+      columns,
+      selectedColumns.y,
+      chartSpecificOptions,
+    ]
+  );
 
-  const handleColorByChange = (value) => {
-    const selectedColumn = columns.find((col) => col.key === value) || {};
-    const newColorByIsDate = selectedColumn.isDate || false;
+  // Update color grouping column
+  const handleColorByChange = useCallback(
+    (value) => {
+      const selectedColumn = columns.find((col) => col.key === value) || {};
+      chartManager
+        .updateChartSpecificOptions({
+          colorBy: value,
+          colorByIsDate: selectedColumn.isDate || false,
+        })
+        .render();
+    },
+    [chartManager, columns]
+  );
 
-    chartManager
-      .updateChartSpecificOptions({
-        colorBy: value,
-        colorByIsDate: newColorByIsDate,
-      })
-      .render();
-  };
+  // Update axis label text
+  const handleAxisLabelChange = useCallback(
+    (axis) => (e) => {
+      chartManager
+        .updateChartStyle({
+          [`${axis}Label`]: e.target.value,
+        })
+        .render();
+    },
+    [chartManager]
+  );
 
-  // Render aggregate function selection
-  const renderAggregateSelection = () => {
-    return (
+  // Render a column option with appropriate icon based on data type
+  const renderColumnOption = useCallback(
+    ({ key, title, isDate, variableType }) => {
+      const IconComponent = COLUMN_ICONS[isDate ? "date" : variableType];
+      return (
+        <Option key={key} value={key}>
+          <div className="flex gap-2 items-center">
+            {IconComponent && (
+              <IconComponent className="opacity-50" size={14} />
+            )}
+            <span>{title}</span>
+          </div>
+        </Option>
+      );
+    },
+    []
+  );
+
+  // Input field for axis label customization
+  const renderAxisLabel = useCallback(
+    (axis) => (
+      <div>
+        <h3 className="mb-2 input-label">Label</h3>
+        <TextInput
+          placeholder={`Enter ${axis.toUpperCase()}-Axis Label`}
+          value={chartStyle[`${axis}Label`] || undefined}
+          onChange={handleAxisLabelChange(axis)}
+        />
+      </div>
+    ),
+    [chartStyle, handleAxisLabelChange]
+  );
+
+  // Render aggregation method selector with optional color grouping
+  const renderAggregateSelection = useCallback(
+    () => (
       <>
         <div>
           <span className="mr-2 input-label">Aggregation</span>
@@ -189,9 +239,7 @@ export function PrimarySelection({ columns }) {
             onChange={handleAggregateChange}
           >
             {AGGREGATE_OPTIONS.filter(
-              (option) =>
-                // remove none if we have a line chart
-                option.value !== "none" || selectedChart !== "line"
+              (option) => option.value !== "none" || selectedChart !== "line"
             ).map(({ value, label }) => (
               <Option key={value} value={value}>
                 {label}
@@ -200,7 +248,7 @@ export function PrimarySelection({ columns }) {
           </Select>
         </div>
 
-        {/* Add Color by selector when aggregation is none and selected Y columns <= 1 */}
+        {/* Show color selector only when no aggregation is applied */}
         {chartSpecificOptions[selectedChart].aggregateFunction === "none" &&
           selectedColumns.y.length <= 1 && (
             <div className="mt-2">
@@ -219,78 +267,60 @@ export function PrimarySelection({ columns }) {
             </div>
           )}
       </>
-    );
-  };
-
-  // Handle axis label change
-  const handleAxisLabelChange = (axis) => (e) => {
-    chartManager
-      .updateChartStyle({
-        [`${axis}Label`]: e.target.value,
-      })
-      .render();
-  };
-  // Render axis label input
-  const renderAxisLabel = (axis) => (
-    <div>
-      <h3 className="mb-2 input-label">Label</h3>
-      <TextInput
-        placeholder={`Enter ${axis.toUpperCase()}-Axis Label`}
-        value={chartStyle[`${axis}Label`] || undefined}
-        onChange={handleAxisLabelChange(axis)}
-      />
-    </div>
+    ),
+    [
+      selectedChart,
+      chartSpecificOptions,
+      handleAggregateChange,
+      handleColorByChange,
+      columns,
+      selectedColumns.y,
+    ]
   );
 
-  // Render column option for Select
-  const renderColumnOption = ({ key, title, isDate, variableType }) => {
-    const IconComponent = COLUMN_ICONS[isDate ? "date" : variableType];
-    return (
-      <Option key={key} value={key}>
-        <div className="flex gap-2 items-center">
-          {IconComponent && <IconComponent className="opacity-50" size={14} />}
-          <span>{title}</span>
+  // Axis variable selector with aggregation options for bar/line charts
+  const renderAxisSelection = useCallback(
+    (axis, label, mode) => {
+      let selectedColumnKey = selectedColumns[axis];
+
+      if (axis === "x" && selectedColumns.x) {
+        selectedColumnKey = selectedColumns.x.split(separator);
+      }
+
+      return (
+        <div>
+          <h3 className="mb-2 input-label">Variable</h3>
+          <Select
+            style={{ width: "100%" }}
+            placeholder={`Select ${label}-Axis`}
+            onChange={handleAxisChange(axis)}
+            value={selectedColumnKey}
+            allowClear={axis === "x"}
+            mode={mode}
+            rootClassName={`${axis}-axis-selector`}
+          >
+            {orderedColumns.map(renderColumnOption)}
+          </Select>
+          {(selectedChart === "bar" || selectedChart === "line") &&
+            axis === "x" &&
+            renderAggregateSelection()}
         </div>
-      </Option>
-    );
-  };
+      );
+    },
+    [
+      selectedColumns,
+      separator,
+      handleAxisChange,
+      orderedColumns,
+      selectedChart,
+      renderColumnOption,
+      renderAggregateSelection,
+    ]
+  );
 
-  // Render axis selection dropdown
-  const renderAxisSelection = (axis, label, mode) => {
-    const selectedColumnKey = selectedColumns[axis];
-
-    if (axis === "x" && selectedColumns.x) {
-      // while we do have multi select in x axis' dropdown
-      // the actual name of the selected column is still stored as one string: the columns joined by the separator
-      // so to get back all the columns selected as an array
-      // we always split the string by the separator
-      selectedColumnKey = selectedColumns.x.split(separator);
-    }
-
-    return (
-      <div>
-        <h3 className="mb-2 input-label">Variable</h3>
-        <Select
-          style={{ width: "100%" }}
-          placeholder={`Select ${label}-Axis`}
-          onChange={handleAxisChange(axis)}
-          value={selectedColumnKey}
-          allowClear={axis === "x"}
-          mode={mode}
-          rootClassName={`${axis}-axis-selector`}
-        >
-          {orderedColumns.map(renderColumnOption)}
-        </Select>
-        {(selectedChart === "bar" || selectedChart === "line") &&
-          axis === "x" &&
-          renderAggregateSelection()}
-      </div>
-    );
-  };
-
-  // Render facet selection dropdown
-  const FacetSelection = useMemo(() => {
-    return (
+  // Facet (subgrouping) selector for categorical variables
+  const FacetSelection = useMemo(
+    () => (
       <div>
         <h3 className="mb-2 input-label">Facet by</h3>
         <Select
@@ -305,36 +335,24 @@ export function PrimarySelection({ columns }) {
             .map(renderColumnOption)}
         </Select>
       </div>
-    );
-  }, [selectedColumns, orderedColumns, handleAxisChange]);
+    ),
+    [selectedColumns, orderedColumns, handleAxisChange, renderColumnOption]
+  );
 
+  // Color scheme selector with different behavior for line/bar charts
   const colorBySelection = useMemo(() => {
     const colorSchemeSelection = (value) => {
-      if (selectedChart !== "line") {
-        chartManager
-          .updateChartSpecificOptions({ fill: value })
-          .setSelectedColumns({
-            ...selectedColumns,
-            fill: value,
-          })
-          .render();
-      } else if (selectedChart === "line") {
-        chartManager
-          .updateChartSpecificOptions({ stroke: value })
-          .setSelectedColumns({
-            ...selectedColumns,
-            stroke: value,
-          })
-          .render();
-      } else {
-        chartManager
-          .updateChartSpecificOptions({ fill: value })
-          .setSelectedColumns({
-            ...selectedColumns,
-            fill: value,
-          })
-          .render();
-      }
+      const updateConfig = {
+        ...(selectedChart === "line" ? { stroke: value } : { fill: value }),
+      };
+
+      chartManager
+        .updateChartSpecificOptions(updateConfig)
+        .setSelectedColumns({
+          ...selectedColumns,
+          ...(selectedChart === "line" ? { stroke: value } : { fill: value }),
+        })
+        .render();
     };
 
     return (
@@ -344,9 +362,7 @@ export function PrimarySelection({ columns }) {
           placeholder="Color Column"
           value={selectedColumns.fill}
           style={{ width: "100%" }}
-          onChange={(value) => {
-            colorSchemeSelection(value);
-          }}
+          onChange={colorSchemeSelection}
           allowClear
         >
           {orderedColumns
@@ -355,26 +371,27 @@ export function PrimarySelection({ columns }) {
         </Select>
       </div>
     );
-  }, [chartManager, selectedColumns, orderedColumns, selectedChart]);
+  }, [
+    chartManager,
+    selectedColumns,
+    orderedColumns,
+    selectedChart,
+    renderColumnOption,
+  ]);
 
   return (
     <div className="grid grid-rows-[auto_1fr_auto] h-full gap-4 pl-1">
       <div className="flex flex-col gap-4">
-        {/* Chart Type Selection */}
+        {/* Chart type selector with icons */}
         <div>
           <h3 className="mb-2 font-bold input-label">Chart Type</h3>
           <div className="flex flex-wrap gap-2">
-            {CHART_TYPES.filter((d) => {
-              if (hiddenCharts.length === 0) {
-                return true;
-              } else {
-                return !hiddenCharts.includes(d.value);
-              }
-            }).map(({ value, label, Icon }) => (
-              <Button
-                key={value}
-                onClick={() => handleChartChange(value)}
-                className={`
+            {CHART_TYPES.filter((d) => !hiddenCharts.includes(d.value)).map(
+              ({ value, label, Icon }) => (
+                <Button
+                  key={value}
+                  onClick={() => handleChartChange(value)}
+                  className={`
                   p-2 rounded-sm min-w-20 border-[1px] flex items-center justify-center font-semibold transition-colors duration-200 text-[11px] font-sans ease-in-out
                   ${
                     selectedChart === value
@@ -382,14 +399,16 @@ export function PrimarySelection({ columns }) {
                       : "bg-blue-100 text-blue-600/50 border-blue-200 hover:bg-blue-300"
                   }
                 `}
-              >
-                <Icon size={16} className="mr-2" />
-                <span>{label}</span>
-              </Button>
-            ))}
+                >
+                  <Icon size={16} className="mr-2" />
+                  <span>{label}</span>
+                </Button>
+              )
+            )}
           </div>
         </div>
-        {/* Horizontal Axis Selection */}
+
+        {/* Horizontal axis configuration */}
         <h3 className="pb-1 font-bold border-b input-label border-black/20">
           Horizontal Axis
         </h3>
@@ -397,40 +416,38 @@ export function PrimarySelection({ columns }) {
           {renderAxisSelection("x", axisLabel.x, "multiple")}
           {renderAxisLabel("x")}
         </div>
-        {/* Vertical Axis Selection */}
+
+        {/* Vertical axis configuration */}
         <h3 className="pb-1 font-bold border-b input-label border-black/20">
           Vertical Axis
         </h3>
-        {
-          <div className="grid grid-cols-2 gap-2">
-            {renderAxisSelection(
-              "y",
-              axisLabel.y,
-              selectedChart === "line" || selectedChart == "bar"
-                ? "multiple"
-                : undefined
-            )}
-            <div className="flex gap-4 items-center">
-              {renderAxisLabel("y")}
-              {/* {renderVerticalAxisUnit()} */}
-            </div>
-          </div>
-        }
+        <div className="grid grid-cols-2 gap-2">
+          {renderAxisSelection(
+            "y",
+            axisLabel.y,
+            selectedChart === "line" || selectedChart === "bar"
+              ? "multiple"
+              : undefined
+          )}
+          <div className="flex gap-4 items-center">{renderAxisLabel("y")}</div>
+        </div>
       </div>
-      {/* Facet Selection and color */}
 
-      {selectedChart !== "bar" && selectedChart !== "line" ? (
+      {/* Additional grouping options for scatter plots */}
+      {selectedChart !== "bar" && selectedChart !== "line" && (
         <div>
           <h3 className="pb-1 font-bold border-b input-label border-black/20">
             Groups
           </h3>
-
+          {/* Split view into two columns for faceting and coloring options */}
           <div className="grid grid-cols-2 gap-2 pt-4">
+            {/* Left column: Allow splitting the chart into subplots by a categorical variable */}
             {FacetSelection}
+            {/* Right column: Enable color-coding data points by a categorical variable */}
             {colorBySelection}
           </div>
         </div>
-      ) : null}
+      )}
     </div>
   );
 }
