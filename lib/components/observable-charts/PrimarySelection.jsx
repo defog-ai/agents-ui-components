@@ -459,16 +459,18 @@ export function PrimarySelection({ columns }) {
       </div>
       {/* Facet Selection and color */}
 
-      <div>
-        <h3 className="pb-1 font-bold border-b input-label border-black/20">
-          Groups
-        </h3>
+      {selectedChart !== "bar" ? (
+        <div>
+          <h3 className="pb-1 font-bold border-b input-label border-black/20">
+            Groups
+          </h3>
 
-        <div className="grid grid-cols-2 gap-2 pt-4 ">
-          {FacetSelection}
-          {colorBySelection}
+          <div className="grid grid-cols-2 gap-2 pt-4 ">
+            {FacetSelection}
+            {colorBySelection}
+          </div>
         </div>
-      </div>
+      ) : null}
     </div>
   );
 }
