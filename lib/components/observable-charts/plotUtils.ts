@@ -370,7 +370,6 @@ interface AxisX {
 
 function getXAxis(options: ChartOptions): Plot.Mark {
   return Plot.axisX({
-    // lineWidth: manyTicks ? 9 : 6,
     lineHeight: 1.2,
     ticks: options.xTicks,
     tickSize: 0,
@@ -392,9 +391,27 @@ function getXAxis(options: ChartOptions): Plot.Mark {
           dateXTick = d;
         }
 
-        return i % Math.ceil(ticks.length / options.xTicks) === 0
-          ? dateXTick.format("MMM DD, YYYY")
-          : null;
+        // Calculate the total time range
+        const firstDate = dayjs(ticks[0]);
+        const lastDate = dayjs(ticks[ticks.length - 1]);
+        const totalDays = lastDate.diff(firstDate, "day");
+
+        // Choose format based on time range
+        if (totalDays > 365) {
+          // For ranges over a year, show first day of each quarter
+          return dateXTick.date() === 1 && dateXTick.month() % 3 === 0
+            ? dateXTick.format("MMM YYYY")
+            : null;
+        } else if (totalDays > 90) {
+          // For ranges over 3 months, show first day of each month
+          return dateXTick.date() === 1 ? dateXTick.format("MMM YYYY") : null;
+        } else if (totalDays > 14) {
+          // For ranges over 2 weeks, show mondays
+          return dateXTick.day() === 1 ? dateXTick.format("MMM DD") : null;
+        } else {
+          // For shorter ranges, show daily ticks
+          return dateXTick.format("MMM DD");
+        }
       }
 
       return options.xTicks &&
