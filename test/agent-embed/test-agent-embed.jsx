@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { StrictMode, useEffect, useMemo, useState } from "react";
 import ReactDOM from "react-dom/client";
 import "../../lib/styles/index.scss";
 import { DefogAnalysisAgentEmbed } from "../../lib/agent";
@@ -44,48 +44,50 @@ function QueryDataPage() {
   }, []);
 
   return (
-    <div className="flex flex-col">
-      <nav className="bg-gray-800 p-2 text-white h-12">
-        <h1 className="text-2xl font-bold">Query Data</h1>
-      </nav>
-      <div className="h-screen">
-        <DefogAnalysisAgentEmbed
-          hiddenCharts={["boxplot", "histogram"]}
-          token={import.meta.env.VITE_TOKEN}
-          searchBarDraggable={false}
-          apiEndpoint={import.meta.env.VITE_API_ENDPOINT}
-          // these are the ones that will be shown for new csvs uploaded
-          uploadedCsvPredefinedQuestions={[
-            "Show me any 5 rows from the dataset",
-          ]}
-          showAnalysisUnderstanding={true}
-          dbs={apiKeyNames.map((name) => ({
-            name: name,
-            keyName: name,
-            predefinedQuestions: ["show me any 5 rows"],
-          }))}
-          disableMessages={false}
-          initialTrees={initialTrees}
-          onTreeChange={(keyName, tree) => {
-            try {
-              // save in local storage in an object called analysisTrees
-              let trees = localStorage.getItem("analysisTrees");
-              if (!trees) {
-                trees = {};
-                localStorage.setItem("analysisTrees", "{}");
-              } else {
-                trees = JSON.parse(trees);
-              }
+    <StrictMode>
+      <div className="flex flex-col">
+        <nav className="bg-gray-800 p-2 text-white h-12">
+          <h1 className="text-2xl font-bold">Query Data</h1>
+        </nav>
+        <div className="h-screen">
+          <DefogAnalysisAgentEmbed
+            hiddenCharts={["boxplot", "histogram"]}
+            token={import.meta.env.VITE_TOKEN}
+            searchBarDraggable={false}
+            apiEndpoint={import.meta.env.VITE_API_ENDPOINT}
+            // these are the ones that will be shown for new csvs uploaded
+            uploadedCsvPredefinedQuestions={[
+              "Show me any 5 rows from the dataset",
+            ]}
+            showAnalysisUnderstanding={true}
+            dbs={apiKeyNames.map((name) => ({
+              name: name,
+              keyName: name,
+              predefinedQuestions: ["show me any 5 rows"],
+            }))}
+            disableMessages={false}
+            initialTrees={initialTrees}
+            onTreeChange={(keyName, tree) => {
+              try {
+                // save in local storage in an object called analysisTrees
+                let trees = localStorage.getItem("analysisTrees");
+                if (!trees) {
+                  trees = {};
+                  localStorage.setItem("analysisTrees", "{}");
+                } else {
+                  trees = JSON.parse(trees);
+                }
 
-              trees[keyName] = tree;
-              localStorage.setItem("analysisTrees", JSON.stringify(trees));
-            } catch (e) {
-              console.error(e);
-            }
-          }}
-        />
+                trees[keyName] = tree;
+                localStorage.setItem("analysisTrees", JSON.stringify(trees));
+              } catch (e) {
+                console.error(e);
+              }
+            }}
+          />
+        </div>
       </div>
-    </div>
+    </StrictMode>
   );
 }
 
