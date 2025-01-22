@@ -143,6 +143,50 @@ export const getObservableOptions = (
 
   const xIsDate = mergedOptions.xIsDate || false;
 
+  // push text marks for each facet
+  if (mergedOptions.facet) {
+    const uniqueFacetValues = Array.from(
+      new Set(
+        filteredData.map((d) => {
+          return d[mergedOptions.facet];
+        })
+      )
+    );
+
+    const facetXLocations = uniqueFacetValues.map((facetValue, i) => {
+      return i % 2;
+    });
+    const facetYLocations = uniqueFacetValues.map((facetValue, i) => {
+      return parseInt(i / 2);
+    });
+
+    // add the index of the facet value to the data
+    filteredData.forEach((d, i) => {
+      // first, get all unique facet values
+      const facetIndex = uniqueFacetValues.indexOf(d[mergedOptions.facet]);
+
+      // then
+      d.facetIndex = facetIndex;
+      d.facetXLocation = facetXLocations[facetIndex];
+      d.facetYLocation = facetYLocations[facetIndex];
+    });
+
+    Array.from(uniqueFacetValues).map((facetValue, i) => {
+      const facetIndex = uniqueFacetValues.indexOf(facetValue);
+      const xLocation = facetXLocations[facetIndex];
+      const yLocation = facetYLocations[facetIndex];
+
+      chartMarks.push(
+        Plot.text([facetValue], {
+          fx: xLocation,
+          fy: yLocation,
+          lineAnchor: "top",
+          frameAnchor: "top",
+        })
+      );
+    });
+  }
+
   const plotOptions: PlotOptions = {
     width: dimensions.width,
     height: dimensions.height,
@@ -190,33 +234,12 @@ export const getObservableOptions = (
   };
 
   if (mergedOptions.facet) {
-    const uniqueFacetValues = new Set(
-      filteredData.map((d) => {
-        return d[mergedOptions.facet];
-      })
-    );
-
-    // add the index of the facet value to the data
-    filteredData.forEach((d, i) => {
-      // first, get all unique facet values
-      const facetIndex = Array.from(uniqueFacetValues).indexOf(
-        d[mergedOptions.facet]
-      );
-
-      // then
-      d.facetIndex = facetIndex;
-      d.facetXLocation = facetIndex % 2;
-      d.facetYLocation = parseInt(facetIndex / 2);
-    });
-
     plotOptions.facet = {
       data: filteredData,
       x: "facetXLocation",
       y: "facetYLocation",
-      label: null,
       axis: null,
-      grid: true,
-      facetAnchor: "top",
+      ticks: 5,
     };
   }
 
