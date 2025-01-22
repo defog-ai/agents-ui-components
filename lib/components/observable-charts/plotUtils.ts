@@ -143,8 +143,9 @@ export const getObservableOptions = (
 
   const xIsDate = mergedOptions.xIsDate || false;
 
-  // push text marks for each facet
+  // if there is faceting, then calculate the facet positions
   if (mergedOptions.facet) {
+    // first, get all unique facet values
     const uniqueFacetValues = Array.from(
       new Set(
         filteredData.map((d) => {
@@ -153,6 +154,7 @@ export const getObservableOptions = (
       )
     );
 
+    // then, calculate the x and y positions for each facet
     const facetXLocations = uniqueFacetValues.map((facetValue, i) => {
       return i % 2;
     });
@@ -171,6 +173,7 @@ export const getObservableOptions = (
       d.facetYLocation = facetYLocations[facetIndex];
     });
 
+    // finally, add the facet titles as text marks
     Array.from(uniqueFacetValues).map((facetValue, i) => {
       const facetIndex = uniqueFacetValues.indexOf(facetValue);
       const xLocation = facetXLocations[facetIndex];
@@ -180,8 +183,8 @@ export const getObservableOptions = (
         Plot.text([facetValue], {
           fx: xLocation,
           fy: yLocation,
-          lineAnchor: "top",
           frameAnchor: "top",
+          monospace: true,
         })
       );
     });
@@ -239,7 +242,6 @@ export const getObservableOptions = (
       x: "facetXLocation",
       y: "facetYLocation",
       axis: null,
-      ticks: 5,
     };
   }
 
