@@ -305,6 +305,7 @@ export default function ObservablePlot() {
               }
             },
             axis: "bottom",
+            interval: xColumn?.isDate ? "day" : undefined,
           },
           x: {
             axis: null,

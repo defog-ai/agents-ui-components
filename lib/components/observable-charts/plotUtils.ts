@@ -262,8 +262,10 @@ export function getMarks(
     selectedColumns,
     availableColumns
   );
-  const xAxis = getXAxis(mergedOptions);
-
+  let xAxis;
+  if (options.type !== "bar") {
+    xAxis = getXAxis(mergedOptions);
+  }
   return [...baseMarks, ...(xAxis ? [xAxis] : []), ...chartMarks];
 }
 
@@ -355,11 +357,12 @@ function getXAxis(options: ChartOptions): Plot.Mark {
     rotate: -45,
     textAnchor: "end",
     tickFormat: (d, i, ticks) => {
-      // if bar chart, return null
+      // if bar chart and not xIsDate, return null
       if (options.type === "bar") {
         return null;
       }
 
+      // if xIsDate, format the date
       if (options.xIsDate) {
         let dateXTick;
         try {
@@ -514,19 +517,28 @@ function getBarMarks(data: any[], options: ChartOptions): ChartMark[] {
   });
   const aggregatedData = aggregateData(transformedData, aggregateFunction);
 
+  // if options.xIsDate, then convert facet to date
+  if (options.xIsDate) {
+    aggregatedData.forEach((d) => {
+      d.facet = dayjs(d.facet);
+    });
+  }
+
   const marks = [];
   marks.push(
-    Plot.barY(aggregatedData, {
+    Plot.rectY(aggregatedData, {
       x: "label",
       y: "value",
       fx: "facet",
       fill: "label",
-      sort: {
-        fx: {
-          value: "-y",
-          limit: 10,
-        },
-      },
+      sort: !options.xIsDate
+        ? {
+            fx: {
+              value: "-y",
+              limit: 10,
+            },
+          }
+        : undefined,
       tip: {
         format: {
           x: (d) => d,
