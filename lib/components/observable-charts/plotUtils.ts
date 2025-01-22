@@ -107,6 +107,19 @@ export interface PlotOptions {
   };
 }
 
+// Calculate optimal number of ticks based on available space
+const calculateOptimalTicks = (
+  availableSpace: number,
+  minSpacing: number = 50, // Minimum pixels between ticks
+  maxTicks: number = 20 // Maximum number of ticks allowed
+): number => {
+  // Calculate number of ticks that would fit given the minimum spacing
+  const ticksBasedOnSpace = Math.floor(availableSpace / minSpacing);
+
+  // Return the smaller of maxTicks and ticksBasedOnSpace
+  return Math.max(2, Math.min(ticksBasedOnSpace, maxTicks));
+};
+
 export const getObservableOptions = (
   dimensions: Dimensions,
   mergedOptions: ChartOptions,
@@ -195,7 +208,6 @@ export const getObservableOptions = (
     height: dimensions.height,
     marginTop: mergedOptions?.margin?.top ?? defaultOptions?.margin?.top,
     marginRight: mergedOptions?.margin?.right ?? defaultOptions?.margin?.right,
-    aggregateFunction: "sum",
     marginBottom:
       (mergedOptions?.margin?.bottom ?? defaultOptions?.margin?.bottom) ||
       0 + 50,
@@ -225,12 +237,20 @@ export const getObservableOptions = (
       nice: true,
       label: mergedOptions.yLabel || mergedOptions.y,
       labelOffset: 22,
-      ticks: mergedOptions.yTicks,
+      ticks: calculateOptimalTicks(
+        dimensions.height -
+          (mergedOptions.margin?.top ?? defaultOptions.margin.top) -
+          (mergedOptions.margin?.bottom ?? defaultOptions.margin.bottom)
+      ),
     },
     x: {
       grid: mergedOptions.xGrid,
       label: mergedOptions.xLabel || mergedOptions.x,
-      ticks: mergedOptions.xTicks,
+      ticks: calculateOptimalTicks(
+        dimensions.width -
+          (mergedOptions.margin?.left ?? defaultOptions.margin.left) -
+          (mergedOptions.margin?.right ?? defaultOptions.margin.right)
+      ),
     },
     marks: chartMarks,
     facet: {},
