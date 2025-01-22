@@ -114,6 +114,24 @@ let DraggableInput = forwardRef(function DraggableInput(
     };
   }, [searchBarDraggable]);
 
+  useEffect(() => {
+    function handleKeyPress(e: KeyboardEvent) {
+      // Only handle slash key if no other element is focused
+      if (e.key === '/' && document.activeElement === document.body) {
+        e.preventDefault();
+        // Focus the textarea
+        if (ref && 'current' in ref && ref.current) {
+          ref.current.focus();
+        }
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyPress);
+    return () => {
+      document.removeEventListener('keydown', handleKeyPress);
+    };
+  }, [ref]);
+
   return (
     <div
       className={twMerge(
