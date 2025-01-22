@@ -102,6 +102,7 @@ export interface PlotOptions {
     data?: any[];
     x?: string;
     ticks?: number;
+    label?: string;
   };
 }
 
@@ -192,6 +193,7 @@ export const getObservableOptions = (
       data: filteredData,
       x: mergedOptions.facet,
       ticks: 10,
+      label: null,
     };
   }
 
