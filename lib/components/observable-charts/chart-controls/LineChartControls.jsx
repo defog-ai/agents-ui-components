@@ -36,7 +36,7 @@ const LineChartControls = () => {
   // Render global line chart controls
   const renderGlobalControls = () => (
     <>
-      {/* <div className="flex gap-2">
+      <div className="flex gap-2">
         <SingleSelect
           label="Curve Type"
           options={CURVE_OPTIONS}
@@ -44,9 +44,9 @@ const LineChartControls = () => {
           allowClear={false}
           value={chartSpecificOptions.line.curve || "linear"}
         />
-      </div> */}
+      </div>
 
-      {/* <div>
+      <div>
         <h3 className="mb-2 input-label">Line Width</h3>
         <Slider
           min={1}
@@ -54,9 +54,9 @@ const LineChartControls = () => {
           value={chartSpecificOptions.line.lineWidth || 2}
           onChange={(value) => handleGlobalOptionChange("lineWidth", value)}
         />
-      </div> */}
+      </div>
 
-      {/* <div>
+      <div>
         <h3 className="mb-2 input-label">Show Labels</h3>
         <Switch
           checked={chartSpecificOptions.line.showLabels || false}
@@ -64,7 +64,7 @@ const LineChartControls = () => {
             handleGlobalOptionChange("showLabels", checked)
           }
         />
-      </div> */}
+      </div>
     </>
   );
 
