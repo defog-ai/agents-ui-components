@@ -107,19 +107,6 @@ export interface PlotOptions {
   };
 }
 
-// Calculate optimal number of ticks based on available space
-const calculateOptimalTicks = (
-  availableSpace: number,
-  minSpacing: number = 50, // Minimum pixels between ticks
-  maxTicks: number = 20 // Maximum number of ticks allowed
-): number => {
-  // Calculate number of ticks that would fit given the minimum spacing
-  const ticksBasedOnSpace = Math.floor(availableSpace / minSpacing);
-
-  // Return the smaller of maxTicks and ticksBasedOnSpace
-  return Math.max(2, Math.min(ticksBasedOnSpace, maxTicks));
-};
-
 export const getObservableOptions = (
   dimensions: Dimensions,
   mergedOptions: ChartOptions,
@@ -203,6 +190,8 @@ export const getObservableOptions = (
     });
   }
 
+  console.log(mergedOptions);
+
   const plotOptions: PlotOptions = {
     width: dimensions.width,
     height: dimensions.height,
@@ -237,20 +226,10 @@ export const getObservableOptions = (
       nice: true,
       label: mergedOptions.yLabel || mergedOptions.y,
       labelOffset: 22,
-      ticks: calculateOptimalTicks(
-        dimensions.height -
-          (mergedOptions.margin?.top ?? defaultOptions.margin.top) -
-          (mergedOptions.margin?.bottom ?? defaultOptions.margin.bottom)
-      ),
     },
     x: {
       grid: mergedOptions.xGrid,
       label: mergedOptions.xLabel || mergedOptions.x,
-      ticks: calculateOptimalTicks(
-        dimensions.width -
-          (mergedOptions.margin?.left ?? defaultOptions.margin.left) -
-          (mergedOptions.margin?.right ?? defaultOptions.margin.right)
-      ),
     },
     marks: chartMarks,
     facet: {},
@@ -371,12 +350,10 @@ interface AxisX {
 function getXAxis(options: ChartOptions): Plot.Mark {
   return Plot.axisX({
     lineHeight: 1.2,
-    ticks: options.xTicks,
     tickSize: 0,
     nice: true,
     rotate: -45,
     textAnchor: "end",
-    grid: options.xGrid,
     tickFormat: (d, i, ticks) => {
       // if bar chart, return null
       if (options.type === "bar") {
@@ -444,8 +421,6 @@ function getChartSpecificMarks(
     line: getLineMarks,
     bar: getBarMarks,
     scatter: getScatterMarks,
-    histogram: getHistogramMarks,
-    boxplot: getBoxPlotMarks,
   };
 
   return (
@@ -461,31 +436,6 @@ function getChartSpecificMarks(
 interface TooltipConfig {
   title?: (d: any) => string;
   format?: (d: any) => string;
-}
-
-function getTooltipConfig(
-  options: ChartOptions,
-  isHorizontalBoxplot: boolean = false
-): TooltipConfig {
-  const tipFormat = {};
-
-  if (options.xIsDate && !isHorizontalBoxplot) {
-    tipFormat.x = (d) => {
-      const parseUnix = unix(d);
-      // this is already coming in as unix date from ObservablePlot.jsx
-      return parseUnix ? timeFormat(options.dateFormat)(parseUnix) : d;
-    };
-  } else if (options.xIsDate && isHorizontalBoxplot) {
-    tipFormat.y = (d) => {
-      const parseUnix = unix(d);
-      // this is already coming in as unix date from ObservablePlot.jsx
-      return parseUnix ? timeFormat(options.dateFormat)(parseUnix) : d;
-    };
-  } else {
-    tipFormat.x = (d) => d;
-  }
-
-  return { format: tipFormat };
 }
 
 function getLineMarks(
@@ -516,29 +466,6 @@ function getLineMarks(
     x: options.x,
     y: options.y,
     filter: options.filter,
-    tip: getTooltipConfig(options),
-    title: (row) => {
-      const extraInfo = categoricalColumnsNotXOrY
-        .map((col) => {
-          if (row[col.title] === undefined) {
-            return "";
-          }
-          return `${col.title}: ${row[col.title]}`;
-        })
-        .join("\n");
-
-      const xValue = options.xIsDate ? unix(row?.unixDateValues?.[x]) : row[x];
-      const xInfo = `${options.x}: ${xValue}`;
-
-      const yInfo = selectedColumns.y
-        .map((yCol) => {
-          const yValue = row[yCol];
-          return `${yCol}: ${yValue}`;
-        })
-        .join("\n");
-
-      return `${xInfo}\n${yInfo}\n${extraInfo}`.replace("\n\n", "\n").trim();
-    },
     stroke: "label",
     strokeWidth: (d) => {
       // d is an array here for some reason.
@@ -556,23 +483,18 @@ function getLineMarks(
       }
     },
     curve: options.lineOptions?.curve || options.curve,
+    tip: {
+      format: {
+        x: (d) => `${d}`,
+        y: (d) => `${d}`,
+        strokeWidth: false,
+        stroke: false,
+      },
+    },
   };
 
   const groupingOptions = {
     y: aggregateFunction,
-    title: (d) => {
-      try {
-        // if there are more than 1 values, show the count at the top
-        let prefix = "";
-        if (d.length > 1) {
-          prefix = `Count: ${d.length}\n----\n`;
-        }
-        // show only 3 values max
-        return prefix + d.slice(0, 3).join("\n----\n");
-      } catch (e) {
-        return "";
-      }
-    },
   };
 
   marks.push(Plot.lineY(data, Plot.groupX(groupingOptions, lineOptions)));
@@ -591,6 +513,7 @@ function getBarMarks(data: any[], options: ChartOptions): ChartMark[] {
     };
   });
   const aggregatedData = aggregateData(transformedData, aggregateFunction);
+
   const marks = [];
   marks.push(
     Plot.barY(aggregatedData, {
@@ -608,6 +531,7 @@ function getBarMarks(data: any[], options: ChartOptions): ChartMark[] {
         format: {
           x: (d) => d,
           y: (d) => d,
+          fill: false,
         },
       },
     })
@@ -638,236 +562,20 @@ function getScatterMarks(
 
   return [
     Plot.dot(data, {
-      tip: getTooltipConfig(options),
-      title: (row) => {
-        const extraInfo = categoricalColumnsNotXOrY
-          .map((col) => {
-            if (row[col.title] === undefined) {
-              return "";
-            }
-            return `${col.title}: ${row[col.title]}`;
-          })
-          .join("\n");
-
-        const xValue = options.xIsDate
-          ? unix(row?.unixDateValues?.[x])
-          : row[x];
-        const xInfo = `${options.x}: ${xValue}`;
-
-        const yInfo = `${options.y}: ${row[y]}`;
-
-        return `${xInfo}\n${yInfo}\n${extraInfo}\n`
-          .replace("\n\n", "\n")
-          .trim();
-      },
       x: options.x,
       y: options.y,
       filter: options.filter,
       fill: options.fill || options.pointColor,
       r: options.pointSize,
       fillOpacity: 0.7,
+      tip: {
+        format: {
+          x: (d) => d,
+          y: (d) => d,
+        },
+      },
     }),
   ];
-}
-
-function getHistogramMarks(data: any[], options: ChartOptions): ChartMark[] {
-  const { x, binCount, fill, fillColor, normalize, cumulative } = options;
-
-  return [
-    Plot.rectY(
-      data,
-
-      Plot.binX(
-        { y: "count" },
-        {
-          tip: getTooltipConfig(options),
-          x,
-          thresholds: binCount,
-          fill: fill || fillColor,
-
-          normalize,
-          cumulative,
-        }
-      )
-    ),
-    Plot.ruleY([0]),
-  ];
-}
-
-function getBoxPlotMarks(
-  data: any[],
-  options: ChartOptions,
-  selectedColumns: string[],
-  availableColumns: string[]
-): ChartMark[] {
-  const { x, y, stroke, opacity, boxplotOrientation, xIsDate, dateFormat } =
-    options;
-
-  // use a max of 5 categorical columns to add to the tooltip's title
-  const categoricalColumnsNotXOrY = availableColumns
-    .filter(
-      (col) =>
-        col.variableType === "categorical" && col.title !== x && col.title !== y
-    )
-    .slice(0, 5);
-
-  const boxplotOptions = {
-    // fill,
-    stroke,
-    filter: options.filter,
-    fillOpacity: opacity,
-  };
-
-  let marks;
-
-  if (boxplotOrientation === "horizontal") {
-    marks = [
-      Plot.boxX(data, {
-        y: x,
-        x: y,
-        ...boxplotOptions,
-        tip: getTooltipConfig(options, true),
-        title: function (row) {
-          const xValue = row[x];
-          const yValue = row[y];
-
-          const extraInfo = categoricalColumnsNotXOrY
-            .map((col) => {
-              if (row[col.title] === undefined) {
-                return "";
-              }
-              return `${col.title}: ${row[col.title]}`;
-            })
-            .join("\n");
-
-          if (xIsDate) {
-            // if date, format it
-            // convert from unix to date
-            const dateFormatted =
-              timeFormat(dateFormat)(unix(row?.unixDateValues?.[x])) || xValue;
-
-            return `${x}: ${dateFormatted}\n${y}: ${yValue}\n${extraInfo}`
-              .replace("\n\n", "\n")
-              .trim();
-          } else {
-            // simply parse and return
-            return `${x}: ${xValue}\n${y}: ${yValue}\n${extraInfo}`
-              .replace("\n\n", "\n")
-              .trim();
-          }
-        },
-      }),
-
-      Plot.axisY({
-        label: x,
-        ticks: options.xTicks,
-        grid: options.yGrid,
-        tickFormat: (d, i, ticks) => {
-          if (xIsDate) {
-            const parseUnix = unix(d);
-
-            // this is already coming in as unix date from ObservablePlot.jsx
-
-            const date = parseUnix
-              ? // parse using dayjs. for some reason d3's wasn't giving the correct answer.
-                // IF this is parseable using dateToUnix, then it is already coming in as unix date from ObservablePlot.jsx
-                // if this isn't parseable using dateToUnix, just leave it as it is
-                parseUnix
-              : // don't parse. just leave however it is
-                d;
-
-            return options.xTicks &&
-              i % Math.ceil(ticks.length / options.xTicks) !== 0
-              ? ""
-              : parseUnix
-                ? timeFormat(dateFormat)(date)
-                : date;
-          }
-
-          return options.xTicks &&
-            i % Math.ceil(ticks.length / options.xTicks) !== 0
-            ? ""
-            : d;
-        },
-      }),
-    ];
-  } else {
-    marks = [
-      Plot.boxY(data, {
-        x,
-        y,
-        ...boxplotOptions,
-        tip: getTooltipConfig(options),
-        title: function (row) {
-          const xValue = row[x];
-          const yValue = row[y];
-
-          const extraInfo = categoricalColumnsNotXOrY
-            .map((col) => {
-              if (row[col.title] === undefined) {
-                return "";
-              }
-              return `${col.title}: ${row[col.title]}`;
-            })
-            .join("\n");
-
-          if (xIsDate) {
-            // if date, format it
-            // convert from unix to date
-            const dateFormatted =
-              timeFormat(dateFormat)(unix(row?.unixDateValues?.[x])) || xValue;
-
-            return `${x}: ${dateFormatted}\n${y}: ${yValue}\n${extraInfo}`
-              .replace("\n\n", "\n")
-              .trim();
-          } else {
-            // simply parse and return
-            return `${x}: ${xValue}\n${y}: ${yValue}\n${extraInfo}`
-              .replace("\n\n", "\n")
-              .trim();
-          }
-        },
-      }),
-      Plot.axisY({
-        label: y,
-        ticks: options.yTicks,
-        grid: options.yGrid,
-      }),
-    ];
-  }
-
-  // boxplot is a composite mark
-  // when we pass the tip and title above, it will show up for all the marks
-  // we want to remove the tip and title for all the marks except the dot
-  // if there are a lot of elements, then boxplot creates a rule mark instead of showing individual dots
-  const boxMarks = marks[0];
-
-  boxMarks.forEach((mark) => {
-    if (
-      !(mark instanceof Plot.Dot) &&
-      !(mark instanceof Plot.RuleY) &&
-      !(mark instanceof Plot.RuleX)
-    ) {
-      mark.tip = null;
-      mark.title = null;
-    }
-    // if these are rules, then
-    // if this is a horizontal boxplot, make the anchor top
-    // if this is a vertical boxplot, make the anchor right
-    // so that it doesn't interfere with the tooltips of the rules/dots
-    if (mark instanceof Plot.RuleY || mark instanceof Plot.RuleX) {
-      mark.tip = {
-        ...mark.tip,
-        anchor: boxplotOrientation === "horizontal" ? "top" : "right",
-      };
-
-      if (mark.channels) {
-        // use the default title if it's a rule
-        delete mark.channels.title;
-      }
-    }
-  });
-  return marks;
 }
 
 export function getColorScheme(scheme: string): {
