@@ -157,8 +157,8 @@ export const getObservableOptions = (
   const xIsDate = mergedOptions.xIsDate || false;
 
   // if there is faceting, then calculate the facet positions
-  if (mergedOptions.facet) {
-    // first, get all unique facet values
+  if (mergedOptions.facet && mergedOptions.type !== "bar") {
+    // first, get the unique facet values
     const uniqueFacetValues = Array.from(
       new Set(
         filteredData.map((d) => {
@@ -256,7 +256,7 @@ export const getObservableOptions = (
     facet: {},
   };
 
-  if (mergedOptions.facet) {
+  if (mergedOptions.facet && mergedOptions.type !== "bar") {
     plotOptions.facet = {
       data: filteredData,
       x: "facetXLocation",
@@ -294,7 +294,7 @@ interface AggregateRecord {
   facet: string;
 }
 
-function aggregateData(
+export function aggregateData(
   data: Array<any>,
   aggregateFunction: string
 ): Array<AggregateRecord> {
