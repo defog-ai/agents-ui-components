@@ -410,7 +410,7 @@ function getLineMarks(
   const marks = [];
   const aggregateFunction = options.aggregateFunction || "sum";
 
-  const { x, y } = options;
+  const { x, y, facet } = options;
 
   // use a max of 5 categorical columns to add to the tooltip's title
   const categoricalColumnsNotXOrY = availableColumns
@@ -458,7 +458,8 @@ function getLineMarks(
       const label = d?.[0]?.["label"];
       // if options.lineOptions[d["label"]] exists, use that
       if (
-        options.lineOptions[label] &&
+        label &&
+        options.lineOptions?.[label] &&
         options.lineOptions[label].strokeWidth
       ) {
         return options.lineOptions[label].strokeWidth;
@@ -467,7 +468,7 @@ function getLineMarks(
         return options.lineWidth;
       }
     },
-    curve: options.lineOptions.curve || options.curve,
+    curve: options.lineOptions?.curve || options.curve,
   };
 
   const groupingOptions = {
@@ -487,7 +488,11 @@ function getLineMarks(
     },
   };
 
-  marks.push(Plot.lineY(data, Plot.groupX(groupingOptions, lineOptions)));
+  if (facet) {
+    marks.push(Plot.line(data, lineOptions));
+  } else {
+    marks.push(Plot.lineY(data, Plot.groupX(groupingOptions, lineOptions)));
+  }
 
   return marks;
 }
