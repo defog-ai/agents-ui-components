@@ -31,8 +31,6 @@ export default {
       },
       keyframes: {
         "fade-in-down": {
-          // first opacity 0 to 1
-          // then display none
           "0%": {
             opacity: "0",
             transform: "translateY(-20px)",
@@ -50,14 +48,22 @@ export default {
             opacity: "1",
           },
         },
+        pulse: {
+          '0%, 100%': {
+            opacity: 1,
+          },
+          '50%': {
+            opacity: .7,
+          },
+        },
       },
       animation: {
-        "fade-in-down": "fade-in-down 1s",
-        "fade-in": "fade-in 0.2s",
+        "fade-in-down": "fade-in-down 5s ease-out",
+        "fade-in": "fade-in 0.2s ease-out",
+        'pulse': 'pulse 1.5s ease-in-out infinite',
       },
     },
   },
-
   plugins: [
     import("@tailwindcss/forms"),
     plugin(function ({ addUtilities }) {

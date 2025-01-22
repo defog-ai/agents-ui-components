@@ -17,7 +17,11 @@ import {
   ChartManagerContext,
   createChartManager,
 } from "./ChartManagerContext";
-import { MessageManagerContext, SpinningLoader } from "@ui-components";
+import {
+  MessageManagerContext,
+  SkeletalLoader,
+  SpinningLoader,
+} from "@ui-components";
 import setupBaseUrl from "../utils/setupBaseUrl";
 import { AgentConfigContext } from "../context/AgentContext";
 import { ParsedOutput } from "../agent/analysis/analysisManager";
@@ -175,8 +179,8 @@ export function ChartContainer({
           </div>
 
           {chartConfig.loading ? (
-            <div className="w-full flex items-center justify-center">
-              <SpinningLoader classNames="ml-2 w-8 h-8 text-gray-400"></SpinningLoader>
+            <div className="w-full flex items-center justify-center pt-10">
+              <SkeletalLoader />
             </div>
           ) : (
             <ObservablePlot />
