@@ -505,79 +505,95 @@ function getLineMarks(
   return marks;
 }
 
+interface DataRecord {
+  label: string;
+  value: number;
+  facet: string | dayjs.Dayjs;
+}
+
+interface AggregatedRecord {
+  label: string;
+  value: number;
+  facet: string | dayjs.Dayjs;
+}
+
+function transformInputData(data: any[], options: ChartOptions): DataRecord[] {
+  return data.map((d) => ({
+    label: d[options.x || "label"],
+    value: d[options.y || "value"],
+    facet: d[options.facet || "facet"],
+  }));
+}
+
+function processDateFacets(data: AggregatedRecord[]): AggregatedRecord[] {
+  return data.map((d) => ({
+    ...d,
+    facet: dayjs(d.facet),
+  }));
+}
+
+function getFacetTotal(records: AggregatedRecord[]): AggregatedRecord[] {
+  return records.reduce((acc, curr) => {
+    const existingRecord = acc.find((record) => record.facet === curr.facet);
+    if (existingRecord) {
+      existingRecord.value += curr.value;
+    } else {
+      acc.push({ ...curr });
+    }
+    return acc;
+  }, [] as AggregatedRecord[]);
+}
+
+function processNonDateFacets(data: AggregatedRecord[]): AggregatedRecord[] {
+  // Get top 10 facets by total value
+  const facetTotals = getFacetTotal(data);
+  const top10Facets = new Set(
+    facetTotals
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 10)
+      .map((d) => d.facet)
+  );
+
+  // Aggregate remaining data into "Others" category
+  const otherLabels: Record<string, number> = {};
+  data.forEach((record) => {
+    if (!top10Facets.has(record.facet)) {
+      otherLabels[record.label] = (otherLabels[record.label] || 0) + record.value;
+    }
+  });
+
+  const othersData = Object.entries(otherLabels).map(([label, value]) => ({
+    label,
+    value,
+    facet: "Others" as string,
+  }));
+
+  return [
+    ...data.filter((record) => top10Facets.has(record.facet)),
+    ...othersData,
+  ];
+}
+
 function getBarMarks(data: any[], options: ChartOptions): ChartMark[] {
   const aggregateFunction = options.aggregateFunction || "sum";
 
-  const transformedData = data.map((d) => {
-    return {
-      label: d[options.x || "label"],
-      value: d[options.y || "value"],
-      facet: d[options.facet || "facet"],
-    };
-  });
+  // Transform and aggregate the input data
+  const transformedData = transformInputData(data, options);
   let aggregatedData = aggregateData(transformedData, aggregateFunction);
 
-  // if options.xIsDate, then convert facet to date
-  if (options.xIsDate) {
-    aggregatedData.forEach((d) => {
-      d.facet = dayjs(d.facet);
-    });
-  } else {
-    // for each facet, pick the top 10 options (sum of all values)
-    const top10 = aggregatedData
-      .reduce((acc, curr) => {
-        const existingRecord = acc.find(
-          (record: AggregateRecord) => record.facet === curr.facet
-        );
-        if (existingRecord) {
-          existingRecord.value += curr.value;
-        } else {
-          acc.push({ label: curr.label, value: curr.value, facet: curr.facet });
-        }
-        return acc;
-      }, [])
-      .sort((a, b) => b.value - a.value)
-      .slice(0, 10);
+  // Process the data based on whether x-axis represents dates
+  aggregatedData = options.xIsDate
+    ? processDateFacets(aggregatedData)
+    : processNonDateFacets(aggregatedData);
 
-    const top10Facets = new Set(top10.map((d) => d.facet));
-
-    // for every facet in aggregateData, if it's not in top10, add it (along with its label) to others
-    const otherLabels = {};
-    aggregatedData.forEach((element) => {
-      if (!top10Facets.has(element.facet)) {
-        otherLabels[element.label] =
-          (otherLabels[element.label] || 0) + element.value;
-      }
-    });
-
-    const others = Array.from(Object.entries(otherLabels)).map(
-      ([label, value]) => {
-        return {
-          label,
-          value,
-          facet: "Others",
-        };
-      }
-    );
-
-    aggregatedData = [...top10, ...others];
-  }
-
-  const marks = [];
-  marks.push(
+  // Create the plot marks
+  return [
     Plot.rectY(aggregatedData, {
       x: "label",
       y: "value",
       fx: "facet",
       fill: "label",
-      sort: !options.xIsDate
-        ? {
-            fx: {
-              value: "-y",
-              // limit: 10,
-            },
-          }
-        : undefined,
+      sort: !options.xIsDate ? { fx: { value: "-y" } } : undefined,
       tip: {
         format: {
           x: (d) => d,
@@ -585,9 +601,8 @@ function getBarMarks(data: any[], options: ChartOptions): ChartMark[] {
           fill: false,
         },
       },
-    })
-  );
-  return marks;
+    }),
+  ];
 }
 
 function getScatterMarks(
