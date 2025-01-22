@@ -198,16 +198,16 @@ export const getObservableOptions = (
 
     // add the index of the facet value to the data
     filteredData.forEach((d, i) => {
+      // first, get all unique facet values
       const facetIndex = Array.from(uniqueFacetValues).indexOf(
         d[mergedOptions.facet]
       );
-      // figure out what the index of the facet value is
+
+      // then
       d.facetIndex = facetIndex;
       d.facetXLocation = facetIndex % 2;
       d.facetYLocation = parseInt(facetIndex / 2);
     });
-
-    console.log(filteredData);
 
     plotOptions.facet = {
       data: filteredData,
@@ -215,6 +215,8 @@ export const getObservableOptions = (
       y: "facetYLocation",
       label: null,
       axis: null,
+      grid: true,
+      facetAnchor: "top",
     };
   }
 
