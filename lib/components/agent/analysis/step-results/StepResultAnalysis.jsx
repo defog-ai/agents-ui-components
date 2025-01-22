@@ -153,21 +153,12 @@ export default function StepResultAnalysis({
         <>
           {toolRunAnalysis ? (
             <ErrorBoundary customErrorMessage={toolRunAnalysis}>
-              {hideRawAnalysis ? (
-                <div
-                  className="text-sm text-gray-600 dark:text-gray-300 border analysis-markdown"
-                  dangerouslySetInnerHTML={{
-                    __html: sanitizeHtml(marked(toolRunAnalysis)),
-                  }}
-                />
-              ) : (
-                <div
-                  className="text-sm text-gray-600 dark:text-gray-300 analysis-markdown"
-                  dangerouslySetInnerHTML={{
-                    __html: sanitizeHtml(marked(toolRunAnalysis)),
-                  }}
-                />
-              )}
+              <div
+                className="text-sm text-gray-600 dark:text-gray-300 analysis-markdown"
+                dangerouslySetInnerHTML={{
+                  __html: sanitizeHtml(marked(toolRunAnalysis)),
+                }}
+              />
             </ErrorBoundary>
           ) : null}
         </>
