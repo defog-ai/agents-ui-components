@@ -201,9 +201,10 @@ export const getObservableOptions = (
       const facetIndex = Array.from(uniqueFacetValues).indexOf(
         d[mergedOptions.facet]
       );
+      // figure out what the index of the facet value is
       d.facetIndex = facetIndex;
-      d.facetXLocation = parseInt(facetIndex / 2);
-      d.facetYLocation = facetIndex % 2;
+      d.facetXLocation = facetIndex % 2;
+      d.facetYLocation = parseInt(facetIndex / 2);
     });
 
     console.log(filteredData);
