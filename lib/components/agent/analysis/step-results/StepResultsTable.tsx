@@ -306,6 +306,28 @@ export function StepResultsTable({
     setResults(tabs);
   }, [stepData, chartImages, toolCode, sqlQuery]);
 
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      // Only handle keypress if no element is focused
+      if (document.activeElement === document.body) {
+        if (e.key === "c" || e.key === "C") {
+          const chartTab = results.find((tab) => tab.key === "chart");
+          if (chartTab) {
+            analysisTreeManager.setActiveTab(analysisId, "chart");
+          }
+        } else if (e.key === "t" || e.key === "T") {
+          const tableTab = results.find((tab) => tab.key === "table");
+          if (tableTab) {
+            analysisTreeManager.setActiveTab(analysisId, "table");
+          }
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyPress);
+    return () => window.removeEventListener("keydown", handleKeyPress);
+  }, [analysisId, results, analysisTreeManager]);
+
   return (
     <div className="table-chart-ctr" ref={tableChartRef}>
       <div className="flex flex-col w-full">
