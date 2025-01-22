@@ -22,15 +22,20 @@ export function ChartContainer({
   stepData,
   initialQuestion = null,
   initialOptionsExpanded = false,
+  initialAnalysisExpanded = true,
 }: {
   rows?: any[];
   columns?: any[];
   stepData?: ParsedOutput;
   initialQuestion: string | null;
   initialOptionsExpanded?: boolean;
+  initialAnalysisExpanded?: boolean;
 }) {
   const [isOptionsExpanded, setIsOptionsExpanded] = useState(
     initialOptionsExpanded
+  );
+  const [isAnalysisExpanded, setIsAnalysisExpanded] = useState(
+    initialAnalysisExpanded
   );
 
   // support for oracle: if chart manager is not provided, we will create using rows and columns passed
@@ -108,16 +113,17 @@ export function ChartContainer({
       value={{ ...chartManager, config: chartConfig }}
     >
       <div className="relative">
-        <div className="flex relative flex-row gap-3">
+        <div className="relative flex flex-row">
+          {/* Left Panel - Chart Controls */}
           <div
-            className={`relative flex ${
-              isOptionsExpanded ? "w-[300px]" : "w-0"
-            } transition-all border-r border-gray-200 pr-2 duration-300 cubic-bezier(0.4, 0, 0.2, 1)  min-h-[400px]`}
+            className={`relative ${
+              isOptionsExpanded ? "w-[250px]" : "w-0"
+            } transition-all border-r border-gray-200 pr-2 duration-300 min-h-[400px]`}
           >
             {isOptionsExpanded && (
               <>
                 <Tabs
-                  className="flex flex-col pl-0 h-full"
+                  className="flex flex-col h-full pl-0"
                   size="small"
                   items={tabItems}
                   tabBarStyle={{
@@ -182,13 +188,37 @@ export function ChartContainer({
             </button>
           </div>
 
-          {chartConfig.loading ? (
-            <div className="flex justify-center items-center w-full">
-              <SpinningLoader classNames="ml-2 w-8 h-8 text-gray-400"></SpinningLoader>
-            </div>
-          ) : (
-            <ObservablePlot />
-          )}
+          {/* Center Panel - Chart */}
+          <div className="flex-1">
+            {chartConfig.loading ? (
+              <div className="flex items-center justify-center w-full">
+                <SpinningLoader classNames="ml-2 w-8 h-8 text-gray-400" />
+              </div>
+            ) : (
+              <ObservablePlot />
+            )}
+          </div>
+
+          {/* Right Panel - Analysis */}
+          <div
+            className={`relative ${
+              isAnalysisExpanded ? "w-[250px]" : "w-0"
+            } transition-all border-l border-gray-200 pl-2 duration-300 min-h-[400px]`}
+          >
+            {isAnalysisExpanded && (
+              <div className="h-full overflow-auto">{resultAnalysis}</div>
+            )}
+            <button
+              onClick={() => setIsAnalysisExpanded(!isAnalysisExpanded)}
+              className="absolute -left-3 top-1/2 transform -translate-y-1/2 z-10 bg-white dark:bg-gray-800 border rounded-full p-0.5 shadow-sm transition-transform duration-300 ease-in-out hover:bg-gray-50 dark:hover:bg-gray-700"
+            >
+              {isAnalysisExpanded ? (
+                <ChevronRight size={16} />
+              ) : (
+                <ChevronLeft size={16} />
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </ChartManagerContext.Provider>

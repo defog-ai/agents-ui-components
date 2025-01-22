@@ -140,11 +140,11 @@ export default function StepResultAnalysis({
   return (
     <div
       style={{ whiteSpace: "pre-wrap" }}
-      className="my-3 text-sm text-gray-600 dark:text-gray-300"
+      className="h-full text-sm text-gray-600 dark:text-gray-300"
     >
       {loading === true ? (
         <>
-          <div className="flex justify-center items-center p-4 h-96 bg-gray-50 border small code dark:bg-gray-800">
+          <div className="flex justify-center items-center p-4 h-full bg-gray-50 border small code dark:bg-gray-800">
             <SpinningLoader />
             Loading Analysis
           </div>
@@ -162,7 +162,7 @@ export default function StepResultAnalysis({
                 />
               ) : (
                 <div
-                  className="max-w-md text-sm text-gray-600 border border-zinc-200 dark:text-gray-300 analysis-markdown"
+                  className="h-full text-sm text-gray-600 border border-zinc-200 dark:text-gray-300 analysis-markdown"
                   dangerouslySetInnerHTML={{
                     __html: sanitizeHtml(marked(toolRunAnalysis)),
                   }}

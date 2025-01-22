@@ -259,9 +259,15 @@ export function StepResultsTable({
       if (stepData) {
         tabs.push({
           component: (
-            <div className="grid grid-cols-2 gap-8">
-              <ErrorBoundary>{chartContainer}</ErrorBoundary>
-              {resultAnalysis}
+            <div className="w-full">
+              <ErrorBoundary>
+                <ChartContainer
+                  stepData={stepData}
+                  initialQuestion={initialQuestion}
+                  initialOptionsExpanded={false}
+                  initialAnalysisExpanded={true}
+                />
+              </ErrorBoundary>
             </div>
           ),
           tabLabel: "Chart",
@@ -310,7 +316,7 @@ export function StepResultsTable({
     <div className="table-chart-ctr" ref={tableChartRef}>
       <div className="flex flex-col w-full">
         <div className="border-b border-gray-200">
-          <div className="flex justify-between items-center">
+          <div className="flex items-center justify-between">
             <nav className="flex space-x-4" aria-label="Tabs">
               {results.map((tab) => (
                 <button
@@ -339,7 +345,7 @@ export function StepResultsTable({
               title="Download CSV"
               disabled={csvLoading}
               variant="secondary"
-              className="-mr-px ml-4"
+              className="ml-4 -mr-px"
             >
               Download CSV <Download className="w-4 h-4" />
             </Button>

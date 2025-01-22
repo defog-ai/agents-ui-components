@@ -468,7 +468,7 @@ export default function ObservablePlot() {
 
   return (
     <div className="bg-white grow">
-      <div className="flex justify-end mb-2">
+      <div className="flex justify-end">
         {observableOptions && observableOptions?.wasSampled && (
           <div className="text-sm text-gray-500">
             * Data has been sampled for better visualization
@@ -477,7 +477,7 @@ export default function ObservablePlot() {
       </div>
       <div
         ref={containerRef}
-        className="w-full observable-plot h-[500px] overflow-visible observable-plot"
+        className="w-full observable-plot h-[500px] overflow-visible"
       ></div>
     </div>
   );

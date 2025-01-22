@@ -467,20 +467,17 @@ export function PrimarySelection({ columns }) {
           )}
 
           {/* Advanced options section */}
-          <div>
+          <div
+           
+          >
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className="flex justify-between items-center py-2 w-full text-sm text-gray-600 rounded transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50"
+              className="flex justify-center items-center py-2 w-full text-sm text-gray-600 rounded border border-gray-200 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50"
             >
               <div className="flex gap-2 items-center">
                 <Settings size={16} />
                 <span>Show advanced options</span>
               </div>
-              {showFilters ? (
-                <ChevronUp size={16} />
-              ) : (
-                <ChevronDown size={16} />
-              )}
             </button>
 
             <div className={`mt-3 ${showFilters ? "block" : "hidden"}`}>
