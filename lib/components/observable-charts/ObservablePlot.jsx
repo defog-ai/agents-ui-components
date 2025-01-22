@@ -199,6 +199,15 @@ export default function ObservablePlot() {
           availableColumns
         );
       } else if (selectedChart == "line") {
+        const processedDataForLine = convertWideToLong(
+          processedData,
+          selectedColumns.x,
+          selectedColumns.y,
+          chartSpecificOptions[selectedChart].colorBy,
+          colorByColumn?.isDate,
+          selectedColumns.facet
+        );
+
         generatedOptions = getObservableOptions(
           dimensions,
           {
@@ -208,8 +217,7 @@ export default function ObservablePlot() {
             // check to ensure we don't render a blank chart if no axis is selected
             y: selectedColumns.x && selectedColumns.y.length ? "value" : null,
             stroke: "label",
-            // disable facetting for line charts for now
-            // facet: selectedColumns.facet || null,
+            facet: selectedColumns.facet || null,
             filter: chartSpecificOptions[selectedChart]?.filter,
             xIsDate: xColumn?.isDate,
             colorByIsDate: colorByColumn?.isDate,
@@ -218,7 +226,7 @@ export default function ObservablePlot() {
             ...chartStyle,
             ...chartSpecificOptions[selectedChart],
           },
-          processedData,
+          processedDataForLine,
           selectedColumns,
           availableColumns
         );
