@@ -310,7 +310,7 @@ export function StepResultsTable({
     <div className="table-chart-ctr" ref={tableChartRef}>
       <div className="flex flex-col w-full">
         <div className="border-b border-gray-200">
-          <div className="flex items-center justify-between">
+          <div className="flex justify-between items-center">
             <nav className="flex space-x-4" aria-label="Tabs">
               {results.map((tab) => (
                 <button
@@ -338,8 +338,8 @@ export function StepResultsTable({
               }}
               title="Download CSV"
               disabled={csvLoading}
-              variant="primary"
-              className="ml-4"
+              variant="secondary"
+              className="-mr-px ml-4"
             >
               Download CSV <Download className="w-4 h-4" />
             </Button>

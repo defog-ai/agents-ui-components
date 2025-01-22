@@ -110,10 +110,9 @@ export function ChartContainer({
       <div className="relative">
         <div className="flex relative flex-row gap-3">
           <div
-            className={twMerge(
-              "relative h-full border-r min-w-[350px] max-w-[350px] chart-options-container",
-              isOptionsExpanded ? "" : "min-w-0"
-            )}
+            className={`relative flex ${
+              isOptionsExpanded ? "w-[300px]" : "w-0"
+            } transition-all border-r border-gray-200 pr-2 duration-300 cubic-bezier(0.4, 0, 0.2, 1)  min-h-[400px]`}
           >
             {isOptionsExpanded && (
               <>
@@ -173,7 +172,7 @@ export function ChartContainer({
             )}
             <button
               onClick={() => setIsOptionsExpanded(!isOptionsExpanded)}
-              className="absolute -right-3 top-1/2 transform -translate-y-1/2 z-10 bg-white dark:bg-gray-800 border rounded-full p-0.5 shadow-sm"
+              className="absolute -right-3 top-1/2 transform -translate-y-1/2 z-10 bg-white dark:bg-gray-800 border rounded-full p-0.5 shadow-sm transition-transform duration-300 ease-in-out hover:bg-gray-50 dark:hover:bg-gray-700"
             >
               {isOptionsExpanded ? (
                 <ChevronLeft size={16} />

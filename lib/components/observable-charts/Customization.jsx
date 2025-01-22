@@ -37,28 +37,30 @@ export function Customization() {
 
   return (
     <div className="flex flex-col gap-4 mx-2">
-      <ColorSchemeSelector
-        value={chartStyle.selectedScheme}
-        onChange={(value) => {
-          handleStyleChange("selectedScheme", value);
-        }}
-      />
+      <div className="flex gap-1 justify-between items-center">
+        <ColorSchemeSelector
+          value={chartStyle.selectedScheme}
+          onChange={(value) => {
+            handleStyleChange("selectedScheme", value);
+          }}
+        />
+        <div>
+          <h3 className="mb-4 input-label">Background </h3>
+          <ColorPicker
+            allowClear={true}
+            value={chartStyle.backgroundColor}
+            onChange={(color) =>
+              handleStyleChange("backgroundColor", color.toHexString())
+            }
+          />
+        </div>
+      </div>
+
       {renderChartSpecificControls()}
 
       {isDateColumnSelected && <D3DateFormatBuilder />}
 
-      <div>
-        <h3 className="mb-2 input-label">Background Color</h3>
-        <ColorPicker
-          allowClear={true}
-          value={chartStyle.backgroundColor}
-          onChange={(color) =>
-            handleStyleChange("backgroundColor", color.toHexString())
-          }
-        />
-      </div>
-
-      <div>
+      {/* <div>
         <h3 className="mb-2 input-label">Font Size</h3>
         <Slider
           min={8}
@@ -67,9 +69,9 @@ export function Customization() {
           rootClassNames="w-full  h-2"
           onChange={(value) => handleStyleChange("fontSize", value)}
         />
-      </div>
+      </div> */}
 
-      <AxisControl />
+      {/* <AxisControl /> */}
     </div>
   );
 }

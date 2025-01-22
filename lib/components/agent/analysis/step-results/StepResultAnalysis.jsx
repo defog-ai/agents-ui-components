@@ -144,7 +144,7 @@ export default function StepResultAnalysis({
     >
       {loading === true ? (
         <>
-          <div className="h-96 small flex items-center justify-center code p-4 bg-gray-50 border dark:bg-gray-800">
+          <div className="flex justify-center items-center p-4 h-96 bg-gray-50 border small code dark:bg-gray-800">
             <SpinningLoader />
             Loading Analysis
           </div>
@@ -155,14 +155,14 @@ export default function StepResultAnalysis({
             <ErrorBoundary customErrorMessage={toolRunAnalysis}>
               {hideRawAnalysis ? (
                 <div
-                  className="text-sm text-gray-600 dark:text-gray-300 border analysis-markdown"
+                  className="text-sm text-gray-600 border dark:text-gray-300 analysis-markdown"
                   dangerouslySetInnerHTML={{
                     __html: sanitizeHtml(marked(toolRunAnalysis)),
                   }}
                 />
               ) : (
                 <div
-                  className="text-sm text-gray-600 dark:text-gray-300 analysis-markdown"
+                  className="max-w-md text-sm text-gray-600 border border-zinc-200 dark:text-gray-300 analysis-markdown"
                   dangerouslySetInnerHTML={{
                     __html: sanitizeHtml(marked(toolRunAnalysis)),
                   }}
