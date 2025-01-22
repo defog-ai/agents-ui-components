@@ -116,21 +116,29 @@ let DraggableInput = forwardRef(function DraggableInput(
 
   useEffect(() => {
     function handleKeyPress(e: KeyboardEvent) {
-      // Only handle slash key if no other element is focused
-      if (e.key === '/' && document.activeElement === document.body) {
-        e.preventDefault();
-        // Focus the textarea
-        if (ref && 'current' in ref && ref.current) {
-          ref.current.focus();
+      // Only handle keys if no other element is focused
+      if (document.activeElement === document.body) {
+        if (e.key === "/") {
+          e.preventDefault();
+          // Focus the textarea
+          if (ref && "current" in ref && ref.current) {
+            ref.current.focus();
+          }
+        } else if (e.key === "n" || e.key === "N") {
+          e.preventDefault();
+          onNewConversationTextClick();
+          if (ref && "current" in ref && ref.current) {
+            ref.current.focus();
+          }
         }
       }
     }
 
-    document.addEventListener('keydown', handleKeyPress);
+    document.addEventListener("keydown", handleKeyPress);
     return () => {
-      document.removeEventListener('keydown', handleKeyPress);
+      document.removeEventListener("keydown", handleKeyPress);
     };
-  }, [ref]);
+  }, [ref, onNewConversationTextClick]);
 
   return (
     <div
@@ -187,7 +195,7 @@ let DraggableInput = forwardRef(function DraggableInput(
                     // ref.current.value = "";
                   } else if (ev.key === "Escape") {
                     ev.preventDefault();
-                    if (ref && 'current' in ref && ref.current) {
+                    if (ref && "current" in ref && ref.current) {
                       ref.current.blur();
                     }
                   }
