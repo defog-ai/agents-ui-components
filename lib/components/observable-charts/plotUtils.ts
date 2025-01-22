@@ -558,11 +558,7 @@ function getLineMarks(
     },
   };
 
-  if (facet) {
-    marks.push(Plot.line(data, lineOptions));
-  } else {
-    marks.push(Plot.lineY(data, Plot.groupX(groupingOptions, lineOptions)));
-  }
+  marks.push(Plot.lineY(data, Plot.groupX(groupingOptions, lineOptions)));
 
   return marks;
 }
