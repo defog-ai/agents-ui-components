@@ -185,6 +185,11 @@ let DraggableInput = forwardRef(function DraggableInput(
                       activeAnalysisId
                     );
                     // ref.current.value = "";
+                  } else if (ev.key === "Escape") {
+                    ev.preventDefault();
+                    if (ref && 'current' in ref && ref.current) {
+                      ref.current.blur();
+                    }
                   }
                 }}
                 placeholder={
