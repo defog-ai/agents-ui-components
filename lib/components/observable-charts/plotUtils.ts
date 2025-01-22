@@ -515,13 +515,52 @@ function getBarMarks(data: any[], options: ChartOptions): ChartMark[] {
       facet: d[options.facet || "facet"],
     };
   });
-  const aggregatedData = aggregateData(transformedData, aggregateFunction);
+  let aggregatedData = aggregateData(transformedData, aggregateFunction);
 
   // if options.xIsDate, then convert facet to date
   if (options.xIsDate) {
     aggregatedData.forEach((d) => {
       d.facet = dayjs(d.facet);
     });
+  } else {
+    // for each facet, pick the top 10 options (sum of all values)
+    const top10 = aggregatedData
+      .reduce((acc, curr) => {
+        const existingRecord = acc.find(
+          (record: AggregateRecord) => record.facet === curr.facet
+        );
+        if (existingRecord) {
+          existingRecord.value += curr.value;
+        } else {
+          acc.push({ label: curr.label, value: curr.value, facet: curr.facet });
+        }
+        return acc;
+      }, [])
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 10);
+
+    const top10Facets = new Set(top10.map((d) => d.facet));
+
+    // for every facet in aggregateData, if it's not in top10, add it (along with its label) to others
+    const otherLabels = {};
+    aggregatedData.forEach((element) => {
+      if (!top10Facets.has(element.facet)) {
+        otherLabels[element.label] =
+          (otherLabels[element.label] || 0) + element.value;
+      }
+    });
+
+    const others = Array.from(Object.entries(otherLabels)).map(
+      ([label, value]) => {
+        return {
+          label,
+          value,
+          facet: "Others",
+        };
+      }
+    );
+
+    aggregatedData = [...top10, ...others];
   }
 
   const marks = [];
@@ -535,7 +574,7 @@ function getBarMarks(data: any[], options: ChartOptions): ChartMark[] {
         ? {
             fx: {
               value: "-y",
-              limit: 10,
+              // limit: 10,
             },
           }
         : undefined,
