@@ -101,6 +101,7 @@ export interface PlotOptions {
   facet?: {
     data?: any[];
     x?: string;
+    y?: string;
     ticks?: number;
     label?: string;
   };
@@ -189,11 +190,30 @@ export const getObservableOptions = (
   };
 
   if (mergedOptions.facet) {
+    const uniqueFacetValues = new Set(
+      filteredData.map((d) => {
+        return d[mergedOptions.facet];
+      })
+    );
+
+    // add the index of the facet value to the data
+    filteredData.forEach((d, i) => {
+      const facetIndex = Array.from(uniqueFacetValues).indexOf(
+        d[mergedOptions.facet]
+      );
+      d.facetIndex = facetIndex;
+      d.facetXLocation = parseInt(facetIndex / 2);
+      d.facetYLocation = facetIndex % 2;
+    });
+
+    console.log(filteredData);
+
     plotOptions.facet = {
       data: filteredData,
-      x: mergedOptions.facet,
-      ticks: 10,
+      x: "facetXLocation",
+      y: "facetYLocation",
       label: null,
+      axis: null,
     };
   }
 
