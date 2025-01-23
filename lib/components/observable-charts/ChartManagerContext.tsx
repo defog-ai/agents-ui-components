@@ -551,8 +551,6 @@ export const defaultChartManager: ChartManager = {
       configUpdates
     );
 
-    console.log(this.config);
-
     return this;
   },
   setConfigCallback: () => {},
