@@ -31,6 +31,7 @@ import StepResultAnalysis from "./StepResultAnalysis";
 import type { ParsedOutput, Step } from "../analysisManager";
 import type { AnalysisTreeManager } from "../../analysis-tree-viewer/analysisTreeManager";
 import { KeyboardShortcutIndicator } from "../../../core-ui/KeyboardShortcutIndicator";
+import { twMerge } from "tailwind-merge";
 
 interface TabItem {
   key: string;
@@ -382,8 +383,22 @@ export function StepResultsTable({
             </Button>
           </div>
         </div>
-        <div className="mt-4">
-          {results.find((tab) => tab.key === activeTab)?.component}
+        <div className="mt-4 relative">
+          {results.map((tab) => {
+            // tab.key === activeTab
+            return (
+              <div
+                key={tab.key}
+                className={
+                  tab.key === activeTab
+                    ? "z-2"
+                    : "absolute overflow-hidden top-[-100%] z-[-1] pointer-events-none *:pointer-events-none opacity-0"
+                }
+              >
+                {tab.component}
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

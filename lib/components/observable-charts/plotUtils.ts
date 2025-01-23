@@ -190,8 +190,6 @@ export const getObservableOptions = (
     });
   }
 
-  console.log(mergedOptions);
-
   const plotOptions: PlotOptions = {
     width: dimensions.width,
     height: dimensions.height,
@@ -558,7 +556,8 @@ function processNonDateFacets(data: AggregatedRecord[]): AggregatedRecord[] {
   const otherLabels: Record<string, number> = {};
   data.forEach((record) => {
     if (!top10Facets.has(record.facet)) {
-      otherLabels[record.label] = (otherLabels[record.label] || 0) + record.value;
+      otherLabels[record.label] =
+        (otherLabels[record.label] || 0) + record.value;
     }
   });
 
