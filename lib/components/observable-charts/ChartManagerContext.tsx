@@ -121,7 +121,7 @@ interface ChartSpecificOptions {
 
 interface SelectedColumns {
   /** Selected column for x-axis */
-  x: string | null;
+  x: string[] | string | null;
   /** Selected column(s) for y-axis */
   y: string | string[] | null;
   /** Selected column for faceting */
@@ -233,7 +233,35 @@ export function createActionHandlers(): ActionHandlers {
       return this;
     },
     setSelectedColumns: function (payload) {
-      this.config = { ...this.config, selectedColumns: payload };
+      let cols: string[];
+      let mergedColumnName: string;
+
+      // if the payload contains x prop, and it's an array, join the array using the separator
+      if (payload.x && Array.isArray(payload.x)) {
+        cols = payload.x;
+        mergedColumnName = payload.x.join(this.config.separator);
+
+        // create the corresponding entries in the data if more than 1 column is selected
+        if (payload.x.length > 1) {
+          const createXEntry = (row: Record<string, any>) => {
+            row[mergedColumnName] = cols.map((v) => row[v] ?? "").join("-");
+            return row;
+          };
+
+          this.config.data.forEach(createXEntry);
+        }
+
+        payload.x = mergedColumnName;
+      }
+
+      this.config = {
+        ...this.config,
+        selectedColumns: {
+          ...this.config.selectedColumns,
+          ...payload,
+        },
+      };
+
       return this;
     },
     updateChartStyle: function (payload) {
@@ -478,7 +506,7 @@ export const defaultChartManager: ChartManager = {
     // if config updates have selectedChart === "line"
     // or if the active chart is line or bar
     // make sure that selectedColumns.y is an Array
-    let isLineOrBar;
+    let isLineOrBar: boolean;
     if (configUpdates.selectedChart) {
       isLineOrBar =
         configUpdates.selectedChart === "line" ||
@@ -506,6 +534,12 @@ export const defaultChartManager: ChartManager = {
         }
       }
     }
+
+    if (configUpdates.selectedColumns) {
+      // this will also deal with x axis if it is an array and create corresponding data entries with the separator
+      this.setSelectedColumns(configUpdates.selectedColumns);
+    }
+
     // because these state updates can have nested objects
     // for example: user question: "plot ratings onthe x axis"
     // if currently the selectedColumns are { x: "date", y: "value" }
@@ -516,6 +550,8 @@ export const defaultChartManager: ChartManager = {
       JSON.parse(JSON.stringify(this.config)),
       configUpdates
     );
+
+    console.log(this.config);
 
     return this;
   },
