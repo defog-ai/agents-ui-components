@@ -91,28 +91,9 @@ export function PrimarySelection({ columns }) {
   // Handle axis selection change
   const handleAxisChange = useCallback(
     (axis) => (value) => {
-      // if this is x, and there are multiple columns selected:
-      // 1. join the values with a dash
-      // 2. add that value to all rows in the data
-      let selected = value;
-      if (axis === "x") {
-        if (Array.isArray(value) && value.length > 1) {
-          selected = value.join(separator);
-
-          const createXEntry = (row) => {
-            row[selected] = value.map((v) => row[v] ?? "").join("-");
-            return row;
-          };
-
-          data.forEach(createXEntry);
-        } else {
-          selected = value[0];
-        }
-      }
-
-      let newChartManager = chartManager.setSelectedColumns({
+      chartManager.setSelectedColumns({
         ...selectedColumns,
-        [axis]: selected,
+        [axis]: value,
       });
 
       // Enable use count by default if the y selection is categorical in bar chart
@@ -122,11 +103,11 @@ export function PrimarySelection({ columns }) {
       ) {
         const selectedColumn = columns.find((col) => col.key === value);
         if (selectedColumn && selectedColumn.variableType === "categorical") {
-          newChartManager = newChartManager.updateChartSpecificOptions({
+          chartManager.updateChartSpecificOptions({
             useCount: true,
           });
         } else {
-          newChartManager = newChartManager.updateChartSpecificOptions({
+          chartManager.updateChartSpecificOptions({
             useCount: false,
           });
         }
@@ -134,13 +115,13 @@ export function PrimarySelection({ columns }) {
 
       // reset color by if we are changing the y axis
       if (axis === "y") {
-        newChartManager = newChartManager.updateChartSpecificOptions({
+        chartManager.updateChartSpecificOptions({
           colorBy: null,
           colorByIsDate: false,
         });
       }
 
-      newChartManager.render();
+      chartManager.render();
     },
     [chartManager, selectedColumns, selectedChart, columns]
   );
@@ -301,6 +282,8 @@ export function PrimarySelection({ columns }) {
       // so to get back all the columns selected as an array
       // we always split the string by the separator
       selectedColumnKey = selectedColumns.x.split(separator);
+    } else {
+      selectedColumnKey = [];
     }
 
     return (
