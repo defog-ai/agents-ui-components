@@ -17,7 +17,11 @@ import {
   ChartManagerContext,
   createChartManager,
 } from "./ChartManagerContext";
-import { MessageManagerContext, SpinningLoader } from "@ui-components";
+import {
+  MessageManagerContext,
+  SkeletalLoader,
+  SpinningLoader,
+} from "@ui-components";
 import setupBaseUrl from "../utils/setupBaseUrl";
 import { AgentConfigContext } from "../context/AgentContext";
 import { ParsedOutput } from "../agent/analysis/analysisManager";
@@ -128,7 +132,7 @@ export function ChartContainer({
       value={{ ...chartManager, config: chartConfig }}
     >
       <div className="relative">
-        <div className="flex flex-row gap-3 relative">
+        <div className="relative flex flex-row gap-3">
           <div
             className={twMerge(
               "relative min-w-[350px] max-w-[350px] h-full border-r chart-options-container",
@@ -175,8 +179,8 @@ export function ChartContainer({
           </div>
 
           {chartConfig.loading ? (
-            <div className="w-full flex items-center justify-center">
-              <SpinningLoader classNames="ml-2 w-8 h-8 text-gray-400"></SpinningLoader>
+            <div className="flex items-center justify-center w-full pt-10">
+              <SkeletalLoader chart={true} />
             </div>
           ) : (
             <ObservablePlot />

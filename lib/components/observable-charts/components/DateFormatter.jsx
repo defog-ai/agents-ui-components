@@ -55,8 +55,8 @@ const formatOptions = [
   { value: "YYYY-MM-DD", label: "YYYY-MM-DD" },
   { value: "DD/MM/YYYY", label: "DD/MM/YYYY" },
   { value: "MM/DD/YYYY", label: "MM/DD/YYYY" },
-  { value: "MMM D, YYYY", label: "Month D, YYYY" },
-  { value: "MMMM D, YYYY", label: "Full Month D, YYYY" },
+  { value: "MMM DD, YYYY", label: "Month DD, YYYY" },
+  { value: "MMMM DD, YYYY", label: "Full Month DD, YYYY" },
 ];
 const FormatHelpContent = () => (
   <div className="">

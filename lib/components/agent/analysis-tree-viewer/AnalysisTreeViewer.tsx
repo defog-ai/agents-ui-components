@@ -18,7 +18,7 @@ import { AgentConfigContext } from "../../context/AgentContext";
 import { DraggableInput } from "./DraggableInput";
 import { getMostVisibleAnalysis } from "../agentUtils";
 import setupBaseUrl from "../../utils/setupBaseUrl";
-import { SpinningLoader } from "@ui-components";
+import { SkeletalLoader } from "@ui-components";
 import type {
   AnalysisTreeManager,
   AnalysisTree,
@@ -821,7 +821,7 @@ export function AnalysisTreeViewer({
             {!activeAnalysisId &&
               (loading ? (
                 <div className="flex items-center justify-center h-full">
-                  <SpinningLoader />
+                  <SkeletalLoader />
                 </div>
               ) : (
                 <QuickstartSection

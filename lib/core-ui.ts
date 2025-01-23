@@ -6,6 +6,7 @@ export { useWindowSize } from "./components/hooks/useWindowSize.jsx";
 export { useScrollPos } from "./components/hooks/useScrollPos.jsx";
 
 export { SpinningLoader } from "./components/core-ui/SpinningLoader.jsx";
+export { SkeletalLoader } from "./components/core-ui/SkeletalLoader.jsx";
 
 export { Button } from "./components/core-ui/Button.jsx";
 export { CheckGroup } from "./components/core-ui/CheckGroup.jsx";

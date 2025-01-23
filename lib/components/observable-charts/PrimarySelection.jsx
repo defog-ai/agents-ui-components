@@ -443,29 +443,23 @@ export function PrimarySelection({ columns }) {
         <h3 className="pb-1 font-bold border-b input-label border-black/20">
           Vertical Axis
         </h3>
-        {selectedChart !== "histogram" ? (
-          <div className="grid grid-cols-2 gap-2">
-            {renderAxisSelection(
-              "y",
-              axisLabel.y,
-              selectedChart === "line" || selectedChart == "bar"
-                ? "multiple"
-                : undefined
-            )}
-            <div className="flex items-center gap-4">
-              {renderAxisLabel("y")}
-              {/* {renderVerticalAxisUnit()} */}
-            </div>
+        <div className="grid grid-cols-2 gap-2">
+          {renderAxisSelection(
+            "y",
+            axisLabel.y,
+            selectedChart === "line" || selectedChart == "bar"
+              ? "multiple"
+              : undefined
+          )}
+          <div className="flex items-center gap-4">
+            {renderAxisLabel("y")}
+            {/* {renderVerticalAxisUnit()} */}
           </div>
-        ) : (
-          <div className="flex flex-col gap-2">
-            {renderHistogramYAxisLabel()}
-          </div>
-        )}
+        </div>
       </div>
       {/* Facet Selection and color */}
 
-      {selectedChart !== "bar" && selectedChart !== "line" ? (
+      {selectedChart !== "bar" ? (
         <div>
           <h3 className="pb-1 font-bold border-b input-label border-black/20">
             Groups

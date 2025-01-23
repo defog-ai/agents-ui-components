@@ -18,6 +18,8 @@ import { Download } from "lucide-react";
 import { ChartManagerContext } from "./ChartManagerContext";
 import { unix } from "dayjs";
 import dayjs from "dayjs";
+import minMax from "dayjs/plugin/minMax";
+dayjs.extend(minMax);
 import { convertWideToLong } from "../utils/utils";
 import { timeFormat } from "d3";
 
@@ -61,6 +63,25 @@ export default function ObservablePlot() {
     const xColumn = availableColumns.find(
       (col) => col.key === selectedColumns.x
     );
+
+    // if x column is date, then get the range of x column
+    if (xColumn?.isDate) {
+      const minDate = dayjs.min(data.map((d) => dayjs(d[xColumn.key])));
+
+      const maxDate = dayjs.max(data.map((d) => dayjs(d[xColumn.key])));
+
+      const numDaysRange = (maxDate - minDate) / 1000 / 60 / 60 / 24;
+
+      if (numDaysRange < 14) {
+        xColumn.rangeToShow = "day";
+      } else if (numDaysRange < 120) {
+        xColumn.rangeToShow = "week";
+      } else if (numDaysRange < 3 * 365) {
+        xColumn.rangeToShow = "month";
+      } else {
+        xColumn.rangeToShow = "year";
+      }
+    }
 
     // if selected.x or selected.y is null, return null here
     // or if selectedColumns.y.length is 0, also return null
@@ -199,6 +220,15 @@ export default function ObservablePlot() {
           availableColumns
         );
       } else if (selectedChart == "line") {
+        const processedDataForLine = convertWideToLong(
+          processedData,
+          selectedColumns.x,
+          selectedColumns.y,
+          chartSpecificOptions[selectedChart].colorBy,
+          colorByColumn?.isDate,
+          selectedColumns.facet
+        );
+
         generatedOptions = getObservableOptions(
           dimensions,
           {
@@ -208,8 +238,7 @@ export default function ObservablePlot() {
             // check to ensure we don't render a blank chart if no axis is selected
             y: selectedColumns.x && selectedColumns.y.length ? "value" : null,
             stroke: "label",
-            // disable facetting for line charts for now
-            // facet: selectedColumns.facet || null,
+            facet: selectedColumns.facet || null,
             filter: chartSpecificOptions[selectedChart]?.filter,
             xIsDate: xColumn?.isDate,
             colorByIsDate: colorByColumn?.isDate,
@@ -218,7 +247,7 @@ export default function ObservablePlot() {
             ...chartStyle,
             ...chartSpecificOptions[selectedChart],
           },
-          processedData,
+          processedDataForLine,
           selectedColumns,
           availableColumns
         );
@@ -291,12 +320,19 @@ export default function ObservablePlot() {
                 // if date, format it
                 // convert from unix to date
                 const date = dayjs(d);
-                return date.format("MMM D, YYYY");
+                if (xColumn.rangeToShow === "year") {
+                  return date.format("YYYY");
+                } else if (xColumn.rangeToShow === "month") {
+                  return date.format("MMM YYYY");
+                } else {
+                  return date.format("MMM DD");
+                }
               } else {
                 return d;
               }
             },
             axis: "bottom",
+            interval: xColumn?.isDate ? xColumn.rangeToShow : undefined,
           },
           x: {
             axis: null,

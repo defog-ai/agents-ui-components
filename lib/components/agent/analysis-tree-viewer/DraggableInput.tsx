@@ -2,6 +2,7 @@ import { useRef, useEffect, forwardRef, Ref } from "react";
 import { Move, ArrowRight, SquarePen } from "lucide-react";
 import { TextArea } from "@ui-components";
 import { twMerge } from "tailwind-merge";
+import { KeyboardShortcutIndicator } from "../../core-ui/KeyboardShortcutIndicator";
 
 interface DraggableInputProps {
   searchBarClasses?: string;
@@ -114,6 +115,32 @@ let DraggableInput = forwardRef(function DraggableInput(
     };
   }, [searchBarDraggable]);
 
+  useEffect(() => {
+    function handleKeyPress(e: KeyboardEvent) {
+      // Only handle keys if no other element is focused
+      if (document.activeElement === document.body) {
+        if (e.key === "/") {
+          e.preventDefault();
+          // Focus the textarea
+          if (ref && "current" in ref && ref.current) {
+            ref.current.focus();
+          }
+        } else if (e.key === "n" || e.key === "N") {
+          e.preventDefault();
+          onNewConversationTextClick();
+          if (ref && "current" in ref && ref.current) {
+            ref.current.focus();
+          }
+        }
+      }
+    }
+
+    document.addEventListener("keydown", handleKeyPress);
+    return () => {
+      document.removeEventListener("keydown", handleKeyPress);
+    };
+  }, [ref, onNewConversationTextClick]);
+
   return (
     <div
       className={twMerge(
@@ -145,12 +172,12 @@ let DraggableInput = forwardRef(function DraggableInput(
             <Move className="w-3 h-3 text-gray-400 dark:text-gray-500 group-hover:text-primary-text dark:group-hover:text-gray-300" />
           </div>
         )}
-        <div className="flex flex-row rounded-md grow items-center">
+        <div className="flex flex-row items-center rounded-md grow">
           <div className="flex flex-row grow">
-            <div className="flex flex-row-reverse items-center grow">
+            <div className="relative flex flex-row-reverse items-center grow">
               <TextArea
                 rootClassNames="grow border-none bg-transparent py-1.5 text-gray-900 dark:text-gray-100 px-2 placeholder:text-gray-400 dark:placeholder:text-gray-500 sm:leading-6 text-sm break-words focus:ring-0 focus:outline-none"
-                textAreaClassNames="resize-none"
+                textAreaClassNames="resize-none pr-8"
                 ref={ref}
                 id="main-searchbar"
                 disabled={loading}
@@ -167,6 +194,11 @@ let DraggableInput = forwardRef(function DraggableInput(
                       activeAnalysisId
                     );
                     // ref.current.value = "";
+                  } else if (ev.key === "Escape") {
+                    ev.preventDefault();
+                    if (ref && "current" in ref && ref.current) {
+                      ref.current.blur();
+                    }
                   }
                 }}
                 placeholder={
@@ -175,13 +207,23 @@ let DraggableInput = forwardRef(function DraggableInput(
                     : "Type your question here"
                 }
               />
+              <KeyboardShortcutIndicator
+                shortcut="/"
+                className="absolute -translate-y-1/2 opacity-50 pointer-events-none right-3 top-1/2"
+              />
               <span
-                className="relative inline-block group pl-2 hover:cursor-pointer hover:bg-gray-100 hover:text-blue-600"
+                className="relative inline-block pl-2 group hover:cursor-pointer hover:bg-gray-100 hover:text-blue-600"
                 onClick={() => {
                   onNewConversationTextClick();
                 }}
               >
-                <SquarePen />
+                <div className="flex items-center gap-2">
+                  <SquarePen />
+                  <KeyboardShortcutIndicator
+                    shortcut="n"
+                    className="opacity-50"
+                  />
+                </div>
                 <span
                   className={
                     "absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-max px-3 py-2 bg-gray-800 text-white text-xs rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"

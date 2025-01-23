@@ -101,7 +101,9 @@ export interface PlotOptions {
   facet?: {
     data?: any[];
     x?: string;
+    y?: string;
     ticks?: number;
+    label?: string;
   };
 }
 
@@ -141,12 +143,60 @@ export const getObservableOptions = (
 
   const xIsDate = mergedOptions.xIsDate || false;
 
+  // if there is faceting, then calculate the facet positions
+  if (mergedOptions.facet && mergedOptions.type !== "bar") {
+    // first, get the unique facet values
+    const uniqueFacetValues = Array.from(
+      new Set(
+        filteredData.map((d) => {
+          return d[mergedOptions.facet];
+        })
+      )
+    );
+
+    // then, calculate the x and y positions for each facet
+    const facetXLocations = uniqueFacetValues.map((facetValue, i) => {
+      return i % 2;
+    });
+    const facetYLocations = uniqueFacetValues.map((facetValue, i) => {
+      return parseInt(i / 2);
+    });
+
+    // add the index of the facet value to the data
+    filteredData.forEach((d, i) => {
+      // first, get all unique facet values
+      const facetIndex = uniqueFacetValues.indexOf(d[mergedOptions.facet]);
+
+      // then
+      d.facetIndex = facetIndex;
+      d.facetXLocation = facetXLocations[facetIndex];
+      d.facetYLocation = facetYLocations[facetIndex];
+    });
+
+    // finally, add the facet titles as text marks
+    Array.from(uniqueFacetValues).map((facetValue, i) => {
+      const facetIndex = uniqueFacetValues.indexOf(facetValue);
+      const xLocation = facetXLocations[facetIndex];
+      const yLocation = facetYLocations[facetIndex];
+
+      chartMarks.push(
+        Plot.text([facetValue], {
+          fx: xLocation,
+          fy: yLocation,
+          frameAnchor: "top",
+          monospace: true,
+        })
+      );
+    });
+  }
+
+  console.log(mergedOptions);
+
   const plotOptions: PlotOptions = {
     width: dimensions.width,
     height: dimensions.height,
     marginTop: mergedOptions?.margin?.top ?? defaultOptions?.margin?.top,
     marginRight: mergedOptions?.margin?.right ?? defaultOptions?.margin?.right,
-    aggregateFunction: "sum",
     marginBottom:
       (mergedOptions?.margin?.bottom ?? defaultOptions?.margin?.bottom) ||
       0 + 50,
@@ -176,22 +226,21 @@ export const getObservableOptions = (
       nice: true,
       label: mergedOptions.yLabel || mergedOptions.y,
       labelOffset: 22,
-      ticks: mergedOptions.yTicks,
     },
     x: {
       grid: mergedOptions.xGrid,
       label: mergedOptions.xLabel || mergedOptions.x,
-      ticks: mergedOptions.xTicks,
     },
     marks: chartMarks,
     facet: {},
   };
 
-  if (mergedOptions.facet) {
+  if (mergedOptions.facet && mergedOptions.type !== "bar") {
     plotOptions.facet = {
       data: filteredData,
-      x: mergedOptions.facet,
-      ticks: 10,
+      x: "facetXLocation",
+      y: "facetYLocation",
+      axis: null,
     };
   }
 
@@ -213,8 +262,10 @@ export function getMarks(
     selectedColumns,
     availableColumns
   );
-  const xAxis = getXAxis(mergedOptions);
-
+  let xAxis;
+  if (options.type !== "bar") {
+    xAxis = getXAxis(mergedOptions);
+  }
   return [...baseMarks, ...(xAxis ? [xAxis] : []), ...chartMarks];
 }
 
@@ -224,7 +275,7 @@ interface AggregateRecord {
   facet: string;
 }
 
-function aggregateData(
+export function aggregateData(
   data: Array<any>,
   aggregateFunction: string
 ): Array<AggregateRecord> {
@@ -300,20 +351,18 @@ interface AxisX {
 
 function getXAxis(options: ChartOptions): Plot.Mark {
   return Plot.axisX({
-    // lineWidth: manyTicks ? 9 : 6,
     lineHeight: 1.2,
-    ticks: options.xTicks,
     tickSize: 0,
     nice: true,
     rotate: -45,
     textAnchor: "end",
-    grid: options.xGrid,
     tickFormat: (d, i, ticks) => {
-      // if bar chart, return null
+      // if bar chart and not xIsDate, return null
       if (options.type === "bar") {
         return null;
       }
 
+      // if xIsDate, format the date
       if (options.xIsDate) {
         let dateXTick;
         try {
@@ -322,9 +371,27 @@ function getXAxis(options: ChartOptions): Plot.Mark {
           dateXTick = d;
         }
 
-        return i % Math.ceil(ticks.length / options.xTicks) === 0
-          ? dateXTick.format("MMM DD, YYYY")
-          : null;
+        // Calculate the total time range
+        const firstDate = dayjs(ticks[0]);
+        const lastDate = dayjs(ticks[ticks.length - 1]);
+        const totalDays = lastDate.diff(firstDate, "day");
+
+        // Choose format based on time range
+        if (totalDays > 365) {
+          // For ranges over a year, show first day of each quarter
+          return dateXTick.date() === 1 && dateXTick.month() % 3 === 0
+            ? dateXTick.format("MMM YYYY")
+            : null;
+        } else if (totalDays > 90) {
+          // For ranges over 3 months, show first day of each month
+          return dateXTick.date() === 1 ? dateXTick.format("MMM YYYY") : null;
+        } else if (totalDays > 14) {
+          // For ranges over 2 weeks, show mondays
+          return dateXTick.day() === 1 ? dateXTick.format("MMM DD") : null;
+        } else {
+          // For shorter ranges, show daily ticks
+          return dateXTick.format("MMM DD");
+        }
       }
 
       return options.xTicks &&
@@ -357,8 +424,6 @@ function getChartSpecificMarks(
     line: getLineMarks,
     bar: getBarMarks,
     scatter: getScatterMarks,
-    histogram: getHistogramMarks,
-    boxplot: getBoxPlotMarks,
   };
 
   return (
@@ -376,31 +441,6 @@ interface TooltipConfig {
   format?: (d: any) => string;
 }
 
-function getTooltipConfig(
-  options: ChartOptions,
-  isHorizontalBoxplot: boolean = false
-): TooltipConfig {
-  const tipFormat = {};
-
-  if (options.xIsDate && !isHorizontalBoxplot) {
-    tipFormat.x = (d) => {
-      const parseUnix = unix(d);
-      // this is already coming in as unix date from ObservablePlot.jsx
-      return parseUnix ? timeFormat(options.dateFormat)(parseUnix) : d;
-    };
-  } else if (options.xIsDate && isHorizontalBoxplot) {
-    tipFormat.y = (d) => {
-      const parseUnix = unix(d);
-      // this is already coming in as unix date from ObservablePlot.jsx
-      return parseUnix ? timeFormat(options.dateFormat)(parseUnix) : d;
-    };
-  } else {
-    tipFormat.x = (d) => d;
-  }
-
-  return { format: tipFormat };
-}
-
 function getLineMarks(
   data: any[],
   options: ChartOptions,
@@ -410,7 +450,7 @@ function getLineMarks(
   const marks = [];
   const aggregateFunction = options.aggregateFunction || "sum";
 
-  const { x, y } = options;
+  const { x, y, facet } = options;
 
   // use a max of 5 categorical columns to add to the tooltip's title
   const categoricalColumnsNotXOrY = availableColumns
@@ -429,36 +469,14 @@ function getLineMarks(
     x: options.x,
     y: options.y,
     filter: options.filter,
-    tip: getTooltipConfig(options),
-    title: (row) => {
-      const extraInfo = categoricalColumnsNotXOrY
-        .map((col) => {
-          if (row[col.title] === undefined) {
-            return "";
-          }
-          return `${col.title}: ${row[col.title]}`;
-        })
-        .join("\n");
-
-      const xValue = options.xIsDate ? unix(row?.unixDateValues?.[x]) : row[x];
-      const xInfo = `${options.x}: ${xValue}`;
-
-      const yInfo = selectedColumns.y
-        .map((yCol) => {
-          const yValue = row[yCol];
-          return `${yCol}: ${yValue}`;
-        })
-        .join("\n");
-
-      return `${xInfo}\n${yInfo}\n${extraInfo}`.replace("\n\n", "\n").trim();
-    },
     stroke: "label",
     strokeWidth: (d) => {
       // d is an array here for some reason.
       const label = d?.[0]?.["label"];
       // if options.lineOptions[d["label"]] exists, use that
       if (
-        options.lineOptions[label] &&
+        label &&
+        options.lineOptions?.[label] &&
         options.lineOptions[label].strokeWidth
       ) {
         return options.lineOptions[label].strokeWidth;
@@ -467,24 +485,19 @@ function getLineMarks(
         return options.lineWidth;
       }
     },
-    curve: options.lineOptions.curve || options.curve,
+    curve: options.lineOptions?.curve || options.curve,
+    tip: {
+      format: {
+        x: (d) => `${d}`,
+        y: (d) => `${d}`,
+        strokeWidth: false,
+        stroke: false,
+      },
+    },
   };
 
   const groupingOptions = {
     y: aggregateFunction,
-    title: (d) => {
-      try {
-        // if there are more than 1 values, show the count at the top
-        let prefix = "";
-        if (d.length > 1) {
-          prefix = `Count: ${d.length}\n----\n`;
-        }
-        // show only 3 values max
-        return prefix + d.slice(0, 3).join("\n----\n");
-      } catch (e) {
-        return "";
-      }
-    },
   };
 
   marks.push(Plot.lineY(data, Plot.groupX(groupingOptions, lineOptions)));
@@ -492,39 +505,104 @@ function getLineMarks(
   return marks;
 }
 
+interface DataRecord {
+  label: string;
+  value: number;
+  facet: string | dayjs.Dayjs;
+}
+
+interface AggregatedRecord {
+  label: string;
+  value: number;
+  facet: string | dayjs.Dayjs;
+}
+
+function transformInputData(data: any[], options: ChartOptions): DataRecord[] {
+  return data.map((d) => ({
+    label: d[options.x || "label"],
+    value: d[options.y || "value"],
+    facet: d[options.facet || "facet"],
+  }));
+}
+
+function processDateFacets(data: AggregatedRecord[]): AggregatedRecord[] {
+  return data.map((d) => ({
+    ...d,
+    facet: dayjs(d.facet),
+  }));
+}
+
+function getFacetTotal(records: AggregatedRecord[]): AggregatedRecord[] {
+  return records.reduce((acc, curr) => {
+    const existingRecord = acc.find((record) => record.facet === curr.facet);
+    if (existingRecord) {
+      existingRecord.value += curr.value;
+    } else {
+      acc.push({ ...curr });
+    }
+    return acc;
+  }, [] as AggregatedRecord[]);
+}
+
+function processNonDateFacets(data: AggregatedRecord[]): AggregatedRecord[] {
+  // Get top 10 facets by total value
+  const facetTotals = getFacetTotal(data);
+  const top10Facets = new Set(
+    facetTotals
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 10)
+      .map((d) => d.facet)
+  );
+
+  // Aggregate remaining data into "Others" category
+  const otherLabels: Record<string, number> = {};
+  data.forEach((record) => {
+    if (!top10Facets.has(record.facet)) {
+      otherLabels[record.label] = (otherLabels[record.label] || 0) + record.value;
+    }
+  });
+
+  const othersData = Object.entries(otherLabels).map(([label, value]) => ({
+    label,
+    value,
+    facet: "Others" as string,
+  }));
+
+  return [
+    ...data.filter((record) => top10Facets.has(record.facet)),
+    ...othersData,
+  ];
+}
+
 function getBarMarks(data: any[], options: ChartOptions): ChartMark[] {
   const aggregateFunction = options.aggregateFunction || "sum";
 
-  const transformedData = data.map((d) => {
-    return {
-      label: d[options.x || "label"],
-      value: d[options.y || "value"],
-      facet: d[options.facet || "facet"],
-    };
-  });
-  const aggregatedData = aggregateData(transformedData, aggregateFunction);
-  const marks = [];
-  marks.push(
-    Plot.barY(aggregatedData, {
+  // Transform and aggregate the input data
+  const transformedData = transformInputData(data, options);
+  let aggregatedData = aggregateData(transformedData, aggregateFunction);
+
+  // Process the data based on whether x-axis represents dates
+  aggregatedData = options.xIsDate
+    ? processDateFacets(aggregatedData)
+    : processNonDateFacets(aggregatedData);
+
+  // Create the plot marks
+  return [
+    Plot.rectY(aggregatedData, {
       x: "label",
       y: "value",
       fx: "facet",
       fill: "label",
-      sort: {
-        fx: {
-          value: "-y",
-          limit: 10,
-        },
-      },
+      sort: !options.xIsDate ? { fx: { value: "-y" } } : undefined,
       tip: {
         format: {
           x: (d) => d,
           y: (d) => d,
+          fill: false,
         },
       },
-    })
-  );
-  return marks;
+    }),
+  ];
 }
 
 function getScatterMarks(
@@ -550,236 +628,20 @@ function getScatterMarks(
 
   return [
     Plot.dot(data, {
-      tip: getTooltipConfig(options),
-      title: (row) => {
-        const extraInfo = categoricalColumnsNotXOrY
-          .map((col) => {
-            if (row[col.title] === undefined) {
-              return "";
-            }
-            return `${col.title}: ${row[col.title]}`;
-          })
-          .join("\n");
-
-        const xValue = options.xIsDate
-          ? unix(row?.unixDateValues?.[x])
-          : row[x];
-        const xInfo = `${options.x}: ${xValue}`;
-
-        const yInfo = `${options.y}: ${row[y]}`;
-
-        return `${xInfo}\n${yInfo}\n${extraInfo}\n`
-          .replace("\n\n", "\n")
-          .trim();
-      },
       x: options.x,
       y: options.y,
       filter: options.filter,
       fill: options.fill || options.pointColor,
       r: options.pointSize,
       fillOpacity: 0.7,
+      tip: {
+        format: {
+          x: (d) => d,
+          y: (d) => d,
+        },
+      },
     }),
   ];
-}
-
-function getHistogramMarks(data: any[], options: ChartOptions): ChartMark[] {
-  const { x, binCount, fill, fillColor, normalize, cumulative } = options;
-
-  return [
-    Plot.rectY(
-      data,
-
-      Plot.binX(
-        { y: "count" },
-        {
-          tip: getTooltipConfig(options),
-          x,
-          thresholds: binCount,
-          fill: fill || fillColor,
-
-          normalize,
-          cumulative,
-        }
-      )
-    ),
-    Plot.ruleY([0]),
-  ];
-}
-
-function getBoxPlotMarks(
-  data: any[],
-  options: ChartOptions,
-  selectedColumns: string[],
-  availableColumns: string[]
-): ChartMark[] {
-  const { x, y, stroke, opacity, boxplotOrientation, xIsDate, dateFormat } =
-    options;
-
-  // use a max of 5 categorical columns to add to the tooltip's title
-  const categoricalColumnsNotXOrY = availableColumns
-    .filter(
-      (col) =>
-        col.variableType === "categorical" && col.title !== x && col.title !== y
-    )
-    .slice(0, 5);
-
-  const boxplotOptions = {
-    // fill,
-    stroke,
-    filter: options.filter,
-    fillOpacity: opacity,
-  };
-
-  let marks;
-
-  if (boxplotOrientation === "horizontal") {
-    marks = [
-      Plot.boxX(data, {
-        y: x,
-        x: y,
-        ...boxplotOptions,
-        tip: getTooltipConfig(options, true),
-        title: function (row) {
-          const xValue = row[x];
-          const yValue = row[y];
-
-          const extraInfo = categoricalColumnsNotXOrY
-            .map((col) => {
-              if (row[col.title] === undefined) {
-                return "";
-              }
-              return `${col.title}: ${row[col.title]}`;
-            })
-            .join("\n");
-
-          if (xIsDate) {
-            // if date, format it
-            // convert from unix to date
-            const dateFormatted =
-              timeFormat(dateFormat)(unix(row?.unixDateValues?.[x])) || xValue;
-
-            return `${x}: ${dateFormatted}\n${y}: ${yValue}\n${extraInfo}`
-              .replace("\n\n", "\n")
-              .trim();
-          } else {
-            // simply parse and return
-            return `${x}: ${xValue}\n${y}: ${yValue}\n${extraInfo}`
-              .replace("\n\n", "\n")
-              .trim();
-          }
-        },
-      }),
-
-      Plot.axisY({
-        label: x,
-        ticks: options.xTicks,
-        grid: options.yGrid,
-        tickFormat: (d, i, ticks) => {
-          if (xIsDate) {
-            const parseUnix = unix(d);
-
-            // this is already coming in as unix date from ObservablePlot.jsx
-
-            const date = parseUnix
-              ? // parse using dayjs. for some reason d3's wasn't giving the correct answer.
-                // IF this is parseable using dateToUnix, then it is already coming in as unix date from ObservablePlot.jsx
-                // if this isn't parseable using dateToUnix, just leave it as it is
-                parseUnix
-              : // don't parse. just leave however it is
-                d;
-
-            return options.xTicks &&
-              i % Math.ceil(ticks.length / options.xTicks) !== 0
-              ? ""
-              : parseUnix
-                ? timeFormat(dateFormat)(date)
-                : date;
-          }
-
-          return options.xTicks &&
-            i % Math.ceil(ticks.length / options.xTicks) !== 0
-            ? ""
-            : d;
-        },
-      }),
-    ];
-  } else {
-    marks = [
-      Plot.boxY(data, {
-        x,
-        y,
-        ...boxplotOptions,
-        tip: getTooltipConfig(options),
-        title: function (row) {
-          const xValue = row[x];
-          const yValue = row[y];
-
-          const extraInfo = categoricalColumnsNotXOrY
-            .map((col) => {
-              if (row[col.title] === undefined) {
-                return "";
-              }
-              return `${col.title}: ${row[col.title]}`;
-            })
-            .join("\n");
-
-          if (xIsDate) {
-            // if date, format it
-            // convert from unix to date
-            const dateFormatted =
-              timeFormat(dateFormat)(unix(row?.unixDateValues?.[x])) || xValue;
-
-            return `${x}: ${dateFormatted}\n${y}: ${yValue}\n${extraInfo}`
-              .replace("\n\n", "\n")
-              .trim();
-          } else {
-            // simply parse and return
-            return `${x}: ${xValue}\n${y}: ${yValue}\n${extraInfo}`
-              .replace("\n\n", "\n")
-              .trim();
-          }
-        },
-      }),
-      Plot.axisY({
-        label: y,
-        ticks: options.yTicks,
-        grid: options.yGrid,
-      }),
-    ];
-  }
-
-  // boxplot is a composite mark
-  // when we pass the tip and title above, it will show up for all the marks
-  // we want to remove the tip and title for all the marks except the dot
-  // if there are a lot of elements, then boxplot creates a rule mark instead of showing individual dots
-  const boxMarks = marks[0];
-
-  boxMarks.forEach((mark) => {
-    if (
-      !(mark instanceof Plot.Dot) &&
-      !(mark instanceof Plot.RuleY) &&
-      !(mark instanceof Plot.RuleX)
-    ) {
-      mark.tip = null;
-      mark.title = null;
-    }
-    // if these are rules, then
-    // if this is a horizontal boxplot, make the anchor top
-    // if this is a vertical boxplot, make the anchor right
-    // so that it doesn't interfere with the tooltips of the rules/dots
-    if (mark instanceof Plot.RuleY || mark instanceof Plot.RuleX) {
-      mark.tip = {
-        ...mark.tip,
-        anchor: boxplotOrientation === "horizontal" ? "top" : "right",
-      };
-
-      if (mark.channels) {
-        // use the default title if it's a rule
-        delete mark.channels.title;
-      }
-    }
-  });
-  return marks;
 }
 
 export function getColorScheme(scheme: string): {

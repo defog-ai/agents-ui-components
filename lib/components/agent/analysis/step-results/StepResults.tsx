@@ -11,7 +11,7 @@ import { AddStepUI } from "../../add-step/AddStepUI";
 import { Modal } from "antd";
 import { Tabs } from "../../../core-ui/Tabs";
 import { AgentConfigContext } from "../../../context/AgentContext";
-import { SpinningLoader } from "@ui-components";
+import { SkeletalLoader, SpinningLoader } from "@ui-components";
 import SQLFeedback from "./SQLFeedback";
 import StepFollowOn from "./StepFollowOn";
 import { CodeEditor } from "./CodeEditor";
@@ -429,7 +429,7 @@ export function StepResults({
             {toolDisplayNames[step?.tool_name] || step?.tool_name}
           </span>
           <span className="my-1">Now executing the next step</span>
-          <SpinningLoader classNames="text-gray-500 dark:text-gray-400 w-5 h-5" />
+          <SkeletalLoader classNames="text-gray-500 dark:text-gray-400 w-5 h-5" />
         </div>
       )}
 

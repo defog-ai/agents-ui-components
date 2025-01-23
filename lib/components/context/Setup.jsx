@@ -9,7 +9,7 @@ import {
   MessageManager,
   MessageManagerContext,
   MessageMonitor,
-  SpinningLoader,
+  SkeletalLoader,
 } from "@ui-components";
 import { twMerge } from "tailwind-merge";
 import { initializeSQLite } from "../utils/sqlite";
@@ -175,7 +175,7 @@ export function Setup({
                 <div className="mb-2 text-sm text-gray-400">
                   Connecting to servers
                 </div>
-                <SpinningLoader classNames="w-5 h-5 text-gray-500" />
+                <SkeletalLoader classNames="w-5 h-5 text-gray-500" />
               </div>
             )}
           </MessageManagerContext.Provider>
