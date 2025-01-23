@@ -231,7 +231,7 @@ export const getObservableOptions = (
     },
     marks: chartMarks,
     facet: {
-      // if this is a bar cbart, use the xLabel for the facet x axis
+      // if this is a bar chart, use the xLabel for the facet x axis
       label: mergedOptions.xLabel,
     },
   };
