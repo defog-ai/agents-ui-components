@@ -132,7 +132,7 @@ export function ChartContainer({
       value={{ ...chartManager, config: chartConfig }}
     >
       <div className="relative">
-        <div className="flex flex-row gap-3 relative">
+        <div className="relative flex flex-row gap-3">
           <div
             className={twMerge(
               "relative min-w-[350px] max-w-[350px] h-full border-r chart-options-container",
@@ -179,8 +179,8 @@ export function ChartContainer({
           </div>
 
           {chartConfig.loading ? (
-            <div className="w-full flex items-center justify-center pt-10">
-              <SkeletalLoader />
+            <div className="flex items-center justify-center w-full pt-10">
+              <SkeletalLoader chart={true} />
             </div>
           ) : (
             <ObservablePlot />
