@@ -30,6 +30,7 @@ import StepResultAnalysis from "./StepResultAnalysis";
 
 import type { ParsedOutput, Step } from "../analysisManager";
 import type { AnalysisTreeManager } from "../../analysis-tree-viewer/analysisTreeManager";
+import { KeyboardShortcutIndicator } from "../../../core-ui/KeyboardShortcutIndicator";
 
 interface TabItem {
   key: string;
@@ -341,7 +342,7 @@ export function StepResultsTable({
                     analysisTreeManager.setActiveTab(analysisId, tab.key)
                   }
                   className={`
-                    px-3 py-2 text-sm font-medium rounded-t-lg
+                    px-3 py-2 text-sm font-medium rounded-t-lg flex items-center gap-2
                     ${
                       activeTab === tab.key
                         ? "border-b-2 border-blue-500 text-blue-600"
@@ -349,8 +350,22 @@ export function StepResultsTable({
                     }
                   `}
                 >
-                  {tab.icon}
-                  {tab.tabLabel}
+                  <span className="flex items-center">
+                    {tab.icon}
+                    {tab.tabLabel}
+                  </span>
+                  {tab.key === "table" && (
+                    <KeyboardShortcutIndicator
+                      shortcut="t"
+                      className="opacity-50 px-1 py-0.5"
+                    />
+                  )}
+                  {tab.key === "chart" && (
+                    <KeyboardShortcutIndicator
+                      shortcut="c"
+                      className="opacity-50 px-1 py-0.5"
+                    />
+                  )}
                 </button>
               ))}
             </nav>
