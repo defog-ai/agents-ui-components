@@ -77,7 +77,8 @@ export function ChartContainer({
   const { selectedColumns } = chartConfig;
 
   useEffect(() => {
-    if (initialQuestion) {
+    // don't send request while chart is already loading
+    if (initialQuestion && !chartManager.config.loading) {
       chartManager.editChart(initialQuestion, chartEditUrl, {
         onError: (e) => {
           messageManager.error(e.message);
@@ -87,7 +88,7 @@ export function ChartContainer({
     } else {
       chartManager.autoSelectVariables().render();
     }
-  }, [initialQuestion]);
+  }, []);
 
   const tabItems = useMemo(() => {
     const columns = chartConfig.availableColumns;
