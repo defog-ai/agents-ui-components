@@ -31,7 +31,6 @@ import StepResultAnalysis from "./StepResultAnalysis";
 import type { ParsedOutput, Step } from "../analysisManager";
 import type { AnalysisTreeManager } from "../../analysis-tree-viewer/analysisTreeManager";
 import { KeyboardShortcutIndicator } from "../../../core-ui/KeyboardShortcutIndicator";
-import { twMerge } from "tailwind-merge";
 
 interface TabItem {
   key: string;
