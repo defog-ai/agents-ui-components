@@ -230,7 +230,10 @@ export const getObservableOptions = (
       label: mergedOptions.xLabel || mergedOptions.x,
     },
     marks: chartMarks,
-    facet: {},
+    facet: {
+      // if this is a bar cbart, use the xLabel for the facet x axis
+      label: mergedOptions.xLabel,
+    },
   };
 
   if (mergedOptions.facet && mergedOptions.type !== "bar") {

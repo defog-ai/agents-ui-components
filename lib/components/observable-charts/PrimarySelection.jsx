@@ -282,7 +282,7 @@ export function PrimarySelection({ columns }) {
       // so to get back all the columns selected as an array
       // we always split the string by the separator
       selectedColumnKey = selectedColumns.x.split(separator);
-    } else {
+    } else if (axis === "x" && !selectedColumns.x) {
       selectedColumnKey = [];
     }
 
