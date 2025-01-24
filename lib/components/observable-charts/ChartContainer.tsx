@@ -1,3 +1,6 @@
+// apply styles from styles.css
+import "./styles.css";
+
 import { useState, useEffect, useMemo, useContext } from "react";
 import { Tabs } from "antd";
 import {
