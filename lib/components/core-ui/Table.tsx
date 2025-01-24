@@ -3,7 +3,6 @@ import React, {
   useEffect,
   useMemo,
   useState,
-  Suspense,
   useTransition,
   useRef,
   useCallback,
@@ -281,14 +280,12 @@ export function Table({
     [columnsToDisplay]
   );
 
-  const dataIndexToColumnMap = useMemo(() => 
-    columnsToDisplay.reduce<Record<string, Column>>(
-      (acc, column) => {
+  const dataIndexToColumnMap = useMemo(
+    () =>
+      columnsToDisplay.reduce<Record<string, Column>>((acc, column) => {
         acc[column.dataIndex] = column;
         return acc;
-      },
-      {}
-    ),
+      }, {}),
     [columnsToDisplay]
   );
 
@@ -308,7 +305,9 @@ export function Table({
       return dataIndexes.some((dataIndex) => {
         const cellValue = row[dataIndex];
         if (cellValue == null) return false;
-        return String(cellValue).toLowerCase().includes(searchQuery.toLowerCase());
+        return String(cellValue)
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase());
       });
     });
   }, [rowsWithIndex, searchQuery, dataIndexes]);
@@ -331,8 +330,8 @@ export function Table({
     });
   }, [filteredRows, sortColumn, sortOrder, columnsToDisplay]);
 
-  const maxPage = useMemo(() => 
-    Math.ceil(sortedRows.length / pageSize),
+  const maxPage = useMemo(
+    () => Math.ceil(sortedRows.length / pageSize),
     [sortedRows.length, pageSize]
   );
 
@@ -391,31 +390,40 @@ export function Table({
     setSortOrder(newOrder);
   }
 
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    if (e.target instanceof HTMLInputElement || (e.target as HTMLElement).isContentEditable) {
-      if (e.key === 'Escape' && document.activeElement === searchInputRef.current) {
-        searchInputRef.current?.blur();
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (
+        e.target instanceof HTMLInputElement ||
+        (e.target as HTMLElement).isContentEditable
+      ) {
+        if (
+          e.key === "Escape" &&
+          document.activeElement === searchInputRef.current
+        ) {
+          searchInputRef.current?.blur();
+        }
+        return;
       }
-      return;
-    }
 
-    switch (e.key) {
-      case 'ArrowLeft':
-        tryPageChange(currentPage - 1 < 1 ? 1 : currentPage - 1);
-        break;
-      case 'ArrowRight':
-        tryPageChange(currentPage + 1 > maxPage ? maxPage : currentPage + 1);
-        break;
-      case 's':
-        e.preventDefault();
-        searchInputRef.current?.focus();
-        break;
-    }
-  }, [currentPage, maxPage, tryPageChange]);
+      switch (e.key) {
+        case "ArrowLeft":
+          tryPageChange(currentPage - 1 < 1 ? 1 : currentPage - 1);
+          break;
+        case "ArrowRight":
+          tryPageChange(currentPage + 1 > maxPage ? maxPage : currentPage + 1);
+          break;
+        case "s":
+          e.preventDefault();
+          searchInputRef.current?.focus();
+          break;
+      }
+    },
+    [currentPage, maxPage, tryPageChange]
+  );
 
   useEffect(() => {
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
   }, [handleKeyDown]);
 
   const pager = useMemo(() => {
