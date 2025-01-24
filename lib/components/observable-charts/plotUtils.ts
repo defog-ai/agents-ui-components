@@ -53,7 +53,7 @@ export const defaultOptions: ChartOptions = {
   y: null,
   xLabel: "X Axis",
   yLabel: "Y Axis",
-  backgroundColor: "#ffffff",
+  backgroundColor: "transparent",
   fontSize: 12,
   title: "",
   lineWidth: 3,
