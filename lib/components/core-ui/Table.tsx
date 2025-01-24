@@ -47,6 +47,7 @@ interface TableProps {
   skipColumns?: string[];
   rowCellRender?: (props: RowCellRenderProps) => React.ReactNode;
   columnHeaderClassNames?: string;
+  showSearch?: boolean;
 }
 
 interface ColumnHeaderRenderProps {
@@ -232,6 +233,7 @@ const TableLoader = () => (
  * @property {string[]} [skipColumns=[]] - The columns to skip.
  * @property {(cellMetadata: { cellValue: any, colIdx: number, row: any, dataIndex: string, column: any, dataIndexes: string[], allColumns: any[], dataIndexToColumnMap: { [key: string]: any } }) => JSX.Element} [rowCellRender=(_) => null] - The row cell render function. If this function returns a falsy value, the default renderer is used. So this can also be used for conditional rendering of row cells.
  * @property {string} [columnHeaderClassNames=""] - Additional classes to be added to the column header.
+ * @property {boolean} [showSearch=true] - Whether to show the search bar.
  */
 /**
  * Table component
@@ -248,6 +250,7 @@ export function Table({
   skipColumns = [],
   rowCellRender = (_: any) => null,
   columnHeaderClassNames = "",
+  showSearch = true,
 }: TableProps) {
   const messageManager = useContext(MessageManagerContext);
   // name of the property in the rows objects where each column's data is stored
@@ -291,7 +294,13 @@ export function Table({
     }
   }, [rows, columns, messageManager]);
 
-  const dataIndexes = columnsToDisplay.map((d) => d.dataIndex);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const dataIndexes = useMemo(
+    () => columnsToDisplay.map((col) => col.dataIndex),
+    [columnsToDisplay]
+  );
+
   const dataIndexToColumnMap = columnsToDisplay.reduce<Record<string, Column>>(
     (acc, column) => {
       acc[column.dataIndex] = column;
@@ -300,7 +309,28 @@ export function Table({
     {}
   );
 
-  const maxPage = Math.max(1, Math.ceil(rows.length / pageSize));
+  const rowsWithIndex = useMemo(
+    () =>
+      rows.map((d, i) => ({
+        ...d,
+        originalIndex: i,
+      })),
+    [rows]
+  );
+
+  const filteredRows = useMemo(() => {
+    if (!searchQuery) return rowsWithIndex;
+
+    return rowsWithIndex.filter((row) => {
+      return dataIndexes.some((dataIndex) => {
+        const cellValue = row[dataIndex];
+        if (cellValue == null) return false;
+        return String(cellValue).toLowerCase().includes(searchQuery.toLowerCase());
+      });
+    });
+  }, [rowsWithIndex, searchQuery, dataIndexes]);
+
+  const maxPage = Math.ceil(filteredRows.length / pageSize);
 
   function toggleSort(newColumn: string) {
     let newOrder: "asc" | "desc" | null = null;
@@ -333,16 +363,16 @@ export function Table({
       const sorterFn =
         typeof column?.sorter === "function" ? column.sorter : defaultSorter;
 
-      const sortedRows = rows.slice().sort((a, b) => {
+      const sortedRows = filteredRows.slice().sort((a, b) => {
         return sortOrder === "asc"
           ? sorterFn(a, b, sortColumn)
           : sorterFn(b, a, sortColumn);
       });
       setSortedRows(sortedRows);
     } else {
-      setSortedRows(rows);
+      setSortedRows(filteredRows);
     }
-  }, [sortColumn, rows, sortOrder, columnsToDisplay]);
+  }, [sortColumn, filteredRows, sortOrder, columnsToDisplay]);
 
   const tryPageChange = useCallback(
     // when we setInner text on a span, the cursor jumps to the start of the span
@@ -474,10 +504,21 @@ export function Table({
   }, [visibleRows.length]);
 
   return (
-    <div className={twMerge("overflow-auto", rootClassNames)}>
+    <div className={twMerge("px-4 sm:px-6 lg:px-8", rootClassNames)}>
+      {showSearch && (
+        <div className="mb-4">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search table..."
+            className="block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 dark:text-gray-100 dark:bg-gray-800 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+          />
+        </div>
+      )}
       {paginationPosition === "top" && pager}
       <div
-        className="flex flex-row mx-auto overflow-auto relative"
+        className="flow-root overflow-x-auto"
         style={{ minHeight: `${minTableHeight}px` }}
       >
         {isPending && <TableLoader />}
