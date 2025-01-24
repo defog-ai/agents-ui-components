@@ -527,7 +527,7 @@ export default function ObservablePlot() {
   }, [chartManager.config, dimensions]);
 
   return (
-    <div className="grow bg-white">
+    <div className="grow">
       <div className="flex justify-end mb-2">
         {observableOptions && observableOptions?.wasSampled && (
           <div className="text-gray-500 text-sm">
