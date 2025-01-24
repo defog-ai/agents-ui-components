@@ -403,8 +403,8 @@ export function Table({
                   }}
                   onInput={(e) => {
                     // if the user is still typing, do nothing
-                    if (e.target.innerText === "") return;
-                    const value = parseInt(e.target.innerText);
+                    if (e.currentTarget.innerText === "") return;
+                    const value = parseInt(e.currentTarget.innerText);
                     // don't set inner text as the value is itself coming from the span
                     tryPageChange(value, false);
                   }}
