@@ -54,6 +54,7 @@ function QueryDataPage() {
             hiddenCharts={["boxplot", "histogram"]}
             token={import.meta.env.VITE_TOKEN}
             searchBarDraggable={false}
+            hidePreviewTabs={true}
             apiEndpoint={import.meta.env.VITE_API_ENDPOINT}
             // these are the ones that will be shown for new csvs uploaded
             uploadedCsvPredefinedQuestions={[

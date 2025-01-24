@@ -405,27 +405,29 @@ export function createActionHandlers(): ActionHandlers {
 }
 
 function deepMergeObjects(
-  obj1: ChartConfig,
-  obj2: Partial<ChartConfig>
+  target: ChartConfig,
+  source: Partial<ChartConfig>
 ): ChartConfig {
-  const merged = { ...obj1 };
+  const merged = { ...target };
 
-  for (const key in obj2) {
+  for (const key in source) {
     if (
       // if this isn't an object we don't need to deep merge
-      typeof obj2[key] === "object" &&
+      typeof source[key] === "object" &&
+      // null and arrays are objects in js
+      source[key] !== null &&
       // if this is an array, we don't need to deep merge, we will just slice later
-      !Array.isArray(obj2[key]) &&
-      // if this key doesn't exist in obj1, we don't need to deep merge
-      obj1[key] !== undefined
+      !Array.isArray(source[key]) &&
+      // if this key doesn't exist in target, we don't need to deep merge
+      target[key] !== undefined
     ) {
-      merged[key] = deepMergeObjects(obj1[key], obj2[key]);
+      merged[key] = deepMergeObjects(target[key], source[key]);
     } else {
       // if this is an array, slice
-      if (Array.isArray(obj2[key])) {
-        merged[key] = obj2[key].slice();
+      if (Array.isArray(source[key])) {
+        merged[key] = source[key].slice();
       } else {
-        merged[key] = obj2[key];
+        merged[key] = source[key];
       }
     }
   }
