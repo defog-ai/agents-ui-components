@@ -451,7 +451,7 @@ export const defaultChartManager: ChartManager = {
     chartStyle: {
       title: "",
       fontSize: 12,
-      backgroundColor: "#ffffff",
+      backgroundColor: "transparent",
       xLabel: null,
       yLabel: null,
       xGrid: false,
