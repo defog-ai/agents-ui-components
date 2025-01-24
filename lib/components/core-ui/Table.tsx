@@ -5,6 +5,8 @@ import React, {
   useState,
   Suspense,
   useTransition,
+  useRef,
+  useCallback,
 } from "react";
 import { twMerge } from "tailwind-merge";
 import { SingleSelect } from "./SingleSelect";
@@ -255,6 +257,8 @@ export function Table({
   );
   const [isPending, startTransition] = useTransition();
 
+  const pageInputRef = useRef<HTMLSpanElement>(null);
+
   const columnsToDisplay = useMemo<ExtendedColumn[]>(
     () =>
       columns
@@ -276,7 +280,7 @@ export function Table({
   );
 
   useEffect(() => {
-    setCurrentPage(1);
+    tryPageChange(1);
     // if multiple columns have same dataIndex, show a warning that output might be confusing
     const dataIndexes = columns.map((d) => d.dataIndex);
     const uniqueDataIndexes = new Set(dataIndexes);
@@ -340,91 +344,120 @@ export function Table({
     }
   }, [sortColumn, rows, sortOrder, columnsToDisplay]);
 
-  const pager = useMemo(
-    () => (
-      <div
-        className={twMerge(
-          "mb-4 pl-4 text-sm pager text-center bg-white dark:bg-gray-800",
-          pagerClassNames
-        )}
-      >
-        <div className="flex flex-row items-center justify-end w-full">
-          <div className="flex flex-row items-center w-50">
-            <div className="text-gray-600 dark:text-gray-400">
-              Page
-              <span className="mx-1 font-semibold dark:text-gray-200">
-                {currentPage}
-              </span>
-              /
-              <span className="mx-1 font-semibold dark:text-gray-200">
-                {maxPage}
-              </span>
-            </div>
-            <ChevronLeft
-              className={twMerge(
-                "w-5 cursor-not-allowed",
-                currentPage === 1
-                  ? "text-gray-300 dark:text-gray-600"
-                  : "hover:text-blue-500 dark:hover:text-blue-400 cursor-pointer"
-              )}
-              onClick={() => {
-                setCurrentPage(currentPage - 1 < 1 ? 1 : currentPage - 1);
-              }}
-            />
-            <ChevronRight
-              className={twMerge(
-                "w-5 cursor-pointer",
-                currentPage === maxPage
-                  ? "text-gray-300 dark:text-gray-600 cursor-not-allowed"
-                  : "hover:text-blue-500 dark:hover:text-blue-400 cursor-pointer"
-              )}
-              onClick={() => {
-                setCurrentPage(
-                  currentPage + 1 > maxPage ? maxPage : currentPage + 1
-                );
-              }}
-            />
-            {maxPage > 1 && (
-              <div className="flex items-center ml-2">
-                <input
-                  type="number"
-                  min={1}
-                  max={maxPage}
-                  value={currentPage}
-                  onChange={(e) => {
-                    const value = parseInt(e.target.value);
-                    if (!isNaN(value) && value >= 1 && value <= maxPage) {
-                      setCurrentPage(value);
-                    }
+  const tryPageChange = useCallback(
+    // when we setInner text on a span, the cursor jumps to the start of the span
+    // we only want to do this when the span is blurred aka user types and moves away from the span
+    (page: number, setInnerText: boolean = true) => {
+      if (!isNaN(page) && page >= 1 && page <= maxPage) {
+        if (pageInputRef.current && setInnerText) {
+          pageInputRef.current.innerText = page + "";
+        }
+        setCurrentPage(page);
+      } else {
+        if (pageInputRef.current && setInnerText) {
+          pageInputRef.current.innerText = currentPage + "";
+        }
+      }
+    },
+    [currentPage, maxPage]
+  );
+
+  const margin = paginationPosition === "top" ? "mb-2" : "mt-2";
+
+  const pager = useMemo(() => {
+    return (
+      maxPage > 1 && (
+        <div
+          className={twMerge(
+            "text-sm pager text-center bg-white dark:bg-gray-800",
+            margin,
+            pagerClassNames
+          )}
+        >
+          <div className="flex flex-row items-center justify-end w-full">
+            <div className="flex flex-row items-center">
+              <button
+                className={twMerge(
+                  "cursor-not-allowed",
+                  currentPage === 1
+                    ? "text-gray-300 dark:text-gray-600"
+                    : "hover:text-blue-500 dark:hover:text-blue-400 cursor-pointer"
+                )}
+              >
+                <ChevronLeft
+                  type="button"
+                  className="w-5 "
+                  onClick={() => {
+                    tryPageChange(currentPage - 1 < 1 ? 1 : currentPage - 1);
                   }}
-                  className="w-16 px-2 py-1 text-sm border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
-                  placeholder="Page"
+                />
+              </button>
+              <div className="flex flex-row items-center">
+                <span
+                  contentEditable
+                  ref={pageInputRef}
+                  // change page when clicked away
+                  onBlur={(e) => {
+                    const value = parseInt(e.target.innerText);
+                    tryPageChange(value);
+                  }}
+                  onInput={(e) => {
+                    // if the user is still typing, do nothing
+                    if (e.target.innerText === "") return;
+                    const value = parseInt(e.target.innerText);
+                    // don't set inner text as the value is itself coming from the span
+                    tryPageChange(value, false);
+                  }}
+                  className="border rounded px-2 py-2 text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+                ></span>
+                <span className="ml-2 text-gray-300 text-xs pointer-events-none whitespace-nowrap">
+                  / {maxPage}
+                </span>
+              </div>
+              <button
+                className={twMerge(
+                  "cursor-pointer",
+                  currentPage === maxPage
+                    ? "text-gray-300 dark:text-gray-600 cursor-not-allowed"
+                    : "hover:text-blue-500 dark:hover:text-blue-400 cursor-pointer"
+                )}
+              >
+                <ChevronRight
+                  className={"w-5"}
+                  onClick={() => {
+                    tryPageChange(
+                      currentPage + 1 > maxPage ? maxPage : currentPage + 1
+                    );
+                  }}
+                />
+              </button>
+            </div>
+            {(pagination.showSizeChanger === undefined
+              ? true
+              : pagination.showSizeChanger) && (
+              <div className="flex w-full">
+                <SingleSelect
+                  allowClear={false}
+                  rootClassNames="w-24"
+                  options={allowedPageSizes.map((d) => ({
+                    value: d,
+                    label: d,
+                  }))}
+                  value={pageSize}
+                  onChange={(val: number) => {
+                    startTransition(() => {
+                      setPageSize(val || 10);
+                      tryPageChange(1);
+                    });
+                  }}
                 />
               </div>
             )}
           </div>
-          {(pagination.showSizeChanger === undefined
-            ? true
-            : pagination.showSizeChanger) && (
-            <div className="flex w-full">
-              <SingleSelect
-                rootClassNames="w-24"
-                options={allowedPageSizes.map((d) => ({ value: d, label: d }))}
-                value={pageSize}
-                onChange={(val: number) => {
-                  startTransition(() => {
-                    setPageSize(val || 10);
-                    setCurrentPage(1);
-                  });
-                }}
-              />
-            </div>
-          )}
         </div>
-      </div>
-    ),
-    [currentPage, maxPage, pageSize, allowedPageSizes]
-  );
+      )
+    );
+  }, [currentPage, maxPage, pageSize, allowedPageSizes]);
 
   const visibleRows = useMemo(
     () =>

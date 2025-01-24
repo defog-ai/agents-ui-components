@@ -27,7 +27,7 @@ const sampleRows = [
 ];
 
 const lotsOfData = [];
-for (let i = 0; i < 100; i++) {
+for (let i = 0; i < 1000; i++) {
   lotsOfData.push({
     id: i,
     name: "John Doe",
@@ -76,7 +76,7 @@ export const LotsOfData = {
 
 export const PaginationOnTop = {
   name: "Table with pagination on top",
-  args: { rows: sampleRows, columns: sampleColumns, paginationPosition: "top" },
+  args: { rows: lotsOfData, columns: sampleColumns, paginationPosition: "top" },
 };
 
 // custom header render
