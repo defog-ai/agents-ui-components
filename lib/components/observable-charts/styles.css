@@ -1,0 +1,12 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.input-label {
+  @apply text-xs text-gray-600 dark:text-gray-400;
+}
+
+/* apply style to all svg children of the class observable-plot */
+.observable-plot text {
+  @apply text-gray-600 dark:text-gray-400;
+}
