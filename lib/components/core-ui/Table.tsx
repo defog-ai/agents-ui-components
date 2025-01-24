@@ -11,6 +11,8 @@ import { twMerge } from "tailwind-merge";
 import { SingleSelect } from "./SingleSelect";
 import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { MessageManagerContext } from "./Message";
+import { KeyboardShortcutIndicator } from "./KeyboardShortcutIndicator";
+import { KEYMAP, matchesKey } from "../../constants/keymap";
 
 const allowedPageSizes = [5, 10, 20, 50, 100];
 
@@ -397,7 +399,7 @@ export function Table({
         (e.target as HTMLElement).isContentEditable
       ) {
         if (
-          e.key === "Escape" &&
+          matchesKey(e.key, KEYMAP.TABLE_BLUR_SEARCH) &&
           document.activeElement === searchInputRef.current
         ) {
           searchInputRef.current?.blur();
@@ -406,13 +408,13 @@ export function Table({
       }
 
       switch (e.key) {
-        case "ArrowLeft":
+        case KEYMAP.TABLE_PREV_PAGE:
           tryPageChange(currentPage - 1 < 1 ? 1 : currentPage - 1);
           break;
-        case "ArrowRight":
+        case KEYMAP.TABLE_NEXT_PAGE:
           tryPageChange(currentPage + 1 > maxPage ? maxPage : currentPage + 1);
           break;
-        case "s":
+        case KEYMAP.TABLE_FOCUS_SEARCH:
           e.preventDefault();
           searchInputRef.current?.focus();
           break;
@@ -536,15 +538,25 @@ export function Table({
   return (
     <div className={twMerge("px-4 sm:px-6 lg:px-8", rootClassNames)}>
       {showSearch && (
-        <div className="mb-4">
+        <div className="relative mb-4">
           <input
             ref={searchInputRef}
             type="text"
+            className="w-full px-3 py-2 text-sm border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+            placeholder="Search..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search table... (Press 's' to focus)"
-            className="block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 dark:text-gray-100 dark:bg-gray-800 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+            onChange={(e) => {
+              startTransition(() => {
+                setSearchQuery(e.target.value);
+              });
+            }}
           />
+          <div className="absolute right-3 top-1/2 -translate-y-1/2">
+            <KeyboardShortcutIndicator
+              shortcut={KEYMAP.TABLE_FOCUS_SEARCH}
+              className="opacity-50"
+            />
+          </div>
         </div>
       )}
       {paginationPosition === "top" && pager}

@@ -31,6 +31,7 @@ import StepResultAnalysis from "./StepResultAnalysis";
 import type { ParsedOutput, Step } from "../analysisManager";
 import type { AnalysisTreeManager } from "../../analysis-tree-viewer/analysisTreeManager";
 import { KeyboardShortcutIndicator } from "../../../core-ui/KeyboardShortcutIndicator";
+import { KEYMAP, matchesKey } from "../../../../constants/keymap";
 
 interface TabItem {
   key: string;
@@ -311,12 +312,12 @@ export function StepResultsTable({
     const handleKeyPress = (e: KeyboardEvent) => {
       // Only handle keypress if no element is focused
       if (document.activeElement === document.body) {
-        if (e.key === "c" || e.key === "C") {
+        if (matchesKey(e.key, KEYMAP.VIEW_CHART)) {
           const chartTab = results.find((tab) => tab.key === "chart");
           if (chartTab) {
             analysisTreeManager.setActiveTab(analysisId, "chart");
           }
-        } else if (e.key === "t" || e.key === "T") {
+        } else if (matchesKey(e.key, KEYMAP.VIEW_TABLE)) {
           const tableTab = results.find((tab) => tab.key === "table");
           if (tableTab) {
             analysisTreeManager.setActiveTab(analysisId, "table");
@@ -356,13 +357,13 @@ export function StepResultsTable({
                   </span>
                   {tab.key === "table" && (
                     <KeyboardShortcutIndicator
-                      shortcut="t"
+                      shortcut={KEYMAP.VIEW_TABLE}
                       className="opacity-50 px-1 py-0.5"
                     />
                   )}
                   {tab.key === "chart" && (
                     <KeyboardShortcutIndicator
-                      shortcut="c"
+                      shortcut={KEYMAP.VIEW_CHART}
                       className="opacity-50 px-1 py-0.5"
                     />
                   )}

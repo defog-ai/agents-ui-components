@@ -3,6 +3,7 @@ import { Move, ArrowRight, SquarePen } from "lucide-react";
 import { TextArea } from "@ui-components";
 import { twMerge } from "tailwind-merge";
 import { KeyboardShortcutIndicator } from "../../core-ui/KeyboardShortcutIndicator";
+import { KEYMAP, matchesKey } from "../../../constants/keymap";
 
 interface DraggableInputProps {
   searchBarClasses?: string;
@@ -119,13 +120,13 @@ let DraggableInput = forwardRef(function DraggableInput(
     function handleKeyPress(e: KeyboardEvent) {
       // Only handle keys if no other element is focused
       if (document.activeElement === document.body) {
-        if (e.key === "/") {
+        if (matchesKey(e.key, KEYMAP.FOCUS_SEARCH)) {
           e.preventDefault();
           // Focus the textarea
           if (ref && "current" in ref && ref.current) {
             ref.current.focus();
           }
-        } else if (e.key === "n" || e.key === "N") {
+        } else if (matchesKey(e.key, KEYMAP.NEW_CONVERSATION)) {
           e.preventDefault();
           onNewConversationTextClick();
           if (ref && "current" in ref && ref.current) {
@@ -208,7 +209,7 @@ let DraggableInput = forwardRef(function DraggableInput(
                 }
               />
               <KeyboardShortcutIndicator
-                shortcut="/"
+                shortcut={KEYMAP.FOCUS_SEARCH}
                 className="absolute -translate-y-1/2 opacity-50 pointer-events-none right-3 top-1/2"
               />
               <span
@@ -220,7 +221,7 @@ let DraggableInput = forwardRef(function DraggableInput(
                 <div className="flex items-center gap-2">
                   <SquarePen />
                   <KeyboardShortcutIndicator
-                    shortcut="n"
+                    shortcut={KEYMAP.NEW_CONVERSATION}
                     className="opacity-50"
                   />
                 </div>
