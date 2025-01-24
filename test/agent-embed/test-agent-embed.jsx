@@ -5,6 +5,7 @@ import { DefogAnalysisAgentEmbed } from "../../lib/agent";
 
 function QueryDataPage() {
   const [apiKeyNames, setApiKeyNames] = useState(["Default DB"]);
+  const [darkMode, setDarkMode] = useState(false);
 
   const getApiKeyNames = async (token) => {
     const res = await fetch(
@@ -32,6 +33,14 @@ function QueryDataPage() {
     getApiKeyNames(import.meta.env.VITE_TOKEN);
   }, []);
 
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [darkMode]);
+
   const initialTrees = useMemo(() => {
     try {
       const storedTrees = localStorage.getItem("analysisTrees");
@@ -46,10 +55,16 @@ function QueryDataPage() {
   return (
     <StrictMode>
       <div className="flex flex-col">
-        <nav className="bg-gray-800 p-2 text-white h-12">
+        <nav className="bg-gray-800 p-2 text-white h-12 flex justify-between items-center">
           <h1 className="text-2xl font-bold">Query Data</h1>
+          <button
+            onClick={() => setDarkMode(!darkMode)}
+            className="px-3 py-1 rounded bg-gray-700 hover:bg-gray-600 transition-colors"
+          >
+            {darkMode ? '☀️ Light' : '🌙 Dark'}
+          </button>
         </nav>
-        <div className="h-screen">
+        <div className={`h-screen ${darkMode ? 'dark bg-gray-900' : 'bg-white'}`}>
           <DefogAnalysisAgentEmbed
             hiddenCharts={["boxplot", "histogram"]}
             token={import.meta.env.VITE_TOKEN}
