@@ -86,9 +86,6 @@ importers:
       marked:
         specifier: ^14.1.3
         version: 14.1.4
-      minMax:
-        specifier: link:dayjs/plugin/minMax
-        version: link:dayjs/plugin/minMax
       papaparse:
         specifier: ^5.4.1
         version: 5.5.1
