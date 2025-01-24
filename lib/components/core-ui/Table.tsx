@@ -253,14 +253,8 @@ export function Table({
   showSearch = true,
 }: TableProps) {
   const messageManager = useContext(MessageManagerContext);
-  // name of the property in the rows objects where each column's data is stored
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const [pageSize, setPageSize] = useState<number>(
-    pagination?.defaultPageSize || 10
-  );
-  const [isPending, startTransition] = useTransition();
-
   const pageInputRef = useRef<HTMLSpanElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const columnsToDisplay = useMemo<ExtendedColumn[]>(
     () =>
@@ -275,38 +269,27 @@ export function Table({
 
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc" | null>(null);
-  const [sortedRows, setSortedRows] = useState<RowWithIndex[]>(
-    rows.map((d, i) => ({
-      ...d,
-      originalIndex: i,
-    }))
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(
+    pagination?.defaultPageSize || 10
   );
-
-  useEffect(() => {
-    tryPageChange(1);
-    // if multiple columns have same dataIndex, show a warning that output might be confusing
-    const dataIndexes = columns.map((d) => d.dataIndex);
-    const uniqueDataIndexes = new Set(dataIndexes);
-    if (dataIndexes.length !== uniqueDataIndexes.size) {
-      messageManager.warning(
-        "There seem to be duplicate columns. Table shown might be garbled."
-      );
-    }
-  }, [rows, columns, messageManager]);
-
   const [searchQuery, setSearchQuery] = useState("");
+  const [isPending, startTransition] = useTransition();
 
   const dataIndexes = useMemo(
     () => columnsToDisplay.map((col) => col.dataIndex),
     [columnsToDisplay]
   );
 
-  const dataIndexToColumnMap = columnsToDisplay.reduce<Record<string, Column>>(
-    (acc, column) => {
-      acc[column.dataIndex] = column;
-      return acc;
-    },
-    {}
+  const dataIndexToColumnMap = useMemo(() => 
+    columnsToDisplay.reduce<Record<string, Column>>(
+      (acc, column) => {
+        acc[column.dataIndex] = column;
+        return acc;
+      },
+      {}
+    ),
+    [columnsToDisplay]
   );
 
   const rowsWithIndex = useMemo(
@@ -330,53 +313,52 @@ export function Table({
     });
   }, [rowsWithIndex, searchQuery, dataIndexes]);
 
-  const maxPage = Math.ceil(filteredRows.length / pageSize);
-
-  function toggleSort(newColumn: string) {
-    let newOrder: "asc" | "desc" | null = null;
-
-    // if it's not the same column that was earlier sorted, then force "restart" the sort "cycle"
-    // and set to ascending order
-    if (newColumn !== sortColumn) {
-      newOrder = "asc";
-    } else {
-      // else, if it's the same column being clicked again,
-      // toggle the order
-      // else sort the new column in ascending order
-      if (!sortOrder) {
-        newOrder = "asc";
-      } else if (sortOrder === "asc") {
-        newOrder = "desc";
-      }
+  const sortedRows = useMemo(() => {
+    if (!(sortColumn && sortOrder)) {
+      return filteredRows;
     }
 
-    setSortColumn(newColumn);
-    setSortOrder(newOrder);
-  }
+    const column = columnsToDisplay.find(
+      (column) => column.dataIndex === sortColumn
+    );
+    const sorterFn =
+      typeof column?.sorter === "function" ? column.sorter : defaultSorter;
+
+    return filteredRows.slice().sort((a, b) => {
+      return sortOrder === "asc"
+        ? sorterFn(a, b, sortColumn)
+        : sorterFn(b, a, sortColumn);
+    });
+  }, [filteredRows, sortColumn, sortOrder, columnsToDisplay]);
+
+  const maxPage = useMemo(() => 
+    Math.ceil(sortedRows.length / pageSize),
+    [sortedRows.length, pageSize]
+  );
 
   useEffect(() => {
-    if (sortColumn && sortOrder) {
-      // each column has a sorter function defined
-      const column = columnsToDisplay.find(
-        (column) => column.dataIndex === sortColumn
-      );
-      const sorterFn =
-        typeof column?.sorter === "function" ? column.sorter : defaultSorter;
-
-      const sortedRows = filteredRows.slice().sort((a, b) => {
-        return sortOrder === "asc"
-          ? sorterFn(a, b, sortColumn)
-          : sorterFn(b, a, sortColumn);
-      });
-      setSortedRows(sortedRows);
-    } else {
-      setSortedRows(filteredRows);
+    if (pageInputRef.current) {
+      pageInputRef.current.innerText = currentPage.toString();
     }
-  }, [sortColumn, filteredRows, sortOrder, columnsToDisplay]);
+  }, [currentPage]);
+
+  useEffect(() => {
+    if (currentPage > maxPage) {
+      setCurrentPage(1);
+    }
+  }, [maxPage, currentPage]);
+
+  useEffect(() => {
+    const dataIndexes = columns.map((d) => d.dataIndex);
+    const uniqueDataIndexes = new Set(dataIndexes);
+    if (dataIndexes.length !== uniqueDataIndexes.size) {
+      messageManager.warning(
+        "There seem to be duplicate columns. Table shown might be garbled."
+      );
+    }
+  }, [columns, messageManager]);
 
   const tryPageChange = useCallback(
-    // when we setInner text on a span, the cursor jumps to the start of the span
-    // we only want to do this when the span is blurred aka user types and moves away from the span
     (page: number, setInnerText: boolean = true) => {
       if (!isNaN(page) && page >= 1 && page <= maxPage) {
         if (pageInputRef.current && setInnerText) {
@@ -392,7 +374,49 @@ export function Table({
     [currentPage, maxPage]
   );
 
-  const margin = paginationPosition === "top" ? "mb-2" : "mt-2";
+  function toggleSort(newColumn: string) {
+    let newOrder: "asc" | "desc" | null = null;
+
+    if (newColumn !== sortColumn) {
+      newOrder = "asc";
+    } else {
+      if (!sortOrder) {
+        newOrder = "asc";
+      } else if (sortOrder === "asc") {
+        newOrder = "desc";
+      }
+    }
+
+    setSortColumn(newColumn);
+    setSortOrder(newOrder);
+  }
+
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (e.target instanceof HTMLInputElement || (e.target as HTMLElement).isContentEditable) {
+      if (e.key === 'Escape' && document.activeElement === searchInputRef.current) {
+        searchInputRef.current?.blur();
+      }
+      return;
+    }
+
+    switch (e.key) {
+      case 'ArrowLeft':
+        tryPageChange(currentPage - 1 < 1 ? 1 : currentPage - 1);
+        break;
+      case 'ArrowRight':
+        tryPageChange(currentPage + 1 > maxPage ? maxPage : currentPage + 1);
+        break;
+      case 's':
+        e.preventDefault();
+        searchInputRef.current?.focus();
+        break;
+    }
+  }, [currentPage, maxPage, tryPageChange]);
+
+  useEffect(() => {
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [handleKeyDown]);
 
   const pager = useMemo(() => {
     return (
@@ -400,7 +424,7 @@ export function Table({
         <div
           className={twMerge(
             "text-sm pager text-center bg-white dark:bg-gray-800",
-            margin,
+            paginationPosition === "top" ? "mb-2" : "mt-2",
             pagerClassNames
           )}
         >
@@ -424,22 +448,20 @@ export function Table({
               </button>
               <div className="flex flex-row items-center">
                 <span
-                  contentEditable
+                  contentEditable="true"
                   ref={pageInputRef}
-                  // change page when clicked away
                   onBlur={(e) => {
                     const value = parseInt(e.target.innerText);
                     tryPageChange(value);
                   }}
                   onInput={(e) => {
-                    // if the user is still typing, do nothing
                     if (e.currentTarget.innerText === "") return;
                     const value = parseInt(e.currentTarget.innerText);
-                    // don't set inner text as the value is itself coming from the span
                     tryPageChange(value, false);
                   }}
-                  className="border rounded px-2 py-2 text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
-                ></span>
+                  className="border rounded px-2 py-2 text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 min-w-[2rem] text-center empty:before:content-[attr(data-placeholder)] empty:before:text-gray-400"
+                  data-placeholder={currentPage.toString()}
+                />
                 <span className="ml-2 text-gray-300 text-xs pointer-events-none whitespace-nowrap">
                   / {maxPage}
                 </span>
@@ -508,10 +530,11 @@ export function Table({
       {showSearch && (
         <div className="mb-4">
           <input
+            ref={searchInputRef}
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search table..."
+            placeholder="Search table... (Press 's' to focus)"
             className="block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 dark:text-gray-100 dark:bg-gray-800 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
           />
         </div>
