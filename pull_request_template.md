@@ -9,17 +9,17 @@
 
 --
 
-<details open>
+<details>
   <summary>Instructions for reviewers</summary>
 
 **For testing components:**
 
-- Run `npm run dev` in your terminal
+- Run `pnpm run dev` in your terminal
 - Open `http://localhost:5173` in your browser, and select one of the components to see it in action.
 
 Corresponding code for all those pages is inside `test/` folder.
 
-Docs can be accessed via `npm run storybook` and visiting `http://localhost:6006`.
+Docs can be accessed via `pnpm run storybook` and visiting `http://localhost:6006`.
 
 NOTE: Make sure to change the email to yours if testing the advanced mode. Look in basic-tests.spec.ts and replace manas@defog.ai with your email.
 
