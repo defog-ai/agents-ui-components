@@ -394,6 +394,14 @@ export function Table({
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
+      // Bail out early if user is typing in some input/textarea that is NOT the table's search input
+      const isOutsideTableSearch =
+        (e.target instanceof HTMLInputElement &&
+          e.target !== searchInputRef.current) ||
+        e.target instanceof HTMLTextAreaElement ||
+        (e.target as HTMLElement).isContentEditable;
+      if (isOutsideTableSearch) return;
+
       if (
         e.target instanceof HTMLInputElement ||
         (e.target as HTMLElement).isContentEditable
