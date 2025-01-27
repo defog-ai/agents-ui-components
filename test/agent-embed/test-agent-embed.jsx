@@ -35,9 +35,9 @@ function QueryDataPage() {
 
   useEffect(() => {
     if (darkMode) {
-      document.documentElement.classList.add('dark');
+      document.documentElement.classList.add("dark");
     } else {
-      document.documentElement.classList.remove('dark');
+      document.documentElement.classList.remove("dark");
     }
   }, [darkMode]);
 
@@ -61,10 +61,12 @@ function QueryDataPage() {
             onClick={() => setDarkMode(!darkMode)}
             className="px-3 py-1 rounded bg-gray-700 hover:bg-gray-600 transition-colors"
           >
-            {darkMode ? '☀️ Light' : '🌙 Dark'}
+            {darkMode ? "☀️ Light" : "🌙 Dark"}
           </button>
         </nav>
-        <div className={`h-screen ${darkMode ? 'dark bg-gray-900' : 'bg-white'}`}>
+        <div
+          className={`h-screen ${darkMode ? "dark bg-gray-900" : "bg-white"}`}
+        >
           <DefogAnalysisAgentEmbed
             hiddenCharts={["boxplot", "histogram"]}
             token={import.meta.env.VITE_TOKEN}
