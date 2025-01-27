@@ -48,17 +48,15 @@ export function ChartContainer({
   );
 
   // support for oracle: if chart manager is not provided, we will create using rows and columns passed
-  const chartManager: ChartManager = useMemo(
-    () =>
-      stepData
-        ? stepData?.chartManager
-        : createChartManager({
-            loading: true,
-            data: rows,
-            availableColumns: columns,
-          }),
-    [stepData, rows, columns]
-  );
+  const chartManager: ChartManager = useMemo(() => {
+    return stepData
+      ? stepData?.chartManager
+      : createChartManager({
+          loading: true,
+          data: rows,
+          availableColumns: columns,
+        });
+  }, [stepData, rows, columns]);
 
   const [chartConfig, setChartConfig] = useState(chartManager.config);
 
@@ -133,7 +131,7 @@ export function ChartContainer({
 
   return (
     <ChartManagerContext.Provider
-      value={{ ...chartManager, config: chartConfig }}
+      value={Object.assign(chartManager, { config: chartConfig })}
     >
       <div className="relative">
         <div className="relative flex flex-row gap-3">
