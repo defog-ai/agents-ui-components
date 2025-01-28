@@ -449,9 +449,7 @@ export function StepResults({
       ) : step?.error_message && !activeNode.data.isTool ? (
         <StepError error_message={step?.error_message}></StepError>
       ) : hideSqlTab ? (
-        <div className="bg-white">
-          {tabs.filter((d) => d.name === "Analysis")?.[0]?.content}
-        </div>
+        <div>{tabs.filter((d) => d.name === "Analysis")?.[0]?.content}</div>
       ) : (
         <Tabs
           disableSingleSelect={true}
