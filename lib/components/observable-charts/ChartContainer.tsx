@@ -77,9 +77,6 @@ export function ChartContainer({
   const { selectedColumns } = chartConfig;
 
   useEffect(() => {
-    console.log(chartConfig);
-
-    console.log(initialQuestion, chartManager.config.loading);
     // don't send request while chart is already loading
     if (initialQuestion && !chartManager.config.loading) {
       chartManager.editChart(initialQuestion, chartEditUrl, {
