@@ -52,7 +52,6 @@ export function ChartContainer({
     return stepData
       ? stepData?.chartManager
       : createChartManager({
-          loading: true,
           data: rows,
           availableColumns: columns,
         });
