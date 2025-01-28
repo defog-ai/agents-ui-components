@@ -1,8 +1,7 @@
 // @ts-nocheck
 
 import * as Plot from "@observablehq/plot";
-import { timeFormat } from "d3";
-import dayjs, { unix } from "dayjs";
+import dayjs from "dayjs";
 import * as d3Colors from "d3-scale-chromatic";
 
 export interface Dimensions {
@@ -209,13 +208,7 @@ export const getObservableOptions = (
     color: {
       legend: true,
       tickFormat: (d: any) => {
-        if (xIsDate && dayjs(d).isValid()) {
-          return timeFormat(
-            mergedOptions.dateFormat || defaultOptions.dateFormat
-          )(unix(d));
-        } else {
-          return d;
-        }
+        return d;
       },
       swatchSize: 10,
     },
