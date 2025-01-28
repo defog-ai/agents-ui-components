@@ -16,12 +16,10 @@ import { saveAsPNG } from "./utils/saveChart";
 import { Button } from "@ui-components";
 import { Download } from "lucide-react";
 import { ChartManagerContext } from "./ChartManagerContext";
-import { unix } from "dayjs";
 import dayjs from "dayjs";
 import minMax from "dayjs/plugin/minMax";
 dayjs.extend(minMax);
 import { convertWideToLong } from "../utils/utils";
-import { timeFormat } from "d3";
 
 export default function ObservablePlot() {
   const containerRef = useRef(null);
@@ -95,47 +93,12 @@ export default function ObservablePlot() {
     ) {
       generatedOptions = null;
     } else {
-      const xColumnDateToUnix = xColumn?.isDate ? xColumn.dateToUnix : null;
-
       let processedData = data;
 
       // also do this for colorBy column
       const colorByColumn = availableColumns.find(
         (col) => col.key === chartSpecificOptions[selectedChart].colorBy
       );
-
-      const colorByDateToUnix = colorByColumn
-        ? colorByColumn?.isDate
-          ? colorByColumn.dateToUnix
-          : null
-        : null;
-
-      // Process dates if necessary
-      if (xColumnDateToUnix || colorByDateToUnix) {
-        processedData = [];
-
-        for (let i = 0; i < data.length; i++) {
-          // we already have unix dates pre-calculated and stored for every row. (look inside agentUitls.js in the reFormatData function)
-          const item = data[i];
-          processedData.push({
-            ...item,
-            ...(xColumnDateToUnix
-              ? {
-                  [selectedColumns.x]: xColumnDateToUnix
-                    ? item.unixDateValues[selectedColumns.x]
-                    : null,
-                }
-              : {}),
-            ...(colorByDateToUnix
-              ? {
-                  [colorByColumn.dataIndex]: colorByDateToUnix
-                    ? item.unixDateValues[colorByColumn.dataIndex]
-                    : null,
-                }
-              : {}),
-          });
-        }
-      }
 
       if (selectedChart === "bar" || selectedChart === "line") {
         try {
@@ -187,8 +150,6 @@ export default function ObservablePlot() {
             filter: chartSpecificOptions[selectedChart]?.filter,
             xIsDate: xColumn?.isDate,
             colorByIsDate: colorByColumn?.isDate,
-            xColumnDateToUnix,
-            colorByDateToUnix,
             ...chartStyle,
             ...chartSpecificOptions[selectedChart],
           },
@@ -197,6 +158,7 @@ export default function ObservablePlot() {
           availableColumns
         );
       } else if (selectedChart === "bar") {
+        console.log(processedData);
         generatedOptions = getObservableOptions(
           dimensions,
           {
@@ -209,9 +171,7 @@ export default function ObservablePlot() {
             facet: selectedColumns.x || null,
             filter: chartSpecificOptions[selectedChart]?.filter,
             xIsDate: xColumn?.isDate,
-            xColumnDateToUnix,
             colorByIsDate: colorByColumn?.isDate,
-            colorByDateToUnix,
             ...chartStyle,
             ...chartSpecificOptions[selectedChart],
           },
@@ -242,8 +202,6 @@ export default function ObservablePlot() {
             filter: chartSpecificOptions[selectedChart]?.filter,
             xIsDate: xColumn?.isDate,
             colorByIsDate: colorByColumn?.isDate,
-            xColumnDateToUnix,
-            colorByDateToUnix,
             ...chartStyle,
             ...chartSpecificOptions[selectedChart],
           },
@@ -293,16 +251,7 @@ export default function ObservablePlot() {
             ? {
                 legend: true,
                 tickFormat: (d) => {
-                  if (
-                    chartManager.config.chartSpecificOptions[selectedChart]
-                      .colorByIsDate
-                  ) {
-                    // this is already coming in as a unix timestamp
-
-                    return timeFormat(chartStyle.dateFormat)(unix(d));
-                  } else {
-                    return d;
-                  }
+                  return d;
                 },
               }
             : {
@@ -375,14 +324,7 @@ export default function ObservablePlot() {
               ? {
                   legend: true,
                   tickFormat: (d) => {
-                    if (
-                      chartManager.config.chartSpecificOptions[selectedChart]
-                        .colorByIsDate
-                    ) {
-                      return timeFormat(chartStyle.dateFormat)(unix(d));
-                    } else {
-                      return d;
-                    }
+                    return d;
                   },
                 }
               : {

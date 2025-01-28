@@ -66,7 +66,6 @@ function parseOutputs(
     if (data.outputs![k].data) {
       parsedOutputs[k].data = parseData(data.outputs![k].data);
       parsedOutputs[k].chartManager = createChartManager({
-        loading: true,
         data: parsedOutputs[k].data.data,
         availableColumns: parsedOutputs[k].data.columns,
       });
