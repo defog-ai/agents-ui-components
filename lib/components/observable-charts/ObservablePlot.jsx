@@ -158,7 +158,6 @@ export default function ObservablePlot() {
           availableColumns
         );
       } else if (selectedChart === "bar") {
-        console.log(processedData);
         generatedOptions = getObservableOptions(
           dimensions,
           {
