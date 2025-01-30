@@ -1,4 +1,4 @@
-import { useContext, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   AgentConfigContext,
   createAgentConfig,
@@ -108,13 +108,8 @@ export function Setup({
 
   const messageManager = useRef(MessageManager());
 
-  const [reactiveContext, setReactiveContext] = useState(
-    useContext(ReactiveVariablesContext)
-  );
-
-  const [relatedAnalysesContext, setRelatedAnalysesContext] = useState(
-    useContext(RelatedAnalysesContext)
-  );
+  const [reactiveContext, setReactiveContext] = useState(null);
+  const [relatedAnalysesContext, setRelatedAnalysesContext] = useState(null);
 
   useEffect(() => {
     async function setup() {
