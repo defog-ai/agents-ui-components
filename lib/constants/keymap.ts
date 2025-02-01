@@ -16,6 +16,11 @@ export const KEYMAP = {
   // New shortcuts
   TOGGLE_ANALYSIS: "]", // simple left bracket for left panel
   TOGGLE_CHART_OPTIONS: "[", // simple right bracket for right panel
+
+  // Chart shortcuts
+  SAVE_CHART: "p", // Save chart as PNG,
+  SET_X_AXIS: "x", // Set x axis
+  SET_Y_AXIS: "y", // Set y axis
 } as const;
 
 // Type for all possible keymap values

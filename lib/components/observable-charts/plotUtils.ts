@@ -60,7 +60,7 @@ export const defaultOptions: ChartOptions = {
   yAxisUnitLabel: "",
   yAxisUnitPosition: "suffix",
   showLabels: false,
-  margin: { top: 20, right: 20, bottom: 80, left: 50 },
+  margin: { top: 20, right: 20, bottom: 120, left: 50 },
   dateFormat: "%Y-%m-%d",
 
   color: { legend: true },
@@ -192,8 +192,7 @@ export const getObservableOptions = (
     marginTop: mergedOptions?.margin?.top ?? defaultOptions?.margin?.top,
     marginRight: mergedOptions?.margin?.right ?? defaultOptions?.margin?.right,
     marginBottom:
-      (mergedOptions?.margin?.bottom ?? defaultOptions?.margin?.bottom) ||
-      0 + 50,
+      mergedOptions?.margin?.bottom ?? defaultOptions?.margin?.bottom,
     marginLeft: mergedOptions?.margin?.left ?? defaultOptions?.margin?.left,
     style: {
       backgroundColor: mergedOptions.backgroundColor,

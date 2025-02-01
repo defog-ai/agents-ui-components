@@ -37,40 +37,61 @@ export function Customization() {
   );
 
   return (
-    <div className="flex flex-col gap-4 mx-2">
-      <ColorSchemeSelector
-        value={chartStyle.selectedScheme}
-        onChange={(value) => {
-          handleStyleChange("selectedScheme", value);
-        }}
-      />
-      {renderChartSpecificControls()}
+    <div className="grid grid-rows-[auto_1fr] max-h-[550px] overflow-x-clip overflow-y-auto h-full">
+      <div className="space-y-6">
+        <div className="space-y-1.5">
+          <ColorSchemeSelector
+            value={chartStyle.selectedScheme}
+            onChange={(value) => {
+              handleStyleChange("selectedScheme", value);
+            }}
+          />
+        </div>
+        <div className="space-y-1.5">
+          <h3 className="input-label">Background Color</h3>
+          <ColorPicker
+            className="w-full"
+            allowClear={true}
+            value={chartStyle.backgroundColor}
+            onChange={(color) =>
+              handleStyleChange("backgroundColor", color.toHexString())
+            }
+          />
+        </div>
 
-      {isDateColumnSelected && <D3DateFormatBuilder />}
+        <div className="space-y-4">
+          {/* <h3 className="text-sm font-medium text-gray-900">Chart Options</h3> */}
+          <div className="space-y-4">{renderChartSpecificControls()}</div>
+        </div>
 
-      <div>
-        <h3 className="mb-2 input-label">Background Color</h3>
-        <ColorPicker
-          allowClear={true}
-          value={chartStyle.backgroundColor}
-          onChange={(color) =>
-            handleStyleChange("backgroundColor", color.toHexString())
-          }
-        />
+        {/* {isDateColumnSelected && (
+          <div className="pt-4 space-y-2 border-t border-gray-100">
+            <D3DateFormatBuilder />
+          </div>
+        )} */}
+
+        <div className="space-y-4">
+          {/* <h3 className="text-sm font-medium text-gray-900">Visual Options</h3> */}
+
+          {/* <div className="space-y-1.5">
+            <label className="text-sm font-medium text-gray-700">
+              Font Size
+            </label>
+            <Slider
+              min={8}
+              max={24}
+              value={chartStyle.fontSize}
+              rootClassNames="w-full h-2"
+              onChange={(value) => handleStyleChange("fontSize", value)}
+            />
+          </div> */}
+        </div>
+        {/* 
+        <div className="pt-4 space-y-4 border-t border-gray-100">
+          <h3 className="text-sm font-medium text-gray-900">Axis Settings</h3>
+          <AxisControl />
+        </div> */}
       </div>
-
-      <div>
-        <h3 className="mb-2 input-label">Font Size</h3>
-        <Slider
-          min={8}
-          max={24}
-          value={chartStyle.fontSize}
-          rootClassNames="w-full  h-2"
-          onChange={(value) => handleStyleChange("fontSize", value)}
-        />
-      </div>
-
-      <AxisControl />
     </div>
   );
 }

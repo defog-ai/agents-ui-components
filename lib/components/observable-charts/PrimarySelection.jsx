@@ -1,5 +1,12 @@
-import { useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { Select } from "antd";
+import {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  useRef,
+} from "react";
+import { Select, Button } from "antd";
 import {
   CalendarIcon,
   HashIcon,
@@ -7,13 +14,14 @@ import {
   ChartLine,
   ChartScatter,
   ChartColumnIncreasing,
-  ChartCandlestick,
-  ChartNoAxesColumn,
+  Settings2,
 } from "lucide-react";
 import { reorderColumns } from "./columnOrdering.js";
-import { Input as TextInput, Button } from "@ui-components";
 import { ChartManagerContext } from "./ChartManagerContext";
 import { AgentConfigContext } from "../context/AgentContext";
+import FilterBuilder from "./Filtering";
+import { KeyboardShortcutIndicator } from "../core-ui/KeyboardShortcutIndicator";
+import { KEYMAP, matchesKey } from "../../constants/keymap";
 
 const { Option } = Select;
 
@@ -37,7 +45,7 @@ const COLUMN_ICONS = {
   categorical: CaseSensitive,
 };
 
-export function PrimarySelection({ columns }) {
+export function PrimarySelection({ columns, showChartTypeOnly = false }) {
   const chartManager = useContext(ChartManagerContext);
 
   const {
@@ -53,6 +61,16 @@ export function PrimarySelection({ columns }) {
 
   const agentConfigContext = useContext(AgentConfigContext);
   const { hiddenCharts = [] } = agentConfigContext.val;
+
+  // Add state for showing/hiding filters
+  const [showFilters, setShowFilters] = useState(false);
+
+  // Add new state to control Select dropdowns
+  const [openDropdown, setOpenDropdown] = useState(null);
+
+  // Add refs for both selects
+  const xAxisRef = useRef(null);
+  const yAxisRef = useRef(null);
 
   // Reorder columns when chart type or available columns change
   useEffect(() => {
@@ -159,9 +177,8 @@ export function PrimarySelection({ columns }) {
     return (
       <>
         <div>
-          <span className="mr-2 input-label">Aggregation</span>
           <Select
-            style={{ width: "100%" }}
+            style={{ width: "100%", minWidth: "100px" }}
             value={
               chartSpecificOptions[selectedChart].aggregateFunction || "sum"
             }
@@ -206,9 +223,11 @@ export function PrimarySelection({ columns }) {
     const IconComponent = COLUMN_ICONS[isDate ? "date" : variableType];
     return (
       <Option key={key} value={key}>
-        <div className="flex items-center gap-2">
-          {IconComponent && <IconComponent className="opacity-50" size={14} />}
-          <span>{title}</span>
+        <div className="flex items-center gap-2 py-0.5">
+          {IconComponent && (
+            <IconComponent className="text-gray-400" size={13} />
+          )}
+          <span className="text-sm">{title}</span>
         </div>
       </Option>
     );
@@ -218,8 +237,6 @@ export function PrimarySelection({ columns }) {
   const renderAxisSelection = (axis, mode) => {
     let selectedColumnKey = selectedColumns[axis];
     const selectedColumn = columns.find((col) => col.key === selectedColumnKey);
-    const isCategorical =
-      selectedColumn && selectedColumn.variableType === "categorical";
 
     if (axis === "x" && selectedColumns.x) {
       selectedColumnKey = selectedColumns.x.split(separator);
@@ -228,22 +245,44 @@ export function PrimarySelection({ columns }) {
     }
 
     return (
-      <div>
-        <h3 className="mb-2 input-label">Variable</h3>
-        <Select
-          style={{ width: "100%" }}
-          placeholder={`Select ${axis.toUpperCase()}-Axis`}
-          onChange={handleAxisChange(axis)}
-          value={selectedColumnKey}
-          allowClear={axis === "x"}
-          mode={mode}
-          rootClassName={`${axis}-axis-selector`}
-        >
-          {orderedColumns.map(renderColumnOption)}
-        </Select>
-        {(selectedChart === "bar" || selectedChart === "line") &&
-          axis === "x" &&
-          renderAggregateSelection()}
+      <div className="flex flex-col gap-2">
+        <div className="w-full">
+          <Select
+            ref={axis === "x" ? xAxisRef : yAxisRef}
+            data-axis={axis}
+            style={{ width: "100%" }}
+            placeholder={`Select ${axis.toUpperCase()}-Axis`}
+            onChange={handleAxisChange(axis)}
+            value={selectedColumnKey}
+            allowClear={axis === "x"}
+            mode={mode}
+            rootClassName={`${axis}-axis-selector`}
+            open={openDropdown === axis}
+            onDropdownVisibleChange={(visible) => {
+              setOpenDropdown(visible ? axis : null);
+            }}
+            tagRender={(props) => {
+              const { label, closable, onClose } = props;
+
+              return (
+                <div className="inline-flex items-center gap-1 px-1.5 py-0.5 m-0.5 text-xs bg-blue-50 border border-blue-100 rounded-sm text-blue-700">
+                  <span className="max-w-[100px] truncate">{label}</span>
+                  {closable && (
+                    <span
+                      className="ml-1 cursor-pointer hover:text-blue-900"
+                      onClick={onClose}
+                    >
+                      ×
+                    </span>
+                  )}
+                </div>
+              );
+            }}
+          >
+            {orderedColumns.map(renderColumnOption)}
+          </Select>
+        </div>
+        {(selectedChart === "bar" || selectedChart === "line") && axis === "x"}
       </div>
     );
   };
@@ -252,7 +291,7 @@ export function PrimarySelection({ columns }) {
   const FacetSelection = useMemo(() => {
     return (
       <div>
-        <h3 className="mb-2 input-label">Facet by</h3>
+        <h3 className="mb-2 font-medium input-label">Facet by</h3>
         <Select
           style={{ width: "100%" }}
           placeholder="Select Facet Column"
@@ -299,7 +338,7 @@ export function PrimarySelection({ columns }) {
 
     return (
       <div>
-        <h3 className="mb-2 input-label">Color By</h3>
+        <h3 className="mb-2 font-medium input-label">Color By</h3>
         <Select
           placeholder="Color Column"
           value={selectedColumns.fill}
@@ -317,70 +356,126 @@ export function PrimarySelection({ columns }) {
     );
   }, [chartManager, selectedColumns, orderedColumns, selectedChart]);
 
-  return (
-    <div className="grid grid-rows-[auto_1fr_auto] h-full gap-4 pl-1">
-      <div className="flex flex-col gap-4">
-        {/* Chart Type Selection */}
-        <div>
-          <h3 className="mb-2 font-bold input-label">Chart Type</h3>
-          <div className="flex flex-wrap gap-2">
-            {CHART_TYPES.filter((d) => {
-              if (hiddenCharts.length === 0) {
-                return true;
-              } else {
-                return !hiddenCharts.includes(d.value);
+  // Move this block before the showChartTypeOnly condition
+  useEffect(() => {
+    const handleKeyPress = (e) => {
+      if (document.activeElement === document.body) {
+        // X axis shortcut
+        if (matchesKey(e.key, KEYMAP.SET_X_AXIS)) {
+          setOpenDropdown("x");
+          // Focus the select input
+          xAxisRef.current?.focus();
+          e.preventDefault();
+        }
+        // Y axis shortcut
+        if (matchesKey(e.key, KEYMAP.SET_Y_AXIS)) {
+          setOpenDropdown("y");
+          // Focus the select input
+          yAxisRef.current?.focus();
+          e.preventDefault();
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyPress);
+    return () => window.removeEventListener("keydown", handleKeyPress);
+  }, []);
+
+  // If showChartTypeOnly is true, only render the chart type selection
+  if (showChartTypeOnly) {
+    return (
+      <div className="flex mr-4 gap-1.5">
+        {CHART_TYPES.map(({ value, label, Icon }) => (
+          <Button
+            key={value}
+            onClick={() => handleChartChange(value)}
+            className={`
+              px-3 py-2 rounded-sm font-sans w-full border flex items-center justify-center gap-2
+              font-medium transition-all duration-150 text-xs
+              ${
+                selectedChart === value
+                  ? "bg-blue-500/95 text-white border-0 shadow-sm hover:bg-blue-600"
+                  : "bg-gray-50 text-gray-700 hover:bg-gray-100"
               }
-            }).map(({ value, label, Icon }) => (
-              <Button
-                key={value}
-                onClick={() => handleChartChange(value)}
-                className={`
-                  p-2 rounded-sm min-w-20 border-[1px] flex items-center justify-center font-semibold transition-colors duration-200 text-[11px] font-sans ease-in-out
-                  ${
-                    selectedChart === value
-                      ? "bg-blue-500 border-blue-600 text-white"
-                      : "bg-blue-100 text-blue-600/50 border-blue-200 hover:bg-blue-300"
-                  }
-                `}
-              >
-                <Icon size={16} className="mr-2" />
-                <span>{label}</span>
-              </Button>
-            ))}
-          </div>
-        </div>
-        {/* Horizontal Axis Selection */}
-        <h3 className="pb-1 font-bold border-b input-label border-black/20">
-          Horizontal Axis
-        </h3>
-        <div>{renderAxisSelection("x", "multiple")}</div>
-        {/* Vertical Axis Selection */}
-        <h3 className="pb-1 font-bold border-b input-label border-black/20">
-          Vertical Axis
-        </h3>
-        <div>
-          {renderAxisSelection(
-            "y",
-            selectedChart === "line" || selectedChart == "bar"
-              ? "multiple"
-              : undefined
-          )}
-        </div>
+            `}
+          >
+            <Icon size={16} />
+            <span>{label}</span>
+          </Button>
+        ))}
       </div>
-      {/* Facet Selection and color */}
+    );
+  }
 
-      {selectedChart !== "bar" ? (
-        <div>
-          <h3 className="pb-1 font-bold border-b input-label border-black/20">
-            Groups
-          </h3>
+  return (
+    <div className="grid grid-rows-[auto_1fr_auto] max-h-[550px] overflow-y-auto h-full">
+      <div className="space-y-6">
+        {/* Variables Section */}
+        <div className="space-y-4">
+          {/* X-Axis */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <label className="flex items-center gap-2 text-xs font-medium text-gray-700">
+                <KeyboardShortcutIndicator
+                  shortcut={KEYMAP.SET_X_AXIS}
+                  className="px-1 py-0.5 text-xs font-bold text-gray-500 "
+                />
 
-          <div className="grid grid-cols-2 gap-2 pt-4 ">
-            {FacetSelection}
-            {colorBySelection}
+                <span className="flex items-center gap-2">Horizontal Axis</span>
+              </label>
+              {(selectedChart === "bar" || selectedChart === "line") &&
+                renderAggregateSelection()}
+            </div>
+            {renderAxisSelection("x", "multiple")}
+          </div>
+
+          {/* Y-Axis */}
+          <div className="space-y-1.5">
+            <label className="flex items-center gap-2 text-xs font-medium text-gray-700">
+              <KeyboardShortcutIndicator
+                shortcut={KEYMAP.SET_Y_AXIS}
+                className="px-1 py-0.5 text-xs font-bold text-gray-500 "
+              />
+
+              <span className="flex items-center gap-2">Vertical Axis</span>
+            </label>
+            {renderAxisSelection(
+              "y",
+              selectedChart === "line" || selectedChart === "bar"
+                ? "multiple"
+                : undefined
+            )}
           </div>
         </div>
-      ) : null}
+
+        {/* Groups Section */}
+        {selectedChart !== "bar" && (
+          <div className="pt-4 space-y-2 border-t border-gray-100">
+            {/* <h3 className="text-xs font-medium text-gray-900">Grouping</h3> */}
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1.5">{FacetSelection}</div>
+              <div className="space-y-1.5">{colorBySelection}</div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Advanced Button */}
+      <Button
+        block
+        type="default"
+        onClick={() => setShowFilters(!showFilters)}
+        className="flex items-center justify-center gap-2 mt-4 text-sm font-medium text-gray-700 border-gray-200 h-9 bg-gray-50 hover:bg-gray-100"
+      >
+        <Settings2 className="w-4 h-4" />
+        Advanced Options
+      </Button>
+
+      {showFilters && (
+        <div className="pt-4 mt-4 border-t border-gray-100">
+          <FilterBuilder columns={columns} />
+        </div>
+      )}
     </div>
   );
 }
