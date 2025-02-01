@@ -57,6 +57,7 @@ const AnalysisDrawerHandle = ({ isOpen, onClick }) => (
       border border-gray-200 dark:border-gray-700
       hover:bg-gray-50 dark:hover:bg-gray-700
       transition-colors rounded-l
+      ${!isOpen ? "z-10" : ""}
     `}
     title={`${isOpen ? "Collapse" : "Expand"} analysis panel`}
   >
@@ -270,10 +271,19 @@ export function StepResultsTable({
         <div
           className={`
             transition-all duration-200 relative
-            overflow-x-hidden
+            overflow-x-hidden h-full
             ${isAnalysisVisible ? "pl-8 pr-4" : "pl-8 pr-0"}
           `}
+          onClick={() => !isAnalysisVisible && setIsAnalysisVisible(true)}
         >
+          {/* Add clickable overlay when collapsed */}
+          {!isAnalysisVisible && (
+            <div
+              className="absolute inset-0 cursor-pointer"
+              title="Expand analysis panel"
+            />
+          )}
+
           {/* Fixed width wrapper */}
           <div style={{ width: "30vw" }}>{resultAnalysis}</div>
 
