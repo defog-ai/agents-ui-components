@@ -9,7 +9,14 @@ import {
 import { message, Popover } from "antd";
 import { chartNames, roundColumns } from "../../agentUtils";
 
-import { Download, ChartBarIcon, Copy, TableIcon } from "lucide-react";
+import {
+  Download,
+  ChartBarIcon,
+  Copy,
+  TableIcon,
+  Sparkles,
+  ChevronRightIcon,
+} from "lucide-react";
 import ErrorBoundary from "../../../common/ErrorBoundary";
 import ChartImage from "./ChartImage";
 
@@ -39,6 +46,31 @@ interface TabItem {
   icon?: React.ReactNode;
   component: React.ReactNode;
 }
+
+const AnalysisDrawerHandle = ({ isOpen, onClick }) => (
+  <button
+    onClick={onClick}
+    className={`
+      absolute -left-8 top-[50%] -translate-y-[50%]
+      h-36 w-8 flex items-center justify-center
+      bg-[#F9FAFB] dark:bg-gray-800 
+      border border-gray-200 dark:border-gray-700
+      hover:bg-gray-50 dark:hover:bg-gray-700
+      transition-colors rounded-l
+    `}
+    title={`${isOpen ? "Collapse" : "Expand"} analysis panel`}
+  >
+    <div className="flex flex-col items-center gap-2">
+      {/* <ChevronRightIcon
+        className={`w-4 h-4 text-gray-500 transition-transform duration-200
+          ${isOpen ? "rotate-180" : "rotate-0"}`}
+      /> */}
+      <span className="text-xs text-gray-500 dark:text-gray-400 vertical-text">
+        <Sparkles className="w-4 h-4" />
+      </span>
+    </div>
+  </button>
+);
 
 // tabBarLeftContent: extra content for the tab bar on the left side
 export function StepResultsTable({
@@ -77,6 +109,7 @@ export function StepResultsTable({
   const [sqlQuery, setSqlQuery] = useState(sql);
   const [toolCode, setToolCode] = useState(codeStr);
   const [csvLoading, setCsvLoading] = useState(false);
+  const [isAnalysisVisible, setIsAnalysisVisible] = useState(true);
 
   async function saveCsv() {
     if (csvLoading) return;
@@ -207,49 +240,100 @@ export function StepResultsTable({
     );
   }, [stepData, initialQuestion]);
 
+  const renderContent = (content) => (
+    <div className="flex">
+      <div
+        className={`
+          transition-all duration-200 pr-6
+          ${isAnalysisVisible ? "w-[70%]" : "w-[95%]"}
+        `}
+      >
+        {content}
+      </div>
+
+      {/* Analysis Panel */}
+      <div
+        className={`
+          relative
+          transition-all duration-200 
+          border-l border-gray-200 dark:border-gray-700
+          ${isAnalysisVisible ? "w-[30%]" : "lg:w-[5%] w-0"}
+        `}
+      >
+        {/* Handle positioned outside the main container */}
+        <AnalysisDrawerHandle
+          isOpen={isAnalysisVisible}
+          onClick={() => setIsAnalysisVisible(!isAnalysisVisible)}
+        />
+
+        {/* Content container with overflow handling */}
+        <div
+          className={`
+            transition-all duration-200 relative
+            overflow-x-hidden
+            ${isAnalysisVisible ? "pl-8 pr-4" : "pl-8 pr-0"}
+          `}
+        >
+          {/* Fixed width wrapper */}
+          <div style={{ width: "30vw" }}>{resultAnalysis}</div>
+
+          {/* Fade overlay when collapsed */}
+          <div
+            className={`
+              absolute inset-y-0 right-0 w-24
+              transition-opacity duration-200
+              ${isAnalysisVisible ? "opacity-0 pointer-events-none" : "opacity-100"}
+              bg-gradient-to-r from-transparent 
+              via-white/50 to-white
+              dark:via-gray-800/50 dark:to-gray-800
+            `}
+          />
+        </div>
+      </div>
+    </div>
+  );
+
   useEffect(() => {
     let tabs: TabItem[] = [];
     const tableData = stepData?.data;
+
     if (tableData) {
       const roundedData = roundColumns(tableData.data, tableData.columns);
-
       tabs.push({
-        component: (
-          <div className="grid grid-cols-2 gap-8">
-            <Table
-              rows={roundedData}
-              columns={tableData.columns
-                .filter((d) => d.title !== "index")
-                .map((d) => {
-                  d.render = (text: string) => (
-                    <Popover
-                      content={() => (
-                        <div
-                          className="p-2"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            e.preventDefault();
-                            navigator.clipboard.writeText(text).then(() => {
-                              message.success("Copied to clipboard.");
-                            });
-                          }}
-                        >
-                          <Copy className="w-3 h-3 table-chart-cell-copy-icon" />
-                        </div>
-                      )}
-                      arrow={false}
-                      placement="right"
-                      rootClassName="table-chart-cell-copy-popover"
-                    >
-                      <div className="p-2">{text}</div>
-                    </Popover>
-                  );
-                  return d;
-                })}
-              pagination={{ defaultPageSize: 10, showSizeChanger: true }}
-            />
-            {resultAnalysis}
-          </div>
+        component: renderContent(
+          <Table
+            rootClassNames="lg:pl-0"
+            rows={roundedData}
+            columns={tableData.columns
+              .filter((d) => d.title !== "index")
+              .map((d) => {
+                d.render = (text: string) => (
+                  <Popover
+                    content={() => (
+                      <div
+                        className="p-2"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                          navigator.clipboard.writeText(text).then(() => {
+                            message.success("Copied to clipboard.");
+                          });
+                        }}
+                      >
+                        <Copy className="w-3 h-3 table-chart-cell-copy-icon" />
+                      </div>
+                    )}
+                    arrow={false}
+                    placement="right"
+                    rootClassName="table-chart-cell-copy-popover"
+                  >
+                    <div className="p-2">{text}</div>
+                  </Popover>
+                );
+                return d;
+              })}
+            pagination={{ defaultPageSize: 10, showSizeChanger: true }}
+          />
         ),
         key: "table",
         tabLabel: "Table",
@@ -260,14 +344,11 @@ export function StepResultsTable({
     if (!chartImages || chartImages.length <= 0) {
       if (stepData) {
         tabs.push({
-          component: (
-            <div className="grid grid-cols-2 gap-8">
-              <ErrorBoundary>{chartContainer}</ErrorBoundary>
-              {resultAnalysis}
-            </div>
+          component: renderContent(
+            <ErrorBoundary>{chartContainer}</ErrorBoundary>
           ),
-          tabLabel: "Chart",
           key: "chart",
+          tabLabel: "Chart",
           icon: <ChartBarIcon className="w-4 h-4 mb-0.5 mr-1 inline" />,
         });
       }
@@ -306,7 +387,7 @@ export function StepResultsTable({
     }
 
     setResults(tabs);
-  }, [stepData, chartImages, toolCode, sqlQuery]);
+  }, [stepData, chartImages, toolCode, sqlQuery, isAnalysisVisible]);
 
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
@@ -383,7 +464,7 @@ export function StepResultsTable({
             </Button>
           </div>
         </div>
-        <div className="mt-4 relative">
+        <div className="relative mt-4">
           {results.map((tab) => {
             // tab.key === activeTab
             return (

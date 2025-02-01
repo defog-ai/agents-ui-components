@@ -174,7 +174,7 @@ const TableBody = React.memo(
     columnsToDisplay: Column[];
   }) => {
     return (
-      <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+      <tbody className="bg-white divide-y divide-gray-200 dark:bg-gray-900 dark:divide-gray-700">
         {rows.map((row, rowIdx) => (
           <tr key={row.originalIndex + "-" + rowIdx}>
             {dataIndexes.map(
@@ -209,8 +209,8 @@ const TableBody = React.memo(
 
 const TableLoader = () => (
   <div className="absolute inset-0 bg-white/50 dark:bg-gray-900/50 backdrop-blur-[1px] flex items-center justify-center">
-    <div className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
-      <Loader2 className="w-5 h-5 animate-spin text-blue-500" />
+    <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-lg shadow-lg dark:bg-gray-800">
+      <Loader2 className="w-5 h-5 text-blue-500 animate-spin" />
       <span className="text-sm text-gray-600 dark:text-gray-300">
         Loading...
       </span>
@@ -480,7 +480,7 @@ export function Table({
                   className="border rounded px-2 py-2 text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 min-w-[2rem] text-center empty:before:content-[attr(data-placeholder)] empty:before:text-gray-400"
                   data-placeholder={currentPage.toString()}
                 />
-                <span className="ml-2 text-gray-300 text-xs pointer-events-none whitespace-nowrap">
+                <span className="ml-2 text-xs text-gray-300 pointer-events-none whitespace-nowrap">
                   / {maxPage}
                 </span>
               </div>
@@ -544,7 +544,7 @@ export function Table({
   }, [visibleRows.length]);
 
   return (
-    <div className={twMerge("px-4 sm:px-6 lg:px-8", rootClassNames)}>
+    <div className={twMerge("px-4 lg:pl-2 sm:px-6 lg:pr-4 ", rootClassNames)}>
       {showSearch && (
         <div className="relative mb-4">
           <input
@@ -559,7 +559,7 @@ export function Table({
               });
             }}
           />
-          <div className="absolute right-3 top-1/2 -translate-y-1/2">
+          <div className="absolute -translate-y-1/2 right-3 top-1/2">
             <KeyboardShortcutIndicator
               shortcut={KEYMAP.TABLE_FOCUS_SEARCH}
               className="opacity-50"
