@@ -482,7 +482,7 @@ const QuickstartSection = ({
   activeAnalysisId,
 }: any) => (
   <div className="grow flex flex-col place-content-center m-auto max-w-full relative z-[1]">
-    <div className="text-center text-gray-400 dark:text-gray-500 rounded-md">
+    <div className="text-center text-gray-400 rounded-md dark:text-gray-500">
       <p className="block mb-4 text-sm font-bold cursor-default">Quickstart</p>
       <ul className="font-light text-gray-500 dark:text-gray-400">
         {predefinedQuestions.map((question: string, i: number) => (
@@ -684,7 +684,7 @@ export function AnalysisTreeViewer({
                   History
                   <span
                     title="Clear history"
-                    className="text-xs font-light underline text-gray-400 dark:text-gray-500 inline hover:text-blue-500 dark:hover:text-blue-500 cursor-pointer pl-2"
+                    className="inline pl-2 text-xs font-light text-gray-400 underline cursor-pointer dark:text-gray-500 hover:text-blue-500 dark:hover:text-blue-500"
                     onClick={() => {
                       analysisTreeManager.reset();
                       analysisTreeManager.setActiveAnalysisId(null);
@@ -706,9 +706,9 @@ export function AnalysisTreeViewer({
                 "w-72 p-4 rounded-tl-lg relative sm:block min-h-96 h-full"
               }
             >
-              <div className="flex flex-col h-full w-full overflow-y-auto">
+              <div className="flex flex-col w-full h-full overflow-y-auto">
                 {/* New Analysis */}
-                <div className="mb-4 sticky top-0">
+                <div className="sticky top-0 mb-4">
                   <AnalysisTreeItem
                     isDummy={true}
                     onClick={() => {
@@ -725,7 +725,7 @@ export function AnalysisTreeViewer({
                   if (analyses.length === 0) return null;
                   return (
                     <div key={group} className="mb-6">
-                      <div className="text-xs font-medium text-blue-400 uppercase tracking-wide mb-2 px-2">
+                      <div className="px-2 mb-2 text-xs font-medium tracking-wide text-blue-400 uppercase">
                         {group}
                       </div>
                       {analyses.map((rootAnalysisId: string) => {
@@ -794,7 +794,7 @@ export function AnalysisTreeViewer({
           />
           <div
             className={twMerge(
-              "relative w-full h-full min-w-0 p-2 pt-10 overflow-auto rounded-tr-lg sm:pt-0 grow lg:p-4",
+              "relative w-full h-full min-w-0 p-2 pt-10 overflow-y-auto overflow-x-clip rounded-tr-lg sm:pt-0 grow lg:p-4",
               activeAnalysisId ? "" : "flex flex-col"
             )}
             onScroll={debounce((e: SyntheticEvent) => {

@@ -30,6 +30,28 @@ import { AgentConfigContext } from "../context/AgentContext";
 import { ParsedOutput } from "../agent/analysis/analysisManager";
 import { twMerge } from "tailwind-merge";
 
+// Add this new component at the top level, before ChartContainer
+const ChartOptionsHandle = ({ isOpen, onClick }) => (
+  <button
+    onClick={onClick}
+    className={`
+      absolute -right-8 top-[50%] -translate-y-[50%]
+      h-36 w-8 flex items-center justify-center
+      bg-[#F9FAFB] dark:bg-gray-800 
+      border border-gray-200 dark:border-gray-700
+      hover:bg-gray-50 dark:hover:bg-gray-700
+      transition-colors rounded-r
+    `}
+    title={`${isOpen ? "Collapse" : "Expand"} chart options`}
+  >
+    <div className="flex flex-col items-center gap-2">
+      <span className="text-xs text-gray-500 dark:text-gray-400 vertical-text">
+        <SlidersHorizontal className="size-5" />
+      </span>
+    </div>
+  </button>
+);
+
 export function ChartContainer({
   rows,
   columns,
@@ -135,48 +157,59 @@ export function ChartContainer({
       <div className="relative">
         <div className="relative flex flex-row gap-3">
           <div
-            className={twMerge(
-              "relative min-w-[350px] max-w-[350px] h-full border-r chart-options-container",
-              isOptionsExpanded ? "" : "min-w-0"
-            )}
+            className={`
+              relative border-r border-gray-200 dark:border-gray-700
+              transition-all duration-200
+              ${isOptionsExpanded ? "w-[350px]" : "w-[0%]"}
+            `}
           >
-            {isOptionsExpanded && (
-              <Tabs
-                tabPosition="left"
-                className="h-full pl-0"
-                size="small"
-                tabBarStyle={{
-                  width: "60px",
-                  height: "100%",
-                  display: "flex",
-                  paddingLeft: "0px !important",
-                  marginLeft: "-20px",
-                  flexDirection: "column",
-                  justifyContent: "space-between",
-                }}
-                items={tabItems}
-              />
-            )}
-
-            <span
+            {/* Handle positioned outside the main container */}
+            <ChartOptionsHandle
+              isOpen={isOptionsExpanded}
               onClick={() => setIsOptionsExpanded(!isOptionsExpanded)}
-              className={twMerge(
-                "text-gray-400 underline cursor-pointer flex items-center text-xs font-medium absolute top-0 z-10",
-                isOptionsExpanded ? "right-3" : "left-0"
-              )}
+            />
+
+            {/* Content container with overflow handling */}
+            <div
+              className={`
+                transition-all duration-200 relative
+                overflow-x-hidden
+                ${isOptionsExpanded ? "pr-8 pl-4" : "pr-8 pl-0"}
+              `}
             >
-              {isOptionsExpanded ? (
-                <>
-                  <ChevronLeft size={16} />
-                  <span>Hide Options</span>
-                </>
-              ) : (
-                <>
-                  <ChevronRight size={16} />
-                  <span>Customize Chart</span>
-                </>
-              )}
-            </span>
+              {/* Fixed width wrapper */}
+              <div style={{ width: "350px" }}>
+                {isOptionsExpanded && (
+                  <Tabs
+                    tabPosition="left"
+                    className="h-full pl-0"
+                    size="small"
+                    tabBarStyle={{
+                      width: "60px",
+                      height: "100%",
+                      display: "flex",
+                      paddingLeft: "0px !important",
+                      marginLeft: "-20px",
+                      flexDirection: "column",
+                      justifyContent: "space-between",
+                    }}
+                    items={tabItems}
+                  />
+                )}
+              </div>
+
+              {/* Fade overlay when collapsed */}
+              <div
+                className={`
+                  absolute inset-y-0 left-0 w-24
+                  transition-opacity duration-200
+                  ${isOptionsExpanded ? "opacity-0 pointer-events-none" : "opacity-100"}
+                  bg-gradient-to-l from-transparent 
+                  via-white/50 to-white
+                  dark:via-gray-800/50 dark:to-gray-800
+                `}
+              />
+            </div>
           </div>
 
           {chartConfig.loading ? (

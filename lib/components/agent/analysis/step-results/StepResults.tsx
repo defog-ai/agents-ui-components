@@ -225,10 +225,10 @@ export function StepResults({
             {step?.error_message && (
               <StepError error_message={step?.error_message}></StepError>
             )}
-            <div className="tool-action-buttons flex flex-row gap-2">
+            <div className="flex flex-row gap-2 tool-action-buttons">
               {/* {edited && ( */}
               <StepReRun
-                className="font-mono bg-gray-50 border border-gray-200 text-gray-500 hover:bg-blue-500 hover:text-white active:hover:text-white hover:border-transparent"
+                className="font-mono text-gray-500 border border-gray-200 bg-gray-50 hover:bg-blue-500 hover:text-white active:hover:text-white hover:border-transparent"
                 onClick={() => {
                   handleReRun(stepId);
                 }}
@@ -237,7 +237,7 @@ export function StepResults({
               <StepReRun
                 onClick={showModal}
                 text="Delete"
-                className="font-mono bg-gray-50 border border-gray-200 text-gray-500 hover:bg-rose-500 hover:text-white active:hover:text-white hover:border-transparent"
+                className="font-mono text-gray-500 border border-gray-200 bg-gray-50 hover:bg-rose-500 hover:text-white active:hover:text-white hover:border-transparent"
               ></StepReRun>
               <Modal
                 okText={"Yes, delete"}
@@ -252,11 +252,11 @@ export function StepResults({
                 </p>
               </Modal>
             </div>
-            <p className="text-lg mt-4 mb-2">
+            <p className="mt-4 mb-2 text-lg">
               {toolDisplayNames[step.tool_name]}
             </p>
             <div className="my-4">
-              <p className="text-gray-400 mb-4 text-xs">INPUTS</p>
+              <p className="mb-4 text-xs text-gray-400">INPUTS</p>
               <StepInputs
                 analysisId={analysisId}
                 stepId={stepId}
@@ -268,7 +268,7 @@ export function StepResults({
               ></StepInputs>
             </div>
             <div className="my-4">
-              <p className="text-gray-400 mb-4 text-xs">OUTPUTS</p>
+              <p className="mb-4 text-xs text-gray-400">OUTPUTS</p>
               <StepOutputs
                 showCode={agentConfigContext.val.showCode}
                 analysisId={analysisId}
@@ -295,7 +295,7 @@ export function StepResults({
                 />
                 {step?.reference_queries?.length > 0 ? (
                   <>
-                    <p className="mt-8 mb-2 text-sm font-mono">
+                    <p className="mt-8 mb-2 font-mono text-sm">
                       <span className="font-bold dark:text-gray-200">
                         Reference Queries
                       </span>
@@ -317,7 +317,7 @@ export function StepResults({
                         name: `Question ${i + 1}`,
                         content: (
                           <div>
-                            <p className="text-sm my-4 ml-2 font-semibold dark:text-gray-300">
+                            <p className="my-4 ml-2 text-sm font-semibold dark:text-gray-300">
                               {query.question}
                             </p>
                             <CodeEditor
@@ -335,7 +335,7 @@ export function StepResults({
 
                 {step.instructions_used && (
                   <>
-                    <p className="mt-8 mb-2 text-sm font-mono">
+                    <p className="mt-8 mb-2 font-mono text-sm">
                       <span className="font-bold dark:text-gray-200">
                         Relevant Instructions
                       </span>
@@ -345,7 +345,7 @@ export function StepResults({
                         query
                       </span>
                     </p>
-                    <p className="text-sm mt-2 mb-4 pl-4 rounded whitespace-break-spaces leading-relaxed dark:text-gray-300">
+                    <p className="pl-4 mt-2 mb-4 text-sm leading-relaxed rounded whitespace-break-spaces dark:text-gray-300">
                       {step.instructions_used}
                     </p>
                   </>
@@ -398,7 +398,7 @@ export function StepResults({
         ) : step?.error_message ? (
           <StepError error_message={step?.error_message}></StepError>
         ) : (
-          <div className="text-gray-400 dark:text-gray-500 text-sm h-40 max-w-80 m-auto text-center flex items-center justify-center">
+          <div className="flex items-center justify-center h-40 m-auto text-sm text-center text-gray-400 dark:text-gray-500 max-w-80">
             No data found when we ran the SQL query. Are you sure that data for
             the question you asked is available in the database
           </div>
@@ -418,12 +418,12 @@ export function StepResults({
     <></>
   ) : (
     <div
-      className="tool-results-ctr w-full h-full"
+      className="w-full h-full tool-results-ctr"
       data-is-tool={activeNode.data.isTool}
     >
       {/* create a translucent overlay if displayLoadingOverlay is true */}
       {analysisBusy && (
-        <div className="absolute top-0 left-0 w-full h-full bg-white dark:bg-gray-900 bg-opacity-90 dark:bg-opacity-90 z-20 flex flex-col justify-center items-center text-md dark:text-gray-300">
+        <div className="absolute top-0 left-0 z-20 flex flex-col items-center justify-center w-full h-full bg-white dark:bg-gray-900 bg-opacity-90 dark:bg-opacity-90 text-md dark:text-gray-300">
           <span className="my-1">
             Last executed step:{" "}
             {toolDisplayNames[step?.tool_name] || step?.tool_name}
