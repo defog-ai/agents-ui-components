@@ -29,6 +29,8 @@ import setupBaseUrl from "../utils/setupBaseUrl";
 import { AgentConfigContext } from "../context/AgentContext";
 import { ParsedOutput } from "../agent/analysis/analysisManager";
 import { twMerge } from "tailwind-merge";
+import { KeyboardShortcutIndicator } from "../core-ui/KeyboardShortcutIndicator";
+import { KEYMAP, matchesKey } from "../../constants/keymap";
 
 // Add this new component at the top level, before ChartContainer
 const ChartOptionsHandle = ({ isOpen, onClick }) => (
@@ -36,18 +38,30 @@ const ChartOptionsHandle = ({ isOpen, onClick }) => (
     onClick={onClick}
     className={`
       absolute -right-8 top-[50%] -translate-y-[50%]
-      h-36 w-8 flex items-center justify-center
+      h-36 w-8 flex items-center justify-center group
       bg-[#F9FAFB] dark:bg-gray-800 
       border border-gray-200 dark:border-gray-700
       hover:bg-gray-50 dark:hover:bg-gray-700
       transition-colors rounded-r
+       z-10
     `}
-    title={`${isOpen ? "Collapse" : "Expand"} chart options`}
+    title={`${isOpen ? "Collapse" : "Expand"} chart options (${KEYMAP.TOGGLE_CHART_OPTIONS})`}
   >
-    <div className="flex flex-col items-center gap-2">
-      <span className="text-xs text-gray-500 dark:text-gray-400 vertical-text">
-        <SlidersHorizontal className="size-5" />
-      </span>
+    <div className="relative flex flex-col h-full">
+      {/* Center the icon */}
+      <div className="flex items-center justify-center flex-1">
+        <span className="text-xs text-gray-500 dark:text-gray-400">
+          <SlidersHorizontal className="size-5" />
+        </span>
+      </div>
+
+      {/* Bottom-aligned shortcut */}
+      <div className="absolute -translate-x-1/2 bottom-2 left-1/2">
+        <KeyboardShortcutIndicator
+          shortcut={KEYMAP.TOGGLE_CHART_OPTIONS}
+          className="scale-75 opacity-0 group-hover:opacity-50"
+        />
+      </div>
     </div>
   </button>
 );
@@ -112,6 +126,22 @@ export function ChartContainer({
     }
   }, []);
 
+  // Fix keyboard shortcut handler
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (document.activeElement === document.body) {
+        if (e.key === KEYMAP.TOGGLE_CHART_OPTIONS) {
+          // Direct key comparison
+          setIsOptionsExpanded((prev) => !prev);
+          e.preventDefault();
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyPress);
+    return () => window.removeEventListener("keydown", handleKeyPress);
+  }, []);
+
   const tabItems = useMemo(() => {
     const columns = chartConfig.availableColumns;
 
@@ -156,30 +186,26 @@ export function ChartContainer({
     >
       <div className="relative">
         <div className="relative flex flex-row gap-3">
-          <div
-            className={`
-              relative border-r border-gray-200 dark:border-gray-700
-              transition-all duration-200
-              ${isOptionsExpanded ? "w-[350px]" : "w-[0%]"}
-            `}
-          >
-            {/* Handle positioned outside the main container */}
-            <ChartOptionsHandle
-              isOpen={isOptionsExpanded}
-              onClick={() => setIsOptionsExpanded(!isOptionsExpanded)}
-            />
-
-            {/* Content container with overflow handling */}
+          {/* Options Panel Container */}
+          <div className="relative flex">
+            {/* Options Panel Content */}
             <div
               className={`
-                transition-all duration-200 relative
-                overflow-x-hidden
-                ${isOptionsExpanded ? "pr-8 pl-4" : "pr-8 pl-0"}
+                relative border-r border-gray-200 dark:border-gray-700
+                transition-all duration-200 overflow-hidden
+                ${isOptionsExpanded ? "w-[350px]" : "w-[0px]"}
               `}
             >
-              {/* Fixed width wrapper */}
-              <div style={{ width: "350px" }}>
-                {isOptionsExpanded && (
+              {/* Content container */}
+              <div
+                className={`
+                  transition-all duration-200 relative
+                  overflow-x-hidden h-full
+                  ${isOptionsExpanded ? "pr-4" : "pr-0"}
+                `}
+              >
+                {/* Fixed width wrapper */}
+                <div style={{ width: "350px" }}>
                   <Tabs
                     tabPosition="left"
                     className="h-full pl-0"
@@ -195,30 +221,44 @@ export function ChartContainer({
                     }}
                     items={tabItems}
                   />
-                )}
-              </div>
+                </div>
 
-              {/* Fade overlay when collapsed */}
-              <div
-                className={`
-                  absolute inset-y-0 left-0 w-24
-                  transition-opacity duration-200
-                  ${isOptionsExpanded ? "opacity-0 pointer-events-none" : "opacity-100"}
-                  bg-gradient-to-l from-transparent 
-                  via-white/50 to-white
-                  dark:via-gray-800/50 dark:to-gray-800
-                `}
-              />
+                {/* Fade overlay when collapsed */}
+                <div
+                  className={`
+                    absolute inset-y-0 left-0 w-24
+                    transition-opacity duration-200
+                    ${isOptionsExpanded ? "opacity-0 pointer-events-none" : "opacity-100"}
+                    bg-gradient-to-l from-transparent 
+                    via-white/50 to-white
+                    dark:via-gray-800/50 dark:to-gray-800
+                  `}
+                />
+              </div>
             </div>
+
+            {/* Handle positioned relative to the panel */}
+            <ChartOptionsHandle
+              isOpen={isOptionsExpanded}
+              onClick={() => setIsOptionsExpanded(!isOptionsExpanded)}
+            />
           </div>
 
-          {chartConfig.loading ? (
-            <div className="flex items-center justify-center w-full pt-10">
-              <SkeletalLoader chart={true} />
-            </div>
-          ) : (
-            <ObservablePlot />
-          )}
+          {/* Chart Content */}
+          <div
+            className={`
+              transition-all duration-200 flex-1
+              ${isOptionsExpanded ? "w-[calc(100%-350px)]" : "w-full"}
+            `}
+          >
+            {chartConfig.loading ? (
+              <div className="flex items-center justify-center w-full pt-10">
+                <SkeletalLoader chart={true} />
+              </div>
+            ) : (
+              <ObservablePlot />
+            )}
+          </div>
         </div>
       </div>
     </ChartManagerContext.Provider>
