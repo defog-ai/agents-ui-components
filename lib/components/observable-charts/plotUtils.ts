@@ -17,7 +17,7 @@ export interface Margin {
 }
 
 export interface ChartOptions {
-  type: "line" | "bar" | "scatter" | "histogram" | "boxplot";
+  type: "line" | "bar" | "scatter";
   x: string | null;
   y: string | string[] | null;
   xLabel?: string;
@@ -32,7 +32,7 @@ export interface ChartOptions {
   showLabels?: boolean;
   margin?: Margin;
   dateFormat?: string;
-  boxplotOrientation?: "vertical" | "horizontal";
+
   color?: { legend: boolean };
   xIsDate?: boolean;
   xGrid?: boolean;
@@ -62,7 +62,7 @@ export const defaultOptions: ChartOptions = {
   showLabels: false,
   margin: { top: 20, right: 20, bottom: 80, left: 50 },
   dateFormat: "%Y-%m-%d",
-  boxplotOrientation: "vertical",
+
   color: { legend: true },
 };
 
@@ -127,9 +127,6 @@ export const getObservableOptions = (
   const filteredData = mergedOptions.filter
     ? processedData.filter(mergedOptions.filter)
     : processedData;
-
-  const isHorizontalOrientation =
-    mergedOptions?.boxplotOrientation === "horizontal";
 
   const chartMarks = getMarks(
     filteredData,
@@ -197,9 +194,7 @@ export const getObservableOptions = (
     marginBottom:
       (mergedOptions?.margin?.bottom ?? defaultOptions?.margin?.bottom) ||
       0 + 50,
-    marginLeft: isHorizontalOrientation
-      ? 100
-      : (mergedOptions?.margin?.left ?? defaultOptions?.margin?.left),
+    marginLeft: mergedOptions?.margin?.left ?? defaultOptions?.margin?.left,
     style: {
       backgroundColor: mergedOptions.backgroundColor,
       overflow: "visible",

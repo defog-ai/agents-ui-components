@@ -22,8 +22,6 @@ const CHART_TYPES = [
   { value: "line", label: "Line", Icon: ChartLine },
   { value: "bar", label: "Bar", Icon: ChartColumnIncreasing },
   { value: "scatter", label: "Scatter", Icon: ChartScatter },
-  // { value: "histogram", label: "Histogram", Icon: ChartNoAxesColumn },
-  // { value: "boxplot", label: "Box Plot", Icon: ChartCandlestick },
 ];
 
 const AGGREGATE_OPTIONS = [
@@ -52,10 +50,6 @@ export function PrimarySelection({ columns }) {
   } = chartManager.config;
 
   const [orderedColumns, setOrderedColumns] = useState(columns);
-  const [axisLabel, setAxisLabel] = useState({
-    x: "Horizontal",
-    y: "Vertical",
-  });
 
   const agentConfigContext = useContext(AgentConfigContext);
   const { hiddenCharts = [] } = agentConfigContext.val;
@@ -75,18 +69,6 @@ export function PrimarySelection({ columns }) {
       .autoSelectVariables()
       .render();
   };
-
-  // if we have a vertically oriented boxplot, we need to switch the x and y axis labels
-  useEffect(() => {
-    if (
-      selectedChart === "boxplot" &&
-      chartSpecificOptions.boxplotOrientation === "vertical"
-    ) {
-      setAxisLabel({ x: "Vertical", y: "Horizontal" });
-    } else {
-      setAxisLabel({ x: "Horizontal", y: "Vertical" });
-    }
-  }, [selectedChart, chartSpecificOptions, chartManager]);
 
   // Handle axis selection change
   const handleAxisChange = useCallback(
@@ -219,39 +201,6 @@ export function PrimarySelection({ columns }) {
     );
   };
 
-  // Handle axis label change
-  const handleAxisLabelChange = (axis) => (e) => {
-    chartManager
-      .updateChartStyle({
-        [`${axis}Label`]: e.target.value,
-      })
-      .render();
-  };
-  // Render axis label input
-  const renderAxisLabel = (axis) => (
-    <div>
-      <h3 className="mb-2 input-label">Label</h3>
-      <TextInput
-        placeholder={`Enter ${axis.toUpperCase()}-Axis Label`}
-        value={chartStyle[`${axis}Label`] || undefined}
-        onChange={handleAxisLabelChange(axis)}
-      />
-    </div>
-  );
-
-  const renderHistogramYAxisLabel = () => (
-    <div>
-      <h3 className="mb-2 input-label">Axis Label</h3>
-      <TextInput
-        placeholder="Enter y axis label"
-        value={chartStyle.yLabel || undefined}
-        onChange={(e) =>
-          chartManager.updateChartStyle({ yLabel: e.target.value }).render()
-        }
-      />
-    </div>
-  );
-
   // Render column option for Select
   const renderColumnOption = ({ key, title, isDate, variableType }) => {
     const IconComponent = COLUMN_ICONS[isDate ? "date" : variableType];
@@ -266,21 +215,13 @@ export function PrimarySelection({ columns }) {
   };
 
   // Render axis selection dropdown
-  const renderAxisSelection = (axis, label, mode) => {
-    if (selectedChart === "histogram" && axis === "y") {
-      return null;
-    }
-
+  const renderAxisSelection = (axis, mode) => {
     let selectedColumnKey = selectedColumns[axis];
     const selectedColumn = columns.find((col) => col.key === selectedColumnKey);
     const isCategorical =
       selectedColumn && selectedColumn.variableType === "categorical";
 
     if (axis === "x" && selectedColumns.x) {
-      // while we do have multi select in x axis' dropdown
-      // the actual name of the selected column is still stored as one string: the columns joined by the separator
-      // so to get back all the columns selected as an array
-      // we always split the string by the separator
       selectedColumnKey = selectedColumns.x.split(separator);
     } else if (axis === "x" && !selectedColumns.x) {
       selectedColumnKey = [];
@@ -288,23 +229,17 @@ export function PrimarySelection({ columns }) {
 
     return (
       <div>
-        <h3 className="mb-2 input-label">
-          Variable {selectedChart === "histogram" ? "" : ""}
-        </h3>
+        <h3 className="mb-2 input-label">Variable</h3>
         <Select
           style={{ width: "100%" }}
-          placeholder={`Select ${label}-Axis`}
+          placeholder={`Select ${axis.toUpperCase()}-Axis`}
           onChange={handleAxisChange(axis)}
           value={selectedColumnKey}
           allowClear={axis === "x"}
           mode={mode}
           rootClassName={`${axis}-axis-selector`}
         >
-          {selectedChart === "histogram"
-            ? orderedColumns
-                .filter((i) => i.numeric === true && i.key !== "index")
-                .map(renderColumnOption)
-            : orderedColumns.map(renderColumnOption)}
+          {orderedColumns.map(renderColumnOption)}
         </Select>
         {(selectedChart === "bar" || selectedChart === "line") &&
           axis === "x" &&
@@ -418,26 +353,18 @@ export function PrimarySelection({ columns }) {
         <h3 className="pb-1 font-bold border-b input-label border-black/20">
           Horizontal Axis
         </h3>
-        <div className="grid grid-cols-2 gap-2">
-          {renderAxisSelection("x", axisLabel.x, "multiple")}
-          {renderAxisLabel("x")}
-        </div>
+        <div>{renderAxisSelection("x", "multiple")}</div>
         {/* Vertical Axis Selection */}
         <h3 className="pb-1 font-bold border-b input-label border-black/20">
           Vertical Axis
         </h3>
-        <div className="grid grid-cols-2 gap-2">
+        <div>
           {renderAxisSelection(
             "y",
-            axisLabel.y,
             selectedChart === "line" || selectedChart == "bar"
               ? "multiple"
               : undefined
           )}
-          <div className="flex items-center gap-4">
-            {renderAxisLabel("y")}
-            {/* {renderVerticalAxisUnit()} */}
-          </div>
         </div>
       </div>
       {/* Facet Selection and color */}
