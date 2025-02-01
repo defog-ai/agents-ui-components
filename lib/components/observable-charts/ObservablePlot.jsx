@@ -114,31 +114,6 @@ export default function ObservablePlot() {
       }
 
       if (selectedChart !== "bar" && selectedChart !== "line") {
-        // if we have more than 10k categories in the x axis, and this is a boxplot, sample 100 unique values
-        let uniqueX = new Set(processedData.map((d) => d[selectedColumns.x]));
-
-        if (selectedChart === "boxplot" && uniqueX.size > 10000) {
-          wasSampled = true;
-          const sampledLabels = new Set();
-          const step = Math.floor(uniqueX.size / 200);
-          let i = 0;
-          for (const label of uniqueX) {
-            if (i % step === 0) {
-              sampledLabels.add(label);
-            }
-            i++;
-
-            if (sampledLabels.size >= 200) {
-              break;
-            }
-          }
-
-          // filter processedData to only include the unique labels
-          processedData = processedData.filter((d) =>
-            sampledLabels.has(d[selectedColumns.x])
-          );
-        }
-
         generatedOptions = getObservableOptions(
           dimensions,
           {

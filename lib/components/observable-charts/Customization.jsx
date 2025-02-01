@@ -3,10 +3,8 @@ import { ColorPicker } from "antd";
 import LineChartControls from "./chart-controls/LineChartControls";
 import ScatterPlotControls from "./chart-controls/ScatterPlotControls";
 import BarChartControls from "./chart-controls/BarChartControls";
-import HistogramControls from "./chart-controls/HistogramControls";
 import AxisControl from "./components/AxisControl";
 import D3DateFormatBuilder from "./components/DateFormatter";
-import BoxPlotControls from "./chart-controls/BoxControl";
 import ColorSchemeSelector from "./components/ColorschemeSelector";
 import { ChartManagerContext } from "./ChartManagerContext";
 import { useContext } from "react";
@@ -28,10 +26,7 @@ export function Customization() {
         return <BarChartControls />;
       case "scatter":
         return <ScatterPlotControls />;
-      case "histogram":
-        return <HistogramControls />;
-      case "boxplot":
-        return <BoxPlotControls />;
+
       default:
         return null;
     }
