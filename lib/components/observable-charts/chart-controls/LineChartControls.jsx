@@ -3,13 +3,6 @@ import { ColorPicker, Slider, Switch } from "antd";
 import { ChartManagerContext } from "../ChartManagerContext";
 import { useContext } from "react";
 
-// Options for curve types
-const CURVE_OPTIONS = [
-  { label: "Linear", value: "linear" },
-  { label: "Step", value: "step" },
-  { label: "Catmull-Rom", value: "catmull-rom" },
-];
-
 const LineChartControls = () => {
   const chartManager = useContext(ChartManagerContext);
   const { selectedColumns, chartSpecificOptions } = chartManager.config;
@@ -33,87 +26,65 @@ const LineChartControls = () => {
       .render();
   };
 
-  // Render global line chart controls
-  const renderGlobalControls = () => (
-    <>
-      <div className="flex gap-2">
-        <SingleSelect
-          label="Curve Type"
-          options={CURVE_OPTIONS}
-          onChange={(value) => handleGlobalOptionChange("curve", value)}
-          allowClear={false}
-          value={chartSpecificOptions.line.curve || "linear"}
-        />
-      </div>
-
-      <div>
-        <h3 className="mb-2 input-label">Line Width</h3>
-        <Slider
-          min={1}
-          max={10}
-          value={chartSpecificOptions.line.lineWidth || 2}
-          onChange={(value) => handleGlobalOptionChange("lineWidth", value)}
-        />
-      </div>
-
-      <div>
-        <h3 className="mb-2 input-label">Show Labels</h3>
-        <Switch
-          checked={chartSpecificOptions.line.showLabels || false}
-          onChange={(checked) =>
-            handleGlobalOptionChange("showLabels", checked)
-          }
-        />
-      </div>
-    </>
-  );
-
-  // Render controls for individual lines
-  const renderIndividualLineControls = () =>
-    Array.isArray(selectedColumns.y) &&
-    selectedColumns.y.map((column) => (
-      <div key={column} className="p-2 border rounded">
-        <h4 className="mb-2 font-bold">{`${column}`}</h4>
-        <div className="mb-2">
-          <span className="block mb-1">Line Color</span>
-          <ColorPicker
-            disabledAlpha={true}
-            allowClear={true}
-            value={
-              chartSpecificOptions.line.lineOptions?.[column]?.stroke || ""
-            }
-            onChange={(color) =>
-              handleLineOptionChange(
-                column,
-                "stroke",
-                color.cleared ? null : color.toHexString()
-              )
-            }
-          />
-        </div>
-        <div className="mb-2">
-          <span className="block mb-1">Stroke Width</span>
-          <Slider
-            min={1}
-            max={10}
-            value={
-              chartSpecificOptions.line.lineOptions?.[column]?.strokeWidth || 2
-            }
-            onChange={(value) =>
-              handleLineOptionChange(column, "strokeWidth", value)
-            }
-          />
-        </div>
-      </div>
-    ));
-
   return (
-    <div className="flex flex-col gap-4 text-xs">
-      {renderGlobalControls()}
-      <div className="flex flex-col gap-2">
-        <span className="block mb-1">Line Styles</span>
-        {renderIndividualLineControls()}
+    <div className="space-y-6">
+      {/* Global Controls */}
+      <div className="space-y-4">
+        <div>
+          <div className="mt-2 space-y-4">
+            <div>
+              <h3 className="mb-2 input-label">Line Width</h3>
+              <Slider
+                min={1}
+                max={10}
+                value={chartSpecificOptions.line.lineWidth || 2}
+                onChange={(value) =>
+                  handleGlobalOptionChange("lineWidth", value)
+                }
+                rootClassNames="w-full h-2"
+              />
+            </div>
+          </div>
+        </div>
       </div>
+
+      {/* Individual Line Controls */}
+      {Array.isArray(selectedColumns.y) && selectedColumns.y.length > 0 && (
+        <div className="space-y-4">
+          {/* <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+            Individual Line Styles
+          </label> */}
+          <div className="grid gap-3">
+            {selectedColumns.y.map((column) => (
+              <div
+                key={column}
+                className="flex items-center justify-between w-full gap-3 border-gray-100 rounded-sm bg-gray-50/20"
+              >
+                <h4 className="mb-2 font-mono text-xs font-bold text-gray-600">
+                  {column}
+                </h4>
+                <div className="w-full space-y-3">
+                  <ColorPicker
+                    disabledAlpha={true}
+                    allowClear={true}
+                    value={
+                      chartSpecificOptions.line.lineOptions?.[column]?.stroke ||
+                      ""
+                    }
+                    onChange={(color) =>
+                      handleLineOptionChange(
+                        column,
+                        "stroke",
+                        color.cleared ? null : color.toHexString()
+                      )
+                    }
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

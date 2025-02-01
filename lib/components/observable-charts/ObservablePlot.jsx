@@ -20,6 +20,8 @@ import dayjs from "dayjs";
 import minMax from "dayjs/plugin/minMax";
 dayjs.extend(minMax);
 import { convertWideToLong } from "../utils/utils";
+import { KeyboardShortcutIndicator } from "../core-ui/KeyboardShortcutIndicator";
+import { KEYMAP, matchesKey } from "../../constants/keymap";
 
 export default function ObservablePlot() {
   const containerRef = useRef(null);
@@ -442,9 +444,24 @@ export default function ObservablePlot() {
     return generatedOptions;
   }, [chartManager.config, dimensions]);
 
+  // Add keyboard shortcut handler
+  useEffect(() => {
+    const handleKeyPress = (e) => {
+      if (document.activeElement === document.body) {
+        if (matchesKey(e.key, KEYMAP.SAVE_CHART)) {
+          saveAsPNG(containerRef.current);
+          e.preventDefault();
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyPress);
+    return () => window.removeEventListener("keydown", handleKeyPress);
+  }, []);
+
   return (
-    <div className="grow">
-      <div className="flex justify-end mb-2 ">
+    <div className="mr-4 grow">
+      <div className="flex justify-end gap-2 mb-2">
         {observableOptions && observableOptions?.wasSampled && (
           <div className="text-sm text-gray-500">
             * Data has been sampled for better visualization
@@ -453,10 +470,20 @@ export default function ObservablePlot() {
         <Button
           onClick={() => saveAsPNG(containerRef.current)}
           variant="ghost"
-          className="ml-2"
-          title="Download as PNG"
+          className="flex items-center px-2.5 py-1.5 rounded-md border border-gray-200/50 
+                bg-white/95 hover:bg-gray-50/95 dark:bg-gray-800/95 dark:hover:bg-gray-700/95 
+                shadow-sm backdrop-blur-sm transition-all duration-200 
+                dark:border-gray-700/50 dark:hover:border-gray-600/50
+                hover:shadow-md hover:-translate-y-0.5
+                group"
+          title={`Download chart as PNG (${KEYMAP.SAVE_CHART})`}
         >
-          <Download size={16} className="mr-1" /> Save as PNG
+          <Download size={16} className="mr-1" />
+          <span className="mr-1">Save as PNG</span>
+          <KeyboardShortcutIndicator
+            shortcut={KEYMAP.SAVE_CHART}
+            className="opacity-50 group-hover:opacity-100 transition-opacity ml-1 !py-0.5 !px-1.5"
+          />
         </Button>
       </div>
       <div

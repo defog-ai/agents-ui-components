@@ -2,35 +2,24 @@
 import "./styles.css";
 
 import { useState, useEffect, useMemo, useContext } from "react";
-import { Tabs } from "antd";
-import {
-  ChartNoAxesCombined,
-  SlidersHorizontal,
-  FilterIcon,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
+import { Segmented } from "antd";
+import { ChartNoAxesCombined, SlidersHorizontal, Settings } from "lucide-react";
 import { PrimarySelection } from "./PrimarySelection";
 import { Customization } from "./Customization";
 import ObservablePlot from "./ObservablePlot";
-import TabPaneWrapper from "./utils/TabPaneWrapper";
-import FilterBuilder from "./Filtering";
+
 import {
   ChartManager,
   ChartManagerContext,
   createChartManager,
 } from "./ChartManagerContext";
-import {
-  MessageManagerContext,
-  SkeletalLoader,
-  SpinningLoader,
-} from "@ui-components";
+import { MessageManagerContext, SkeletalLoader } from "@ui-components";
 import setupBaseUrl from "../utils/setupBaseUrl";
 import { AgentConfigContext } from "../context/AgentContext";
 import { ParsedOutput } from "../agent/analysis/analysisManager";
 import { twMerge } from "tailwind-merge";
 import { KeyboardShortcutIndicator } from "../core-ui/KeyboardShortcutIndicator";
-import { KEYMAP, matchesKey } from "../../constants/keymap";
+import { KEYMAP } from "../../constants/keymap";
 
 // Add this new component at the top level, before ChartContainer
 const ChartOptionsHandle = ({ isOpen, onClick }) => (
@@ -142,43 +131,80 @@ export function ChartContainer({
     return () => window.removeEventListener("keydown", handleKeyPress);
   }, []);
 
-  const tabItems = useMemo(() => {
+  const [activeSection, setActiveSection] = useState<
+    "primary" | "customization"
+  >("primary");
+
+  const renderSectionContent = () => {
     const columns = chartConfig.availableColumns;
 
-    return [
-      {
-        key: "1",
-        label: <ChartNoAxesCombined size={24} />,
-        children: (
-          <TabPaneWrapper className="overflow-x-hidden">
-            <PrimarySelection columns={columns} />
-          </TabPaneWrapper>
-        ),
-      },
-      {
-        key: "2",
-        label: <SlidersHorizontal size={24} />,
-        children: (
-          <TabPaneWrapper className="overflow-x-hidden">
+    return (
+      <div className="space-y-4">
+        {/* Chart type selection moved here, above the tabs */}
+        <PrimarySelection columns={columns} showChartTypeOnly={true} />
+
+        {/* Section toggle for General/Style */}
+        <div>
+          <Segmented
+            block
+            value={activeSection}
+            onChange={(value) =>
+              setActiveSection(value as "primary" | "customization")
+            }
+            rootClassName="pr-4 transition-none"
+            options={[
+              {
+                label: (
+                  <div className="flex items-center mt-[0.5px] justify-center gap-1.5 px-3 py-1">
+                    <ChartNoAxesCombined className="text-current" size={14} />
+                    <p className="font-sans text-xs font-semibold">General</p>
+                  </div>
+                ),
+                value: "primary",
+              },
+              {
+                label: (
+                  <div className="flex items-center mt-[0.5px] justify-center gap-1.5 px-3 py-1">
+                    <Settings className="text-current" size={14} />
+                    <p className="font-sans text-xs">Style</p>
+                  </div>
+                ),
+                value: "customization",
+              },
+            ]}
+            className="
+              [&_.ant-segmented-group]:gap-1
+              [&_.ant-segmented-item]:rounded-none
+            
+
+              [&_.ant-segmented-item:hover]:border-gray-200
+              [&_.ant-segmented-item:hover]:dark:border-gray-700
+              [&_.ant-segmented-item-selected]:border-transparent
+              [&_.ant-segmented-item-selected]:shadow-none
+              [&_.ant-segmented-item-selected]:bg-gray-100 
+              [&_.ant-segmented-item-selected]:dark:bg-gray-700
+              [&_.ant-segmented-item]:text-gray-500 
+              [&_.ant-segmented-item]:dark:text-gray-400
+              [&_.ant-segmented-item-selected]:text-gray-900 
+              [&_.ant-segmented-item-selected]:dark:text-gray-100
+              [&_.ant-segmented-item-selected]:border
+              [&_.ant-segmented-item-selected]:border-gray-200
+               p-0.5 bg-transparent
+            "
+          />
+        </div>
+
+        {/* Section content */}
+        <div className="pl-1 pr-4">
+          {activeSection === "primary" ? (
+            <PrimarySelection columns={columns} showChartTypeOnly={false} />
+          ) : (
             <Customization />
-          </TabPaneWrapper>
-        ),
-      },
-      {
-        key: "3",
-        label: <FilterIcon size={24} />,
-        children: columns ? (
-          <TabPaneWrapper className="overflow-x-hidden">
-            <FilterBuilder
-              columns={columns.filter((col) =>
-                Object.values(selectedColumns || {}).includes(col.key)
-              )}
-            />
-          </TabPaneWrapper>
-        ) : null,
-      },
-    ];
-  }, [selectedColumns]);
+          )}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <ChartManagerContext.Provider
@@ -205,23 +231,7 @@ export function ChartContainer({
                 `}
               >
                 {/* Fixed width wrapper */}
-                <div style={{ width: "350px" }}>
-                  <Tabs
-                    tabPosition="left"
-                    className="h-full pl-0"
-                    size="small"
-                    tabBarStyle={{
-                      width: "60px",
-                      height: "100%",
-                      display: "flex",
-                      paddingLeft: "0px !important",
-                      marginLeft: "-20px",
-                      flexDirection: "column",
-                      justifyContent: "space-between",
-                    }}
-                    items={tabItems}
-                  />
-                </div>
+                <div style={{ width: "350px" }}>{renderSectionContent()}</div>
 
                 {/* Fade overlay when collapsed */}
                 <div
