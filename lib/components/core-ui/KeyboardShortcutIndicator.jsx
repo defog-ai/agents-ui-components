@@ -10,7 +10,7 @@ export function KeyboardShortcutIndicator({ shortcut, className = "" }) {
   return (
     <kbd
       className={`
-        inline-flex items-center justify-center
+        hidden sm:inline-flex items-center justify-center
         px-2 py-1 text-xs font-mono
         text-gray-800 bg-gray-200
         border border-gray-300 rounded
