@@ -52,23 +52,31 @@ const AnalysisDrawerHandle = ({ isOpen, onClick }) => (
     onClick={onClick}
     className={`
       absolute -left-8 top-[50%] -translate-y-[50%]
-      h-36 w-8 flex items-center justify-center
+      h-36 w-8 flex items-center justify-center group
       bg-[#F9FAFB] dark:bg-gray-800 
       border border-gray-200 dark:border-gray-700
       hover:bg-gray-50 dark:hover:bg-gray-700
       transition-colors rounded-l
       ${!isOpen ? "z-10" : ""}
+      relative
     `}
-    title={`${isOpen ? "Collapse" : "Expand"} analysis panel`}
+    title={`${isOpen ? "Collapse" : "Expand"} analysis panel (${KEYMAP.TOGGLE_ANALYSIS})`}
   >
-    <div className="flex flex-col items-center gap-2">
-      {/* <ChevronRightIcon
-        className={`w-4 h-4 text-gray-500 transition-transform duration-200
-          ${isOpen ? "rotate-180" : "rotate-0"}`}
-      /> */}
-      <span className="text-xs text-gray-500 dark:text-gray-400 vertical-text">
-        <Sparkles className="w-4 h-4" />
-      </span>
+    <div className="relative flex flex-col h-full">
+      {/* Center the icon */}
+      <div className="flex items-center justify-center flex-1">
+        <span className="text-xs text-gray-500 dark:text-gray-400">
+          <Sparkles className="w-4 h-4" />
+        </span>
+      </div>
+
+      {/* Bottom-aligned shortcut */}
+      <div className="absolute -translate-x-1/2 bottom-2 left-1/2">
+        <KeyboardShortcutIndicator
+          shortcut={KEYMAP.TOGGLE_ANALYSIS}
+          className="scale-75 opacity-0 group-hover:opacity-50"
+        />
+      </div>
     </div>
   </button>
 );
@@ -111,6 +119,7 @@ export function StepResultsTable({
   const [toolCode, setToolCode] = useState(codeStr);
   const [csvLoading, setCsvLoading] = useState(false);
   const [isAnalysisVisible, setIsAnalysisVisible] = useState(true);
+  const [isChartOptionsExpanded, setIsChartOptionsExpanded] = useState(false);
 
   async function saveCsv() {
     if (csvLoading) return;
@@ -236,10 +245,15 @@ export function StepResultsTable({
   const chartContainer = useMemo(() => {
     return (
       stepData && (
-        <ChartContainer stepData={stepData} initialQuestion={initialQuestion} />
+        <ChartContainer
+          stepData={stepData}
+          initialQuestion={initialQuestion}
+          initialOptionsExpanded={isChartOptionsExpanded}
+          onOptionsExpandedChange={setIsChartOptionsExpanded}
+        />
       )
     );
-  }, [stepData, initialQuestion]);
+  }, [stepData, initialQuestion, isChartOptionsExpanded]);
 
   const renderContent = (content) => (
     <div className="flex">
@@ -401,25 +415,34 @@ export function StepResultsTable({
 
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
-      // Only handle keypress if no element is focused
       if (document.activeElement === document.body) {
+        if (matchesKey(e.key, KEYMAP.TOGGLE_ANALYSIS)) {
+          setIsAnalysisVisible((prev) => !prev);
+          e.preventDefault();
+        }
+        // Only handle chart options when chart tab is active
+        if (
+          matchesKey(e.key, KEYMAP.TOGGLE_CHART_OPTIONS) &&
+          activeTab === "chart"
+        ) {
+          setIsChartOptionsExpanded((prev) => !prev);
+          e.preventDefault();
+        }
+        // Add handlers for table/chart view switching
+        if (matchesKey(e.key, KEYMAP.VIEW_TABLE)) {
+          analysisTreeManager?.setActiveTab(analysisId, "table");
+          e.preventDefault();
+        }
         if (matchesKey(e.key, KEYMAP.VIEW_CHART)) {
-          const chartTab = results.find((tab) => tab.key === "chart");
-          if (chartTab) {
-            analysisTreeManager.setActiveTab(analysisId, "chart");
-          }
-        } else if (matchesKey(e.key, KEYMAP.VIEW_TABLE)) {
-          const tableTab = results.find((tab) => tab.key === "table");
-          if (tableTab) {
-            analysisTreeManager.setActiveTab(analysisId, "table");
-          }
+          analysisTreeManager?.setActiveTab(analysisId, "chart");
+          e.preventDefault();
         }
       }
     };
 
     window.addEventListener("keydown", handleKeyPress);
     return () => window.removeEventListener("keydown", handleKeyPress);
-  }, [analysisId, results, analysisTreeManager]);
+  }, [activeTab, analysisId, analysisTreeManager]);
 
   return (
     <div className="table-chart-ctr" ref={tableChartRef}>
