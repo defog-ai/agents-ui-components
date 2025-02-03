@@ -8,19 +8,8 @@ import { Info } from "lucide-react";
 const { Option, OptGroup } = Select;
 
 const COLOR_SCHEMES = {
-  categorical: [
-    "Category10",
-    "Accent",
-    "Dark2",
-    "Paired",
-    "Pastel1",
-    "Pastel2",
-    "Set1",
-    "Set2",
-    "Set3",
-    "Tableau10",
-  ],
-  diverging: ["PuOr", "RdBu", "RdGy", "RdYlBu", "RdYlGn", "Spectral"],
+  categorical: ["Category10", "Paired", "Set2", "Tableau10"],
+  diverging: ["PuOr", "Spectral"],
 };
 
 const ColorSchemeSelector = ({ value, onChange }) => {
