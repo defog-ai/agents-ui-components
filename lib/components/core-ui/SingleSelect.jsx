@@ -65,6 +65,7 @@ export function SingleSelect({
 }) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
+  const [highlightIndex, setHighlightIndex] = useState(-1);
   const [dropdownStyle, setDropdownStyle] = useState({});
 
   const updatePosition = () => {
@@ -113,6 +114,12 @@ export function SingleSelect({
             .toLowerCase()
             .includes(query.toLowerCase());
         });
+
+  useEffect(() => {
+    if (open && filteredOptions.length > 0) {
+      setHighlightIndex(0);
+    }
+  }, [open, query, filteredOptions.length]);
 
   // if there's no matching option
   // or if there's no exact match
@@ -220,6 +227,34 @@ export function SingleSelect({
             setQuery("");
           }}
           readOnly={disabled}
+          onKeyDown={(e) => {
+            if (e.key === 'ArrowDown') {
+              e.preventDefault();
+              if (!open) {
+                setOpen(true);
+                return;
+              }
+              setHighlightIndex((prev) => (prev + 1) % filteredOptions.length);
+            } else if (e.key === 'ArrowUp') {
+              e.preventDefault();
+              if (!open) {
+                setOpen(true);
+                return;
+              }
+              setHighlightIndex((prev) => (prev - 1 + filteredOptions.length) % filteredOptions.length);
+            } else if (e.key === 'Enter') {
+              e.preventDefault();
+              if (open && filteredOptions.length > 0 && highlightIndex >= 0) {
+                const option = filteredOptions[highlightIndex];
+                setSelectedOption(option);
+                setQuery("");
+                setOpen(false);
+                if (onChange) onChange(option.value, option);
+              }
+            } else if (e.key === 'Escape') {
+              setOpen(false);
+            }
+          }}
         />
         {allowClear && (
           <button
@@ -263,8 +298,8 @@ export function SingleSelect({
                 key={idx}
                 className={twMerge(
                   "cursor-pointer select-none relative py-2 pl-3 pr-9",
-                  popupOptionSizeClasses[size] ||
-                    popupOptionSizeClasses["default"]
+                  popupOptionSizeClasses[size] || popupOptionSizeClasses["default"],
+                  highlightIndex === idx ? "bg-blue-100" : ""
                 )}
                 onMouseDown={(e) => {
                   e.preventDefault();
