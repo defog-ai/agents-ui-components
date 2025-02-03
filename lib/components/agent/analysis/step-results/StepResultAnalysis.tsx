@@ -106,7 +106,7 @@ export default function StepResultAnalysis({
       <div className="space-y-4">
         {loading ? (
           <div className="flex flex-col items-center justify-center p-8 h-[400px] rounded-lg bg-gray-50 dark:bg-gray-800/50">
-            <SpinningLoader className="mb-4" />
+            <SpinningLoader classNames="mb-4" />
             <div className="flex flex-col items-center">
               <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 Analyzing your data
