@@ -58,7 +58,6 @@ const AnalysisDrawerHandle = ({ isOpen, onClick }) => (
       hover:bg-gray-50 dark:hover:bg-gray-700
       transition-colors rounded-l
       ${!isOpen ? "z-10" : ""}
-      relative
     `}
     title={`${isOpen ? "Collapse" : "Expand"} analysis panel (${KEYMAP.TOGGLE_ANALYSIS})`}
   >
@@ -275,44 +274,41 @@ export function StepResultsTable({
           ${isAnalysisVisible ? "w-[30%]" : "lg:w-[5%] w-0"}
         `}
       >
-        {/* Handle positioned outside the main container */}
-        <AnalysisDrawerHandle
-          isOpen={isAnalysisVisible}
-          onClick={() => setIsAnalysisVisible(!isAnalysisVisible)}
-        />
+        <div className="flex items-start">
+          {/* Handle positioned outside the main container */}
+          <AnalysisDrawerHandle
+            isOpen={isAnalysisVisible}
+            onClick={() => setIsAnalysisVisible(!isAnalysisVisible)}
+          />
 
-        {/* Content container with overflow handling */}
+          <div
+            className="relative ml-2"
+            onClick={() => !isAnalysisVisible && setIsAnalysisVisible(true)}
+          >
+            {/* Add clickable overlay when collapsed */}
+            {!isAnalysisVisible && (
+              <div
+                className="absolute inset-0 cursor-pointer"
+                title="Expand analysis panel"
+              />
+            )}
+
+            {/* Fixed width wrapper */}
+            <div style={{ width: "30vw" }}>{resultAnalysis}</div>
+          </div>
+        </div>
+
+        {/* Fade overlay when collapsed */}
         <div
           className={`
-            transition-all duration-200 relative
-            overflow-x-hidden h-full
-            ${isAnalysisVisible ? "pl-8 pr-4" : "pl-8 pr-0"}
+            absolute inset-y-0 right-0 w-24
+            transition-opacity duration-200
+            ${isAnalysisVisible ? "opacity-0 pointer-events-none" : "opacity-100"}
+            bg-gradient-to-r from-transparent 
+            via-white/50 to-white
+            dark:via-gray-800/50 dark:to-gray-800
           `}
-          onClick={() => !isAnalysisVisible && setIsAnalysisVisible(true)}
-        >
-          {/* Add clickable overlay when collapsed */}
-          {!isAnalysisVisible && (
-            <div
-              className="absolute inset-0 cursor-pointer"
-              title="Expand analysis panel"
-            />
-          )}
-
-          {/* Fixed width wrapper */}
-          <div style={{ width: "30vw" }}>{resultAnalysis}</div>
-
-          {/* Fade overlay when collapsed */}
-          <div
-            className={`
-              absolute inset-y-0 right-0 w-24
-              transition-opacity duration-200
-              ${isAnalysisVisible ? "opacity-0 pointer-events-none" : "opacity-100"}
-              bg-gradient-to-r from-transparent 
-              via-white/50 to-white
-              dark:via-gray-800/50 dark:to-gray-800
-            `}
-          />
-        </div>
+        />
       </div>
     </div>
   );
