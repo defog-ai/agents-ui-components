@@ -62,6 +62,27 @@ export function MultiSelect({
   const ref = useRef(null);
   const [internalOptions, setInternalOptions] = useState(options);
   const [open, setOpen] = useState(false);
+  const [dropdownStyle, setDropdownStyle] = useState({});
+
+  const updatePosition = () => {
+    if (ref.current) {
+      const rect = ref.current.getBoundingClientRect();
+      setDropdownStyle({
+        position: "fixed",
+        width: rect.width + "px",
+        top: rect.bottom + 4 + "px",
+        left: rect.left + "px",
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (open) {
+      updatePosition();
+      window.addEventListener("scroll", updatePosition, true);
+      return () => window.removeEventListener("scroll", updatePosition, true);
+    }
+  }, [open]);
 
   const filteredOptions = useMemo(() => {
     const f = internalOptions.filter((option) =>
@@ -208,12 +229,7 @@ export function MultiSelect({
         </div>
         {open && (
           <ul
-            style={{
-              position: "fixed",
-              width: ref.current?.getBoundingClientRect().width + "px",
-              top: ref.current?.getBoundingClientRect().bottom + 4 + "px",
-              left: ref.current?.getBoundingClientRect().left + "px",
-            }}
+            style={dropdownStyle}
             className={twMerge(
               "z-[100] bg-white dark:bg-gray-900 shadow-lg max-h-60 overflow-auto rounded-md py-1 text-base border border-gray-200 dark:border-gray-700",
               popupClassName
