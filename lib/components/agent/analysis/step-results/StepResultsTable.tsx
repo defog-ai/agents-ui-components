@@ -73,7 +73,7 @@ const AnalysisDrawerHandle = ({ isOpen, onClick }) => (
       <div className="absolute -translate-x-1/2 bottom-2 left-1/2">
         <KeyboardShortcutIndicator
           shortcut={KEYMAP.TOGGLE_ANALYSIS}
-          className="scale-75 opacity-0 group-hover:opacity-50"
+          className="scale-75"
         />
       </div>
     </div>
