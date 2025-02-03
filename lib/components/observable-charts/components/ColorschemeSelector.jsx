@@ -66,19 +66,6 @@ const ColorSchemeSelector = ({ value, onChange }) => {
     <div>
       <Space className="w-full mb-2" align="center" justify="space-between">
         <h3 className="w-full m-0 input-label">Color Scheme</h3>
-
-        {/* we allow multiple y axis to be selected in bar and line charts so color scheme can still be applied */}
-        {true && (
-          <Tooltip
-            title="Select a 'Color By' column in the Primary tab"
-            className="flex items-center gap-1"
-          >
-            <Info className="text-gray-500 w-3" />
-            <p className="text-xs text-gray-500 underline underline-offset-2">
-              Select &apos;Color By&apos; column
-            </p>
-          </Tooltip>
-        )}
       </Space>
       <Select
         value={value}
