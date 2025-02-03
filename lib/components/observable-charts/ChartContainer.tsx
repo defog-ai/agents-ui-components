@@ -110,8 +110,6 @@ export function ChartContainer({
           console.error(e);
         },
       });
-    } else {
-      chartManager.autoSelectVariables().render();
     }
   }, []);
 
@@ -205,6 +203,8 @@ export function ChartContainer({
       </div>
     );
   };
+
+  console.log(chartConfig);
 
   return (
     <ChartManagerContext.Provider
