@@ -1,11 +1,4 @@
-import {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-  useRef,
-} from "react";
+import { useCallback, useContext, useEffect, useState, useRef } from "react";
 import { Select, Button } from "antd";
 import {
   CalendarIcon,
@@ -22,21 +15,11 @@ import { AgentConfigContext } from "../context/AgentContext";
 import FilterBuilder from "./Filtering";
 import { KeyboardShortcutIndicator } from "../core-ui/KeyboardShortcutIndicator";
 import { KEYMAP, matchesKey } from "../../constants/keymap";
+import ChartTypeSelector from "./ChartTypeSelector";
+import AxisSelector from "./AxisSelector";
+import AggregateSelector from "./AggregateSelector";
 
 const { Option } = Select;
-
-// Chart type options with icons
-const CHART_TYPES = [
-  { value: "line", label: "Line", Icon: ChartLine },
-  { value: "bar", label: "Bar", Icon: ChartColumnIncreasing },
-  { value: "scatter", label: "Scatter", Icon: ChartScatter },
-];
-
-const AGGREGATE_OPTIONS = [
-  { value: "count", label: "Count" },
-  { value: "sum", label: "Sum" },
-  { value: "mean", label: "Mean" },
-];
 
 // Icons for different column types
 const COLUMN_ICONS = {
@@ -48,14 +31,8 @@ const COLUMN_ICONS = {
 export function PrimarySelection({ columns, showChartTypeOnly = false }) {
   const chartManager = useContext(ChartManagerContext);
 
-  const {
-    selectedChart,
-    selectedColumns,
-    chartStyle,
-    chartSpecificOptions,
-    data,
-    separator,
-  } = chartManager.config;
+  const { selectedChart, selectedColumns, chartSpecificOptions } =
+    chartManager.config;
 
   const [orderedColumns, setOrderedColumns] = useState(columns);
 
@@ -172,52 +149,6 @@ export function PrimarySelection({ columns, showChartTypeOnly = false }) {
       .render();
   };
 
-  // Render aggregate function selection
-  const renderAggregateSelection = () => {
-    return (
-      <>
-        <div>
-          <Select
-            style={{ width: "100%", minWidth: "100px" }}
-            value={
-              chartSpecificOptions[selectedChart].aggregateFunction || "sum"
-            }
-            onChange={handleAggregateChange}
-          >
-            {AGGREGATE_OPTIONS.filter(
-              (option) =>
-                // remove none if we have a line chart
-                option.value !== "none" || selectedChart !== "line"
-            ).map(({ value, label }) => (
-              <Option key={value} value={value}>
-                {label}
-              </Option>
-            ))}
-          </Select>
-        </div>
-
-        {/* Add Color by selector when aggregation is none and selected Y columns <= 1 */}
-        {chartSpecificOptions[selectedChart].aggregateFunction === "none" &&
-          selectedColumns.y.length <= 1 && (
-            <div className="mt-2">
-              <h3 className="mr-2 input-label">Color by</h3>
-              <Select
-                style={{ width: "100%" }}
-                value={chartSpecificOptions[selectedChart].colorBy}
-                onChange={handleColorByChange}
-                options={columns.map((col) => ({
-                  label: col.title,
-                  value: col.dataIndex,
-                }))}
-                placeholder="Select column"
-                allowClear
-              />
-            </div>
-          )}
-      </>
-    );
-  };
-
   // Render column option for Select
   const renderColumnOption = ({ key, title, isDate, variableType }) => {
     const IconComponent = COLUMN_ICONS[isDate ? "date" : variableType];
@@ -232,129 +163,6 @@ export function PrimarySelection({ columns, showChartTypeOnly = false }) {
       </Option>
     );
   };
-
-  // Render axis selection dropdown
-  const renderAxisSelection = (axis, mode) => {
-    let selectedColumnKey = selectedColumns[axis];
-    const selectedColumn = columns.find((col) => col.key === selectedColumnKey);
-
-    if (axis === "x" && selectedColumns.x) {
-      selectedColumnKey = selectedColumns.x.split(separator);
-    } else if (axis === "x" && !selectedColumns.x) {
-      selectedColumnKey = [];
-    }
-
-    return (
-      <div className="flex flex-col gap-2">
-        <div className="w-full">
-          <Select
-            ref={axis === "x" ? xAxisRef : yAxisRef}
-            data-axis={axis}
-            style={{ width: "100%" }}
-            placeholder={`Select ${axis.toUpperCase()}-Axis`}
-            onChange={handleAxisChange(axis)}
-            value={selectedColumnKey}
-            allowClear={axis === "x"}
-            mode={mode}
-            rootClassName={`${axis}-axis-selector`}
-            open={openDropdown === axis}
-            onDropdownVisibleChange={(visible) => {
-              setOpenDropdown(visible ? axis : null);
-            }}
-            tagRender={(props) => {
-              const { label, closable, onClose } = props;
-
-              return (
-                <div className="inline-flex items-center gap-1 px-1.5 py-0.5 m-0.5 text-xs bg-blue-50 border border-blue-100 rounded-sm text-blue-700">
-                  <span className="max-w-[100px] truncate">{label}</span>
-                  {closable && (
-                    <span
-                      className="ml-1 cursor-pointer hover:text-blue-900"
-                      onClick={onClose}
-                    >
-                      ×
-                    </span>
-                  )}
-                </div>
-              );
-            }}
-          >
-            {orderedColumns.map(renderColumnOption)}
-          </Select>
-        </div>
-        {(selectedChart === "bar" || selectedChart === "line") && axis === "x"}
-      </div>
-    );
-  };
-
-  // Render facet selection dropdown
-  const FacetSelection = useMemo(() => {
-    return (
-      <div>
-        <h3 className="mb-2 font-medium input-label">Facet by</h3>
-        <Select
-          style={{ width: "100%" }}
-          placeholder="Select Facet Column"
-          onChange={(value) => handleAxisChange("facet")(value)}
-          value={selectedColumns.facet}
-          allowClear
-        >
-          {orderedColumns
-            .filter((col) => col.variableType === "categorical")
-            .map(renderColumnOption)}
-        </Select>
-      </div>
-    );
-  }, [selectedColumns, orderedColumns, handleAxisChange]);
-
-  const colorBySelection = useMemo(() => {
-    const colorSchemeSelection = (value) => {
-      if (selectedChart !== "line") {
-        chartManager
-          .updateChartSpecificOptions({ fill: value })
-          .setSelectedColumns({
-            ...selectedColumns,
-            fill: value,
-          })
-          .render();
-      } else if (selectedChart === "line") {
-        chartManager
-          .updateChartSpecificOptions({ stroke: value })
-          .setSelectedColumns({
-            ...selectedColumns,
-            stroke: value,
-          })
-          .render();
-      } else {
-        chartManager
-          .updateChartSpecificOptions({ fill: value })
-          .setSelectedColumns({
-            ...selectedColumns,
-            fill: value,
-          })
-          .render();
-      }
-    };
-
-    return (
-      <div>
-        <h3 className="mb-2 font-medium input-label">Color By</h3>
-        <Select
-          placeholder="Color Column"
-          value={selectedColumns.fill}
-          style={{ width: "100%" }}
-          onChange={(value) => {
-            colorSchemeSelection(value);
-          }}
-          allowClear
-        >
-          {orderedColumns
-            .filter((col) => col.variableType === "categorical")
-            .map(renderColumnOption)}
-        </Select>
-      </div>
-    );
-  }, [chartManager, selectedColumns, orderedColumns, selectedChart]);
 
   // Move this block before the showChartTypeOnly condition
   useEffect(() => {
@@ -385,24 +193,11 @@ export function PrimarySelection({ columns, showChartTypeOnly = false }) {
   if (showChartTypeOnly) {
     return (
       <div className="flex mr-4 gap-1.5">
-        {CHART_TYPES.map(({ value, label, Icon }) => (
-          <Button
-            key={value}
-            onClick={() => handleChartChange(value)}
-            className={`
-              px-3 py-2 rounded-sm font-sans w-full border flex items-center justify-center gap-2
-              font-medium transition-all duration-150 text-xs
-              ${
-                selectedChart === value
-                  ? "bg-blue-500/95 text-white border-0 shadow-sm hover:bg-blue-600"
-                  : "bg-gray-50 text-gray-700 hover:bg-gray-100"
-              }
-            `}
-          >
-            <Icon size={16} />
-            <span>{label}</span>
-          </Button>
-        ))}
+        <ChartTypeSelector
+          selectedChart={selectedChart}
+          onChartChange={handleChartChange}
+          hiddenCharts={hiddenCharts}
+        />
       </div>
     );
   }
@@ -423,10 +218,13 @@ export function PrimarySelection({ columns, showChartTypeOnly = false }) {
 
                 <span className="flex items-center gap-2">Horizontal Axis</span>
               </label>
-              {(selectedChart === "bar" || selectedChart === "line") &&
-                renderAggregateSelection()}
             </div>
-            {renderAxisSelection("x", "multiple")}
+            <AxisSelector
+              axis="x"
+              columns={orderedColumns}
+              selectedValue={selectedColumns.x}
+              onAxisChange={handleAxisChange("x")}
+            />
           </div>
 
           {/* Y-Axis */}
@@ -439,22 +237,72 @@ export function PrimarySelection({ columns, showChartTypeOnly = false }) {
 
               <span className="flex items-center gap-2">Vertical Axis</span>
             </label>
-            {renderAxisSelection(
-              "y",
-              selectedChart === "line" || selectedChart === "bar"
-                ? "multiple"
-                : undefined
-            )}
+            <AxisSelector
+              axis="y"
+              columns={orderedColumns}
+              selectedValue={selectedColumns.y}
+              onAxisChange={handleAxisChange("y")}
+            />
           </div>
         </div>
+
+        {/* Aggregate Selection */}
+        <AggregateSelector
+          selectedChart={selectedChart}
+          aggregateFunction={
+            chartSpecificOptions[selectedChart].aggregateFunction || "sum"
+          }
+          onAggregateChange={handleAggregateChange}
+          chartSpecificOptions={chartSpecificOptions}
+          selectedColumns={selectedColumns}
+          columns={columns}
+          handleColorByChange={handleColorByChange}
+        />
 
         {/* Groups Section */}
         {selectedChart !== "bar" && (
           <div className="pt-4 space-y-2 border-t border-gray-100">
             {/* <h3 className="text-xs font-medium text-gray-900">Grouping</h3> */}
             <div className="grid grid-cols-2 gap-2">
-              <div className="space-y-1.5">{FacetSelection}</div>
-              <div className="space-y-1.5">{colorBySelection}</div>
+              <div className="space-y-1.5">
+                <h3 className="mb-2 font-medium input-label">Facet by</h3>
+                <Select
+                  style={{ width: "100%" }}
+                  placeholder="Select Facet Column"
+                  onChange={(value) => handleAxisChange("facet")(value)}
+                  value={selectedColumns.facet}
+                  allowClear
+                >
+                  {orderedColumns
+                    .filter((col) => col.variableType === "categorical")
+                    .map(renderColumnOption)}
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <h3 className="mb-2 font-medium input-label">Color By</h3>
+                <Select
+                  placeholder="Color Column"
+                  value={selectedColumns.fill}
+                  style={{ width: "100%" }}
+                  onChange={(value) => {
+                    const selectedColumn =
+                      columns.find((col) => col.key === value) || {};
+                    const newColorByIsDate = selectedColumn.isDate || false;
+
+                    chartManager
+                      .updateChartSpecificOptions({
+                        colorBy: value,
+                        colorByIsDate: newColorByIsDate,
+                      })
+                      .render();
+                  }}
+                  allowClear
+                >
+                  {orderedColumns
+                    .filter((col) => col.variableType === "categorical")
+                    .map(renderColumnOption)}
+                </Select>
+              </div>
             </div>
           </div>
         )}
