@@ -20,10 +20,6 @@ export default function AggregateSelector({
   selectedChart,
   aggregateFunction,
   onAggregateChange,
-  chartSpecificOptions,
-  selectedColumns,
-  columns,
-  handleColorByChange,
 }) {
   // Determine the effective aggregate function
   const effectiveAggregate = aggregateFunction || "sum";
@@ -32,12 +28,6 @@ export default function AggregateSelector({
   const filteredOptions = AGGREGATE_OPTIONS.filter(
     (option) => option.value !== "none" || selectedChart !== "line"
   );
-
-  // Determine whether to show the color by selector
-  const showColorBy =
-    chartSpecificOptions[selectedChart]?.aggregateFunction === "none" &&
-    Array.isArray(selectedColumns.y) &&
-    selectedColumns.y.length <= 1;
 
   return (
     <>
@@ -52,22 +42,6 @@ export default function AggregateSelector({
           }))}
         />
       </div>
-
-      {showColorBy && (
-        <div style={{ marginTop: "8px" }}>
-          <Select
-            style={{ width: "100%", minWidth: "100px" }}
-            value={chartSpecificOptions[selectedChart].colorBy}
-            onChange={handleColorByChange}
-            options={columns
-              .filter((col) => col.variableType === "quantitative")
-              .map((col) => ({
-                value: col.key,
-                label: col.title || col.key,
-              }))}
-          />
-        </div>
-      )}
     </>
   );
 }
