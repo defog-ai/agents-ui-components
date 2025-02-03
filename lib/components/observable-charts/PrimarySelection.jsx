@@ -240,6 +240,9 @@ export function PrimarySelection({ columns, showChartTypeOnly = false }) {
                       })
                       .render();
                   }}
+                  disabled={
+                    selectedColumns.y.length > 1 && selectedChart === "line"
+                  }
                   allowClear
                 >
                   {orderedColumns

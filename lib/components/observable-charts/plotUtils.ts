@@ -599,7 +599,7 @@ function getScatterMarks(
   selectedColumns: string[],
   availableColumns: string[]
 ): ChartMark[] {
-  const { x, y } = options;
+  const { x, y, colorBy } = options;
 
   // use a max of 5 categorical columns to add to the tooltip's title
   const categoricalColumnsNotXOrY = availableColumns
@@ -619,7 +619,7 @@ function getScatterMarks(
       x: options.x,
       y: options.y,
       filter: options.filter,
-      fill: options.fill || options.pointColor,
+      fill: options.colorBy || options.pointColor,
       r: options.pointSize,
       fillOpacity: 0.7,
       tip: {
