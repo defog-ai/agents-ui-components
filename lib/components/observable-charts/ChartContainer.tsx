@@ -204,8 +204,6 @@ export function ChartContainer({
     );
   };
 
-  console.log(chartConfig);
-
   return (
     <ChartManagerContext.Provider
       value={Object.assign(chartManager, { config: chartConfig })}
