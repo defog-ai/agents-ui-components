@@ -12,6 +12,7 @@ import sanitizeHtml from "sanitize-html";
 import { AgentConfigContext } from "../../../context/AgentContext";
 import { createWebsocketManager } from "../../../utils/websocket-manager";
 import { Sparkles } from "lucide-react";
+
 export default function StepResultAnalysis({
   stepId,
   keyName,
@@ -119,7 +120,7 @@ export default function StepResultAnalysis({
         ) : toolRunAnalysis ? (
           <ErrorBoundary customErrorMessage={toolRunAnalysis}>
             <div
-              className="analysis-markdown max-w-full break-words
+              className="analysis-markdown max-w-full text-sm break-words
                 [&>h1]:text-xl [&>h1]:font-semibold [&>h1]:mb-4 [&>h1]:text-gray-900 [&>h1]:dark:text-gray-100
                 [&>h2]:text-lg [&>h2]:font-medium [&>h2]:mb-3 [&>h2]:text-gray-800 [&>h2]:dark:text-gray-200
                 [&>p]:mb-4 [&>p]:text-gray-600 [&>p]:dark:text-gray-300 [&>p]:leading-relaxed [&>p]:whitespace-pre-wrap
