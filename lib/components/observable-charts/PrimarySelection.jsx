@@ -1,20 +1,12 @@
-import { useCallback, useContext, useEffect, useState, useRef } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import { Select, Button } from "antd";
-import {
-  CalendarIcon,
-  HashIcon,
-  CaseSensitive,
-  ChartLine,
-  ChartScatter,
-  ChartColumnIncreasing,
-  Settings2,
-} from "lucide-react";
+import { CalendarIcon, HashIcon, CaseSensitive, Settings2 } from "lucide-react";
 import { reorderColumns } from "./columnOrdering.js";
 import { ChartManagerContext } from "./ChartManagerContext";
 import { AgentConfigContext } from "../context/AgentContext";
 import FilterBuilder from "./Filtering";
 import { KeyboardShortcutIndicator } from "../core-ui/KeyboardShortcutIndicator";
-import { KEYMAP, matchesKey } from "../../constants/keymap";
+import { KEYMAP } from "../../constants/keymap";
 import ChartTypeSelector from "./ChartTypeSelector";
 import AxisSelector from "./AxisSelector";
 import AggregateSelector from "./AggregateSelector";
@@ -41,13 +33,6 @@ export function PrimarySelection({ columns, showChartTypeOnly = false }) {
 
   // Add state for showing/hiding filters
   const [showFilters, setShowFilters] = useState(false);
-
-  // Add new state to control Select dropdowns
-  const [openDropdown, setOpenDropdown] = useState(null);
-
-  // Add refs for both selects
-  const xAxisRef = useRef(null);
-  const yAxisRef = useRef(null);
 
   // Reorder columns when chart type or available columns change
   useEffect(() => {
@@ -164,31 +149,6 @@ export function PrimarySelection({ columns, showChartTypeOnly = false }) {
     );
   };
 
-  // Move this block before the showChartTypeOnly condition
-  useEffect(() => {
-    const handleKeyPress = (e) => {
-      if (document.activeElement === document.body) {
-        // X axis shortcut
-        if (matchesKey(e.key, KEYMAP.SET_X_AXIS)) {
-          setOpenDropdown("x");
-          // Focus the select input
-          xAxisRef.current?.focus();
-          e.preventDefault();
-        }
-        // Y axis shortcut
-        if (matchesKey(e.key, KEYMAP.SET_Y_AXIS)) {
-          setOpenDropdown("y");
-          // Focus the select input
-          yAxisRef.current?.focus();
-          e.preventDefault();
-        }
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyPress);
-    return () => window.removeEventListener("keydown", handleKeyPress);
-  }, []);
-
   // If showChartTypeOnly is true, only render the chart type selection
   if (showChartTypeOnly) {
     return (
@@ -253,10 +213,6 @@ export function PrimarySelection({ columns, showChartTypeOnly = false }) {
             chartSpecificOptions[selectedChart].aggregateFunction || "sum"
           }
           onAggregateChange={handleAggregateChange}
-          chartSpecificOptions={chartSpecificOptions}
-          selectedColumns={selectedColumns}
-          columns={columns}
-          handleColorByChange={handleColorByChange}
         />
 
         {/* Groups Section */}
