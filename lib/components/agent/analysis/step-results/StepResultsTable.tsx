@@ -294,7 +294,9 @@ export function StepResultsTable({
             )}
 
             {/* Fixed width wrapper */}
-            <div style={{ width: "30vw" }}>{resultAnalysis}</div>
+            {isAnalysisVisible && (
+              <div style={{ width: "100%" }}>{resultAnalysis}</div>
+            )}
           </div>
         </div>
 
