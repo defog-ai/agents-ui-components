@@ -173,7 +173,7 @@ export function MultiSelect({
         >
           <input
             ref={ref}
-            className="py-1 grow h-full rounded-md border-0 pr-12 ring-0 focus:ring-0 sm:text-sm sm:leading-6 bg-transparent"
+            className="py-1 grow h-full rounded-md border-0 pr-12 ring-0 focus:ring-0 sm:text-sm sm:leading-6 bg-transparent hover:ring-2 hover:ring-inset hover:ring-blue-400 dark:hover:ring-blue-500 hover:cursor-pointer"
             placeholder={placeholder}
             value={query}
             onChange={(event) => {
