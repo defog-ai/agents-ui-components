@@ -51,7 +51,7 @@ const AnalysisDrawerHandle = ({ isOpen, onClick }) => (
   <button
     onClick={onClick}
     className={`
-      absolute -left-8 top-0
+      absolute -left-8 top-[200px]
       h-36 w-8 flex items-center justify-center group
       bg-[#F9FAFB] dark:bg-gray-800 
       border border-gray-200 dark:border-gray-700
