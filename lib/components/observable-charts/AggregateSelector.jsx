@@ -7,15 +7,11 @@ const AGGREGATE_OPTIONS = [
   { value: "mean", label: "Mean" },
 ];
 
-// A modular component for aggregate function selection and color by selector
+// A modular component for aggregate function selection
 // Props:
 // - selectedChart: the current chart type
 // - aggregateFunction: the current aggregate function (defaulting to "sum")
 // - onAggregateChange: callback when the aggregate function changes
-// - chartSpecificOptions: chart specific settings containing aggregateFunction and colorBy
-// - selectedColumns: currently selected columns for the chart
-// - columns: available columns
-// - handleColorByChange: callback when the color by value changes
 export default function AggregateSelector({
   selectedChart,
   aggregateFunction,
