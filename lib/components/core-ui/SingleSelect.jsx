@@ -1,23 +1,11 @@
 import { isNumber } from "../utils/utils";
-import {
-  Combobox,
-  ComboboxButton,
-  ComboboxInput,
-  ComboboxOption,
-  ComboboxOptions,
-} from "@headlessui/react";
 import { Check, ChevronsUpDownIcon, CircleX } from "lucide-react";
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { twMerge } from "tailwind-merge";
 
 const inputSizeClasses = {
   default: "py-1.5 pl-3",
   small: "py-0 pl-3",
-};
-
-const popupSizeClasses = {
-  default: "",
-  small: "",
 };
 
 const popupOptionSizeClasses = {
@@ -76,6 +64,28 @@ export function SingleSelect({
   allowCreateNewOption = true,
 }) {
   const [query, setQuery] = useState("");
+  const [open, setOpen] = useState(false);
+  const [dropdownStyle, setDropdownStyle] = useState({});
+
+  const updatePosition = () => {
+    if (ref.current) {
+      const rect = ref.current.getBoundingClientRect();
+      setDropdownStyle({
+        position: "fixed",
+        width: rect.width + "px",
+        top: rect.bottom + 4 + "px",
+        left: rect.left + "px",
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (open) {
+      updatePosition();
+      window.addEventListener("scroll", updatePosition, true);
+      return () => window.removeEventListener("scroll", updatePosition, true);
+    }
+  }, [open]);
   const ref = useRef(null);
   const [internalOptions, setInternalOptions] = useState(
     options.map((d) => ({
@@ -176,23 +186,7 @@ export function SingleSelect({
   }, [selectedOption, JSON.stringify(internalOptions), allowCreateNewOption]);
 
   return (
-    <Combobox
-      as="div"
-      by="value"
-      className={twMerge("agui-item agui-select", rootClassNames)}
-      immediate={true}
-      value={selectedOption}
-      defaultValue={defaultValue}
-      disabled={disabled}
-      onChange={(option) => {
-        if (!option) return;
-        setSelectedOption(option);
-
-        if (option && onChange && typeof onChange === "function") {
-          onChange(option.value, option);
-        }
-      }}
-    >
+    <div className={twMerge("agui-item agui-select", rootClassNames)}>
       {label && (
         <label
           className={twMerge(
@@ -204,8 +198,9 @@ export function SingleSelect({
         </label>
       )}
       <div className="relative">
-        <ComboboxInput
+        <input
           ref={ref}
+          type="text"
           placeholder={placeholder}
           className={twMerge(
             "w-full rounded-md border-0 pr-12 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 focus:ring-2 focus:ring-inset focus:ring-blue-400 dark:focus:ring-blue-500 sm:text-sm sm:leading-6",
@@ -214,99 +209,83 @@ export function SingleSelect({
               ? "bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500"
               : "bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
           )}
-          onChange={(event) => {
-            setQuery(event.target.value);
+          value={query !== "" ? query : selectedOption?.label}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setOpen(true);
           }}
+          onFocus={() => setOpen(true)}
           onBlur={() => {
+            setTimeout(() => setOpen(false), 200);
             setQuery("");
           }}
-          displayValue={(option) => {
-            return option && option?.label;
-          }}
+          readOnly={disabled}
         />
-
-        <ComboboxButton className="agui-item agui-btn absolute inset-y-0 right-0 flex items-center rounded-r-md px-2 focus:outline-none">
-          {allowClear && (
-            <CircleX
-              className="w-4 text-gray-300 hover:text-gray-500 dark:text-gray-600 dark:hover:text-gray-400"
-              onClick={(ev) => {
-                ev.preventDefault();
-                ev.stopPropagation();
-                setSelectedOption(null);
-                setQuery("");
-                if (onChange && typeof onChange === "function") {
-                  onChange(null, null);
-                }
-              }}
-            />
-          )}
+        {allowClear && (
+          <button
+            type="button"
+            className="absolute inset-y-0 right-10 flex items-center px-2 focus:outline-none"
+            onMouseDown={(ev) => {
+              ev.preventDefault();
+              ev.stopPropagation();
+              setSelectedOption(null);
+              setQuery("");
+              if (onChange) onChange(null, null);
+            }}
+          >
+            <CircleX className="w-4 text-gray-300 hover:text-gray-500 dark:text-gray-600 dark:hover:text-gray-400" />
+          </button>
+        )}
+        <button
+          type="button"
+          className="absolute inset-y-0 right-0 flex items-center px-2 focus:outline-none"
+          onMouseDown={(ev) => {
+            ev.preventDefault();
+            ev.stopPropagation();
+            setOpen(!open);
+          }}
+        >
           <ChevronsUpDownIcon
             className="h-5 w-5 text-gray-400 dark:text-gray-500"
             aria-hidden="true"
           />
-        </ComboboxButton>
-
-        {filteredOptions.length > 0 && (
-          <ComboboxOptions
-            anchor="bottom"
+        </button>
+        {open && filteredOptions.length > 0 && (
+          <ul
+            style={dropdownStyle}
             className={twMerge(
-              "agui-item agui-select-dropdown w-[var(--input-width)] z-50 mt-1 max-h-60 overflow-auto rounded-md bg-white dark:bg-gray-800 py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm absolute",
-              popupSizeClasses[size] || popupSizeClasses["default"],
+              "z-[100] max-h-60 overflow-auto rounded-md bg-white dark:bg-gray-900 py-1 text-base shadow-lg border border-gray-200 dark:border-gray-700",
               popupClassName
             )}
           >
-            {filteredOptions.map((option) => (
-              <ComboboxOption
-                key={option.value}
-                value={option}
-                className={({ active }) =>
-                  twMerge(
-                    "agui-item agui-select-option relative cursor-default select-none",
-                    popupOptionSizeClasses[size] ||
-                      popupOptionSizeClasses["default"],
-                    active
-                      ? "bg-blue-500 dark:bg-blue-600 text-white"
-                      : "text-gray-900 dark:text-gray-100",
-                    optionRenderer ? "" : ""
-                  )
-                }
-              >
-                {({ selected, active }) => (
-                  <>
-                    {optionRenderer ? (
-                      optionRenderer(option, { selected, active })
-                    ) : (
-                      <div className="flex items-center">
-                        <span
-                          className={twMerge(
-                            "block truncate",
-                            selected && "font-semibold"
-                          )}
-                        >
-                          {option.label}
-                        </span>
-
-                        {selected ? (
-                          <span
-                            className={twMerge(
-                              "absolute inset-y-0 right-0 flex items-center pr-4",
-                              active
-                                ? "text-white"
-                                : "text-blue-500 dark:text-blue-400"
-                            )}
-                          >
-                            <Check className="h-5 w-5" aria-hidden="true" />
-                          </span>
-                        ) : null}
-                      </div>
-                    )}
-                  </>
+            {filteredOptions.map((option, idx) => (
+              <li
+                key={idx}
+                className={twMerge(
+                  "cursor-pointer select-none relative py-2 pl-3 pr-9",
+                  popupOptionSizeClasses[size] ||
+                    popupOptionSizeClasses["default"]
                 )}
-              </ComboboxOption>
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  setSelectedOption(option);
+                  setQuery("");
+                  setOpen(false);
+                  if (onChange) onChange(option.value, option);
+                }}
+              >
+                {optionRenderer ? optionRenderer(option) : option.label}
+                {selectedOption &&
+                  matchingValue(option, selectedOption.value) && (
+                    <span className="absolute inset-y-0 right-0 flex items-center pr-4">
+                      <Check className="h-5 w-5" aria-hidden="true" />
+                    </span>
+                  )}
+              </li>
             ))}
-          </ComboboxOptions>
+          </ul>
         )}
       </div>
-    </Combobox>
+    </div>
   );
 }
