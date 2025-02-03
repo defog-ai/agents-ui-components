@@ -26,7 +26,7 @@ const ChartOptionsHandle = ({ isOpen, onClick }) => (
   <button
     onClick={onClick}
     className={`
-      absolute -right-8 top-[50%] -translate-y-[50%]
+      absolute -right-8 top-[13%] -translate-y-[50%]
       h-36 w-8 flex items-center justify-center group
       bg-[#F9FAFB] dark:bg-gray-800 
       border border-gray-200 dark:border-gray-700
