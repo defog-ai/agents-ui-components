@@ -1,23 +1,11 @@
-import {
-  Combobox,
-  ComboboxButton,
-  ComboboxInput,
-  ComboboxOption,
-  ComboboxOptions,
-} from "@headlessui/react";
-import { Check, ChevronsUpDownIcon, CircleX, X } from "lucide-react";
-import React, { useEffect, useRef, useState } from "react";
+import { CircleX, X } from "lucide-react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { twMerge } from "tailwind-merge";
 import { isNumber } from "../utils/utils";
 
 const inputSizeClasses = {
   default: "py-1.5 pl-3",
   small: "py-0 pl-3",
-};
-
-const popupSizeClasses = {
-  default: "",
-  small: "",
 };
 
 const popupOptionSizeClasses = {
@@ -73,129 +61,82 @@ export function MultiSelect({
   const [query, setQuery] = useState("");
   const ref = useRef(null);
   const [internalOptions, setInternalOptions] = useState(options);
+  const [open, setOpen] = useState(false);
 
-  const filteredOptions =
-    query === ""
-      ? internalOptions
-      : internalOptions.filter((option) => {
-          return (option.label + "")
-            .toLowerCase()
-            .includes(query.toLowerCase());
-        });
+  const filteredOptions = useMemo(() => {
+    const f = internalOptions.filter((option) =>
+      option.label.toString().toLowerCase().includes(query.toLowerCase())
+    );
+    if (
+      allowCreateNewOption &&
+      query !== "" &&
+      (!f.length ||
+        !f.some(
+          (option) => option.label === (isNumber(query) ? +query : query)
+        ))
+    ) {
+      return [...f, createNewOption(query)];
+    }
+    return f;
+  }, [query, internalOptions, allowCreateNewOption]);
 
-  // if there's no matching option
-  // or if there's no exact match
-  //   create a new option
-  if (
-    allowCreateNewOption &&
-    query !== "" &&
-    (filteredOptions.length === 0 ||
-      !filteredOptions.find(
-        (option) => option.label === (isNumber(query) ? +query : query)
-      ))
-  ) {
-    filteredOptions.push({
-      label: query,
-      value: isNumber(query) ? +query : query,
-    });
-  }
-
-  // find the option matching the default values
   const [selectedOptions, setSelectedOptions] = useState(
     defaultValue
       .map((val) => internalOptions.find((option) => option.value === val))
-      .filter((opt) => opt)
+      .filter(Boolean)
   );
 
   useEffect(() => {
+    let hasMissing = false;
     const newInternalOptions = [...internalOptions];
-    const newSelectedOptions = [];
-
-    let missing = false;
-
-    value.forEach((val) => {
-      let opt = internalOptions.find((option) => option.value === val) || null;
-
-      // if option doesn't exist, create a new one
-      if (
-        !opt &&
-        allowCreateNewOption &&
-        val !== null &&
-        typeof val !== "undefined"
-      ) {
-        missing = true;
-        opt = createNewOption(val);
-        newInternalOptions.push(opt);
-      }
-      newSelectedOptions.push(opt);
-    });
-
-    if (missing) {
+    const newSelected = value
+      .map((val) => {
+        let option = internalOptions.find((opt) => opt.value === val);
+        if (!option && allowCreateNewOption && val != null) {
+          option = createNewOption(val);
+          newInternalOptions.push(option);
+          hasMissing = true;
+        }
+        return option;
+      })
+      .filter(Boolean);
+    if (hasMissing) {
       setInternalOptions(newInternalOptions);
     }
-
-    if (newSelectedOptions.length && value.length) {
-      setSelectedOptions(newSelectedOptions);
-    }
-  }, [value, allowCreateNewOption, internalOptions, selectedOptions]);
+    setSelectedOptions(newSelected);
+  }, [value, allowCreateNewOption]);
 
   useEffect(() => {
-    ref?.current?.blur?.();
-    // if the selected option doesn't exist
-    // in our internal options (this can happen if a newly created option was selected)
-    // create a new options and add to internal options
     const newInternalOptions = [...internalOptions];
-    let missing = false;
-    selectedOptions.forEach((selectedOption) => {
+    let updated = false;
+    selectedOptions.forEach((selected) => {
       if (
-        selectedOption.length &&
+        selected &&
         allowCreateNewOption &&
-        typeof selectedOption !== "undefined" &&
-        !newInternalOptions.find(
-          (option) => option.value === selectedOption?.value
-        )
+        !newInternalOptions.some((option) => option.value === selected.value)
       ) {
-        missing = true;
-        const newOption = createNewOption(selectedOption?.value);
-        newInternalOptions.push(newOption);
-      }
-      if (missing) {
-        setInternalOptions(newInternalOptions);
+        newInternalOptions.push(createNewOption(selected.value));
+        updated = true;
       }
     });
+    if (updated) {
+      setInternalOptions(newInternalOptions);
+    }
+    ref?.current?.blur?.();
   }, [selectedOptions, internalOptions, allowCreateNewOption]);
 
   return (
-    <Combobox
-      as="div"
-      by="value"
-      multiple
-      immediate
+    <div
       className={twMerge(
-        "max-w-96 agui-item agui-select agui-item agui-multiselect",
+        "max-w-96 agui-item agui-select agui-multiselect",
         rootClassNames
       )}
-      value={selectedOptions}
-      defaultValue={defaultValue}
-      disabled={disabled}
-      onChange={(newSelectedOptions) => {
-        if (!newSelectedOptions) return;
-        setSelectedOptions(newSelectedOptions);
-
-        if (newSelectedOptions && onChange && typeof onChange === "function") {
-          onChange(
-            newSelectedOptions.map((d) => d.value),
-            newSelectedOptions
-          );
-        }
-      }}
     >
       {label && (
         <label className="block text-xs mb-2 font-light text-gray-600 dark:text-gray-400">
           {label}
         </label>
       )}
-
       <div className="relative">
         <div
           className={twMerge(
@@ -205,133 +146,113 @@ export function MultiSelect({
               ? "bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500"
               : "bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
           )}
+          onClick={() => {
+            ref.current.focus();
+          }}
         >
-          <ComboboxInput
+          <input
             ref={ref}
-            className={
-              "py-1 grow h-full rounded-md border-0 pr-12 ring-0 focus:ring-0 sm:text-sm sm:leading-6 bg-transparent"
-            }
+            className="py-1 grow h-full rounded-md border-0 pr-12 ring-0 focus:ring-0 sm:text-sm sm:leading-6 bg-transparent"
             placeholder={placeholder}
+            value={query}
             onChange={(event) => {
               setQuery(event.target.value);
+              setOpen(true);
             }}
-            onBlur={() => {
-              setQuery("");
-            }}
+            onFocus={() => setOpen(true)}
+            onBlur={() => setTimeout(() => setOpen(false), 100)}
           />
           {selectedOptions.map((opt, i) => {
             return tagRenderer ? (
               tagRenderer(opt)
             ) : (
               <div
-                className="border border-gray-300 dark:border-gray-600 shadow-sm flex h-6 flex-row bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 items-center rounded-md cursor-default"
                 key={opt.value + "-" + i}
+                className="border border-gray-300 dark:border-gray-600 shadow-sm flex flex-row bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 items-center rounded-md cursor-default px-3 py-1"
               >
-                <span className="pl-2">{opt.value}</span>
-                <div
-                  className="ml-2 w-4 rounded-r-md hover:bg-gray-400 dark:hover:bg-gray-600 hover:text-white dark:hover:text-gray-200 h-full flex items-center justify-center cursor-pointer"
-                  onClick={() => {
-                    const newSel = selectedOptions.filter(
-                      (selectedOption) => selectedOption.value !== opt.value
+                {opt.label}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const newSelected = selectedOptions.filter(
+                      (o) => o.value !== opt.value
                     );
-                    setSelectedOptions(newSel);
-                    if (onChange && typeof onChange === "function") {
+                    setSelectedOptions(newSelected);
+                    if (onChange)
                       onChange(
-                        newSel.map((d) => d.value),
-                        newSel
+                        newSelected.map((d) => d.value),
+                        newSelected
                       );
-                    }
                   }}
+                  className="ml-1"
                 >
                   <X className="w-3 h-3" />
-                </div>
+                </button>
               </div>
             );
           })}
-        </div>
-
-        <ComboboxButton className="agui-item agui-btn absolute inset-y-0 right-0 flex items-center rounded-r-md px-2 focus:outline-none">
-          {allowClear && (
-            <CircleX
-              className="w-4 fill-gray-200 hover:fill-gray-500 dark:fill-gray-700 dark:hover:fill-gray-400"
-              onClick={(ev) => {
-                ev.preventDefault();
-                ev.stopPropagation();
+          {allowClear && selectedOptions.length > 0 && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
                 setSelectedOptions([]);
-                setQuery("");
-                if (onChange && typeof onChange === "function") {
-                  onChange([]);
-                }
+                if (onChange) onChange([], []);
               }}
-            />
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1"
+            >
+              <CircleX className="w-4 h-4" />
+            </button>
           )}
-          <ChevronsUpDownIcon
-            className="h-5 w-5 text-gray-400 dark:text-gray-500"
-            aria-hidden="true"
-          />
-        </ComboboxButton>
-
-        {filteredOptions.length > 0 && (
-          <ComboboxOptions
-            anchor="bottom"
+        </div>
+        {open && (
+          <ul
+            style={{
+              position: "fixed",
+              width: ref.current?.getBoundingClientRect().width + "px",
+              top: ref.current?.getBoundingClientRect().bottom + 4 + "px",
+              left: ref.current?.getBoundingClientRect().left + "px",
+            }}
             className={twMerge(
-              "w-[var(--input-width)] z-50 mt-3 max-h-60 overflow-auto rounded-md bg-white dark:bg-gray-900 py-1 text-base shadow-lg ring-1 ring-black dark:ring-gray-700 ring-opacity-5 focus:outline-none sm:text-sm absolute",
-              popupSizeClasses[size] || popupSizeClasses["default"],
+              "z-[100] bg-white dark:bg-gray-900 shadow-lg max-h-60 overflow-auto rounded-md py-1 text-base border border-gray-200 dark:border-gray-700",
               popupClassName
             )}
           >
-            {filteredOptions.map((option, i) => (
-              <ComboboxOption
-                key={option.value + "-" + i}
-                value={option}
-                className={({ focus }) =>
-                  twMerge(
-                    "relative cursor-default select-none",
-                    popupOptionSizeClasses[size] ||
-                      popupOptionSizeClasses["default"],
-                    focus
-                      ? "bg-blue-400 dark:bg-blue-500 text-white"
-                      : "text-gray-900 dark:text-gray-100"
-                  )
-                }
-              >
-                {({ focus, selected }) => {
-                  return (
-                    <>
-                      {optionRenderer ? (
-                        optionRenderer(option, focus, selected)
-                      ) : (
-                        <>
-                          <span
-                            className={twMerge(
-                              "block truncate",
-                              selected && "font-semibold"
-                            )}
-                          >
-                            {option.label}
-                          </span>
-                        </>
-                      )}
-                      {selected && (
-                        <span
-                          className={twMerge(
-                            "absolute inset-y-0 right-0 flex items-center pr-4",
-                            focus
-                              ? "text-white"
-                              : "text-blue-400 dark:text-blue-500"
-                          )}
-                        >
-                          <Check className="h-5 w-5" aria-hidden="true" />
-                        </span>
-                      )}
-                    </>
-                  );
+            {filteredOptions.map((option, idx) => (
+              <li
+                key={option.value + "-" + idx}
+                className={twMerge(
+                  "cursor-pointer select-none relative px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-800",
+                  popupOptionSizeClasses[size] ||
+                    popupOptionSizeClasses["default"]
+                )}
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => {
+                  let newSelected;
+                  if (selectedOptions.find((o) => o.value === option.value)) {
+                    newSelected = selectedOptions.filter(
+                      (o) => o.value !== option.value
+                    );
+                  } else {
+                    newSelected = [...selectedOptions, option];
+                  }
+                  setSelectedOptions(newSelected);
+                  if (onChange)
+                    onChange(
+                      newSelected.map((d) => d.value),
+                      newSelected
+                    );
+                  setQuery("");
+                  setOpen(false);
                 }}
-              </ComboboxOption>
+              >
+                {optionRenderer ? optionRenderer(option) : option.label}
+              </li>
             ))}
-          </ComboboxOptions>
+          </ul>
         )}
       </div>
-    </Combobox>
+    </div>
   );
 }
