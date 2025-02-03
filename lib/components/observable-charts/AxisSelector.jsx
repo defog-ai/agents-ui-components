@@ -12,8 +12,6 @@ export default function AxisSelector({
   selectedValue,
   onAxisChange,
 }) {
-  console.log(selectedValue);
-  console.log(columns);
   return (
     <MultiSelect
       style={{ width: "100%", minWidth: "100px" }}

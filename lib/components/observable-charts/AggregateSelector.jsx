@@ -25,8 +25,6 @@ export default function AggregateSelector({
   columns,
   handleColorByChange,
 }) {
-  console.log(aggregateFunction);
-  console.log;
   // Determine the effective aggregate function
   const effectiveAggregate = aggregateFunction || "sum";
 
