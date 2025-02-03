@@ -122,18 +122,6 @@ export function PrimarySelection({ columns, showChartTypeOnly = false }) {
       .render();
   };
 
-  const handleColorByChange = (value) => {
-    const selectedColumn = columns.find((col) => col.key === value) || {};
-    const newColorByIsDate = selectedColumn.isDate || false;
-
-    chartManager
-      .updateChartSpecificOptions({
-        colorBy: value,
-        colorByIsDate: newColorByIsDate,
-      })
-      .render();
-  };
-
   // Render column option for Select
   const renderColumnOption = ({ key, title, isDate, variableType }) => {
     const IconComponent = COLUMN_ICONS[isDate ? "date" : variableType];
