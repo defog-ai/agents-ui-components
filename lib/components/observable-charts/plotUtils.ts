@@ -437,8 +437,7 @@ function getLineMarks(
 ): ChartMark[] {
   const marks = [];
   const aggregateFunction = options.aggregateFunction || "sum";
-
-  const { x, y, facet } = options;
+  const { x, y, facet, colorBy } = options;
 
   // use a max of 5 categorical columns to add to the tooltip's title
   const categoricalColumnsNotXOrY = availableColumns
@@ -457,7 +456,7 @@ function getLineMarks(
     x: options.x,
     y: options.y,
     filter: options.filter,
-    stroke: "label",
+    stroke: colorBy || "label",
     strokeWidth: (d) => {
       // d is an array here for some reason.
       const label = d?.[0]?.["label"];
