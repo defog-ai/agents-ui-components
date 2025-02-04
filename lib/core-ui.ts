@@ -31,3 +31,4 @@ export { Toggle } from "./components/core-ui/Toggle.jsx";
 export { DropFiles } from "./components/core-ui/DropFiles.jsx";
 export { DropFilesHeadless } from "./components/core-ui/DropFilesHeadless.jsx";
 export { NavBar } from "./components/core-ui/NavBar.jsx";
+export { ColorPicker } from "./components/core-ui/ColorPicker.jsx";
