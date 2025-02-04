@@ -210,12 +210,6 @@ export const AnalysisAgent = ({
   const agentConfigContext = useContext(AgentConfigContext);
   const { devMode, apiEndpoint, token } = agentConfigContext.val;
 
-  const getToolsEndpoint = setupBaseUrl({
-    protocol: "http",
-    path: "get_user_tools",
-    apiEndpoint: apiEndpoint,
-  });
-
   const [reRunningSteps, setRerunningSteps] = useState([]);
   const [activeNode, setActiveNodePrivate] = useState(null);
   const [dag, setDag] = useState<DagResult["dag"] | null>(null);
@@ -374,14 +368,6 @@ export const AnalysisAgent = ({
             agentConfigContext?.val?.analysisDataCache?.[analysisId] || null,
           sqliteConn: agentConfigContext?.val?.sqliteConn,
         });
-
-        const response = await fetch(getToolsEndpoint, {
-          method: "POST",
-          signal: AbortSignal.timeout(60000),
-        });
-
-        const tools = (await response.json())["tools"];
-        setTools(tools);
 
         if (
           initiateAutoSubmit &&
