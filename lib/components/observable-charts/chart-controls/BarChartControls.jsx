@@ -1,4 +1,4 @@
-import { ColorPicker, Button } from "antd";
+import { ColorPicker, Button } from "@ui-components";
 import { ChartManagerContext } from "../ChartManagerContext";
 import { useContext } from "react";
 import {
