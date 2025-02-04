@@ -120,6 +120,9 @@ let DraggableInput = forwardRef(function DraggableInput(
     function handleKeyPress(e: KeyboardEvent) {
       // Only handle keys if no other element is focused
       if (document.activeElement === document.body) {
+        if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) {
+          return;
+        }
         if (matchesKey(e.key, KEYMAP.FOCUS_SEARCH)) {
           e.preventDefault();
           // Focus the textarea

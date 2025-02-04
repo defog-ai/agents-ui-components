@@ -16,6 +16,9 @@ export default function AxisSelector({
 }) {
   const handleKeyPress = (e) => {
     if (document.activeElement === document.body) {
+      if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) {
+        return;
+      }
       if (axis === "x" && matchesKey(e.key, KEYMAP.SET_X_AXIS)) {
         e.preventDefault();
         // focus on the input inside the appropriate data-axis element

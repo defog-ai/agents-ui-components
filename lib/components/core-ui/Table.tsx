@@ -402,6 +402,10 @@ export function Table({
         (e.target as HTMLElement).isContentEditable;
       if (isOutsideTableSearch) return;
 
+      if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) {
+        return;
+      }
+
       if (
         e.target instanceof HTMLInputElement ||
         (e.target as HTMLElement).isContentEditable
