@@ -2,7 +2,6 @@
 import "./styles.css";
 
 import { useState, useEffect, useMemo, useContext } from "react";
-import { Segmented } from "antd";
 import { ChartNoAxesCombined, SlidersHorizontal, Settings } from "lucide-react";
 import { PrimarySelection } from "./PrimarySelection";
 import { Customization } from "./Customization";
@@ -17,7 +16,6 @@ import { MessageManagerContext, SkeletalLoader } from "@ui-components";
 import setupBaseUrl from "../utils/setupBaseUrl";
 import { AgentConfigContext } from "../context/AgentContext";
 import { ParsedOutput } from "../agent/analysis/analysisManager";
-import { twMerge } from "tailwind-merge";
 import { KeyboardShortcutIndicator } from "../core-ui/KeyboardShortcutIndicator";
 import { KEYMAP } from "../../constants/keymap";
 
@@ -54,6 +52,37 @@ const ChartOptionsHandle = ({ isOpen, onClick }) => (
     </div>
   </button>
 );
+
+// NativeSegmented: a replacement for antd Segmented using native JS buttons
+const NativeSegmented = ({
+  block,
+  value,
+  onChange,
+  options,
+  className = "",
+}) => {
+  return (
+    <div className={`flex ${block ? "w-full" : "inline-flex"} rounded-md p-0.5 bg-gray-50 dark:bg-gray-800 ${className}`}>
+      {options.map((opt, index) => (
+        <button
+          key={index}
+          onClick={() => onChange(opt.value)}
+          className={`
+            flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-[4px]
+            text-xs font-medium transition-all duration-150 ease-in-out
+            ${value === opt.value 
+              ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm" 
+              : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/50"
+            }
+            ${index > 0 ? "ml-0.5" : ""}
+          `}
+        >
+          {opt.label}
+        </button>
+      ))}
+    </div>
+  );
+};
 
 export function ChartContainer({
   rows,
@@ -143,13 +172,13 @@ export function ChartContainer({
 
         {/* Section toggle for General/Style */}
         <div>
-          <Segmented
+          <NativeSegmented
             block
             value={activeSection}
             onChange={(value) =>
               setActiveSection(value as "primary" | "customization")
             }
-            rootClassName="pr-4 transition-none"
+            className="pr-4 transition-none"
             options={[
               {
                 label: (
@@ -170,25 +199,6 @@ export function ChartContainer({
                 value: "customization",
               },
             ]}
-            className="
-              [&_.ant-segmented-group]:gap-1
-              [&_.ant-segmented-item]:rounded-none
-            
-
-              [&_.ant-segmented-item:hover]:border-gray-200
-              [&_.ant-segmented-item:hover]:dark:border-gray-700
-              [&_.ant-segmented-item-selected]:border-transparent
-              [&_.ant-segmented-item-selected]:shadow-none
-              [&_.ant-segmented-item-selected]:bg-gray-100 
-              [&_.ant-segmented-item-selected]:dark:bg-gray-700
-              [&_.ant-segmented-item]:text-gray-500 
-              [&_.ant-segmented-item]:dark:text-gray-400
-              [&_.ant-segmented-item-selected]:text-gray-900 
-              [&_.ant-segmented-item-selected]:dark:text-gray-100
-              [&_.ant-segmented-item-selected]:border
-              [&_.ant-segmented-item-selected]:border-gray-200
-               p-0.5 bg-transparent
-            "
           />
         </div>
 
