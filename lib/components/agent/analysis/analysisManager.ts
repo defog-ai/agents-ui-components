@@ -1,6 +1,5 @@
 import {
   createAnalysis,
-  deleteSteps,
   generateQueryForCsv,
   retryQueryForCsv,
   getAnalysis,
@@ -174,7 +173,6 @@ export interface AnalysisManager {
     analysis_id: string;
     outputs_storage_keys: string[];
   }) => Promise<void>;
-  deleteSteps: (stepIds: string[]) => Promise<void>;
   destroy: () => void;
   setOnNewDataCallback: (callback: (data: AnalysisData) => void) => void;
   didInit: boolean;
@@ -454,42 +452,6 @@ function createAnalysisManager({
       (currentStage ? agentRequestTypes.indexOf(currentStage) : 0) + 1;
 
     return agentRequestTypes[nextStageIndex];
-  }
-
-  async function deleteStepsWrapper(stepIds: string[]): Promise<void> {
-    if (!analysisData) return;
-    const res = await deleteSteps(analysisId, stepIds, apiEndpoint);
-
-    if (res.success && res.new_steps) {
-      let newAnalysisData = { ...analysisData };
-      // if new steps are empty, delete the gen_steps key
-      // else update the steps
-      if (res.new_steps.length === 0) {
-        delete newAnalysisData.gen_steps;
-        // if clarification is also empty, destroy
-        if (!newAnalysisData?.clarify?.clarification_questions?.length) {
-          destroy();
-        }
-      } else {
-        newAnalysisData = {
-          ...newAnalysisData,
-          gen_steps: {
-            ...newAnalysisData.gen_steps,
-            steps: res.new_steps,
-          },
-        };
-      }
-
-      stepIds.forEach((stepId) => {
-        deleteStepAnalysisFromLocalStorage(stepId);
-      });
-
-      setAnalysisData(newAnalysisData);
-    } else {
-      throw new Error(
-        res.error_message || "Something went wrong while deleting steps."
-      );
-    }
   }
 
   async function submit(
@@ -1093,7 +1055,6 @@ function createAnalysisManager({
     submit,
     reRun,
     createNewStep,
-    deleteSteps: deleteStepsWrapper,
     destroy,
     setOnNewDataCallback,
     getActiveStepId,

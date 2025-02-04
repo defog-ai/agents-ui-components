@@ -34,7 +34,6 @@ export function StepResults({
   updateStepData = (...args) => {},
   onCreateNewStep = async (...args) => {},
   // toolRunDataCache = {},
-  handleDeleteSteps = async (...args) => {},
   tools = {},
   analysisBusy = false,
   setCurrentQuestion = (...args) => {},
@@ -54,7 +53,6 @@ export function StepResults({
   updateStepData: (stepId: string, update: Record<string, any>) => void;
   onCreateNewStep: (...args: any) => Promise<void>;
   // toolRunDataCache: any;
-  handleDeleteSteps: (...args: any) => Promise<void>;
   tools: any;
   analysisBusy: boolean;
   setCurrentQuestion: (...args: any) => void;
@@ -76,76 +74,6 @@ export function StepResults({
   const availableOutputNodes = useMemo(
     () => (dag && [...dag?.nodes()].filter((n) => !n.data.isTool)) || [],
     [dag]
-  );
-
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-
-  const handleCancel = useCallback(
-    (ev) => {
-      ev?.preventDefault();
-      ev?.stopPropagation();
-      setShowDeleteModal(false);
-      // also find out all the descendants of this node
-      // add a class to them to-be-deleted
-
-      [...activeNode.descendants()].forEach((d) => {
-        const id = d.data.id;
-        const node = document.querySelector(`.graph-node.tool-run-${id}`);
-        if (!node) return;
-
-        // add a class highlighted
-        node.classList.remove("to-be-deleted");
-      });
-    },
-    [activeNode]
-  );
-
-  const handleDelete = useCallback(
-    async (ev) => {
-      try {
-        ev.preventDefault();
-        ev.stopPropagation();
-        // actually delete the steps
-
-        const deleteStepIds = [...activeNode.descendants()]
-          .filter((d) => d?.data?.isTool)
-          .map((d) => d?.data?.step?.id);
-
-        await handleDeleteSteps(deleteStepIds);
-      } catch (e) {
-        console.log(e);
-      } finally {
-        handleCancel(ev);
-      }
-    },
-    [activeNode]
-  );
-
-  const showModal = useCallback(
-    (ev) => {
-      try {
-        ev.preventDefault();
-        ev.stopPropagation();
-        setShowDeleteModal(true);
-        // also find out all the descendants of this node
-        // add a class to them to-be-deleted
-
-        [...activeNode.descendants()].forEach((d) => {
-          const id = d.data.id;
-          // get the closest .analysis-content to the mouseovered element
-          const closest = ev.target.closest(".analysis-content");
-          if (!closest) return;
-          // now get the closest .graph-node with the class name output
-          const node = closest.querySelector(`.graph-node.tool-run-${id}`);
-          if (!node) return;
-          // add a class highlighted
-          node.classList.add("to-be-deleted");
-        });
-      } catch (e) {
-        console.log(e);
-      }
-    },
-    [activeNode]
   );
 
   const handleEdit = useCallback(
@@ -233,24 +161,6 @@ export function StepResults({
                   handleReRun(stepId);
                 }}
               ></StepReRun>
-              {/* )} */}
-              <StepReRun
-                onClick={showModal}
-                text="Delete"
-                className="font-mono text-gray-500 border border-gray-200 bg-gray-50 hover:bg-rose-500 hover:text-white active:hover:text-white hover:border-transparent"
-              ></StepReRun>
-              <Modal
-                okText={"Yes, delete"}
-                okType="danger"
-                title="Are you sure?"
-                open={showDeleteModal}
-                onOk={handleDelete}
-                onCancel={handleCancel}
-              >
-                <p>
-                  All child steps (highlighted in red) will also be deleted.
-                </p>
-              </Modal>
             </div>
             <p className="mt-4 mb-2 text-lg">
               {toolDisplayNames[step.tool_name]}
@@ -405,7 +315,7 @@ export function StepResults({
         ),
       },
     ];
-  }, [step, showDeleteModal]);
+  }, [step]);
 
   // rerunningstepsis array of object: {id: res.pre_tool_run_message,
   // timeout: funciton
