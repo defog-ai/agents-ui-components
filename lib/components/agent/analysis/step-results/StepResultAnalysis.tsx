@@ -9,7 +9,6 @@ import {
 import ErrorBoundary from "../../../common/ErrorBoundary";
 import { marked } from "marked";
 import sanitizeHtml from "sanitize-html";
-import { AgentConfigContext } from "../../../context/AgentContext";
 import { createWebsocketManager } from "../../../utils/websocket-manager";
 import { Sparkles } from "lucide-react";
 
@@ -22,8 +21,6 @@ export default function StepResultAnalysis({
   sql,
 }) {
   const [toolRunAnalysis, setToolRunAnalysis] = useState("");
-
-  const agentConfigContext = useContext(AgentConfigContext);
 
   const [loading, setLoading] = useState(false);
 
