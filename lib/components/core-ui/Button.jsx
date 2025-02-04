@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import { twMerge } from "tailwind-merge";
 
 const variantStyles = {
@@ -19,6 +19,7 @@ const disabledStyles =
  * @property {function} onClick - Function to be called when the button is clicked.
  * @property {string} className - Additional classes to be added to the button.
  * @property {React.ReactNode} children - The content of the button.
+ * @property {React.ReactNode} icon - The icon of the button.
  * @property {boolean} disabled - If true, the button will be disabled.
  * @property {"normal" | "primary" | "secondary" | "danger"} variant - The variant of the button.
  */
@@ -29,9 +30,10 @@ const disabledStyles =
  */
 export function Button({
   id = null,
-  onClick = (...args) => {},
+  onClick = () => {},
   className = "",
   children = null,
+  icon = null,
   disabled = false,
   variant = "normal",
 }) {
@@ -54,6 +56,7 @@ export function Button({
         disabled ? disabledStyles : className
       )}
     >
+      {icon && <span className="ant-btn-icon">{icon}</span>}
       {children}
     </button>
   );
