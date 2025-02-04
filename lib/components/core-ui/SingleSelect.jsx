@@ -104,15 +104,19 @@ export function SingleSelect({
         rawValue: d.value,
       }))
     );
-  }, [JSON.stringify(options)]);
+  }, [options]);
 
   const filteredOptions =
     query === ""
       ? internalOptions
       : internalOptions.filter((option) => {
-          return (option.label + "")
-            .toLowerCase()
-            .includes(query.toLowerCase());
+          const labelText = typeof option.label === 'string' ? option.label : 
+            (Array.isArray(option.label?.props?.children) ? 
+              option.label.props.children.filter(child => typeof child === 'string').join('') : 
+              option.label?.props?.children || 
+              ''
+            );
+          return labelText.toLowerCase().includes(query.toLowerCase());
         });
 
   useEffect(() => {
@@ -172,8 +176,8 @@ export function SingleSelect({
   }, [
     value,
     allowCreateNewOption,
-    JSON.stringify(internalOptions),
-    selectedOption,
+    internalOptions,
+    selectedOption?.value,
   ]);
 
   useEffect(() => {
@@ -190,7 +194,7 @@ export function SingleSelect({
       setInternalOptions([...internalOptions, newOption]);
     }
     ref?.current?.blur?.();
-  }, [selectedOption, JSON.stringify(internalOptions), allowCreateNewOption]);
+  }, [selectedOption?.value, internalOptions, allowCreateNewOption]);
 
   return (
     <div className={twMerge("agui-item agui-select", rootClassNames)}>
@@ -216,7 +220,7 @@ export function SingleSelect({
               ? "bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500"
               : "bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
           )}
-          value={query !== "" ? query : selectedOption?.label}
+          value={query !== "" ? query : (typeof selectedOption?.label === 'string' ? selectedOption?.label : '') || ""}
           onChange={(e) => {
             setQuery(e.target.value);
             setOpen(true);
@@ -228,21 +232,24 @@ export function SingleSelect({
           }}
           readOnly={disabled}
           onKeyDown={(e) => {
-            if (e.key === 'ArrowDown') {
+            if (e.key === "ArrowDown") {
               e.preventDefault();
               if (!open) {
                 setOpen(true);
                 return;
               }
               setHighlightIndex((prev) => (prev + 1) % filteredOptions.length);
-            } else if (e.key === 'ArrowUp') {
+            } else if (e.key === "ArrowUp") {
               e.preventDefault();
               if (!open) {
                 setOpen(true);
                 return;
               }
-              setHighlightIndex((prev) => (prev - 1 + filteredOptions.length) % filteredOptions.length);
-            } else if (e.key === 'Enter') {
+              setHighlightIndex(
+                (prev) =>
+                  (prev - 1 + filteredOptions.length) % filteredOptions.length
+              );
+            } else if (e.key === "Enter") {
               e.preventDefault();
               if (open && filteredOptions.length > 0 && highlightIndex >= 0) {
                 const option = filteredOptions[highlightIndex];
@@ -251,7 +258,7 @@ export function SingleSelect({
                 setOpen(false);
                 if (onChange) onChange(option.value, option);
               }
-            } else if (e.key === 'Escape') {
+            } else if (e.key === "Escape") {
               setOpen(false);
             }
           }}
@@ -287,7 +294,7 @@ export function SingleSelect({
         </button>
         {open && filteredOptions.length > 0 && (
           <ul
-            style={dropdownStyle}
+            style={{...dropdownStyle, minWidth: 'fit-content'}}
             className={twMerge(
               "z-[100] max-h-60 overflow-auto rounded-md bg-white dark:bg-gray-900 py-1 text-base shadow-lg border border-gray-200 dark:border-gray-700",
               popupClassName
@@ -297,8 +304,9 @@ export function SingleSelect({
               <li
                 key={idx}
                 className={twMerge(
-                  "cursor-pointer select-none relative py-2 pl-3 pr-9",
-                  popupOptionSizeClasses[size] || popupOptionSizeClasses["default"],
+                  "cursor-pointer select-none relative py-2 pl-3 pr-9 truncate",
+                  popupOptionSizeClasses[size] ||
+                    popupOptionSizeClasses["default"],
                   highlightIndex === idx ? "bg-blue-100" : ""
                 )}
                 onMouseDown={(e) => {
@@ -309,7 +317,7 @@ export function SingleSelect({
                   if (onChange) onChange(option.value, option);
                 }}
               >
-                {optionRenderer ? optionRenderer(option) : option.label}
+                {optionRenderer ? optionRenderer(option) : (typeof option.label === 'string' ? option.label : option.label)}
                 {selectedOption &&
                   matchingValue(option, selectedOption.value) && (
                     <span className="absolute inset-y-0 right-0 flex items-center pr-4">
