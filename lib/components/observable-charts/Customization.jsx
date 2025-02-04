@@ -30,14 +30,6 @@ export function Customization() {
   return (
     <div className="grid grid-rows-[auto_1fr] max-h-[550px] overflow-x-clip overflow-y-auto h-full">
       <div className="space-y-6">
-        {/* <div className="space-y-1.5">
-          <ColorSchemeSelector
-            value={chartStyle.selectedScheme}
-            onChange={(value) => {
-              handleStyleChange("selectedScheme", value);
-            }}
-          />
-        </div> */}
         <div className="space-y-1.5">
           <h3 className="input-label">Background Color</h3>
           <ColorPicker
