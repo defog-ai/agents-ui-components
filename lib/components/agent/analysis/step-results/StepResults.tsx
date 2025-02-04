@@ -8,7 +8,6 @@ import AgentLoader from "../../../common/AgentLoader";
 import ErrorBoundary from "../../../common/ErrorBoundary";
 import { toolDisplayNames } from "../../../utils/utils";
 import { AddStepUI } from "../../add-step/AddStepUI";
-import { Modal } from "antd";
 import { Tabs } from "../../../core-ui/Tabs";
 import { AgentConfigContext } from "../../../context/AgentContext";
 import { SkeletalLoader, SpinningLoader } from "@ui-components";

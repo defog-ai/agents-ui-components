@@ -1,4 +1,4 @@
-import { message } from "antd";
+// import { message } from "antd";
 import React, { useCallback, useEffect, useState } from "react";
 import { Input, SingleSelect, TextArea } from "@ui-components";
 import { Trash2, CirclePlus } from "lucide-react";
@@ -278,9 +278,8 @@ const inputTypeToUI = {
                   onClick={() => {
                     // if the length is already at min, don't remove
                     if (initialValue.length <= min) {
-                      message.error(
-                        `${inputName} requires at least ${min} column(s)`
-                      );
+                      // message.error(
+                      alert(`${inputName} requires at least ${min} column(s)`);
                       return;
                     }
 

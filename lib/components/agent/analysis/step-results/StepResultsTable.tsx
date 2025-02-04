@@ -5,8 +5,9 @@ import {
   useMemo,
   useRef,
   useSyncExternalStore,
+  useContext,
 } from "react";
-import { message, Popover } from "antd";
+import { MessageManagerContext } from "@ui-components";
 import { chartNames, roundColumns } from "../../agentUtils";
 
 import {
@@ -113,6 +114,7 @@ export function StepResultsTable({
     path: "download_csv",
     apiEndpoint: apiEndpoint,
   });
+  const messageManager = useContext(MessageManagerContext);
   const tableChartRef = useRef(null);
   const [sqlQuery, setSqlQuery] = useState(sql);
   const [toolCode, setToolCode] = useState(codeStr);
@@ -150,7 +152,7 @@ export function StepResultsTable({
         }).then((r) => r.json());
 
         if (!res?.success) {
-          message.error(res?.error_message || "Error saving CSV.");
+          messageManager.error(res?.error_message || "Error saving CSV.");
           return;
         } else if (res?.success && res?.csv) {
           csv = res.csv;
@@ -329,29 +331,7 @@ export function StepResultsTable({
             columns={tableData.columns
               .filter((d) => d.title !== "index")
               .map((d) => {
-                d.render = (text: string) => (
-                  <Popover
-                    content={() => (
-                      <div
-                        className="p-2"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          e.preventDefault();
-                          navigator.clipboard.writeText(text).then(() => {
-                            message.success("Copied to clipboard.");
-                          });
-                        }}
-                      >
-                        <Copy className="w-3 h-3 table-chart-cell-copy-icon" />
-                      </div>
-                    )}
-                    arrow={false}
-                    placement="right"
-                    rootClassName="table-chart-cell-copy-popover"
-                  >
-                    <div className="p-2">{text}</div>
-                  </Popover>
-                );
+                d.render = (text: string) => <div>{text}</div>;
                 return d;
               })}
             pagination={{ defaultPageSize: 10, showSizeChanger: true }}
