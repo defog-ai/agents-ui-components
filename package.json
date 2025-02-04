@@ -45,7 +45,6 @@
     "@uiw/codemirror-extensions-classname": "^4.23.0",
     "@uiw/codemirror-themes": "^4.23.0",
     "@uiw/react-codemirror": "^4.23.0",
-    "antd": "^5.22.5",
     "chart.js": "^4.4.3",
     "chroma-js": "^3.1.2",
     "codemirror": "^6.0.1",
