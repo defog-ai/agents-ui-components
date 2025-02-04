@@ -646,14 +646,6 @@ export const AnalysisAgent = ({
                               }}
                               tools={tools}
                               analysisBusy={analysisBusy}
-                              handleDeleteSteps={async (stepIds) => {
-                                try {
-                                  await analysisManager.deleteSteps(stepIds);
-                                } catch (e: any) {
-                                  messageManager.error(e);
-                                  console.log(e.stack);
-                                }
-                              }}
                               setCurrentQuestion={setCurrentQuestion}
                               analysisTreeManager={
                                 initialConfig.analysisTreeManager
