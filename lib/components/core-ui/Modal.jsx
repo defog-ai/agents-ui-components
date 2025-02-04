@@ -1,9 +1,3 @@
-import {
-  Dialog,
-  DialogPanel,
-  DialogTitle,
-  Description,
-} from "@headlessui/react";
 import { CircleX } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { twMerge } from "tailwind-merge";
@@ -45,71 +39,69 @@ export function Modal({
   rootClassNames = "",
   contentClassNames = "",
 }) {
-  let [isOpen, setIsOpen] = useState(open ? true : false);
+  let [isOpen, setIsOpen] = useState(open);
 
   useEffect(() => {
-    setIsOpen(open ? true : false);
+    setIsOpen(open);
   }, [open]);
 
+  // If modal is not open, return null
+  if (!isOpen) return null;
+
   return (
-    <Dialog
-      open={isOpen}
-      onClose={() => {
+    <div 
+      className={twMerge("fixed inset-0 z-[2] flex items-center justify-center p-4", rootClassNames)}
+      onClick={() => {
         setIsOpen(false);
         onCancel();
       }}
-      className={twMerge("relative z-[2]", rootClassNames)}
     >
-      <div className="fixed inset-0 overflow-y-auto w-full h-full p-4 bg-black bg-opacity-30">
-        <DialogPanel
-          className={twMerge(
-            "agui-item agui-modal bg-white dark:bg-gray-800 w-full max-h-full rounded-md relative p-4 m-auto gap-2 flex flex-col",
-            contentClassNames
-          )}
-        >
-          <div className="absolute top-2 right-2 z-10">
-            <button
-              onClick={() => {
-                setIsOpen(false);
-                onCancel();
-              }}
-              className="p-1"
-            >
-              {closeIcon}
-            </button>
+      <div 
+        className={twMerge("agui-item agui-modal bg-gray-100 border border-gray-200 w-full max-w-2xl max-h-full rounded-md relative p-4 m-auto gap-2 flex flex-col shadow-lg", contentClassNames)}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="absolute top-2 right-2 z-10">
+          <button
+            onClick={() => {
+              setIsOpen(false);
+              onCancel();
+            }}
+            className="p-1"
+          >
+            {closeIcon}
+          </button>
+        </div>
+
+        {title && (
+          <div className="text-xl font-bold text-gray-900 dark:text-gray-100">
+            {title}
           </div>
+        )}
+        {description && (
+          <div className="text-gray-600 dark:text-gray-300">
+            {description}
+          </div>
+        )}
 
-          {title && (
-            <DialogTitle
-              className={"text-xl font-bold text-gray-900 dark:text-gray-100"}
+        <div className="overflow-auto">
+          {children}
+        </div>
+
+        {footer === true ? (
+          <div>
+            <Button
+              disabled={okLoading}
+              onClick={() => {
+                onOk();
+              }}
             >
-              {title}
-            </DialogTitle>
-          )}
-          {description && (
-            <Description className="text-gray-600 dark:text-gray-300">
-              {description}
-            </Description>
-          )}
-
-          <div className="overflow-auto">{children}</div>
-
-          {footer === true ? (
-            <div>
-              <Button
-                disabled={okLoading}
-                onClick={() => {
-                  onOk();
-                }}
-              >
-                {okText}
-              </Button>
-            </div>
-          ) : (
-            footer
-          )}
-        </DialogPanel>
+              {okText}
+            </Button>
+          </div>
+        ) : (
+          footer
+        )}
       </div>
-    </Dialog>
+    </div>
   );
 }
