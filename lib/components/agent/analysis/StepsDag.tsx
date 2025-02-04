@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Popover } from "antd";
 import { toolDisplayNames } from "../../utils/utils";
 import { twMerge } from "tailwind-merge";
 import { CirclePlus, Wrench } from "lucide-react";
@@ -321,7 +320,7 @@ export default function StepsDag({
                     }}
                     className="absolute"
                   >
-                    <Popover
+                    {/* <Popover
                       {...extraProps}
                       onOpenChange={(visible) =>
                         onPopoverOpenChange(d, visible)
@@ -381,7 +380,7 @@ export default function StepsDag({
                           <div className="graph-node-circle rounded-full w-4 h-4"></div>
                         )}
                       </div>
-                    </Popover>
+                    </Popover> */}
                   </div>
                 );
               })}
