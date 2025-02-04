@@ -1,5 +1,5 @@
 import { useCallback, useContext, useEffect, useState } from "react";
-import { SingleSelect as Select, Button } from "antd";
+import { SingleSelect as Select, Button } from "@ui-components";
 import { CalendarIcon, HashIcon, CaseSensitive, Settings2 } from "lucide-react";
 import { reorderColumns } from "./columnOrdering.js";
 import { ChartManagerContext } from "./ChartManagerContext";
@@ -10,8 +10,6 @@ import { KEYMAP } from "../../constants/keymap";
 import ChartTypeSelector from "./ChartTypeSelector";
 import AxisSelector from "./AxisSelector";
 import AggregateSelector from "./AggregateSelector";
-
-const { Option } = Select;
 
 // Icons for different column types
 const COLUMN_ICONS = {
@@ -123,18 +121,21 @@ export function PrimarySelection({ columns, showChartTypeOnly = false }) {
   };
 
   // Render column option for Select
-  const renderColumnOption = ({ key, title, isDate, variableType }) => {
+  const renderColumnOption = ({ key, isDate, variableType }) => {
     const IconComponent = COLUMN_ICONS[isDate ? "date" : variableType];
-    return (
-      <Option key={key} value={key}>
-        <div className="flex items-center gap-2 py-0.5">
+    return {
+      label: (
+        <span>
           {IconComponent && (
-            <IconComponent className="text-gray-400" size={13} />
+            <>
+              <IconComponent className="text-gray-400 inline-block mr-1" size={13} />
+            </>
           )}
-          <span className="text-sm">{title}</span>
-        </div>
-      </Option>
-    );
+          {key}
+        </span>
+      ),
+      value: key,
+    };
   };
 
   // If showChartTypeOnly is true, only render the chart type selection
@@ -216,9 +217,7 @@ export function PrimarySelection({ columns, showChartTypeOnly = false }) {
                   onChange={(value) => handleAxisChange("facet")(value)}
                   value={selectedColumns.facet}
                   allowClear
-                  options={orderedColumns
-                    .filter((col) => col.variableType === "categorical")
-                    .map(renderColumnOption)}
+                  options={orderedColumns.map(renderColumnOption)}
                 />
               </div>
               <div className="space-y-1.5">
@@ -243,11 +242,8 @@ export function PrimarySelection({ columns, showChartTypeOnly = false }) {
                     selectedColumns.y.length > 1 && selectedChart === "line"
                   }
                   allowClear
-                >
-                  {orderedColumns
-                    .filter((col) => col.variableType === "categorical")
-                    .map(renderColumnOption)}
-                </Select>
+                  options={orderedColumns.map(renderColumnOption)}
+                />
               </div>
             </div>
           </div>
