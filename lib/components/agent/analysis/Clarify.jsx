@@ -1,7 +1,6 @@
-import { Divider, Select, Slider, Space, Input as AntdInput } from "antd";
-import React, { useState, useRef } from "react";
+import { MultiSelect, Input } from "@ui-components";
+import { useState, useRef } from "react";
 import AgentLoader from "../../common/AgentLoader";
-import { Input } from "@ui-components";
 
 export default function Clarify({
   data,
@@ -10,7 +9,6 @@ export default function Clarify({
   stageDone = true,
   isCurrentStage = false,
 }) {
-  const { Search } = AntdInput;
   const [submitted, setSubmitted] = useState(false);
   const answers = useRef(data?.clarification_questions);
 
@@ -101,49 +99,18 @@ export default function Clarify({
       const dropdownOpts = uiDefaults[i] || [];
 
       return (
-        <Select
-          mode="multiple"
+        <MultiSelect
           options={dropdownOpts}
           popupClassName="analysis-dropdown"
           defaultValue={q.response}
-          dropdownRender={(menu) => (
-            <>
-              {menu}
-              <Divider style={{ margin: "8px 0" }} />
-              <Space style={{ padding: "0 8px 4px" }}>
-                <Search
-                  placeholder="New item"
-                  onClick={(e) => e.stopPropagation()}
-                  onKeyDown={(e) => e.stopPropagation()}
-                  onSearch={(value, e, info) => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    if (!value || value === "") return;
-                    // add this to uiDefaults at index i
-                    let newOpts = uiDefaults.slice();
-                    newOpts[i] = newOpts[i].concat({
-                      label: value,
-                      value: value,
-                      className: "analysis-dropdown-item",
-                    });
-
-                    setUIDefaults(newOpts);
-                  }}
-                  enterButton="Add"
-                  rootClassName="analysis-dropdown-add-item"
-                />
-              </Space>
-            </>
-          )}
           onChange={(_, allSel) => {
             return updateAnswer(
               allSel.map((d) => d.value),
               i
             );
           }}
-          popupMatchSelectWidth={true}
           placeholder="Select one or more options"
-        ></Select>
+        ></MultiSelect>
       );
     },
     "text input": (q, i) => {
@@ -154,26 +121,6 @@ export default function Clarify({
           placeholder="Your response. Leave blank if the question above is not relevant"
           inputClassNames="ring-0 bg-transparent rounded-none border-b border-dotted border-gray-300 focus:border-blue-500 focus:border-solid focus:ring-0 focus:border-b-primary-highlight shadow-none pl-0 w-full"
         ></Input>
-      );
-    },
-    "date range selector": (q, i) => {
-      let el = null;
-
-      return (
-        <>
-          <span style={{ fontSize: 12 }}>
-            <strong ref={(t) => (el = t)}>{q.response_formatted}</strong>
-          </span>
-          <Slider
-            max={24}
-            defaultValue={q.response}
-            onChange={function (v) {
-              updateAnswer(v, i, v + " months");
-              if (el) el.innerText = q.response_formatted;
-            }}
-            tooltip={{ formatter: (d) => d + " months" }}
-          ></Slider>
-        </>
       );
     },
   };
