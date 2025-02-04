@@ -394,6 +394,10 @@ export function StepResultsTable({
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
       if (document.activeElement === document.body) {
+        // If any modifier keys are pressed, do not match
+        if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) {
+          return;
+        }
         if (matchesKey(e.key, KEYMAP.TOGGLE_ANALYSIS)) {
           setIsAnalysisVisible((prev) => !prev);
           e.preventDefault();

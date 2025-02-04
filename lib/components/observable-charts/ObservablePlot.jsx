@@ -448,6 +448,9 @@ export default function ObservablePlot() {
   useEffect(() => {
     const handleKeyPress = (e) => {
       if (document.activeElement === document.body) {
+        if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) {
+          return;
+        }
         if (matchesKey(e.key, KEYMAP.SAVE_CHART)) {
           saveAsPNG(containerRef.current);
           e.preventDefault();
