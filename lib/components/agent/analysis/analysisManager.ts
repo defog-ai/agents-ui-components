@@ -341,7 +341,7 @@ function createAnalysisManager({
     // then create analysis data object with the required format
     // or if it's an error, then tool_run_details = {error_message: error}
     else if (sqlOnly && isTemp) {
-      const step = await generateStepForCsv(question, sqliteConn);
+      const step = await generateStepForCsv(question, sqliteConn, token);
 
       console.log(step);
 
@@ -707,7 +707,8 @@ function createAnalysisManager({
 
   async function generateStepForCsv(
     question: string,
-    sqliteConn: any
+    sqliteConn: any,
+    token: string | null
   ): Promise<Step> {
     const res = await generateQueryForCsv({
       question: question,
@@ -722,6 +723,7 @@ function createAnalysisManager({
       keyName: keyName,
       apiEndpoint: apiEndpoint,
       previousContext: previousContext,
+      token,
     });
 
     const stepId = crypto.randomUUID();
@@ -758,6 +760,7 @@ function createAnalysisManager({
         apiEndpoint: apiEndpoint,
         previousQuery: res.sql,
         error: previousError,
+        token,
       });
 
       if (retryRes.error_message || !retryRes.success) {
@@ -851,7 +854,11 @@ function createAnalysisManager({
 
     if (currentQuestion !== originalQuestion) {
       // generate a new step
-      const newStep = await generateStepForCsv(currentQuestion, sqliteConn);
+      const newStep = await generateStepForCsv(
+        currentQuestion,
+        sqliteConn,
+        token
+      );
       newAnalysisData.gen_steps.steps = [newStep];
       setAnalysisData(newAnalysisData);
     } else {

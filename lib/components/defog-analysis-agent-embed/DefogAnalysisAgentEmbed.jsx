@@ -188,6 +188,7 @@ export function EmbedInner({
         keyName: csvFileKeyName,
         metadata: metadata,
         tableName: sqliteTableName,
+        token,
       });
 
       if (!res.success || res.error_message || !res.descriptions) {
