@@ -1,4 +1,4 @@
-import { ColorPicker, Slider } from "antd";
+import { ColorPicker, Slider } from "@ui-components";
 import { useContext } from "react";
 import { ChartManagerContext } from "../ChartManagerContext";
 

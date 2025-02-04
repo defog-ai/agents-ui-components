@@ -1,4 +1,4 @@
-import { ColorPicker } from "antd";
+import { ColorPicker } from "@ui-components";
 import LineChartControls from "./chart-controls/LineChartControls";
 import ScatterPlotControls from "./chart-controls/ScatterPlotControls";
 import BarChartControls from "./chart-controls/BarChartControls";
@@ -33,7 +33,6 @@ export function Customization() {
         <div className="space-y-1.5">
           <h3 className="input-label">Background Color</h3>
           <ColorPicker
-            className="w-full"
             allowClear={true}
             value={chartStyle.backgroundColor}
             onChange={(color) =>
