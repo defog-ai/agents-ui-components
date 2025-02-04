@@ -1,5 +1,5 @@
 import { useCallback, useContext, useEffect, useState } from "react";
-import { Select, Button } from "antd";
+import { SingleSelect as Select, Button } from "antd";
 import { CalendarIcon, HashIcon, CaseSensitive, Settings2 } from "lucide-react";
 import { reorderColumns } from "./columnOrdering.js";
 import { ChartManagerContext } from "./ChartManagerContext";
@@ -216,11 +216,10 @@ export function PrimarySelection({ columns, showChartTypeOnly = false }) {
                   onChange={(value) => handleAxisChange("facet")(value)}
                   value={selectedColumns.facet}
                   allowClear
-                >
-                  {orderedColumns
+                  options={orderedColumns
                     .filter((col) => col.variableType === "categorical")
                     .map(renderColumnOption)}
-                </Select>
+                />
               </div>
               <div className="space-y-1.5">
                 <h3 className="mb-2 font-medium input-label">Color By</h3>
