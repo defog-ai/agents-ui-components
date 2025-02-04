@@ -4,7 +4,7 @@ import { CalendarIcon, HashIcon, CaseSensitive, Settings2 } from "lucide-react";
 import { reorderColumns } from "./columnOrdering.js";
 import { ChartManagerContext } from "./ChartManagerContext";
 import { AgentConfigContext } from "../context/AgentContext";
-import FilterBuilder from "./Filtering";
+// import FilterBuilder from "./Filtering";
 import { KeyboardShortcutIndicator } from "../core-ui/KeyboardShortcutIndicator";
 import { KEYMAP } from "../../constants/keymap";
 import ChartTypeSelector from "./ChartTypeSelector";
@@ -128,7 +128,10 @@ export function PrimarySelection({ columns, showChartTypeOnly = false }) {
         <span>
           {IconComponent && (
             <>
-              <IconComponent className="text-gray-400 inline-block mr-1" size={13} />
+              <IconComponent
+                className="text-gray-400 inline-block mr-1"
+                size={13}
+              />
             </>
           )}
           {key}
@@ -261,11 +264,11 @@ export function PrimarySelection({ columns, showChartTypeOnly = false }) {
         Advanced Options
       </Button>
 
-      {showFilters && (
+      {/* {showFilters && (
         <div className="pt-4 mt-4 border-t border-gray-100">
           <FilterBuilder columns={columns} />
         </div>
-      )}
+      )} */}
     </div>
   );
 }
