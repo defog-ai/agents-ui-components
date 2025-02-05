@@ -449,7 +449,7 @@ function createAnalysisManager({
   function getNextStage(): string {
     const currentStage = getCurrentStage();
     const nextStageIndex =
-      (currentStage ? agentRequestTypes.indexOf(currentStage) : 0) + 1;
+      (currentStage ? agentRequestTypes.indexOf(currentStage) : -1) + 1;
 
     return agentRequestTypes[nextStageIndex];
   }
