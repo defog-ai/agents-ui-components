@@ -61,7 +61,7 @@ export const Popconfirm: React.FC<PopconfirmProps> = ({
     <div className="inline-block relative" ref={containerRef}>
       <div onClick={handleClick}>{children}</div>
       {visible && (
-        <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 p-2 bg-white border border-gray-300 rounded shadow-md z-50">
+        <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 p-2 inline-block bg-white border border-gray-300 rounded shadow-md z-50 w-48">
           <div className="mb-2">{title}</div>
           <div className="text-right">
             <button
