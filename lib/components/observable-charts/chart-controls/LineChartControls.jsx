@@ -64,7 +64,6 @@ const LineChartControls = () => {
                 </h4>
                 <div className="w-full space-y-3">
                   <ColorPicker
-                    disabledAlpha={true}
                     allowClear={true}
                     value={
                       chartSpecificOptions.line?.lineOptions?.[column]

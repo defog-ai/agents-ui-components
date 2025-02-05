@@ -40,7 +40,6 @@ const BarChartControls = () => {
           <h4 className="mb-2 font-bold">{`${column}`}</h4>
           <div className="mb-2">
             <ColorPicker
-              disabledAlpha={true}
               allowClear={true}
               value={
                 chartSpecificOptions.bar?.barOptions?.[column]?.fill ||
@@ -68,7 +67,7 @@ const BarChartControls = () => {
         </div>
       </div>
       {/* Add a sort button with three states: ascending, descending, and none */}
-      <div>
+      {/* <div>
         <h3 className="mb-2">Sort</h3>
         <Button
           icon={
@@ -94,7 +93,7 @@ const BarChartControls = () => {
             }
           }}
         />
-      </div>
+      </div> */}
     </div>
   );
 };
