@@ -1,5 +1,5 @@
 import { SingleSelect as Select } from "@ui-components";
-
+import { twMerge } from "tailwind-merge";
 // Define aggregation options
 const AGGREGATE_OPTIONS = [
   { value: "count", label: "Count" },
@@ -16,6 +16,7 @@ export default function AggregateSelector({
   selectedChart,
   aggregateFunction,
   onAggregateChange,
+  rootClassNames = "",
 }) {
   // Determine the effective aggregate function
   const effectiveAggregate = aggregateFunction || "sum";
@@ -29,7 +30,8 @@ export default function AggregateSelector({
     <>
       <div>
         <Select
-          style={{ width: "100%", minWidth: "100px" }}
+          allowClear={false}
+          rootClassNames={twMerge("w-24", rootClassNames)}
           value={effectiveAggregate}
           onChange={onAggregateChange}
           options={filteredOptions.map((option) => ({

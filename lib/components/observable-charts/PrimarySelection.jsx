@@ -129,7 +129,7 @@ export function PrimarySelection({ columns, showChartTypeOnly = false }) {
           {IconComponent && (
             <>
               <IconComponent
-                className="text-gray-400 inline-block mr-1"
+                className="inline-block mr-1 text-gray-400"
                 size={13}
               />
             </>
@@ -165,11 +165,18 @@ export function PrimarySelection({ columns, showChartTypeOnly = false }) {
               <label className="flex items-center gap-2 text-xs font-medium text-gray-700">
                 <KeyboardShortcutIndicator
                   shortcut={KEYMAP.SET_X_AXIS}
-                  className="px-1 py-0.5 text-xs font-bold text-gray-500 "
+                  className="px-1 py-0.5 text-xs font-bold text-gray-500"
                 />
-
                 <span className="flex items-center gap-2">Horizontal Axis</span>
               </label>
+              <AggregateSelector
+                selectedChart={selectedChart}
+                aggregateFunction={
+                  chartSpecificOptions[selectedChart].aggregateFunction || "sum"
+                }
+                onAggregateChange={handleAggregateChange}
+                className="w-12"
+              />
             </div>
             <AxisSelector
               axis="x"
@@ -184,9 +191,8 @@ export function PrimarySelection({ columns, showChartTypeOnly = false }) {
             <label className="flex items-center gap-2 text-xs font-medium text-gray-700">
               <KeyboardShortcutIndicator
                 shortcut={KEYMAP.SET_Y_AXIS}
-                className="px-1 py-0.5 text-xs font-bold text-gray-500 "
+                className="px-1 py-0.5 text-xs font-bold text-gray-500"
               />
-
               <span className="flex items-center gap-2">Vertical Axis</span>
             </label>
             <AxisSelector
@@ -198,19 +204,9 @@ export function PrimarySelection({ columns, showChartTypeOnly = false }) {
           </div>
         </div>
 
-        {/* Aggregate Selection */}
-        <AggregateSelector
-          selectedChart={selectedChart}
-          aggregateFunction={
-            chartSpecificOptions[selectedChart].aggregateFunction || "sum"
-          }
-          onAggregateChange={handleAggregateChange}
-        />
-
         {/* Groups Section */}
         {selectedChart !== "bar" && (
           <div className="pt-4 space-y-2 border-t border-gray-100">
-            {/* <h3 className="text-xs font-medium text-gray-900">Grouping</h3> */}
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1.5">
                 <h3 className="mb-2 font-medium input-label">Facet by</h3>
