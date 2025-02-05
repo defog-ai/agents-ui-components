@@ -43,7 +43,8 @@ const BarChartControls = () => {
               disabledAlpha={true}
               allowClear={true}
               value={
-                chartSpecificOptions.bar.barOptions?.[column]?.fill || null
+                chartSpecificOptions.bar?.barOptions?.[column]?.fill ||
+                "#4e79a7"
               }
               onChange={(color) =>
                 handleBarOptionChange(
@@ -59,7 +60,7 @@ const BarChartControls = () => {
     });
 
   return (
-    <div className="flex gap-4 flex-col text-xs">
+    <div className="flex flex-col gap-4 text-xs">
       <div className="flex flex-col gap-2">
         <span className="block mb-1">Bar color</span>
         <div className="flex flex-row flex-wrap gap-4">
