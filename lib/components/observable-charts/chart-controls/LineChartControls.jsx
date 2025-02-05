@@ -67,8 +67,10 @@ const LineChartControls = () => {
                     disabledAlpha={true}
                     allowClear={true}
                     value={
-                      chartSpecificOptions.line.lineOptions?.[column]?.stroke ||
-                      ""
+                      chartSpecificOptions.line?.lineOptions?.[column]
+                        ?.stroke ||
+                      chartSpecificOptions.line?.pointColor ||
+                      "#4e79a7" // Default color from Observable Plot
                     }
                     onChange={(color) =>
                       handleLineOptionChange(

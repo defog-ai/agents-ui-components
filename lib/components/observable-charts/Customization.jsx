@@ -34,9 +34,12 @@ export function Customization() {
           <h3 className="input-label">Background Color</h3>
           <ColorPicker
             allowClear={true}
-            value={chartStyle.backgroundColor}
+            value={chartStyle.backgroundColor || "#ffffff"}
             onChange={(color) =>
-              handleStyleChange("backgroundColor", color.toHexString())
+              handleStyleChange(
+                "backgroundColor",
+                color.cleared ? null : color.toHexString()
+              )
             }
           />
         </div>
