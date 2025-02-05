@@ -32,3 +32,5 @@ export { DropFiles } from "./components/core-ui/DropFiles.jsx";
 export { DropFilesHeadless } from "./components/core-ui/DropFilesHeadless.jsx";
 export { NavBar } from "./components/core-ui/NavBar.jsx";
 export { ColorPicker } from "./components/core-ui/ColorPicker.jsx";
+export { Drawer } from "./components/core-ui/Drawer.jsx";
+export { Popconfirm } from "./components/core-ui/Popconfirm.jsx";
