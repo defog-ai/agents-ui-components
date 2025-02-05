@@ -110,12 +110,14 @@ export function SingleSelect({
     query === ""
       ? internalOptions
       : internalOptions.filter((option) => {
-          const labelText = typeof option.label === 'string' ? option.label : 
-            (Array.isArray(option.label?.props?.children) ? 
-              option.label.props.children.filter(child => typeof child === 'string').join('') : 
-              option.label?.props?.children || 
-              ''
-            );
+          const labelText =
+            typeof option.label === "string"
+              ? option.label
+              : Array.isArray(option.label?.props?.children)
+                ? option.label.props.children
+                    .filter((child) => typeof child === "string")
+                    .join("")
+                : option.label?.props?.children || "";
           return labelText.toLowerCase().includes(query.toLowerCase());
         });
 
@@ -173,12 +175,7 @@ export function SingleSelect({
       setInternalOptions([...internalOptions, opt]);
       setSelectedOption(opt);
     }
-  }, [
-    value,
-    allowCreateNewOption,
-    internalOptions,
-    selectedOption?.value,
-  ]);
+  }, [value, allowCreateNewOption, internalOptions, selectedOption?.value]);
 
   useEffect(() => {
     // if the selected option doesn't exist
@@ -220,7 +217,13 @@ export function SingleSelect({
               ? "bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500"
               : "bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
           )}
-          value={query !== "" ? query : (typeof selectedOption?.label === 'string' ? selectedOption?.label : '') || ""}
+          value={
+            query !== ""
+              ? query
+              : typeof selectedOption?.label === "string"
+                ? selectedOption?.label
+                : selectedOption?.value || ""
+          }
           onChange={(e) => {
             setQuery(e.target.value);
             setOpen(true);
@@ -266,7 +269,7 @@ export function SingleSelect({
         {allowClear && (
           <button
             type="button"
-            className="absolute inset-y-0 right-10 flex items-center px-2 focus:outline-none"
+            className="absolute inset-y-0 flex items-center px-1 right-7 focus:outline-none"
             onMouseDown={(ev) => {
               ev.preventDefault();
               ev.stopPropagation();
@@ -275,12 +278,12 @@ export function SingleSelect({
               if (onChange) onChange(null, null);
             }}
           >
-            <CircleX className="w-4 text-gray-300 hover:text-gray-500 dark:text-gray-600 dark:hover:text-gray-400" />
+            <CircleX className="w-3.5 text-gray-300 hover:text-gray-500 dark:text-gray-600 dark:hover:text-gray-400" />
           </button>
         )}
         <button
           type="button"
-          className="absolute inset-y-0 right-0 flex items-center px-2 focus:outline-none"
+          className="absolute inset-y-0 right-0 flex items-center px-1.5 focus:outline-none"
           onMouseDown={(ev) => {
             ev.preventDefault();
             ev.stopPropagation();
@@ -288,13 +291,13 @@ export function SingleSelect({
           }}
         >
           <ChevronsUpDownIcon
-            className="h-5 w-5 text-gray-400 dark:text-gray-500"
+            className="w-4 h-4 text-gray-400 dark:text-gray-500"
             aria-hidden="true"
           />
         </button>
         {open && filteredOptions.length > 0 && (
           <ul
-            style={{...dropdownStyle, minWidth: 'fit-content'}}
+            style={{ ...dropdownStyle, minWidth: "fit-content" }}
             className={twMerge(
               "z-[100] max-h-60 overflow-auto rounded-md bg-white dark:bg-gray-900 py-1 text-base shadow-lg border border-gray-200 dark:border-gray-700",
               popupClassName
@@ -317,11 +320,15 @@ export function SingleSelect({
                   if (onChange) onChange(option.value, option);
                 }}
               >
-                {optionRenderer ? optionRenderer(option) : (typeof option.label === 'string' ? option.label : option.label)}
+                {optionRenderer
+                  ? optionRenderer(option)
+                  : typeof option.label === "string"
+                    ? option.label
+                    : option.label}
                 {selectedOption &&
                   matchingValue(option, selectedOption.value) && (
                     <span className="absolute inset-y-0 right-0 flex items-center pr-4">
-                      <Check className="h-5 w-5" aria-hidden="true" />
+                      <Check className="w-5 h-5" aria-hidden="true" />
                     </span>
                   )}
               </li>

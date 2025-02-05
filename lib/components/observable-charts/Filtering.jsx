@@ -1,10 +1,7 @@
 import { useContext, useState, useCallback, useRef, useEffect } from "react";
-import { Select, Button, Space, Card, Tag } from "antd";
-import { Input as TextInput } from "@ui-components";
+import { SingleSelect, Button, TextArea } from "@ui-components";
 import { ChartManagerContext } from "./ChartManagerContext";
 import { HashIcon, CaseSensitive, Trash2, CirclePlus } from "lucide-react";
-
-const { Option } = Select;
 
 const FilterBuilder = ({ columns }) => {
   const [filters, setFilters] = useState([]);
@@ -21,50 +18,54 @@ const FilterBuilder = ({ columns }) => {
   const updateFilterFunction = useCallback(
     (currentFilters) => {
       const filterFunction = currentFilters.length
-        ? (d) =>
-            currentFilters.every(({ column, operator, value, isValid }) => {
-              if (!isValid || !column || !operator || value === "") return true;
-              const columnDef = columns.find((c) => c.dataIndex === column);
-              const dValue = d[column];
-              const compareValue =
-                columnDef.variableType === "categorical" &&
-                typeof dValue === "string"
-                  ? dValue.toLowerCase()
-                  : dValue;
-              const filterValue =
-                columnDef.variableType === "categorical" &&
-                typeof value === "string"
-                  ? value.toLowerCase()
-                  : value;
+        ? (d) => {
+            return currentFilters.every(
+              ({ column, operator, value, isValid }) => {
+                if (!isValid || !column || !operator || value === "")
+                  return true;
+                const columnDef = columns.find((c) => c.dataIndex === column);
+                const dValue = d[column];
+                const compareValue =
+                  columnDef.variableType === "categorical" &&
+                  typeof dValue === "string"
+                    ? dValue.toLowerCase()
+                    : dValue;
+                const filterValue =
+                  columnDef.variableType === "categorical" &&
+                  typeof value === "string"
+                    ? value.toLowerCase()
+                    : value;
 
-              const operatorFunctions = {
-                "==": (a, b) => a == b,
-                "!=": (a, b) => a != b,
-                ">": (a, b) => a > b,
-                "<": (a, b) => a < b,
-                ">=": (a, b) => a >= b,
-                "<=": (a, b) => a <= b,
-                in: (a, b) =>
-                  b
-                    .split(",")
-                    .map((v) => v.trim().toLowerCase())
-                    .includes(a),
-                "not in": (a, b) =>
-                  !b
-                    .split(",")
-                    .map((v) => v.trim().toLowerCase())
-                    .includes(a),
-                contains: (a, b) => a.includes(b),
-                "starts with": (a, b) => a.startsWith(b),
-                "ends with": (a, b) => a.endsWith(b),
-                between: (a, b) => {
-                  const [min, max] = b.split(",").map(Number);
-                  return a >= min && a <= max;
-                },
-              };
+                const operatorFunctions = {
+                  "==": (a, b) => a == b,
+                  "!=": (a, b) => a != b,
+                  ">": (a, b) => a > b,
+                  "<": (a, b) => a < b,
+                  ">=": (a, b) => a >= b,
+                  "<=": (a, b) => a <= b,
+                  in: (a, b) =>
+                    b
+                      .split(",")
+                      .map((v) => v.trim().toLowerCase())
+                      .includes(a),
+                  "not in": (a, b) =>
+                    !b
+                      .split(",")
+                      .map((v) => v.trim().toLowerCase())
+                      .includes(a),
+                  contains: (a, b) => a.includes(b),
+                  "starts with": (a, b) => a.startsWith(b),
+                  "ends with": (a, b) => a.endsWith(b),
+                  between: (a, b) => {
+                    const [min, max] = b.split(",").map(Number);
+                    return a >= min && a <= max;
+                  },
+                };
 
-              return operatorFunctions[operator](compareValue, filterValue);
-            })
+                return operatorFunctions[operator](compareValue, filterValue);
+              }
+            );
+          }
         : null;
 
       chartManager
@@ -78,14 +79,17 @@ const FilterBuilder = ({ columns }) => {
     debounce(updateFilterFunction, 200),
     [updateFilterFunction]
   );
+
   useEffect(() => {
     const selectedColumnKeys = Object.values(
-      chartManager.config.selectedColumns
+      chartManager.config.selectedColumns || {}
     ).flat();
+
     const newFilters = filters.map((filter) => ({
       ...filter,
       isValid:
-        selectedColumnKeys.includes(filter.column) || filter.column === "",
+        filter.column &&
+        (selectedColumnKeys.includes(filter.column) || filter.column === ""),
     }));
 
     if (JSON.stringify(newFilters) !== JSON.stringify(filters)) {
@@ -113,9 +117,20 @@ const FilterBuilder = ({ columns }) => {
 
   const updateFilter = (index, field, value) => {
     const newFilters = [...filters];
-    newFilters[index][field] = value;
+    if (field === "column") {
+      const selectedColumn = columns.find((c) => c.dataIndex === value);
+      newFilters[index][field] = selectedColumn ? value : "";
+    } else {
+      newFilters[index][field] = value;
+    }
     setFilters(newFilters);
-    debouncedUpdateFilterFunction(newFilters);
+
+    // Immediate update for column/operator changes, debounced for value changes
+    if (field === "column" || field === "operator") {
+      updateFilterFunction(newFilters);
+    } else {
+      debouncedUpdateFilterFunction(newFilters);
+    }
   };
 
   const getOperators = (column) => {
@@ -137,24 +152,22 @@ const FilterBuilder = ({ columns }) => {
         : commonOperators;
   };
 
-  const getFilterPreview = (filter, column) => {
-    if (!filter.column || !filter.operator || filter.value === "") return "";
-    const columnName = column ? column.title : filter.column;
-    let preview = `${columnName} ${filter.operator} `;
+  const COLUMN_ICONS = {
+    quantitative: HashIcon,
+    categorical: CaseSensitive,
+  };
 
-    if (["in", "not in"].includes(filter.operator)) {
-      preview += filter.value
-        .split(",")
-        .map((v) => `"${v.trim()}"`)
-        .join(", ");
-    } else if (filter.operator === "between") {
-      const [start, end] = filter.value.split(",");
-      preview += `${start} and ${end}`;
-    } else {
-      preview += `"${filter.value}"`;
-    }
-
-    return preview;
+  const renderColumnOption = (column) => {
+    const IconComponent = COLUMN_ICONS[column.variableType];
+    return {
+      label: (
+        <div className="flex items-center gap-2">
+          {IconComponent && <IconComponent className="opacity-50" size={14} />}
+          <span>{column.title}</span>
+        </div>
+      ),
+      value: column.dataIndex,
+    };
   };
 
   const renderFilterInput = (filter, index, column) => {
@@ -165,27 +178,11 @@ const FilterBuilder = ({ columns }) => {
       onChange: (e) => updateFilter(index, "value", e.target.value),
     };
 
-    let inputType = "text";
-    let placeholder = "Value";
-
-    if (
-      column.variableType === "categorical" &&
-      ["in", "not in"].includes(filter.operator)
-    ) {
-      placeholder = "Comma-separated values";
-    } else if (
-      (column.variableType === "quantitative" ||
-        column.variableType === "integer") &&
-      filter.operator !== "between"
-    ) {
-      inputType = "number";
-    }
-
     if (filter.operator === "between") {
       const [start, end] = filter.value.split(",");
       return (
         <div className="flex gap-2">
-          <TextInput
+          <TextArea
             {...commonInputProps}
             type="number"
             className="w-1/2"
@@ -195,7 +192,7 @@ const FilterBuilder = ({ columns }) => {
               updateFilter(index, "value", `${e.target.value},${end || ""}`)
             }
           />
-          <TextInput
+          <TextArea
             {...commonInputProps}
             type="number"
             className="w-1/2"
@@ -210,133 +207,112 @@ const FilterBuilder = ({ columns }) => {
     }
 
     return (
-      <TextInput
+      <TextArea
         {...commonInputProps}
-        type={inputType}
-        placeholder={placeholder}
+        size="small"
+        autoResize={column.variableType !== "quantitative"}
+        type={column.variableType === "quantitative" ? "number" : "text"}
+        placeholder={
+          ["in", "not in"].includes(filter.operator)
+            ? "Comma-separated values"
+            : "Value"
+        }
       />
     );
   };
 
-  const COLUMN_ICONS = {
-    quantitative: HashIcon,
-    categorical: CaseSensitive,
-  };
-
-  const renderColumnOption = (column) => {
-    if (column.colType === "date") return null;
-
-    const IconComponent = COLUMN_ICONS[column.variableType];
-    return (
-      <Option key={column.dataIndex} value={column.dataIndex}>
-        <div className="flex items-center gap-2">
-          {IconComponent && <IconComponent className="opacity-50" size={14} />}
-          <span>{column.title}</span>
-        </div>
-      </Option>
-    );
-  };
-
   return (
-    <Space direction="vertical" size="small" className="w-full">
-      <h3 className="pb-1 font-bold border-b input-label border-black/20">
-        Filtering
-      </h3>
-      <p className="text-xs text-gray-500">
-        Filter data based on selected columns
-      </p>
-      {filters.map((filter, index) => {
-        const column = columns.find((c) => c.dataIndex === filter.column);
-        const filterPreview = getFilterPreview(filter, column);
-        const IconComponent = column
-          ? COLUMN_ICONS[
-              column.colType === "date" ? "date" : column.variableType
-            ]
-          : null;
-        return (
-          <Card
-            key={index}
-            size="small"
-            title={
-              <div className="flex items-center gap-2">
-                {IconComponent && (
-                  <IconComponent
-                    className="flex-shrink-0 opacity-50"
-                    size={14}
-                  />
-                )}
-                <div className="flex-grow">
-                  {filterPreview ? (
-                    <Tag
-                      color={filter.isValid ? "blue" : "red"}
-                      className="my-2 ml-2 text-wrap"
-                    >
-                      {filterPreview}
-                    </Tag>
-                  ) : (
-                    `Filter ${index + 1}`
+    <div className="space-y-4">
+      <div className="space-y-1.5">
+        <label className="flex items-center gap-2 text-xs font-medium text-gray-700">
+          <span className="flex items-center gap-2">Filters</span>
+        </label>
+        <p className="text-xs text-gray-500">
+          Filter data based on selected columns
+        </p>
+      </div>
+
+      <div className="space-y-2">
+        {filters.map((filter, index) => {
+          const column = columns.find((c) => c.dataIndex === filter.column);
+          const IconComponent = column
+            ? COLUMN_ICONS[column.variableType]
+            : null;
+
+          return (
+            <div
+              key={index}
+              className="p-2 space-y-2 border border-gray-200 rounded-md bg-gray-50"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  {IconComponent && (
+                    <IconComponent className="text-gray-400" size={13} />
                   )}
+                  <span className="text-xs font-medium text-gray-700">
+                    Filter {index + 1}
+                  </span>
                 </div>
+                <Button
+                  variant="ghost"
+                  size="xs"
+                  icon={<Trash2 className="w-3 h-3" />}
+                  onClick={() => removeFilter(index)}
+                />
               </div>
-            }
-            extra={
-              <Button
-                type="text"
-                danger
-                icon={<Trash2 className="w-3" />}
-                onClick={() => removeFilter(index)}
-              />
-            }
-          >
-            <Space direction="vertical" className="w-full">
-              <div className="flex flex-wrap gap-2 md:flex-nowrap">
-                <Select
-                  className="w-full"
-                  disabled={!filter.isValid}
-                  value={filter.column}
-                  onChange={(value) => updateFilter(index, "column", value)}
-                  placeholder="Select column"
-                >
-                  {columns
-                    .filter((col) => col.colType !== "date")
-                    .map(renderColumnOption)}
-                </Select>
-                <Select
-                  className="w-full"
-                  value={filter.operator}
-                  disabled={!filter.isValid || !filter.column}
-                  onChange={(value) => updateFilter(index, "operator", value)}
-                  placeholder="Select operator"
-                >
-                  {column &&
-                    getOperators(column).map((op) => (
-                      <Option key={op} value={op}>
-                        {op}
-                      </Option>
-                    ))}
-                </Select>
+
+              <div className="space-y-2">
+                <div className="grid grid-cols-2 gap-2">
+                  <SingleSelect
+                    value={filter.column}
+                    onChange={(value) => updateFilter(index, "column", value)}
+                    placeholder="Select column"
+                    options={columns
+                      .filter(
+                        (col) =>
+                          col.dataIndex === filter.column ||
+                          col.colType !== "date"
+                      )
+                      .map(renderColumnOption)}
+                    allowClear
+                  />
+                  <SingleSelect
+                    value={filter.operator}
+                    disabled={!filter.isValid || !filter.column}
+                    onChange={(value) => updateFilter(index, "operator", value)}
+                    placeholder="Select operator"
+                    options={
+                      column
+                        ? getOperators(column).map((op) => ({
+                            label: op,
+                            value: op,
+                          }))
+                        : []
+                    }
+                  />
+                </div>
+                {column && renderFilterInput(filter, index, column)}
               </div>
-              {column && renderFilterInput(filter, index, column)}
-            </Space>
-            <div className="flex justify-end">
-              {/* if invalid, show error message */}
+
               {!filter.isValid && (
-                <div className="pt-2 text-xs text-red-500">
+                <div className="text-xs text-red-500">
                   Filter may be outdated and not apply to the chart.
                 </div>
               )}
             </div>
-          </Card>
-        );
-      })}
+          );
+        })}
+      </div>
+
       <Button
         onClick={addFilter}
-        className="w-full"
-        icon={<CirclePlus className="w-3" />}
+        type="default"
+        className="flex items-center justify-center w-full gap-2 mt-4 text-sm font-medium text-gray-700 border-gray-200 h-9 bg-gray-50 hover:bg-gray-100"
+        icon={<CirclePlus className="w-4 h-4" />}
       >
         Add Filter
       </Button>
-    </Space>
+    </div>
   );
 };
 

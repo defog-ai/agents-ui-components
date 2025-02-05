@@ -10,7 +10,7 @@ import { KEYMAP } from "../../constants/keymap";
 import ChartTypeSelector from "./ChartTypeSelector";
 import AxisSelector from "./AxisSelector";
 import AggregateSelector from "./AggregateSelector";
-
+import FilterBuilder from "./Filtering";
 // Icons for different column types
 const COLUMN_ICONS = {
   date: CalendarIcon,
@@ -260,11 +260,11 @@ export function PrimarySelection({ columns, showChartTypeOnly = false }) {
         Advanced Options
       </Button>
 
-      {/* {showFilters && (
+      {showFilters && (
         <div className="pt-4 mt-4 border-t border-gray-100">
           <FilterBuilder columns={columns} />
         </div>
-      )} */}
+      )}
     </div>
   );
 }
