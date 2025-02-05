@@ -52,7 +52,7 @@ const AnalysisDrawerHandle = ({ isOpen, onClick }) => (
   <button
     onClick={onClick}
     className={`
-      absolute -left-8 top-[200px]
+      absolute -left-8 top-1/2 -translate-y-1/2
       h-36 w-8 flex items-center justify-center group
       bg-[#F9FAFB] dark:bg-gray-800 
       border border-gray-200 dark:border-gray-700
@@ -472,10 +472,16 @@ export function StepResultsTable({
               }}
               title="Download CSV"
               disabled={csvLoading}
-              variant="primary"
-              className="ml-4"
+              variant="ghost"
+              className="flex mb-2 items-center px-2.5 py-1.5 hover:text-white text-white rounded-md border border-blue-200/50 
+                bg-blue-500 hover:bg-blue-600/95 dark:bg-blue-900/20 dark:hover:bg-blue-800/30 
+                shadow-sm  transition-all duration-200 
+                dark:border-blue-700/50 dark:hover:border-blue-600/50
+                hover:shadow-md hover:-translate-y-0.5
+                group"
             >
-              Download CSV <Download className="w-4 h-4" />
+              <Download size={16} className="mr-1" />
+              <span>Download CSV</span>
             </Button>
           </div>
         </div>
