@@ -23,13 +23,13 @@ export const Drawer: React.FC<DrawerProps> = ({
     <>
       {visible && (
         <div
-          className="fixed inset-0 bg-black opacity-40 z-40"
+          className="fixed inset-0 bg-black/40 dark:bg-black/60 z-40"
           onClick={onClose}
         />
       )}
       <div
         className={
-          `fixed bg-white z-50 transition-transform duration-300 ` +
+          `fixed bg-white dark:bg-gray-800 z-50 transition-transform duration-300 ` +
           (placement === "right"
             ? `top-0 right-0 h-full ${visible ? "translate-x-0" : "translate-x-full"}`
             : placement === "left"
@@ -44,16 +44,16 @@ export const Drawer: React.FC<DrawerProps> = ({
             placement === "top" || placement === "bottom" ? height : "100%",
         }}
       >
-        <div className="flex justify-between items-center p-4 border-b border-gray-200 bg-gray-50">
-          {title && <div className="text-lg font-medium">{title}</div>}
+        <div className="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+          {title && <div className="text-lg font-medium text-gray-900 dark:text-gray-100">{title}</div>}
           <button
-            className="bg-transparent border-none text-2xl cursor-pointer leading-none"
+            className="bg-transparent border-none text-2xl cursor-pointer leading-none text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
             onClick={onClose}
           >
             ×
           </button>
         </div>
-        <div className="p-4">{children}</div>
+        <div className="p-4 h-[calc(100%-65px)] overflow-y-auto text-gray-900 dark:text-gray-100">{children}</div>
       </div>
     </>
   );
