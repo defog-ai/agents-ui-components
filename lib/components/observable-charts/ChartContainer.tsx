@@ -62,17 +62,20 @@ const NativeSegmented = ({
   className = "",
 }) => {
   return (
-    <div className={`flex ${block ? "w-full" : "inline-flex"} rounded-md p-0.5 bg-gray-50 dark:bg-gray-800 ${className}`}>
+    <div
+      className={`flex ${block ? "w-full" : "inline-flex"} justify-center  rounded-md p-0.5 bg-gray-200 dark:bg-gray-800 ${className}`}
+    >
       {options.map((opt, index) => (
         <button
           key={index}
           onClick={() => onChange(opt.value)}
           className={`
-            flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-[4px]
+            flex w-full items-center justify-center gap-1.5 px-3 py-1.5 rounded-[4px]
             text-xs font-medium transition-all duration-150 ease-in-out
-            ${value === opt.value 
-              ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm" 
-              : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/50"
+            ${
+              value === opt.value
+                ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm"
+                : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/50"
             }
             ${index > 0 ? "ml-0.5" : ""}
           `}
@@ -171,14 +174,14 @@ export function ChartContainer({
         <PrimarySelection columns={columns} showChartTypeOnly={true} />
 
         {/* Section toggle for General/Style */}
-        <div>
+        <div className="mr-4">
           <NativeSegmented
             block
             value={activeSection}
             onChange={(value) =>
               setActiveSection(value as "primary" | "customization")
             }
-            className="pr-4 transition-none"
+            className="transition-none"
             options={[
               {
                 label: (
