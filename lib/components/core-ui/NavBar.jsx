@@ -84,7 +84,7 @@ export function NavBar({ items = [], rootClassNames = "" }) {
                                   className={twMerge(
                                     "block py-2 pl-3 pr-4 text-sm text-gray-500 dark:text-gray-400  hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-200",
                                     child.current
-                                      ? "text-gray-900 dark:text-white underline decoration-blue-500 decoration-2 underline-offset-8"
+                                      ? "border-blue-500 text-gray-900 dark:text-white border-b-2"
                                       : ""
                                   )}
                                   aria-current={
