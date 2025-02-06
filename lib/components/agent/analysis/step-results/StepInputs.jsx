@@ -1,7 +1,7 @@
 // import { message } from "antd";
-import React, { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Input, SingleSelect, TextArea } from "@ui-components";
-import { Trash2, CirclePlus } from "lucide-react";
+import { Trash2, CirclePlus, X } from "lucide-react";
 import { easyToolInputTypes } from "../../../utils/utils";
 
 const inputTypeToUI = {
@@ -18,7 +18,7 @@ const inputTypeToUI = {
                 size="small"
                 suffix={
                   <Trash2
-                    className="w-4 h-4 inline ml-1 stroke-gray-600 dark:stroke-gray-400 fill-gray-200 dark:fill-gray-700"
+                    className="inline w-4 h-4 ml-1 stroke-gray-600 dark:stroke-gray-400 fill-gray-200 dark:fill-gray-700"
                     onClick={() =>
                       onEdit(
                         inputName,
@@ -274,7 +274,7 @@ const inputTypeToUI = {
               />
               <div className="list-remove">
                 <Trash2
-                  className="w-4 h-4 inline ml-1 stroke-gray-600 dark:stroke-gray-400 fill-gray-200 dark:fill-gray-700"
+                  className="inline w-4 h-4 ml-1 stroke-gray-600 dark:stroke-gray-400 fill-gray-200 dark:fill-gray-700"
                   onClick={() => {
                     // if the length is already at min, don't remove
                     if (initialValue.length <= min) {
@@ -304,7 +304,7 @@ const inputTypeToUI = {
             onClick={() => {
               // if the length is already at max, don't add
               if (initialValue.length >= max) {
-                message.error(
+                alert(
                   `Maximum number of columns (${max}) reached for ${inputName}`
                 );
                 return;
@@ -367,9 +367,25 @@ export function StepInputs({
   analysisId,
   stepId,
   step,
-  setActiveNode = (...args) => {},
-  handleEdit = (...args) => {},
+  availableOutputNodes = [],
+  setActiveNode = () => {},
+  handleEdit = () => {},
+  parentNodeOutputs = {},
 }) {
+  let availableParentColumns = [];
+
+  Object.keys(parentNodeOutputs).forEach((output_df_name) => {
+    if (
+      !parentNodeOutputs[output_df_name]?.columns ||
+      !parentNodeOutputs[output_df_name]?.data
+    )
+      return;
+
+    availableParentColumns = availableParentColumns.concat(
+      parentNodeOutputs?.[output_df_name]?.columns || []
+    );
+  });
+
   const [inputs, setInputs] = useState(step.inputs);
   const [inputMetadata, setInputMetadata] = useState(step.input_metadata);
 
@@ -397,9 +413,91 @@ export function StepInputs({
   // check the cache if we have tool run data available
 
   return (
-    <div className="tool-input-list text-sm text-gray-700 dark:text-gray-300">
+    <div className="text-sm text-gray-700 tool-input-list dark:text-gray-300">
+      {/* Question Input */}
+      {inputs.question && (
+        <div className="mb-6">
+          <div className="flex flex-row flex-wrap items-center gap-3 font-mono text-xs">
+            <span className="p-1 mr-2 text-gray-400 bg-gray-200 rounded-lg dark:bg-gray-700 dark:text-gray-400">
+              String
+            </span>
+            <span className="font-bold">question</span>
+          </div>
+          <div className="mt-2">
+            <TextArea
+              rootClassNames="w-full"
+              textAreaClassNames="resize-none overflow-auto text-sm"
+              value={inputs.question}
+              defaultRows={1}
+              onChange={(ev) => {
+                onEdit("question", ev.target.value);
+              }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Hard Filters */}
+      {inputs.hard_filters && (
+        <div className="space-y-4">
+          <div className="flex flex-row flex-wrap items-center gap-3 font-mono text-xs">
+            <span className="p-1 mr-2 text-gray-400 bg-gray-200 rounded-lg dark:bg-gray-700 dark:text-gray-400">
+              List
+            </span>
+            <span className="font-bold">hard_filters</span>
+          </div>
+          <div className="space-y-2">
+            {inputs.hard_filters.map((filter, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <Input
+                  className="flex-1 px-2"
+                  rootClassNames="px-2"
+                  size="medium"
+                  value={filter}
+                  placeholder="New Value"
+                  onChange={(ev) => {
+                    const newFilters = [...inputs.hard_filters];
+                    newFilters[i] = ev.target.value;
+                    onEdit("hard_filters", newFilters);
+                  }}
+                />
+                <button
+                  className="p-1.5 text-gray-400 hover:text-gray-600"
+                  onClick={() => {
+                    const newFilters = inputs.hard_filters.filter(
+                      (_, idx) => idx !== i
+                    );
+                    onEdit("hard_filters", newFilters);
+                  }}
+                >
+                  <span className="sr-only">Remove</span>
+                  <X size={16} />
+                </button>
+              </div>
+            ))}
+            <button
+              onClick={() =>
+                onEdit("hard_filters", [...(inputs.hard_filters || []), ""])
+              }
+              className="flex items-center gap-1.5 mb-4 px-2 py-1 text-xs font-medium text-gray-600 border border-gray-200 rounded hover:bg-gray-50"
+            >
+              <span>+</span> Add Filter
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Other Inputs */}
       {Object.keys(inputs)
-        .filter((i) => i !== "global_dict" && i !== "previous_context")
+        .filter(
+          (i) =>
+            ![
+              "global_dict",
+              "previous_context",
+              "question",
+              "hard_filters",
+            ].includes(i)
+        )
         .map((input_name, i) => {
           const sanitizedType = sanitizeInputType(
             inputMetadata[input_name]?.type
@@ -412,7 +510,7 @@ export function StepInputs({
               className="font-mono flex flex-row flex-wrap gap-3 items-center *:my-1 pb-4 text-xs"
             >
               <span className="">
-                <span className="rounded-lg p-1 bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-400 mr-2">
+                <span className="p-1 mr-2 text-gray-400 bg-gray-200 rounded-lg dark:bg-gray-700 dark:text-gray-400">
                   {easyToolInputTypes[sanitizedType] || sanitizedType}
                 </span>
                 <span className="font-bold">
