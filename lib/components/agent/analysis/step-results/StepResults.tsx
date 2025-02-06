@@ -16,8 +16,11 @@ import StepFollowOn from "./StepFollowOn";
 import { CodeEditor } from "./CodeEditor";
 import type { AnalysisTreeManager } from "../../analysis-tree-viewer/analysisTreeManager";
 import { AnalysisData, ParsedOutput, Step } from "../analysisManager";
-
+import { Database } from "lucide-react";
 import React from "react";
+const toolIcons = {
+  data_fetcher_and_aggregator: Database,
+};
 
 export function StepResults({
   analysisId,
@@ -95,19 +98,16 @@ export function StepResults({
               <div className="w-full">
                 {/* Header Section */}
                 <div className="flex items-center gap-2 mb-6 ">
-                  {toolDisplayNames[step.tool_name]?.icon && (
+                  {toolIcons[step.tool_name] && (
                     <span className="text-gray-500 size-4">
-                      {React.createElement(
-                        toolDisplayNames[step.tool_name].icon,
-                        {
-                          size: 16,
-                          className: "text-gray-500",
-                        }
-                      )}
+                      {React.createElement(toolIcons[step.tool_name], {
+                        size: 16,
+                        className: "text-gray-500",
+                      })}
                     </span>
                   )}
                   <p className="text-lg font-medium text-gray-700 dark:text-gray-200">
-                    {toolDisplayNames[step.tool_name]?.name || step.tool_name}
+                    {toolDisplayNames[step.tool_name]}
                   </p>
                 </div>
 
