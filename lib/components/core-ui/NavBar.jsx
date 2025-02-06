@@ -34,7 +34,7 @@ export function NavBar({ items = [], rootClassNames = "" }) {
       as="nav"
       className={twMerge("bg-white dark:bg-gray-800 shadow", rootClassNames)}
     >
-      <div className="mx-auto max-w-7xl px-4 xl:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl px-4 xl:px-6 lg:px-8 pt-4 pb-2">
         <div className="flex h-10 justify-between">
           <div className="flex">
             <div className="flex flex-shrink-0 items-start">
@@ -64,7 +64,7 @@ export function NavBar({ items = [], rootClassNames = "" }) {
                             item?.onClick ? item.onClick(e) : null;
                           }}
                           className={twMerge(
-                            "inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm text-gray-500 dark:text-gray-400 hover:border-gray-300 hover:text-gray-700 dark:hover:border-gray-500 dark:hover:text-gray-200",
+                            "inline-flex items-center border-b-2 border-transparent px-1 py-1 text-sm text-gray-500 dark:text-gray-400 hover:border-gray-300 hover:text-gray-700 dark:hover:border-gray-500 dark:hover:text-gray-200",
                             item.current
                               ? "border-blue-500 text-gray-900 dark:text-white"
                               : ""
@@ -83,7 +83,10 @@ export function NavBar({ items = [], rootClassNames = "" }) {
                                     child?.onClick ? child.onClick(e) : null;
                                   }}
                                   className={twMerge(
-                                    "block py-2 pl-3 pr-4 text-sm text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-200"
+                                    "block py-2 pl-3 pr-4 text-sm text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-200 z-50",
+                                    child.current
+                                      ? "border-blue-500 text-gray-900 dark:text-white"
+                                      : ""
                                   )}
                                   aria-current={
                                     child.current ? "page" : undefined
