@@ -143,7 +143,7 @@ export function StepResults({
                           className="tool-code-ctr"
                           code={step?.sql || ""}
                           language="sql"
-                          editable={false}
+                          editable={true}
                         />
                       </div>
                     </div>
