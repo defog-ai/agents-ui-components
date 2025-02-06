@@ -73,7 +73,7 @@ export function NavBar({ items = [], rootClassNames = "" }) {
                           {item.title}
                         </a>
                         {item.children && item.children.length > 0 && (
-                          <ul className="absolute left-0 mt-2 hidden group-hover:block bg-white dark:bg-gray-800 shadow-lg text-sm text-gray-500 z-50">
+                          <ul className="absolute left-0 mt-2 hidden group-hover:block bg-white dark:bg-gray-800 shadow-lg text-sm text-gray-500 z-50 w-[150px]">
                             {item.children.map((child) => (
                               <li key={child.title}>
                                 <a
