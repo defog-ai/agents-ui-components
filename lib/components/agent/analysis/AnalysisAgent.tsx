@@ -9,7 +9,6 @@ import React, {
   useSyncExternalStore,
 } from "react";
 import AgentLoader from "../../common/AgentLoader";
-import StepsDag, { DagLink, DagResult } from "./StepsDag";
 import {
   raf,
   sentenceCase,
@@ -666,70 +665,6 @@ export const AnalysisAgent = ({
                     )}
                   </ErrorBoundary>
                 </div>
-                {analysisData?.gen_steps?.steps && (
-                  <div className="hidden border-b border-b-gray-300 dark:border-b-gray-600 sm:border-b-0 lg:border-b-none analysis-steps flex-initial rounded-t-3xl lg:rounded-r-3xl lg:rounded-tl-none bg-gray-50 dark:bg-gray-900">
-                    <Collapse
-                      rootClassNames="mb-0 bg-gray-50 dark:bg-gray-900 w-full rounded-t-3xl lg:rounded-r-3xl lg:rounded-tl-none lg:h-full"
-                      title={
-                        <div className="">
-                          <span className="font-light lg:font-bold text-sm dark:text-gray-300">
-                            Steps
-                          </span>
-                          {analysisData.currentStage === "gen_steps" &&
-                          analysisBusy ? (
-                            <SpinningLoader classNames="ml-2 w-3 h-3 text-gray-400 dark:text-gray-500"></SpinningLoader>
-                          ) : (
-                            ""
-                          )}
-                        </div>
-                      }
-                      headerClassNames="lg:hidden flex flex-row items-center pl-5 lg:pointer-events-none lg:cursor-default"
-                      iconClassNames="lg:hidden"
-                      collapsed={collapsed}
-                      alwaysOpen={!collapsed}
-                    >
-                      <StepsDag
-                        steps={analysisData?.gen_steps?.steps || []}
-                        nodeSize={[40, 10]}
-                        nodeGap={[30, 50]}
-                        setActiveNode={setActiveNode}
-                        skipAddStepNode={true}
-                        reRunningSteps={reRunningSteps}
-                        activeNode={activeNode}
-                        stageDone={
-                          analysisData.currentStage === "gen_steps"
-                            ? !analysisBusy
-                            : true
-                        }
-                        dag={dag}
-                        setDag={setDag}
-                        dagLinks={dagLinks}
-                        setDagLinks={setDagLinks}
-                        extraNodeClasses={(node) => {
-                          return node?.data?.isTool
-                            ? `rounded-md px-1 text-center`
-                            : "";
-                        }}
-                        toolIcon={(node) => {
-                          return (
-                            <p className="text-sm truncate m-0 dark:text-gray-300">
-                              {trimStringToLength(
-                                // @ts-ignore
-                                toolShortNames[node?.data?.step?.tool_name] ||
-                                  // @ts-ignore
-                                  tools[node?.data?.step?.tool_name]?.[
-                                    "tool_name"
-                                  ] ||
-                                  node?.data?.step?.tool_name,
-                                15
-                              )}
-                            </p>
-                          );
-                        }}
-                      />
-                    </Collapse>
-                  </div>
-                )}
               </div>
             ) : (
               <></>
