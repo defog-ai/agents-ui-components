@@ -7,16 +7,14 @@ import { StepReRun } from "./StepReRun";
 import AgentLoader from "../../../common/AgentLoader";
 import ErrorBoundary from "../../../common/ErrorBoundary";
 import { toolDisplayNames } from "../../../utils/utils";
-import { AddStepUI } from "../../add-step/AddStepUI";
 import { Tabs } from "../../../core-ui/Tabs";
 import { AgentConfigContext } from "../../../context/AgentContext";
-import { SkeletalLoader, SpinningLoader } from "@ui-components";
+import { SkeletalLoader } from "@ui-components";
 import SQLFeedback from "./SQLFeedback";
 import StepFollowOn from "./StepFollowOn";
 import { CodeEditor } from "./CodeEditor";
 import type { AnalysisTreeManager } from "../../analysis-tree-viewer/analysisTreeManager";
 import { AnalysisData, ParsedOutput, Step } from "../analysisManager";
-import { DagNode, DagResult } from "../StepsDag";
 
 export function StepResults({
   analysisId,
@@ -92,57 +90,6 @@ export function StepResults({
     [stepId]
   );
 
-  useEffect(() => {
-    if (!activeNode) return;
-
-    async function getAvailableInputDfs() {
-      let availableInputDfs = [];
-      try {
-        if (!activeNode || !activeNode.ancestors) availableInputDfs = [];
-
-        availableInputDfs = [...dag.nodes()]
-          .filter(
-            (d) =>
-              d.data.id !== activeNode.data.id &&
-              !d.data.isError &&
-              !d.data.isAddStepNode
-          )
-          .map((ancestor) => ancestor);
-      } catch (e) {
-        console.log(e);
-        availableInputDfs = [];
-      }
-
-      let parentStepIds = availableInputDfs.map((n) => n.data.id);
-
-      // get the data for all those parents
-      if (!analysisData || !analysisData?.gen_steps?.steps) return;
-
-      let parentNodeOutputs = analysisData.gen_steps.steps
-        .filter((s) => parentStepIds.includes(s.id))
-        .reduce((acc, d) => {
-          try {
-            // i don't trust LLMs
-            const parsedOutputs =
-              analysisData?.gen_steps?.steps?.find((s) => s.id === d.id)
-                ?.parsedOutputs || {};
-            Object.keys(parsedOutputs).forEach((k) => {
-              acc[k] = parsedOutputs[k]?.data;
-            });
-          } catch (e) {
-            console.log("Error parsing outputs of step: ", d);
-            console.log(e);
-          }
-
-          return acc;
-        }, {});
-
-      setParentNodeOutputs(parentNodeOutputs);
-    }
-
-    getAvailableInputDfs();
-  }, [activeNode, reRunningSteps]);
-
   const tabs = useMemo(() => {
     return [
       {
@@ -171,24 +118,9 @@ export function StepResults({
                 stepId={stepId}
                 step={step}
                 availableOutputNodes={availableOutputNodes}
-                setActiveNode={setActiveNode}
                 handleEdit={handleEdit}
                 parentNodeOutputs={parentNodeOutputs}
               ></StepInputs>
-            </div>
-            <div className="my-4">
-              <p className="mb-4 text-xs text-gray-400">OUTPUTS</p>
-              <StepOutputs
-                showCode={agentConfigContext.val.showCode}
-                analysisId={analysisId}
-                stepId={stepId}
-                step={step}
-                codeStr={step?.code_str}
-                sql={step?.sql}
-                handleEdit={handleEdit}
-                availableOutputNodes={availableOutputNodes}
-                setActiveNode={setActiveNode}
-              ></StepOutputs>
             </div>
             {step?.sql && (
               // get feedback from user if the sql is good or not
@@ -323,7 +255,7 @@ export function StepResults({
     return reRunningSteps.some((s) => s.id === stepId);
   }, [reRunningSteps, stepId]);
 
-  return !activeNode || !activeNode.data || !parsedOutputs || !step ? (
+  return !parsedOutputs || !step ? (
     <></>
   ) : (
     <div
@@ -347,14 +279,6 @@ export function StepResults({
         <div className="tool-run-loading">
           <AgentLoader message={"Running analysis..."} />
         </div>
-      ) : activeNode && activeNode.data.isAddStepNode ? (
-        <AddStepUI
-          analysisId={analysisId}
-          activeNode={activeNode}
-          onSubmit={onCreateNewStep}
-          parentNodeOutputs={parentNodeOutputs}
-          tools={tools}
-        />
       ) : step?.error_message && !activeNode.data.isTool ? (
         <StepError error_message={step?.error_message}></StepError>
       ) : hideSqlTab ? (
