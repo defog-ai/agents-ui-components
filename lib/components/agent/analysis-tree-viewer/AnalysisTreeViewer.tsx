@@ -362,13 +362,26 @@ const AnalysisTreeContent = ({
 }) => {
   if (!activeRootAnalysisId || !nestedTree[activeRootAnalysisId]) return null;
 
+  const activeAnalysisId = analysisTreeManager.getActiveAnalysisId();
+
+  const getAnalysisClasses = (analysisId: string) => {
+    const isActive = analysisId === activeAnalysisId;
+    return twMerge(
+      "w-full mb-4 [&_.analysis-content]:min-h-96 shadow-md transition-opacity duration-200",
+      `analysis-${analysisId}`,
+      isActive
+        ? "ring-2 ring-blue-500 dark:ring-blue-400 bg-white dark:bg-gray-800 z-2 relative"
+        : "opacity-50 hover:opacity-75 bg-gray-50/80 dark:bg-gray-900/80 relative -z-0"
+    );
+  };
+
   return (
     <>
       <AnalysisAgent
         key={activeRootAnalysisId}
         setGlobalLoading={setLoading}
         metadata={metadata}
-        rootClassNames={`w-full mb-4 [&_.analysis-content]:min-h-96 shadow-md analysis-${activeRootAnalysisId}`}
+        rootClassNames={getAnalysisClasses(activeRootAnalysisId)}
         analysisId={activeRootAnalysisId}
         rootAnalysisId={activeRootAnalysisId}
         createAnalysisRequestBody={
@@ -418,7 +431,7 @@ const AnalysisTreeContent = ({
           <AnalysisAgent
             key={child.analysisId}
             metadata={metadata}
-            rootClassNames={`w-full mb-4 [&_.analysis-content]:min-h-96 shadow-md analysis-${child.analysisId}`}
+            rootClassNames={getAnalysisClasses(child.analysisId)}
             analysisId={child.analysisId}
             rootAnalysisId={child.rootAnalysisId}
             createAnalysisRequestBody={child.createAnalysisRequestBody}
