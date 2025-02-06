@@ -2,12 +2,13 @@ import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { StepResultsTable } from "./StepResultsTable";
 import { StepError } from "./StepError";
 import { StepInputs } from "./StepInputs";
-import { StepOutputs } from "./StepOutputs";
+
 import { StepReRun } from "./StepReRun";
 import AgentLoader from "../../../common/AgentLoader";
 import ErrorBoundary from "../../../common/ErrorBoundary";
 import { toolDisplayNames } from "../../../utils/utils";
 import { Tabs } from "../../../core-ui/Tabs";
+
 import { AgentConfigContext } from "../../../context/AgentContext";
 import { SkeletalLoader } from "@ui-components";
 import SQLFeedback from "./SQLFeedback";
@@ -15,6 +16,11 @@ import StepFollowOn from "./StepFollowOn";
 import { CodeEditor } from "./CodeEditor";
 import type { AnalysisTreeManager } from "../../analysis-tree-viewer/analysisTreeManager";
 import { AnalysisData, ParsedOutput, Step } from "../analysisManager";
+import { Database } from "lucide-react";
+import React from "react";
+const toolIcons = {
+  data_fetcher_and_aggregator: Database,
+};
 
 export function StepResults({
   analysisId,
@@ -23,13 +29,15 @@ export function StepResults({
   keyName,
   token,
   apiEndpoint,
-  handleReRun = (...args) => {},
+  setActiveNode = (node: DagNode) => {},
+  handleReRun = (...args: any[]) => {},
   reRunningSteps = [],
-  updateStepData = (...args) => {},
+  updateStepData = (...args: any[]) => {},
+  onCreateNewStep = async (...args: any[]) => {},
   // toolRunDataCache = {},
   tools = {},
   analysisBusy = false,
-  setCurrentQuestion = (...args) => {},
+  setCurrentQuestion = (...args: any[]) => {},
   analysisTreeManager = null,
 }: {
   analysisId: string;
@@ -38,13 +46,15 @@ export function StepResults({
   keyName: string;
   token: string;
   apiEndpoint: string;
-  handleReRun: (...args: any) => void;
+  setActiveNode: (node: DagNode) => void;
+  handleReRun: (...args: any[]) => void;
   reRunningSteps: Step[];
   updateStepData: (stepId: string, update: Record<string, any>) => void;
+  onCreateNewStep: (...args: any[]) => Promise<void>;
   // toolRunDataCache: any;
   tools: any;
   analysisBusy: boolean;
-  setCurrentQuestion: (...args: any) => void;
+  setCurrentQuestion: (...args: any[]) => void;
   analysisTreeManager: AnalysisTreeManager;
 }) {
   const agentConfigContext = useContext(AgentConfigContext);
@@ -84,107 +94,97 @@ export function StepResults({
             {step?.error_message && (
               <StepError error_message={step?.error_message}></StepError>
             )}
-            <div className="flex flex-row gap-2 tool-action-buttons">
-              {/* {edited && ( */}
-              <StepReRun
-                className="font-mono text-gray-500 border border-gray-200 bg-gray-50 hover:bg-blue-500 hover:text-white active:hover:text-white hover:border-transparent"
-                onClick={() => {
-                  handleReRun(stepId);
-                }}
-              ></StepReRun>
-            </div>
-            <p className="mt-4 mb-2 text-lg">
-              {toolDisplayNames[step.tool_name]}
-            </p>
-            <div className="my-4">
-              <p className="mb-4 text-xs text-gray-400">INPUTS</p>
-              <StepInputs
-                analysisId={analysisId}
-                stepId={stepId}
-                step={step}
-                handleEdit={handleEdit}
-              ></StepInputs>
-            </div>
-            <div className="my-4">
-              <p className="mb-4 text-xs text-gray-400">OUTPUTS</p>
-              <StepOutputs
-                analysisId={analysisId}
-                stepId={stepId}
-                sql={step?.sql}
-                handleEdit={handleEdit}
-              ></StepOutputs>
-            </div>
-            {step?.sql && (
-              // get feedback from user if the sql is good or not
-              <>
-                <SQLFeedback
-                  question={step?.inputs?.question}
-                  sql={step?.sql}
-                  previous_context={step?.inputs?.previous_context}
-                  apiEndpoint={apiEndpoint}
-                  token={token}
-                  keyName={keyName}
-                  analysisId={analysisId}
-                />
-                {step?.reference_queries?.length > 0 ? (
-                  <>
-                    <p className="mt-8 mb-2 font-mono text-sm">
-                      <span className="font-bold dark:text-gray-200">
-                        Reference Queries
-                      </span>
-                      :
-                      <span className="dark:text-gray-300">
-                        these queries were selected as reference queries, among
-                        all the golden queries you uploaded. If the query
-                        generated above is not correct, consider adding some
-                        related golden queries to help Defog answer your
-                        questions correctly.
-                      </span>
-                    </p>
-                    <Tabs
-                      disableSingleSelect={true}
-                      size="small"
-                      defaultSelected="Question 1"
-                      // @ts-ignore
-                      tabs={step.reference_queries.map((query, i) => ({
-                        name: `Question ${i + 1}`,
-                        content: (
-                          <div>
-                            <p className="my-4 ml-2 text-sm font-semibold dark:text-gray-300">
-                              {query.question}
-                            </p>
-                            <CodeEditor
-                              className="tool-code-ctr"
-                              code={query.sql}
-                              language="sql"
-                              editable={false}
-                            />
-                          </div>
-                        ),
-                      }))}
-                    />
-                  </>
-                ) : null}
+            <div className="flex ">
+              <div className="w-full">
+                {/* Header Section */}
+                <div className="flex items-center gap-2 mb-6 ">
+                  {toolIcons[step.tool_name] && (
+                    <span className="text-gray-500 size-4">
+                      {React.createElement(toolIcons[step.tool_name], {
+                        size: 16,
+                        className: "text-gray-500",
+                      })}
+                    </span>
+                  )}
+                  <p className="text-lg font-medium text-gray-700 dark:text-gray-200">
+                    {toolDisplayNames[step.tool_name]}
+                  </p>
+                </div>
 
-                {step.instructions_used && (
-                  <>
-                    <p className="mt-8 mb-2 font-mono text-sm">
-                      <span className="font-bold dark:text-gray-200">
-                        Relevant Instructions
-                      </span>
-                      :
-                      <span className="dark:text-gray-300">
-                        these instructions were selected to create this SQL
-                        query
-                      </span>
-                    </p>
-                    <p className="pl-4 mt-2 mb-4 text-sm leading-relaxed rounded whitespace-break-spaces dark:text-gray-300">
-                      {step.instructions_used}
-                    </p>
-                  </>
-                )}
-              </>
-            )}
+                {/* Two Column Layout */}
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                  {/* Left Column - Input & Filters */}
+                  <div className="space-y-6">
+                    {/* Inputs Section */}
+                    <div className="space-y-2">
+                      <h3 className="text-xs font-medium text-gray-400 uppercase">
+                        Inputs
+                      </h3>
+                      <div className="p-4 rounded-lg bg-gray-50 dark:bg-gray-800">
+                        <StepInputs
+                          analysisId={analysisId}
+                          stepId={stepId}
+                          step={step}
+                          handleEdit={handleEdit}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right Column - Generated SQL & Instructions */}
+                  <div className="space-y-6">
+                    {/* Generated SQL Section */}
+                    <div className="space-y-2">
+                      <h3 className="text-xs font-medium text-gray-400 uppercase">
+                        Generated SQL
+                      </h3>
+                      <div className="rounded-lg ">
+                        <CodeEditor
+                          className="tool-code-ctr"
+                          code={step?.sql || ""}
+                          language="sql"
+                          editable={false}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Relevant Instructions */}
+                    {step?.instructions_used && (
+                      <div className="space-y-2">
+                        <h3 className="text-xs font-medium text-gray-400 uppercase">
+                          Instructions used for this query
+                        </h3>
+                        <div className="p-4 rounded-lg bg-gray-50 dark:bg-gray-800">
+                          <p className="text-sm leading-relaxed text-gray-600 dark:text-gray-300 whitespace-break-spaces">
+                            {step.instructions_used}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* SQL Feedback preserved as is */}
+                    <div className="flex justify-between mt-auto">
+                      <SQLFeedback
+                        question={step?.inputs?.question}
+                        sql={step?.sql}
+                        previous_context={step?.inputs?.previous_context}
+                        apiEndpoint={apiEndpoint}
+                        token={token}
+                        keyName={keyName}
+                        analysisId={analysisId}
+                      />
+                      {/* Re-run Button - Bottom Right */}
+                      <div className="flex justify-end ">
+                        <StepReRun
+                          className="h-10 px-4 py-2 font-mono text-white bg-gray-600 border border-gray-200 hover:bg-blue-500 hover:text-white active:hover:text-white hover:border-transparent"
+                          onClick={() => handleReRun(stepId)}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </ErrorBoundary>
         ),
       },
@@ -256,7 +256,7 @@ export function StepResults({
         <div className="absolute top-0 left-0 z-20 flex flex-col items-center justify-center w-full h-full bg-white dark:bg-gray-900 bg-opacity-90 dark:bg-opacity-90 text-md dark:text-gray-300">
           <span className="my-1">
             Last executed step:{" "}
-            {toolDisplayNames[step?.tool_name] || step?.tool_name}
+            {toolDisplayNames[step?.tool_name]?.name || step?.tool_name}
           </span>
           <span className="my-1">Now executing the next step</span>
           <SkeletalLoader classNames="text-gray-500 dark:text-gray-400 w-5 h-5" />
