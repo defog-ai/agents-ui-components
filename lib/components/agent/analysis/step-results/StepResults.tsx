@@ -105,6 +105,15 @@ export function StepResults({
                 handleEdit={handleEdit}
               ></StepInputs>
             </div>
+            <div className="my-4">
+              <p className="mb-4 text-xs text-gray-400">OUTPUTS</p>
+              <StepOutputs
+                analysisId={analysisId}
+                stepId={stepId}
+                sql={step?.sql}
+                handleEdit={handleEdit}
+              ></StepOutputs>
+            </div>
             {step?.sql && (
               // get feedback from user if the sql is good or not
               <>
