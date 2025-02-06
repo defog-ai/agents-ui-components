@@ -2,21 +2,21 @@ import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { StepResultsTable } from "./StepResultsTable";
 import { StepError } from "./StepError";
 import { StepInputs } from "./StepInputs";
-import { StepOutputs } from "./StepOutputs";
+
 import { StepReRun } from "./StepReRun";
 import AgentLoader from "../../../common/AgentLoader";
 import ErrorBoundary from "../../../common/ErrorBoundary";
 import { toolDisplayNames } from "../../../utils/utils";
 import { Tabs } from "../../../core-ui/Tabs";
-import type { Tab } from "../../../core-ui/Tabs";
+
 import { AgentConfigContext } from "../../../context/AgentContext";
-import { SkeletalLoader, SpinningLoader, Collapse } from "@ui-components";
+import { SkeletalLoader } from "@ui-components";
 import SQLFeedback from "./SQLFeedback";
 import StepFollowOn from "./StepFollowOn";
 import { CodeEditor } from "./CodeEditor";
 import type { AnalysisTreeManager } from "../../analysis-tree-viewer/analysisTreeManager";
 import { AnalysisData, ParsedOutput, Step } from "../analysisManager";
-import { DagNode, DagResult } from "../StepsDag";
+
 import React from "react";
 
 export function StepResults({
@@ -125,10 +125,7 @@ export function StepResults({
                           analysisId={analysisId}
                           stepId={stepId}
                           step={step}
-                          availableOutputNodes={availableOutputNodes}
-                          setActiveNode={setActiveNode}
                           handleEdit={handleEdit}
-                          parentNodeOutputs={parentNodeOutputs}
                         />
                       </div>
                     </div>
