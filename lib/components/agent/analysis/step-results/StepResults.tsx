@@ -22,14 +22,10 @@ export function StepResults({
   step,
   keyName,
   token,
-  activeNode,
-  dag = null,
   apiEndpoint,
-  setActiveNode = (...args) => {},
   handleReRun = (...args) => {},
   reRunningSteps = [],
   updateStepData = (...args) => {},
-  onCreateNewStep = async (...args) => {},
   // toolRunDataCache = {},
   tools = {},
   analysisBusy = false,
@@ -41,14 +37,10 @@ export function StepResults({
   step: Step;
   keyName: string;
   token: string;
-  activeNode: DagNode;
-  dag: DagResult["dag"];
   apiEndpoint: string;
-  setActiveNode: (node: DagNode) => void;
   handleReRun: (...args: any) => void;
   reRunningSteps: Step[];
   updateStepData: (stepId: string, update: Record<string, any>) => void;
-  onCreateNewStep: (...args: any) => Promise<void>;
   // toolRunDataCache: any;
   tools: any;
   analysisBusy: boolean;
@@ -65,13 +57,6 @@ export function StepResults({
   }, [step, analysisData]);
 
   const stepId = step.id;
-
-  const [parentNodeOutputs, setParentNodeOutputs] = useState({});
-
-  const availableOutputNodes = useMemo(
-    () => (dag && [...dag?.nodes()].filter((n) => !n.data.isTool)) || [],
-    [dag]
-  );
 
   const handleEdit = useCallback(
     ({ analysis_id, step_id, update_prop, new_val }) => {
@@ -117,9 +102,7 @@ export function StepResults({
                 analysisId={analysisId}
                 stepId={stepId}
                 step={step}
-                availableOutputNodes={availableOutputNodes}
                 handleEdit={handleEdit}
-                parentNodeOutputs={parentNodeOutputs}
               ></StepInputs>
             </div>
             {step?.sql && (
@@ -201,7 +184,7 @@ export function StepResults({
         // if we have an error message in the step, show that
         // if we have no parsedOutputs: show a message saying "No data found"
         content: Object.values(parsedOutputs).length ? (
-          Object.values(parsedOutputs).map((output) => {
+          Object.entries(parsedOutputs).map(([outputKey, output]) => {
             return (
               <div key={crypto.randomUUID()}>
                 <StepResultsTable
@@ -210,7 +193,7 @@ export function StepResults({
                   stepData={output}
                   apiEndpoint={apiEndpoint}
                   chartImages={output["chart_images"]}
-                  nodeName={activeNode?.data?.name}
+                  nodeName={outputKey}
                   analysisId={analysisId}
                   initialQuestion={step?.inputs?.question}
                   analysisTreeManager={analysisTreeManager}
@@ -258,10 +241,7 @@ export function StepResults({
   return !parsedOutputs || !step ? (
     <></>
   ) : (
-    <div
-      className="w-full h-full tool-results-ctr"
-      data-is-tool={activeNode.data.isTool}
-    >
+    <div className="w-full h-full tool-results-ctr">
       {/* create a translucent overlay if displayLoadingOverlay is true */}
       {analysisBusy && (
         <div className="absolute top-0 left-0 z-20 flex flex-col items-center justify-center w-full h-full bg-white dark:bg-gray-900 bg-opacity-90 dark:bg-opacity-90 text-md dark:text-gray-300">
@@ -279,7 +259,7 @@ export function StepResults({
         <div className="tool-run-loading">
           <AgentLoader message={"Running analysis..."} />
         </div>
-      ) : step?.error_message && !activeNode.data.isTool ? (
+      ) : step?.error_message ? (
         <StepError error_message={step?.error_message}></StepError>
       ) : hideSqlTab ? (
         <div>{tabs.filter((d) => d.name === "Analysis")?.[0]?.content}</div>

@@ -9,22 +9,13 @@ import React, {
   useSyncExternalStore,
 } from "react";
 import AgentLoader from "../../common/AgentLoader";
-import {
-  raf,
-  sentenceCase,
-  toolShortNames,
-  trimStringToLength,
-} from "../../utils/utils";
+import { sentenceCase } from "../../utils/utils";
 import Clarify from "./Clarify";
 import type { AnalysisData, AnalysisManager } from "./analysisManager";
-import setupBaseUrl from "../../utils/setupBaseUrl";
-// import { AnalysisFeedback } from "../feedback/AnalysisFeedback";
 import {
   breakpoints,
-  Collapse,
   Input,
   MessageManagerContext,
-  SpinningLoader,
   useWindowSize,
 } from "@ui-components";
 import { twMerge } from "tailwind-merge";
@@ -210,14 +201,9 @@ export const AnalysisAgent = ({
   const { devMode, apiEndpoint, token } = agentConfigContext.val;
 
   const [reRunningSteps, setRerunningSteps] = useState([]);
-  const [activeNode, setActiveNodePrivate] = useState(null);
-  const [dag, setDag] = useState<DagResult["dag"] | null>(null);
-  const [dagLinks, setDagLinks] = useState<DagLink[]>([]);
 
   // we use this to prevent multiple rerender/updates when a user edits the step inputs
-  // we flush these pending updates to the actual analysis data when:
-  // 1. the active node changes
-  // 2. the user submits the step for re running
+  // we flush these pending updates to the actual analysis data when the user submits the step for re running
   const pendingStepUpdates = useRef<{ [stepId: string]: any }>({});
 
   const windowSize = useWindowSize();
@@ -438,8 +424,8 @@ export const AnalysisAgent = ({
 
   const handleReRun = useCallback(
     async (stepId: string) => {
-      if (!stepId || !dag || !analysisId || !activeNode || !analysisManager) {
-        console.log(stepId, dag, analysisId, activeNode, analysisManager);
+      if (!stepId || !analysisId || !analysisManager) {
+        console.log(stepId, analysisId, analysisManager);
         messageManager.error("Invalid step id or analysis data");
 
         return;
@@ -461,11 +447,8 @@ export const AnalysisAgent = ({
     },
     [
       analysisId,
-      JSON.stringify(activeNode),
-      dag,
       analysisManager,
       agentConfigContext?.val?.sqliteConn,
-      activeNode,
       messageManager,
     ]
   );
@@ -502,22 +485,10 @@ export const AnalysisAgent = ({
     </>
   );
 
-  const setActiveNode = useCallback(
-    (node: any) => {
-      setActiveNodePrivate(node);
-      analysisManager.setActiveStepId(node?.data?.id || null);
-      if (Object.keys(pendingStepUpdates.current).length) {
-        analysisManager.updateStepData(pendingStepUpdates.current);
-        pendingStepUpdates.current = {};
-      }
-    },
-    [setActiveNodePrivate, analysisManager]
-  );
-
   const activeStep = useMemo(() => {
-    if (!activeNode || !analysisData || !analysisData.gen_steps) return null;
+    if (!analysisData || !analysisData.gen_steps) return null;
     return analysisManager.getActiveStep();
-  }, [activeNode, analysisData, analysisManager]);
+  }, [analysisData, analysisManager]);
 
   return (
     <ErrorBoundary>
@@ -606,30 +577,13 @@ export const AnalysisAgent = ({
                             // but in sql only case, we only have a local copy
                             <StepResults
                               analysisId={analysisId}
-                              activeNode={activeNode}
                               analysisData={analysisData}
                               step={activeStep}
                               apiEndpoint={apiEndpoint}
-                              // @ts-ignore
-                              dag={dag}
-                              setActiveNode={setActiveNode}
                               handleReRun={handleReRun}
                               reRunningSteps={reRunningSteps}
                               keyName={keyName}
                               token={token}
-                              onCreateNewStep={async function ({
-                                tool_name,
-                                inputs,
-                                analysis_id,
-                                outputs_storage_keys,
-                              }) {
-                                await analysisManager.createNewStep({
-                                  tool_name,
-                                  inputs,
-                                  analysis_id,
-                                  outputs_storage_keys,
-                                });
-                              }}
                               updateStepData={(stepId, updates) => {
                                 if (!analysisManager) return;
                                 if (analysisBusy) return;

@@ -367,53 +367,11 @@ export function StepInputs({
   analysisId,
   stepId,
   step,
-  availableOutputNodes = [],
   setActiveNode = (...args) => {},
   handleEdit = (...args) => {},
-  parentNodeOutputs = {},
 }) {
-  // parse inputs
-  // if inputs doesn't start with global_dict, then it's it's type is whatever typeof returns
-  // if it does start with global_dict, then it is a pandas dataframe
-  // with a corresponding node somewhere in the dag
-  // if there's parsedOutputs, use the .columns property from that
-  let availableParentColumns = [];
-
-  Object.keys(parentNodeOutputs).forEach((output_df_name) => {
-    if (
-      !parentNodeOutputs[output_df_name]?.columns ||
-      !parentNodeOutputs[output_df_name]?.data
-    )
-      return;
-
-    availableParentColumns = availableParentColumns.concat(
-      parentNodeOutputs?.[output_df_name]?.columns || []
-    );
-  });
-
   const [inputs, setInputs] = useState(step.inputs);
   const [inputMetadata, setInputMetadata] = useState(step.input_metadata);
-
-  const ctr = useCallback(
-    (node) => {
-      if (node) {
-        // hacky as f from here: https://github.com/facebook/react/issues/20863
-        // my guess is requestAnimationFrame is needed to ensure browser is finished painting the DOM
-        // before we try to focus
-        window.requestAnimationFrame(() => {
-          setTimeout(() => {
-            // put the focus on the first input on first render
-            const el = node.querySelector(
-              "div.tool-input-value, input.tool-input-value"
-            );
-            if (!el) return;
-            el.focus();
-          }, 0);
-        });
-      }
-    },
-    [stepId]
-  );
 
   // prop is input name, newVal is the new value
   function onEdit(prop, newVal) {
@@ -471,9 +429,9 @@ export function StepInputs({
                     onEdit(prop, newVal);
                   },
                   {
-                    availableOutputNodes,
+                    availableOutputNodes: [],
                     setActiveNode,
-                    availableParentColumns,
+                    availableParentColumns: [],
                     inputMetadata,
                     type: inputMetadata[input_name].type,
                   }
