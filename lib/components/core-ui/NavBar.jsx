@@ -20,7 +20,7 @@ import { Logo } from "./Logo";
 // ]
 /**
  * @typedef {Object} NavBarProps
- * @property {Array<{title: string, href: string, current: boolean, onClick: function, children: Array<{title: string, href: string}>}>} [items] - The items to be displayed in the navbar.
+ * @property {Array<{title: string, href: string, current: boolean, onClick: function, children: Array<{title: string, href: string, current: boolean}>}>} [items] - The items to be displayed in the navbar.
  * @property {string} [rootClassNames] - Additional classes to be added to the root div.
  */
 
@@ -41,7 +41,6 @@ export function NavBar({ items = [], rootClassNames = "" }) {
               <Logo classNames="h-7 dark:invert" />
             </div>
             <div className="hidden xl:ml-6 xl:flex xl:space-x-8">
-              {/* Current: "border-blue-500 text-gray-900", Default: "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700" */}
               <ul className="flex space-x-8">
                 {items.map(
                   (item) =>
@@ -83,9 +82,9 @@ export function NavBar({ items = [], rootClassNames = "" }) {
                                     child?.onClick ? child.onClick(e) : null;
                                   }}
                                   className={twMerge(
-                                    "block py-2 pl-3 pr-4 text-sm text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-200",
+                                    "block py-2 pl-3 pr-4 text-sm text-gray-500 dark:text-gray-400  hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-200",
                                     child.current
-                                      ? "border-blue-500 text-gray-900 dark:text-white"
+                                      ? "text-gray-900 dark:text-white underline decoration-blue-500 decoration-2 underline-offset-8"
                                       : ""
                                   )}
                                   aria-current={
