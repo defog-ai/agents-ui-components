@@ -88,10 +88,10 @@ export function StepResults({
         name: "SQL/Code",
         content: (
           <ErrorBoundary maybeOldAnalysis={true}>
-            <div className="flex">
-              {step?.error_message && (
-                <StepError error_message={step?.error_message}></StepError>
-              )}
+            {step?.error_message && (
+              <StepError error_message={step?.error_message}></StepError>
+            )}
+            <div className="flex ">
               <div className="w-full">
                 {/* Header Section */}
                 <div className="flex items-center gap-2 mb-6 ">
@@ -112,7 +112,7 @@ export function StepResults({
                 </div>
 
                 {/* Two Column Layout */}
-                <div className="grid grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                   {/* Left Column - Input & Filters */}
                   <div className="space-y-6">
                     {/* Inputs Section */}
@@ -259,7 +259,7 @@ export function StepResults({
         <div className="absolute top-0 left-0 z-20 flex flex-col items-center justify-center w-full h-full bg-white dark:bg-gray-900 bg-opacity-90 dark:bg-opacity-90 text-md dark:text-gray-300">
           <span className="my-1">
             Last executed step:{" "}
-            {toolDisplayNames[step?.tool_name] || step?.tool_name}
+            {toolDisplayNames[step?.tool_name]?.name || step?.tool_name}
           </span>
           <span className="my-1">Now executing the next step</span>
           <SkeletalLoader classNames="text-gray-500 dark:text-gray-400 w-5 h-5" />
