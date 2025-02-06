@@ -74,7 +74,7 @@ export function NavBar({ items = [], rootClassNames = "" }) {
                           {item.title}
                         </a>
                         {item.children && item.children.length > 0 && (
-                          <ul className="absolute left-0 mt-2 hidden group-hover:block bg-white shadow-lg text-sm text-gray-500">
+                          <ul className="absolute left-0 mt-2 hidden group-hover:block bg-white dark:bg-gray-800 shadow-lg text-sm text-gray-500 z-50">
                             {item.children.map((child) => (
                               <li key={child.title}>
                                 <a
@@ -83,7 +83,7 @@ export function NavBar({ items = [], rootClassNames = "" }) {
                                     child?.onClick ? child.onClick(e) : null;
                                   }}
                                   className={twMerge(
-                                    "block py-2 pl-3 pr-4 text-sm text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-200 z-50",
+                                    "block py-2 pl-3 pr-4 text-sm text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-200",
                                     child.current
                                       ? "border-blue-500 text-gray-900 dark:text-white"
                                       : ""
