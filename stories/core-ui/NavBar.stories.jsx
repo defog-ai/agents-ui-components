@@ -8,7 +8,7 @@ export default {
       <div>
         <NavBar
           items={[
-            { title: "Home", href: "/", current: true },
+            { title: "Home", href: "/", current: false },
             { title: "About", href: "/about", current: false },
             {
               title: "Services",
@@ -18,7 +18,7 @@ export default {
                 {
                   title: "Consulting",
                   href: "/services/consulting",
-                  current: false,
+                  current: true,
                 },
                 {
                   title: "Development",
