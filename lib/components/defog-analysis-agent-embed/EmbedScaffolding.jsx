@@ -43,10 +43,10 @@ export function EmbedScaffolding({
       >
         {availableDbs.length > 1 && (
           <>
-            <div className="h-full mr-2 font-bold z-10 whitespace-nowrap py-2">
+            <div className="z-10 h-full py-2 mr-2 font-bold whitespace-nowrap">
               Dataset:
             </div>
-            <div className="overflow-auto flex flex-row gap-2 px-2 items-center rounded-md">
+            <div className="flex flex-row items-center gap-2 px-2 overflow-auto rounded-md">
               {availableDbs.map((db, i) => {
                 return (
                   <span
@@ -86,7 +86,7 @@ export function EmbedScaffolding({
               onDbChange(null);
             }}
             className={twMerge(
-              "text-xs p-2 border flex items-center border-secondary-highlight-1/5 bg-secondary-highlight-1/80 hover:bg-secondary-highlight-1 text-white  rounded-full cursor-pointer whitespace-nowrap",
+              "text-xs z-[1000] p-2 border flex items-center border-secondary-highlight-1/5 bg-secondary-highlight-1/80 hover:bg-secondary-highlight-1 text-white  rounded-full cursor-pointer whitespace-nowrap",
               fileUploading
                 ? "cursor-not-allowed bg-gray-200 text-gray-400 hover:bg-gray-200"
                 : "",

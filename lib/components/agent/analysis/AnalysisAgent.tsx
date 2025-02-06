@@ -455,7 +455,7 @@ export const AnalysisAgent = ({
 
   const titleDiv = (
     <>
-      <div className="flex flex-row flex-wrap gap-4 p-6 items-center lg:items-start transition-all duration-200">
+      <div className="flex flex-row flex-wrap items-center gap-4 p-6 transition-all duration-200 lg:items-start">
         <h1 className="font-bold text-xl text-gray-700 dark:text-gray-200 basis-0 grow min-w-[50%]">
           {sentenceCase(
             analysisData?.user_question ||
@@ -470,7 +470,7 @@ export const AnalysisAgent = ({
           (!analysisData.currentStage && hasExternalSearchBar)
         ) ? null : (
           <div
-            className="basis-0 text-nowrap whitespace-nowrap group cursor-pointer"
+            className="cursor-pointer basis-0 text-nowrap whitespace-nowrap group"
             onClick={() => {
               console.log("clicked");
               setGlobalLoading(false);
@@ -507,7 +507,7 @@ export const AnalysisAgent = ({
         {/* means tis is being externally initialised using analysis viewer and initateautosubmit is true */}
         {!analysisData ||
         (!analysisData.currentStage && hasExternalSearchBar) ? (
-          <div className="transition-all w-full bg-gray-50 dark:bg-gray-900 rounded-3xl">
+          <div className="w-full transition-all bg-gray-50 dark:bg-gray-900 rounded-3xl">
             {titleDiv}
             <AgentLoader
               message={
@@ -523,7 +523,7 @@ export const AnalysisAgent = ({
         ) : (
           <>
             {!hasExternalSearchBar && !analysisData.currentStage ? (
-              <div className="w-10/12 mx-auto relative top-6">
+              <div className="relative w-10/12 mx-auto top-6">
                 <Input
                   ref={independentAnalysisSearchRef}
                   onPressEnter={(ev: any) => {
@@ -539,7 +539,7 @@ export const AnalysisAgent = ({
               <></>
             )}
             {analysisData.currentStage === "clarify" ? (
-              <div className="transition-all w-full bg-gray-50 dark:bg-gray-900 rounded-3xl">
+              <div className="w-full transition-all bg-gray-50 dark:bg-gray-900 rounded-3xl">
                 {titleDiv}
                 <Clarify
                   data={analysisData.clarify}
@@ -564,13 +564,13 @@ export const AnalysisAgent = ({
             )}
 
             {analysisData.currentStage === "gen_steps" ? (
-              <div className="analysis-content w-full flex flex-col-reverse lg:flex-row h-full">
-                <div className="analysis-results min-w-0 grow flex flex-col relative border-r dark:border-gray-600">
+              <div className="flex flex-col-reverse w-full h-full analysis-content lg:flex-row">
+                <div className="relative flex flex-col min-w-0 analysis-results grow dark:border-gray-600">
                   {titleDiv}
                   <ErrorBoundary>
                     {analysisData?.gen_steps?.steps.length ? (
                       <>
-                        <div className="grow px-6 rounded-b-3xl lg:rounded-br-none w-full bg-gray-50 dark:bg-gray-900">
+                        <div className="w-full px-6 grow rounded-3xl bg-gray-50 dark:bg-gray-900">
                           {activeStep && (
                             // if this is sqlonly, we will wait for tool run data to be updated before showing anything
                             // because in the normal case, the tool run data can be fetched from the servers
@@ -609,7 +609,7 @@ export const AnalysisAgent = ({
                       </>
                     ) : (
                       analysisBusy && (
-                        <div className="bg-gray-50 dark:bg-gray-900 h-full flex items-center justify-center w-full rounded-3xl">
+                        <div className="flex items-center justify-center w-full h-full bg-gray-50 dark:bg-gray-900 rounded-3xl">
                           <AgentLoader
                             message={"Fetching data..."}
                             classNames={"m-0 h-40 bg-transparent"}
