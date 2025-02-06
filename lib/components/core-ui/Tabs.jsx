@@ -119,7 +119,7 @@ export function Tabs({
         >
           <nav
             className={twMerge(
-              "isolate flex divide-gray-200 dark:divide-gray-700 shadow max-w-full overflow-scroll",
+              "isolate flex divide-gray-200 dark:divide-gray-700 shadow max-w-full overflow-auto",
               size === "small"
                 ? showVerticalTabs
                   ? ""
