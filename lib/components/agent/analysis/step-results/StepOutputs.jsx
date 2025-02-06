@@ -13,9 +13,6 @@ export function StepOutputs({
   setActiveNode,
   showCode = true,
 }) {
-  //   parse outputs
-  //   each output is a node somewhere in the dag
-
   const codeCtrRef = useRef(null);
   const [codeCollapsed, setCodeCollapsed] = useState(true);
 

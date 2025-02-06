@@ -301,6 +301,17 @@ function createAnalysisManager({
           stepData.parsedOutputs = {};
         }
       });
+
+      if (
+        // if this has actual steps, set the activeStepId to the last step
+        analysisData.gen_steps.steps.length > 0
+      ) {
+        const lastStep =
+          analysisData.gen_steps.steps[analysisData.gen_steps.steps.length - 1];
+        setActiveStepId(lastStep.id);
+      } else {
+        setActiveStepId(null);
+      }
     }
 
     emitDataChange();
@@ -326,7 +337,7 @@ function createAnalysisManager({
 
     // console.log("Analysis Manager init");
     // get analysis data
-    let fetchedAnalysisData = null;
+    let fetchedAnalysisData: AnalysisData | null = null;
     let newAnalysisCreated = false;
 
     if (existingData) {
@@ -427,6 +438,7 @@ function createAnalysisManager({
     ) {
       delete fetchedAnalysisData.gen_steps;
     }
+
     // update the analysis data
     setAnalysisData(fetchedAnalysisData);
 
