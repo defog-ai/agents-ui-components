@@ -29,11 +29,9 @@ export function StepResults({
   keyName,
   token,
   apiEndpoint,
-  setActiveNode = (node: DagNode) => {},
   handleReRun = (...args: any[]) => {},
   reRunningSteps = [],
   updateStepData = (...args: any[]) => {},
-  onCreateNewStep = async (...args: any[]) => {},
   // toolRunDataCache = {},
   tools = {},
   analysisBusy = false,
@@ -46,11 +44,9 @@ export function StepResults({
   keyName: string;
   token: string;
   apiEndpoint: string;
-  setActiveNode: (node: DagNode) => void;
   handleReRun: (...args: any[]) => void;
   reRunningSteps: Step[];
   updateStepData: (stepId: string, update: Record<string, any>) => void;
-  onCreateNewStep: (...args: any[]) => Promise<void>;
   // toolRunDataCache: any;
   tools: any;
   analysisBusy: boolean;
@@ -125,7 +121,6 @@ export function StepResults({
                           analysisId={analysisId}
                           stepId={stepId}
                           step={step}
-                          handleEdit={handleEdit}
                         />
                       </div>
                     </div>
