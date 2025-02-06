@@ -446,15 +446,14 @@ export function StepInputs({
             </span>
             <span className="font-bold">hard_filters</span>
           </div>
-          <div className="space-y-2">
+          <div className="pb-4 space-y-2">
             {inputs.hard_filters.map((filter, i) => (
-              <div key={i} className="flex items-center gap-2">
+              <div key={i} className="flex items-center gap-2 group">
                 <Input
-                  className="flex-1 px-2"
-                  rootClassNames="px-2"
+                  className="flex-1"
                   size="medium"
                   value={filter}
-                  placeholder="New Value"
+                  placeholder="Filter condition"
                   onChange={(ev) => {
                     const newFilters = [...inputs.hard_filters];
                     newFilters[i] = ev.target.value;
@@ -462,7 +461,7 @@ export function StepInputs({
                   }}
                 />
                 <button
-                  className="p-1.5 text-gray-400 hover:text-gray-600"
+                  className="p-1.5 text-gray-400  group-hover:text-red-500 transition-opacity"
                   onClick={() => {
                     const newFilters = inputs.hard_filters.filter(
                       (_, idx) => idx !== i
@@ -470,8 +469,8 @@ export function StepInputs({
                     onEdit("hard_filters", newFilters);
                   }}
                 >
-                  <span className="sr-only">Remove</span>
-                  <X size={16} />
+                  <span className="sr-only">Remove filter</span>
+                  <Trash2 size={16} />
                 </button>
               </div>
             ))}
@@ -479,9 +478,10 @@ export function StepInputs({
               onClick={() =>
                 onEdit("hard_filters", [...(inputs.hard_filters || []), ""])
               }
-              className="flex items-center gap-1.5 mb-4 px-2 py-1 text-xs font-medium text-gray-600 border border-gray-200 rounded hover:bg-gray-50"
+              className="flex mt-4 items-center gap-1.5 text-xs font-medium text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
             >
-              <span>+</span> Add Filter
+              <CirclePlus size={14} />
+              <span>Add Filter</span>
             </button>
           </div>
         </div>
