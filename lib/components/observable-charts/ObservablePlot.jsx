@@ -12,7 +12,6 @@ import {
   getColorScheme,
   getObservableOptions,
 } from "./plotUtils.ts";
-import { saveAsPNG } from "./utils/saveChart";
 import { Button } from "@ui-components";
 import { Download } from "lucide-react";
 import { ChartManagerContext } from "./ChartManagerContext";
@@ -22,10 +21,12 @@ dayjs.extend(minMax);
 import { convertWideToLong } from "../utils/utils";
 import { KeyboardShortcutIndicator } from "../core-ui/KeyboardShortcutIndicator";
 import { KEYMAP, matchesKey } from "../../constants/keymap";
+import { ChartExportModal } from "./components/ChartExportModal";
 
 export default function ObservablePlot() {
   const containerRef = useRef(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
   const chartManager = useContext(ChartManagerContext);
 
@@ -452,7 +453,7 @@ export default function ObservablePlot() {
           return;
         }
         if (matchesKey(e.key, KEYMAP.SAVE_CHART)) {
-          saveAsPNG(containerRef.current);
+          setIsExportModalOpen(true);
           e.preventDefault();
         }
       }
@@ -471,7 +472,7 @@ export default function ObservablePlot() {
           </div>
         )}
         <Button
-          onClick={() => saveAsPNG(containerRef.current)}
+          onClick={() => setIsExportModalOpen(true)}
           variant="ghost"
           className="flex items-center px-2.5 py-1.5 rounded-md border border-gray-200/50 
                 bg-white/95 hover:bg-gray-50/95 dark:bg-gray-800/95 dark:hover:bg-gray-700/95 
@@ -491,10 +492,16 @@ export default function ObservablePlot() {
       </div>
       <div
         ref={containerRef}
-        className="w-full mx-6  border-gray-200 observable-plot h-[500px] overflow-visible observable-plot"
+        className="w-full mx-6 border-gray-200 observable-plot h-[500px] overflow-visible observable-plot"
       >
         {/* Chart will be rendered here */}
       </div>
+
+      <ChartExportModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        sourceChartRef={containerRef}
+      />
     </div>
   );
 }
