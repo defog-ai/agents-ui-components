@@ -1,34 +1,45 @@
 import { CircleAlert } from "lucide-react";
-import React, { forwardRef } from "react";
+import React, { forwardRef, Ref } from "react";
 import { twMerge } from "tailwind-merge";
 
 const inputSizeClasses = {
   default: "py-1.5 pr-5 ",
   small: "py-0 pr-5",
 };
-/**
- * @typedef {React.ComponentPropsWithoutRef} InputProps
- * @property {string} [value] - The value of the input. Setting this converts this to a controlled component.
- * @property {string} [defaultValue] - Default initial value of the input.
- * @property {string | React.ReactNode} [label] - Label for the input.
- * @property {string} [type] - The type of the input. Can be "text", "password", "email", "number", "tel", "url".
- * @property {string} [status] - The status of the input. Can be "error". If "error" is set, the input will have a red border.
- * @property {boolean} [disabled] - If true, the input will be disabled.
- * @property {string} [rootClassNames] - Additional classes to be added to the root div.
- * @property {string} [placeholder] - Placeholder text for the input.
- * @property {string} [id] - Id of the input.
- * @property {string} [name] - Name of the input.
- * @property {function} [onChange] - Function to be called when the input value changes.
- * @property {function} [onPressEnter] - Function to be called when the enter key is pressed.
- * @property {object} [inputHtmlProps] - Additional props to be added to the input element.
- * @property {string} [inputClassNames] - Additional classes to be added to the input element.
- * @property {string} [size] - The size of the input. Can be "default" or "small".
- */
 
-/**
- * @type {React.FC<InputProps>}
- * Input component
- */
+interface InputProps {
+  /** The value of the input. Setting this converts this to a controlled component. */
+  value?: string | number;
+  /** Default initial value of the input. */
+  defaultValue?: string | number;
+  /** Label for the input. */
+  label?: string | React.ReactNode;
+  /** The type of the input. Can be "text", "password", "email", "number", "tel", "url". */
+  type?: string;
+  /** The status of the input. Can be "error". If "error" is set, the input will have a red border. */
+  status?: "error";
+  /** If true, the input will be disabled. */
+  disabled?: boolean;
+  /** Additional classes to be added to the root div. */
+  rootClassNames?: string;
+  /** Placeholder text for the input. */
+  placeholder?: string;
+  /** Id of the input. */
+  id?: string;
+  /** Name of the input. */
+  name?: string;
+  /** Function to be called when the input value changes. */
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  /** Function to be called when the enter key is pressed. */
+  onPressEnter?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+  /** Additional props to be added to the input element. */
+  inputHtmlProps?: object;
+  /** Additional classes to be added to the input element. */
+  inputClassNames?: string;
+  /** The size of the input. Can be "default" or "small". */
+  size?: "default" | "small";
+}
+
 let Input = forwardRef(function Input(
   {
     value = undefined,
@@ -46,8 +57,8 @@ let Input = forwardRef(function Input(
     inputHtmlProps = {},
     inputClassNames = "",
     size = "default",
-  },
-  ref
+  }: InputProps,
+  ref: Ref<HTMLInputElement>
 ) {
   return (
     <div

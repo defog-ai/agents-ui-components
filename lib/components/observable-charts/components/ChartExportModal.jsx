@@ -63,8 +63,10 @@ export function ChartExportModal({ isOpen, onClose, className = "" }) {
     width: DEFAULT_SIZE,
     height: DEFAULT_SIZE,
   });
-  const containerRef = useRef(null);
+  const chartRef = useRef(null);
   const widthInputRef = useRef(null);
+  const titleRef = useRef(null);
+  const chartWithTitleRef = useRef(null);
   const chartManager = useContext(ChartManagerContext);
   const [downloadState, setDownloadState] = useState("idle"); // "idle" | "downloading" | "saved"
 
@@ -76,8 +78,8 @@ export function ChartExportModal({ isOpen, onClose, className = "" }) {
 
   // Combined effect for rendering
   useEffect(() => {
-    if (!isOpen || !containerRef.current) return;
-    renderPlot(containerRef.current, dimensions, chartManager);
+    if (!isOpen || !chartRef.current) return;
+    renderPlot(chartRef.current, dimensions, chartManager);
   }, [isOpen, dimensions]);
 
   const handleDimensionChange = (dimension, value) => {
@@ -103,7 +105,12 @@ export function ChartExportModal({ isOpen, onClose, className = "" }) {
 
   const handleDownload = async () => {
     try {
-      await saveAsPNG(containerRef.current, dimensions);
+      // if there's a value for the title, use the chartWithTitleRef, otherwise use the chartRef
+      const ctr = titleRef.current.value
+        ? chartWithTitleRef.current
+        : chartRef.current;
+
+      await saveAsPNG(ctr, dimensions);
       setDownloadState("saved");
       resetDownloadState();
     } catch (error) {
@@ -117,7 +124,7 @@ export function ChartExportModal({ isOpen, onClose, className = "" }) {
       open={isOpen}
       onCancel={onClose}
       className={className}
-      contentClassNames="[&_figure]:!p-0 max-w-fit"
+      contentClassNames="max-w-fit"
       footer={false}
       rootClassNames="z-[10000] max-h-full"
       title="Export Chart"
@@ -185,10 +192,23 @@ export function ChartExportModal({ isOpen, onClose, className = "" }) {
       </div>
 
       {/* Chart Preview */}
-      <div className="relative bg-white overflow-auto">
+      <div
+        className="relative bg-white overflow-auto max-w-full"
+        ref={chartWithTitleRef}
+        style={{
+          width: dimensions.width,
+          height: dimensions.height,
+        }}
+      >
+        <Input
+          ref={titleRef}
+          placeholder="Add a title"
+          rootClassNames="*:!text-2xl border-0 *:!text-bold"
+          inputClassNames="ring-0 outline-0 border-0 !text-2xl shadow-none text-bold p-0"
+        />
         <div
-          ref={containerRef}
-          className=""
+          ref={chartRef}
+          className="[&_figure]:!p-0"
           style={{
             width: dimensions.width,
             height: dimensions.height,

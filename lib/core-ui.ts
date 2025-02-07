@@ -11,7 +11,7 @@ export { SkeletalLoader } from "./components/core-ui/SkeletalLoader.jsx";
 export { Button } from "./components/core-ui/Button.jsx";
 export { CheckGroup } from "./components/core-ui/CheckGroup.jsx";
 export { Collapse } from "./components/core-ui/Collapse.jsx";
-export { Input } from "./components/core-ui/Input.jsx";
+export { Input } from "./components/core-ui/Input.tsx";
 export {
   MessageManager,
   MessageManagerContext,
