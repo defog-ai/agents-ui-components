@@ -49,15 +49,21 @@ export function Modal({
   if (!isOpen) return null;
 
   return (
-    <div 
-      className={twMerge("fixed inset-0 z-[2] flex items-center justify-center p-4", rootClassNames)}
+    <div
+      className={twMerge(
+        "fixed inset-0 z-[2] flex items-center justify-center p-4",
+        rootClassNames
+      )}
       onClick={() => {
         setIsOpen(false);
         onCancel();
       }}
     >
-      <div 
-        className={twMerge("agui-item agui-modal bg-gray-100 border border-gray-200 w-full max-w-2xl max-h-full rounded-md relative p-4 m-auto gap-2 flex flex-col shadow-lg", contentClassNames)}
+      <div
+        className={twMerge(
+          "agui-item agui-modal bg-gray-100 border border-gray-200 w-full max-w-2xl max-h-full rounded-md relative p-4 m-auto gap-2 flex flex-col shadow-lg",
+          contentClassNames
+        )}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="absolute top-2 right-2 z-10">
@@ -78,14 +84,10 @@ export function Modal({
           </div>
         )}
         {description && (
-          <div className="text-gray-600 dark:text-gray-300">
-            {description}
-          </div>
+          <div className="text-gray-600 dark:text-gray-300">{description}</div>
         )}
 
-        <div className="overflow-auto">
-          {children}
-        </div>
+        {children}
 
         {footer === true ? (
           <div>
