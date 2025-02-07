@@ -11,6 +11,7 @@ dayjs.extend(minMax);
 
 const PRESETS = [
   {
+    name: "square",
     label: (
       <span>
         <span className="hidden md:inline">Square(</span> 800×800
@@ -21,6 +22,7 @@ const PRESETS = [
     height: 800,
   },
   {
+    name: "rectangle",
     label: (
       <span>
         <span className="hidden md:inline">Rectangle(</span> 1280×600
@@ -156,7 +158,7 @@ export function ChartExportModal({ isOpen, onClose, className = "" }) {
             <div className="flex gap-2">
               {PRESETS.map((preset) => (
                 <button
-                  key={preset.label}
+                  key={preset.name}
                   onClick={() =>
                     setDimensions({
                       width: preset.width,
@@ -174,7 +176,6 @@ export function ChartExportModal({ isOpen, onClose, className = "" }) {
             </div>
           </div>
           <button
-            key={downloadState}
             onClick={() => {
               setDownloadState("downloading");
               handleDownload();
