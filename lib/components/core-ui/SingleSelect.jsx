@@ -310,7 +310,7 @@ export function SingleSelect({
                   "cursor-pointer select-none relative py-2 pl-3 pr-9 truncate",
                   popupOptionSizeClasses[size] ||
                     popupOptionSizeClasses["default"],
-                  highlightIndex === idx ? "bg-blue-100" : ""
+                  highlightIndex === idx ? "bg-blue-100 dark:bg-blue-900/50" : ""
                 )}
                 onMouseDown={(e) => {
                   e.preventDefault();
