@@ -16,6 +16,27 @@ const PRESETS = [
 
 const DEFAULT_SIZE = 800;
 
+const buttonContent = {
+  idle: (
+    <div className="flex items-center animate-fade-up">
+      <Download size={16} className="mr-2" />
+      Download PNG
+    </div>
+  ),
+  downloading: (
+    <div className="flex items-center animate-fade-up">
+      <Loader2 size={16} className="mr-2 animate-spin" />
+      Downloading...
+    </div>
+  ),
+  saved: (
+    <div className="flex items-center animate-fade-up">
+      <Download size={16} className="mr-2" />
+      Saved
+    </div>
+  ),
+};
+
 /**
  * Modal component for exporting charts with custom dimensions
  */
@@ -63,40 +84,14 @@ export function ChartExportModal({ isOpen, onClose, className = "" }) {
   };
 
   const handleDownload = async () => {
-    // Use requestAnimationFrame to ensure the UI updates before the heavy operation
-    requestAnimationFrame(() => {
-      setDownloadState("downloading");
-    });
-
     try {
-      await saveAsPNG(containerRef.current);
+      await saveAsPNG(containerRef.current, dimensions);
       setDownloadState("saved");
       resetDownloadState();
     } catch (error) {
       setDownloadState("idle");
       console.error("Failed to download:", error);
     }
-  };
-
-  const buttonContent = {
-    idle: (
-      <div className="flex items-center animate-fade-up">
-        <Download size={16} className="mr-2" />
-        Download PNG
-      </div>
-    ),
-    downloading: (
-      <div className="flex items-center animate-fade-up">
-        <Loader2 size={16} className="mr-2 animate-spin" />
-        Downloading...
-      </div>
-    ),
-    saved: (
-      <div className="flex items-center animate-fade-up">
-        <Download size={16} className="mr-2" />
-        Saved
-      </div>
-    ),
   };
 
   return (
@@ -157,7 +152,11 @@ export function ChartExportModal({ isOpen, onClose, className = "" }) {
               </div>
             </div>
             <button
-              onClick={handleDownload}
+              key={downloadState}
+              onClick={() => {
+                setDownloadState("downloading");
+                handleDownload();
+              }}
               disabled={downloadState !== "idle"}
               className="flex w-40 text-center justify-center items-center px-4 py-1.5 text-sm font-medium text-white bg-blue-600 
                 rounded-md hover:bg-blue-700 transition-all duration-200 
