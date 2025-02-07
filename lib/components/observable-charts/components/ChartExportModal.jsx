@@ -14,7 +14,6 @@ const PRESETS = [
   { label: "Rectangle (1280×600)", width: 1280, height: 600 },
 ];
 
-const MIN_DIMENSION = 100;
 const DEFAULT_SIZE = 800;
 
 /**
@@ -42,10 +41,10 @@ export function ChartExportModal({ isOpen, onClose, className = "" }) {
   }, [isOpen, dimensions]);
 
   const handleDimensionChange = (dimension, value) => {
-    const numValue = parseInt(value) || MIN_DIMENSION;
+    const numValue = parseInt(value) || 0;
     setDimensions((prev) => ({
       ...prev,
-      [dimension]: Math.max(numValue, MIN_DIMENSION),
+      [dimension]: numValue,
     }));
   };
 
@@ -68,10 +67,7 @@ export function ChartExportModal({ isOpen, onClose, className = "" }) {
       <div className="flex flex-col gap-6">
         {/* Dimension Controls */}
         <div className="space-y-4">
-          <div className="space-y-1.5">
-            <label className="flex items-center gap-2 text-xs font-medium text-gray-700">
-              <span className="flex items-center gap-2">Chart Dimensions</span>
-            </label>
+          <div className="flex items-center justify-between gap-2 ">
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
                 <Input
@@ -82,7 +78,6 @@ export function ChartExportModal({ isOpen, onClose, className = "" }) {
                   onChange={(e) =>
                     handleDimensionChange("width", e.target.value)
                   }
-                  min={MIN_DIMENSION}
                   inputClassNames="w-24 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-400"
                 />
                 <span className="text-sm font-medium text-gray-400">×</span>
@@ -93,7 +88,6 @@ export function ChartExportModal({ isOpen, onClose, className = "" }) {
                   onChange={(e) =>
                     handleDimensionChange("height", e.target.value)
                   }
-                  min={MIN_DIMENSION}
                   inputClassNames="w-24 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-400"
                 />
               </div>
@@ -117,6 +111,17 @@ export function ChartExportModal({ isOpen, onClose, className = "" }) {
                 ))}
               </div>
             </div>
+            <button
+              onClick={() => {
+                saveAsPNG(containerRef.current);
+              }}
+              className="flex items-center px-4 py-1.5 text-sm font-medium text-white bg-blue-600 
+                rounded-md hover:bg-blue-700 transition-all duration-200 
+                shadow-sm hover:shadow-md hover:-translate-y-0.5"
+            >
+              <Download size={16} className="mr-2" />
+              Download PNG
+            </button>
           </div>
         </div>
 
@@ -130,33 +135,10 @@ export function ChartExportModal({ isOpen, onClose, className = "" }) {
                 style={{
                   width: dimensions.width,
                   height: dimensions.height,
-                  minWidth: MIN_DIMENSION,
-                  minHeight: MIN_DIMENSION,
                 }}
               />
             </div>
           </div>
-        </div>
-
-        {/* Actions */}
-        <div className="flex justify-end gap-2 pt-2">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:text-gray-800"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={() => {
-              saveAsPNG(containerRef.current);
-            }}
-            className="flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 
-            rounded-md hover:bg-blue-700 transition-all duration-200 
-            shadow-sm hover:shadow-md hover:-translate-y-0.5"
-          >
-            <Download size={16} className="mr-2" />
-            Download PNG
-          </button>
         </div>
       </div>
     </Modal>
