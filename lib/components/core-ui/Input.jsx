@@ -59,7 +59,7 @@ let Input = forwardRef(function Input(
       {label && (
         <label
           htmlFor={name}
-          className="block text-xs mb-2 font-light text-gray-600 dark:text-gray-400"
+          className="block mb-2 text-xs font-light text-gray-600 dark:text-gray-400"
         >
           {label}
         </label>
@@ -71,7 +71,7 @@ let Input = forwardRef(function Input(
           name={name}
           id={id}
           className={twMerge(
-            "focus:outline-none block w-full shadow-sm rounded-md border-0 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-1 focus:ring-inset",
+            "focus:outline-none block w-full shadow-sm px-2 rounded-md border-0 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-1 focus:ring-inset",
             status !== "error"
               ? "focus:ring-blue-400 dark:focus:ring-blue-500"
               : "focus:ring-rose-400 ring-rose-400 dark:focus:ring-rose-500 dark:ring-rose-500",
@@ -100,9 +100,9 @@ let Input = forwardRef(function Input(
           {...{ defaultValue, value }}
         />
         {status === "error" && (
-          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
             <CircleAlert
-              className="h-5 w-5 stroke-rose-400 text-transparent"
+              className="w-5 h-5 text-transparent stroke-rose-400"
               aria-hidden="true"
             />
           </div>
