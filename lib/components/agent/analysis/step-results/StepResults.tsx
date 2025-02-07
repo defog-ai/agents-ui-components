@@ -32,8 +32,6 @@ export function StepResults({
   handleReRun = (...args: any[]) => {},
   reRunningSteps = [],
   updateStepData = (...args: any[]) => {},
-  // toolRunDataCache = {},
-  tools = {},
   analysisBusy = false,
   setCurrentQuestion = (...args: any[]) => {},
   analysisTreeManager = null,
@@ -47,8 +45,6 @@ export function StepResults({
   handleReRun: (...args: any[]) => void;
   reRunningSteps: Step[];
   updateStepData: (stepId: string, update: Record<string, any>) => void;
-  // toolRunDataCache: any;
-  tools: any;
   analysisBusy: boolean;
   setCurrentQuestion: (...args: any[]) => void;
   analysisTreeManager: AnalysisTreeManager;
