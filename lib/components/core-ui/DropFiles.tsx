@@ -2,26 +2,39 @@ import React from "react";
 import { Download } from "lucide-react";
 import { twMerge } from "tailwind-merge";
 
-/**
- * @typedef {Object} DropFilesProps
- * @property {string} [label] - Label for the dropzone.
- * @property {string[]} [acceptedFileTypes] - Array of file types to be accepted.
- * @property {function} [onDrop] - Function to be called when files are dropped.
- * @property {function} [onFileSelect] - Function to be called when a file is selected.
- * @property {function} [onDragOver] - Function to be called when a file is dragged over the dropzone.
- * @property {function} [onDragEnter] - Function to be called when a file is dragged over the dropzone.
- * @property {string} [rootClassNames] - Additional classes to be added to the root div.
- * @property {string} [iconClassNames] - Additional classes to be added to the icon.
- * @property {string} [contentClassNames] - Additional classes to be added to the content div.
- * @property {string} [labelClassNames] - Additional classes to be added to the label div.
- * @property {React.ReactNode} [children] - The content of the dropzone.
- * @property {boolean} [showIcon] - If true, the drop icon will be shown.
- * @property {boolean} [disabled] - If true, the dropzone will be disabled.
- */
+interface DropFilesProps {
+  /** Label for the dropzone. **/
+  label?: string;
+  /** Array of file types to be accepted. **/
+  acceptedFileTypes?: string[];
+  /** Function to be called when files are dropped. **/
+  onDrop?: (e: React.DragEvent<HTMLDivElement>) => void;
+  /** Function to be called when a file is selected. **/
+  onFileSelect?: (e: React.FormEvent<HTMLInputElement>) => void;
+  /** Function to be called when a file is dragged over the dropzone. **/
+  onDragOver?: (e: React.DragEvent<HTMLDivElement>) => void;
+  /** Function to be called when a file is dragged over the dropzone. **/
+  onDragEnter?: (e: React.DragEvent<HTMLDivElement>) => void;
+  /** Additional classes to be added to the root div. **/
+  rootClassNames?: string;
+  /** Additional classes to be added to the icon. **/
+  iconClassNames?: string;
+  /** Additional classes to be added to the content div. **/
+  contentClassNames?: string;
+  /** Additional classes to be added to the label div. **/
+  labelClassNames?: string;
+  /** The content of the dropzone. **/
+  children?: React.ReactNode;
+  /** If true, the drop icon will be shown. **/
+  showIcon?: boolean;
+  /** If true, the dropzone will be disabled. **/
+  disabled?: boolean;
+  /** If true, allows multiple files to be dropped/selected. **/
+  allowMultiple?: boolean;
+}
 
 /**
  * File dropping component with a UI. If you want something headless, use the DropFilesHeadless component which gives a minimal UI.
- * @param {DropFilesProps} props
  */
 export function DropFiles({
   label = "Drop files here",
@@ -37,7 +50,8 @@ export function DropFiles({
   children = null,
   showIcon = null,
   disabled = false,
-}) {
+  allowMultiple = false,
+}: DropFilesProps) {
   return (
     <div
       data-testid="file-drop"
@@ -85,6 +99,7 @@ export function DropFiles({
             Select from your computer
           </p>
           <input
+            multiple={allowMultiple}
             aria-label=""
             accept={acceptedFileTypes.join(",")}
             className="cursor-pointer w-full h-full z-[1] opacity-0 absolute left-0 top-0"
@@ -96,7 +111,7 @@ export function DropFiles({
               onFileSelect(e);
 
               // set value to null jic user wants to upload the same file again
-              e.target.value = null;
+              e.currentTarget.value = null;
             }}
           ></input>
         </div>
