@@ -10,8 +10,26 @@ import { renderPlot } from "../utils/renderPlot";
 dayjs.extend(minMax);
 
 const PRESETS = [
-  { label: "Square (800×800)", width: 800, height: 800 },
-  { label: "Rectangle (1280×600)", width: 1280, height: 600 },
+  {
+    label: (
+      <span>
+        <span className="hidden md:inline">Square(</span> 800×800
+        <span className="hidden md:inline">)</span>
+      </span>
+    ),
+    width: 800,
+    height: 800,
+  },
+  {
+    label: (
+      <span>
+        <span className="hidden md:inline">Rectangle(</span> 1280×600
+        <span className="hidden md:inline">)</span>
+      </span>
+    ),
+    width: 1280,
+    height: 600,
+  },
 ];
 
 const DEFAULT_SIZE = 800;
@@ -19,8 +37,8 @@ const DEFAULT_SIZE = 800;
 const buttonContent = {
   idle: (
     <div className="flex items-center animate-fade-up">
-      <Download size={16} className="mr-2" />
-      Download PNG
+      <Download size={16} className="md:mr-2" />
+      <span className="hidden md:block">Download PNG</span>
     </div>
   ),
   downloading: (
@@ -99,91 +117,83 @@ export function ChartExportModal({ isOpen, onClose, className = "" }) {
       open={isOpen}
       onCancel={onClose}
       className={className}
-      contentClassNames="max-w-5xl w-fit"
+      contentClassNames="[&_figure]:!p-0 max-w-fit"
       footer={false}
-      rootClassNames="z-[10000] flex flex-col gap-4 justify-center"
+      rootClassNames="z-[10000] max-h-full"
       title="Export Chart"
     >
-      <div className="flex flex-col gap-6">
-        {/* Dimension Controls */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between gap-2 ">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <Input
-                  ref={widthInputRef}
-                  type="number"
-                  placeholder="Width"
-                  value={dimensions.width}
-                  onChange={(e) =>
-                    handleDimensionChange("width", e.target.value)
+      {/* Dimension Controls */}
+      <div className="pb-4 z-10">
+        <div className="flex items-start md:items-center justify-between gap-2">
+          <div className="flex items-center gap-4 flex-wrap">
+            <div className="flex items-center gap-2">
+              <Input
+                ref={widthInputRef}
+                type="number"
+                placeholder="Width"
+                value={dimensions.width}
+                onChange={(e) => handleDimensionChange("width", e.target.value)}
+                inputClassNames="w-24 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-400"
+              />
+              <span className="text-sm font-medium text-gray-400">×</span>
+              <Input
+                type="number"
+                placeholder="Height"
+                value={dimensions.height}
+                onChange={(e) =>
+                  handleDimensionChange("height", e.target.value)
+                }
+                inputClassNames="w-24 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-400"
+              />
+            </div>
+            <div className="flex gap-2">
+              {PRESETS.map((preset) => (
+                <button
+                  key={preset.label}
+                  onClick={() =>
+                    setDimensions({
+                      width: preset.width,
+                      height: preset.height,
+                    })
                   }
-                  inputClassNames="w-24 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-400"
-                />
-                <span className="text-sm font-medium text-gray-400">×</span>
-                <Input
-                  type="number"
-                  placeholder="Height"
-                  value={dimensions.height}
-                  onChange={(e) =>
-                    handleDimensionChange("height", e.target.value)
-                  }
-                  inputClassNames="w-24 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-400"
-                />
-              </div>
-              <div className="flex gap-2">
-                {PRESETS.map((preset) => (
-                  <button
-                    key={preset.label}
-                    onClick={() =>
-                      setDimensions({
-                        width: preset.width,
-                        height: preset.height,
-                      })
-                    }
-                    className="px-3 py-1.5 rounded-md text-sm transition-all duration-200 
+                  className="px-3 py-1.5 rounded-md text-sm transition-all duration-200 
                     bg-white hover:bg-gray-50 border border-gray-200 hover:border-gray-300
                     shadow-sm hover:shadow backdrop-blur-sm
                     hover:-translate-y-0.5"
-                  >
-                    {preset.label}
-                  </button>
-                ))}
-              </div>
+                >
+                  {preset.label}
+                </button>
+              ))}
             </div>
-            <button
-              key={downloadState}
-              onClick={() => {
-                setDownloadState("downloading");
-                handleDownload();
-              }}
-              disabled={downloadState !== "idle"}
-              className="flex w-40 text-center justify-center items-center px-4 py-1.5 text-sm font-medium text-white bg-blue-600 
+          </div>
+          <button
+            key={downloadState}
+            onClick={() => {
+              setDownloadState("downloading");
+              handleDownload();
+            }}
+            disabled={downloadState !== "idle"}
+            className="flex text-center justify-center items-center px-4 py-1.5 text-sm font-medium text-white bg-blue-600 
                 rounded-md hover:bg-blue-700 transition-all duration-200 
                 shadow-sm hover:shadow-md hover:-translate-y-0.5
                 disabled:bg-blue-400 disabled:cursor-not-allowed disabled:hover:translate-y-0
                 overflow-hidden"
-            >
-              {buttonContent[downloadState]}
-            </button>
-          </div>
+          >
+            {buttonContent[downloadState]}
+          </button>
         </div>
+      </div>
 
-        {/* Chart Preview */}
-        <div className="relative w-full bg-white border rounded-lg shadow-sm">
-          <div className="max-h-[600px] overflow-auto rounded-lg">
-            <div className="p-[40px] bg-white">
-              <div
-                ref={containerRef}
-                className="relative bg-white"
-                style={{
-                  width: dimensions.width,
-                  height: dimensions.height,
-                }}
-              />
-            </div>
-          </div>
-        </div>
+      {/* Chart Preview */}
+      <div className="relative bg-white overflow-auto">
+        <div
+          ref={containerRef}
+          className=""
+          style={{
+            width: dimensions.width,
+            height: dimensions.height,
+          }}
+        />
       </div>
     </Modal>
   );
