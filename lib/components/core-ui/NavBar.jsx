@@ -38,7 +38,9 @@ export function NavBar({ items = [], rootClassNames = "" }) {
         <div className="flex h-10 justify-between">
           <div className="flex">
             <div className="flex flex-shrink-0 items-start">
-              <Logo classNames="h-7 dark:invert" />
+              <a href="/">
+                <Logo classNames="h-7 dark:invert" />
+              </a>
             </div>
             <div className="hidden xl:ml-6 xl:flex xl:space-x-8">
               <ul className="flex space-x-8">
