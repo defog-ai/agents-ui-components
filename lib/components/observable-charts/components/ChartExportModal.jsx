@@ -1,10 +1,9 @@
 import { useState, useRef, useEffect } from "react";
 import { Modal, Input } from "@ui-components";
 import { saveAsPNG } from "../utils/saveChart";
-
 import { useContext } from "react";
 import { ChartManagerContext } from "../ChartManagerContext";
-
+import { Download } from "lucide-react";
 import dayjs from "dayjs";
 import minMax from "dayjs/plugin/minMax";
 import { renderPlot } from "../utils/renderPlot";
@@ -15,24 +14,32 @@ const PRESETS = [
   { label: "Rectangle (1280×600)", width: 1280, height: 600 },
 ];
 
-const MIN_DIMENSION = 400;
+const MIN_DIMENSION = 100;
+const DEFAULT_SIZE = 800;
 
 /**
  * Modal component for exporting charts with custom dimensions
  */
 export function ChartExportModal({ isOpen, onClose, className = "" }) {
   const [dimensions, setDimensions] = useState({
-    width: PRESETS[0].width,
-    height: PRESETS[0].height,
+    width: DEFAULT_SIZE,
+    height: DEFAULT_SIZE,
   });
   const containerRef = useRef(null);
+  const widthInputRef = useRef(null);
   const chartManager = useContext(ChartManagerContext);
 
-  // Render plot whenever dimensions change or modal opens
   useEffect(() => {
-    if (!containerRef.current || !isOpen) return;
+    if (isOpen && widthInputRef.current) {
+      widthInputRef.current.focus();
+    }
+  }, [isOpen]);
+
+  // Combined effect for rendering
+  useEffect(() => {
+    if (!isOpen || !containerRef.current) return;
     renderPlot(containerRef.current, dimensions, chartManager);
-  }, [dimensions, chartManager.config, isOpen]);
+  }, [isOpen, dimensions]);
 
   const handleDimensionChange = (dimension, value) => {
     const numValue = parseInt(value) || MIN_DIMENSION;
@@ -41,6 +48,12 @@ export function ChartExportModal({ isOpen, onClose, className = "" }) {
       [dimension]: Math.max(numValue, MIN_DIMENSION),
     }));
   };
+
+  useEffect(() => {
+    if (!isOpen) return;
+    handleDimensionChange("width", dimensions.width);
+    handleDimensionChange("height", dimensions.height);
+  }, [isOpen]);
 
   return (
     <Modal
@@ -52,64 +65,84 @@ export function ChartExportModal({ isOpen, onClose, className = "" }) {
       rootClassNames="z-[10000] flex flex-col gap-4 justify-center"
       title="Export Chart"
     >
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-6">
         {/* Dimension Controls */}
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <Input
-              type="number"
-              label="Width"
-              value={dimensions.width}
-              onChange={(e) => handleDimensionChange("width", e.target.value)}
-              min={MIN_DIMENSION}
-              inputClassNames="w-24"
-            />
-            <span className="text-gray-400">×</span>
-            <Input
-              type="number"
-              label="Height"
-              value={dimensions.height}
-              onChange={(e) => handleDimensionChange("height", e.target.value)}
-              min={MIN_DIMENSION}
-              inputClassNames="w-24"
-            />
-          </div>
-          <div className="flex gap-2 ml-4">
-            {PRESETS.map((preset) => (
-              <button
-                key={preset.label}
-                onClick={() =>
-                  setDimensions({ width: preset.width, height: preset.height })
-                }
-                className="px-3 py-1.5 rounded-md text-sm transition-colors bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200"
-              >
-                {preset.label}
-              </button>
-            ))}
+        <div className="space-y-4">
+          <div className="space-y-1.5">
+            <label className="flex items-center gap-2 text-xs font-medium text-gray-700">
+              <span className="flex items-center gap-2">Chart Dimensions</span>
+            </label>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <Input
+                  ref={widthInputRef}
+                  type="number"
+                  placeholder="Width"
+                  value={dimensions.width}
+                  onChange={(e) =>
+                    handleDimensionChange("width", e.target.value)
+                  }
+                  min={MIN_DIMENSION}
+                  inputClassNames="w-24 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-400"
+                />
+                <span className="text-sm font-medium text-gray-400">×</span>
+                <Input
+                  type="number"
+                  placeholder="Height"
+                  value={dimensions.height}
+                  onChange={(e) =>
+                    handleDimensionChange("height", e.target.value)
+                  }
+                  min={MIN_DIMENSION}
+                  inputClassNames="w-24 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-400"
+                />
+              </div>
+              <div className="flex gap-2">
+                {PRESETS.map((preset) => (
+                  <button
+                    key={preset.label}
+                    onClick={() =>
+                      setDimensions({
+                        width: preset.width,
+                        height: preset.height,
+                      })
+                    }
+                    className="px-3 py-1.5 rounded-md text-sm transition-all duration-200 
+                    bg-white hover:bg-gray-50 border border-gray-200 hover:border-gray-300
+                    shadow-sm hover:shadow backdrop-blur-sm
+                    hover:-translate-y-0.5"
+                  >
+                    {preset.label}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Chart Preview */}
-        <div className="relative w-full bg-white border rounded-lg">
-          <div className="max-h-[600px] overflow-auto">
-            <div
-              ref={containerRef}
-              className="p-4"
-              style={{
-                width: dimensions.width,
-                height: dimensions.height,
-                minWidth: MIN_DIMENSION,
-                minHeight: MIN_DIMENSION,
-              }}
-            />
+        <div className="relative w-full bg-white border rounded-lg shadow-sm">
+          <div className="max-h-[600px] overflow-auto rounded-lg">
+            <div className="p-[40px] bg-white">
+              <div
+                ref={containerRef}
+                className="relative bg-white"
+                style={{
+                  width: dimensions.width,
+                  height: dimensions.height,
+                  minWidth: MIN_DIMENSION,
+                  minHeight: MIN_DIMENSION,
+                }}
+              />
+            </div>
           </div>
         </div>
 
         {/* Actions */}
-        <div className="flex justify-end gap-2">
+        <div className="flex justify-end gap-2 pt-2">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800"
+            className="px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:text-gray-800"
           >
             Cancel
           </button>
@@ -117,8 +150,11 @@ export function ChartExportModal({ isOpen, onClose, className = "" }) {
             onClick={() => {
               saveAsPNG(containerRef.current);
             }}
-            className="px-4 py-2 text-sm text-white bg-blue-600 rounded-md hover:bg-blue-700"
+            className="flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 
+            rounded-md hover:bg-blue-700 transition-all duration-200 
+            shadow-sm hover:shadow-md hover:-translate-y-0.5"
           >
+            <Download size={16} className="mr-2" />
             Download PNG
           </button>
         </div>
