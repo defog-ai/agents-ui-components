@@ -84,7 +84,7 @@ interface Props {
    */
   searchBarPlaceholder?: string | null;
   /**
-   * if this analysis uses any extra tools. Used in the add tool UI.
+   * if this analysis uses any extra tools. Used in the add tool UI to create a test analysis.
    */
   extraTools?: Array<{
     code: string;
@@ -95,7 +95,7 @@ interface Props {
     output_metadata: object;
   }>;
   /**
-   * suffix for the planner model's question. Used in the add tool UI.
+   * suffix for the planner model's question. Used in the add tool UI to create a test analysis.
    */
   plannerQuestionSuffix?: string | null;
   /**
@@ -214,8 +214,6 @@ export const AnalysisAgent = ({
   // in case this isn't called from analysis tree viewer (which has a central singular search bar)
   // we will have an independent search bar for each analysis as well
   const independentAnalysisSearchRef = useRef<HTMLInputElement>(null);
-
-  const [tools, setTools] = useState({});
 
   const ctr = useRef<HTMLDivElement>(null);
   const observerRef = useRef<ResizeObserver | null>(null);
@@ -597,7 +595,6 @@ export const AnalysisAgent = ({
                                   ),
                                 };
                               }}
-                              tools={tools}
                               analysisBusy={analysisBusy}
                               setCurrentQuestion={setCurrentQuestion}
                               analysisTreeManager={

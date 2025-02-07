@@ -12,7 +12,6 @@ export interface AgentConfig {
   analyses: any[];
   dashboards: any[];
   analysisDataCache: any;
-  toolRunDataCache: any;
   showAnalysisUnderstanding: boolean;
   showCode: boolean;
   allowDashboardAdd: boolean;
@@ -33,7 +32,6 @@ export const defaultAgentConfig: AgentConfig = {
   analyses: [],
   dashboards: [],
   analysisDataCache: {},
-  toolRunDataCache: {},
   showAnalysisUnderstanding: true,
   showCode: true,
   allowDashboardAdd: true,
@@ -42,7 +40,9 @@ export const defaultAgentConfig: AgentConfig = {
 /**
  * Create agent configuration.
  */
-export function createAgentConfig(partialConfig: Partial<AgentConfig> = {}): AgentConfig {
+export function createAgentConfig(
+  partialConfig: Partial<AgentConfig> = {}
+): AgentConfig {
   // only set defined keys
   const newConfig = Object.assign({}, defaultAgentConfig);
 
@@ -54,7 +54,6 @@ export function createAgentConfig(partialConfig: Partial<AgentConfig> = {}): Age
 
   return newConfig;
 }
-
 
 // defining this so explicitly here only to allow vscode's intellisense to work
 // we can also just do createContext()
