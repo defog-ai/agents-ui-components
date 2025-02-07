@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Modal } from "@ui-components";
+import { Modal, Input } from "@ui-components";
 import { saveAsPNG } from "../utils/saveChart";
 
 import { useContext } from "react";
@@ -10,99 +10,102 @@ import minMax from "dayjs/plugin/minMax";
 import { renderPlot } from "../utils/renderPlot";
 dayjs.extend(minMax);
 
-const ASPECT_RATIOS = [
-  { label: "1:1 (Square)", width: 1, height: 1 },
-  { label: "16:9 (Widescreen)", width: 16, height: 9 },
-  { label: "4:3 (Standard)", width: 4, height: 3 },
-  { label: "3:2 (Photo)", width: 3, height: 2 },
-  { label: "2:1 (Panorama)", width: 2, height: 1 },
+const PRESETS = [
+  { label: "Square (800×800)", width: 800, height: 800 },
+  { label: "Rectangle (1280×600)", width: 1280, height: 600 },
 ];
 
+const MIN_DIMENSION = 400;
+
 /**
- * Modal component for exporting charts with different aspect ratios
+ * Modal component for exporting charts with custom dimensions
  */
-export function ChartExportModal({
-  isOpen,
-  onClose,
-  className = "",
-  sourceChartRef, // Reference to the original chart container
-}) {
-  const [selectedRatio, setSelectedRatio] = useState(ASPECT_RATIOS[0]);
+export function ChartExportModal({ isOpen, onClose, className = "" }) {
+  const [dimensions, setDimensions] = useState({
+    width: PRESETS[0].width,
+    height: PRESETS[0].height,
+  });
   const containerRef = useRef(null);
-  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const chartManager = useContext(ChartManagerContext);
 
-  // Update dimensions when container size or aspect ratio changes
+  // Render plot whenever dimensions change or modal opens
   useEffect(() => {
-    if (!containerRef.current) return;
-
-    const updateDimensions = () => {
-      const container = containerRef.current;
-      const containerWidth = container.clientWidth;
-      const containerHeight = container.clientHeight;
-
-      const maxWidth = containerWidth - 40;
-      const maxHeight = containerHeight - 40;
-
-      const ratioWidth = selectedRatio.width;
-      const ratioHeight = selectedRatio.height;
-
-      let width = maxWidth;
-      let height = width * (ratioHeight / ratioWidth);
-
-      if (height > maxHeight) {
-        height = maxHeight;
-        width = height * (ratioWidth / ratioHeight);
-      }
-
-      setDimensions({ width, height });
-    };
-
-    const resizeObserver = new ResizeObserver(updateDimensions);
-    resizeObserver.observe(containerRef.current);
-    updateDimensions();
-
-    return () => resizeObserver.disconnect();
-  }, [selectedRatio]);
-
-  useEffect(() => {
-    if (!containerRef.current || !dimensions.width || !dimensions.height)
-      return;
+    if (!containerRef.current || !isOpen) return;
     renderPlot(containerRef.current, dimensions, chartManager);
-  }, [dimensions, chartManager.config]);
+  }, [dimensions, chartManager.config, isOpen]);
+
+  const handleDimensionChange = (dimension, value) => {
+    const numValue = parseInt(value) || MIN_DIMENSION;
+    setDimensions((prev) => ({
+      ...prev,
+      [dimension]: Math.max(numValue, MIN_DIMENSION),
+    }));
+  };
 
   return (
     <Modal
       open={isOpen}
       onCancel={onClose}
       className={className}
-      contentClassNames="max-w-4xl"
+      contentClassNames="max-w-5xl w-fit"
       footer={false}
-      rootClassNames="z-[10000]"
+      rootClassNames="z-[10000] flex flex-col gap-4 justify-center"
       title="Export Chart"
     >
       <div className="flex flex-col gap-4">
-        <div className="flex flex-wrap gap-2">
-          {ASPECT_RATIOS.map((ratio) => (
-            <button
-              key={ratio.label}
-              onClick={() => setSelectedRatio(ratio)}
-              className={`px-3 py-1.5 rounded-md text-sm transition-colors ${
-                selectedRatio === ratio
-                  ? "bg-blue-100 text-blue-700 border-blue-300"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200 border-gray-200"
-              } border`}
-            >
-              {ratio.label}
-            </button>
-          ))}
+        {/* Dimension Controls */}
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Input
+              type="number"
+              label="Width"
+              value={dimensions.width}
+              onChange={(e) => handleDimensionChange("width", e.target.value)}
+              min={MIN_DIMENSION}
+              inputClassNames="w-24"
+            />
+            <span className="text-gray-400">×</span>
+            <Input
+              type="number"
+              label="Height"
+              value={dimensions.height}
+              onChange={(e) => handleDimensionChange("height", e.target.value)}
+              min={MIN_DIMENSION}
+              inputClassNames="w-24"
+            />
+          </div>
+          <div className="flex gap-2 ml-4">
+            {PRESETS.map((preset) => (
+              <button
+                key={preset.label}
+                onClick={() =>
+                  setDimensions({ width: preset.width, height: preset.height })
+                }
+                className="px-3 py-1.5 rounded-md text-sm transition-colors bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200"
+              >
+                {preset.label}
+              </button>
+            ))}
+          </div>
         </div>
 
-        <div
-          ref={containerRef}
-          className="flex items-center justify-center w-full h-[500px] border rounded-lg bg-white overflow-auto p-4"
-        />
+        {/* Chart Preview */}
+        <div className="relative w-full bg-white border rounded-lg">
+          <div className="max-h-[600px] overflow-auto">
+            <div
+              ref={containerRef}
+              className="p-4"
+              style={{
+                width: dimensions.width,
+                height: dimensions.height,
+                minWidth: MIN_DIMENSION,
+                minHeight: MIN_DIMENSION,
+              }}
+            />
+          </div>
+        </div>
 
+        {/* Actions */}
         <div className="flex justify-end gap-2">
           <button
             onClick={onClose}
