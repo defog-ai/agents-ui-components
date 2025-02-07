@@ -2,6 +2,14 @@ import { useState, useRef, useEffect } from "react";
 import { Modal } from "@ui-components";
 import { saveAsPNG } from "../utils/saveChart";
 
+import { useContext } from "react";
+import { ChartManagerContext } from "../ChartManagerContext";
+
+import dayjs from "dayjs";
+import minMax from "dayjs/plugin/minMax";
+import { renderPlot } from "../utils/renderPlot";
+dayjs.extend(minMax);
+
 const ASPECT_RATIOS = [
   { label: "1:1 (Square)", width: 1, height: 1 },
   { label: "16:9 (Widescreen)", width: 16, height: 9 },
@@ -22,6 +30,7 @@ export function ChartExportModal({
   const [selectedRatio, setSelectedRatio] = useState(ASPECT_RATIOS[0]);
   const containerRef = useRef(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+  const chartManager = useContext(ChartManagerContext);
 
   // Update dimensions when container size or aspect ratio changes
   useEffect(() => {
@@ -32,8 +41,7 @@ export function ChartExportModal({
       const containerWidth = container.clientWidth;
       const containerHeight = container.clientHeight;
 
-      // Calculate dimensions maintaining aspect ratio and fitting within container
-      const maxWidth = containerWidth - 40; // Account for padding
+      const maxWidth = containerWidth - 40;
       const maxHeight = containerHeight - 40;
 
       const ratioWidth = selectedRatio.width;
@@ -42,7 +50,6 @@ export function ChartExportModal({
       let width = maxWidth;
       let height = width * (ratioHeight / ratioWidth);
 
-      // If height exceeds container, scale down
       if (height > maxHeight) {
         height = maxHeight;
         width = height * (ratioWidth / ratioHeight);
@@ -58,32 +65,11 @@ export function ChartExportModal({
     return () => resizeObserver.disconnect();
   }, [selectedRatio]);
 
-  // Clone and resize plot container when dimensions change
   useEffect(() => {
-    if (
-      !containerRef.current ||
-      !dimensions.width ||
-      !dimensions.height ||
-      !sourceChartRef?.current
-    )
+    if (!containerRef.current || !dimensions.width || !dimensions.height)
       return;
-
-    const container = containerRef.current;
-    container.innerHTML = "";
-
-    // Clone the original container with its plot
-    const originalContainer = sourceChartRef.current;
-    const clonedContainer = originalContainer.cloneNode(true);
-
-    // Update the dimensions
-    clonedContainer.style.width = `${dimensions.width}px`;
-    clonedContainer.style.height = `${dimensions.height}px`;
-    clonedContainer.style.margin = "0";
-    clonedContainer.style.overflow = "hidden";
-
-    // Append the cloned container
-    container.appendChild(clonedContainer);
-  }, [dimensions, sourceChartRef]);
+    renderPlot(containerRef.current, dimensions, chartManager);
+  }, [dimensions, chartManager.config]);
 
   return (
     <Modal
