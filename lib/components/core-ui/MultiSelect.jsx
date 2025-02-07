@@ -190,37 +190,52 @@ export function MultiSelect({
             onFocus={() => setOpen(true)}
             onBlur={() => setTimeout(() => setOpen(false), 100)}
             onKeyDown={(e) => {
-              if (e.key === 'ArrowDown') {
+              if (e.key === "ArrowDown") {
                 e.preventDefault();
                 if (!open) {
                   setOpen(true);
                   return;
                 }
-                setHighlightIndex((prev) => (prev + 1) % filteredOptions.length);
-              } else if (e.key === 'ArrowUp') {
+                setHighlightIndex(
+                  (prev) => (prev + 1) % filteredOptions.length
+                );
+              } else if (e.key === "ArrowUp") {
                 e.preventDefault();
                 if (!open) {
                   setOpen(true);
                   return;
                 }
-                setHighlightIndex((prev) => (prev - 1 + filteredOptions.length) % filteredOptions.length);
-              } else if (e.key === 'Enter') {
+                setHighlightIndex(
+                  (prev) =>
+                    (prev - 1 + filteredOptions.length) % filteredOptions.length
+                );
+              } else if (e.key === "Enter") {
                 e.preventDefault();
                 if (open && filteredOptions.length > 0 && highlightIndex >= 0) {
                   const option = filteredOptions[highlightIndex];
-                  if (selectedOptions.find(o => o.value === option.value)) {
+                  if (selectedOptions.find((o) => o.value === option.value)) {
                     // If already selected, remove it
-                    const newSelected = selectedOptions.filter(o => o.value !== option.value);
+                    const newSelected = selectedOptions.filter(
+                      (o) => o.value !== option.value
+                    );
                     setSelectedOptions(newSelected);
-                    if (onChange) onChange(newSelected.map(o => o.value), newSelected);
+                    if (onChange)
+                      onChange(
+                        newSelected.map((o) => o.value),
+                        newSelected
+                      );
                   } else {
                     // Add the option
                     const newSelected = [...selectedOptions, option];
                     setSelectedOptions(newSelected);
-                    if (onChange) onChange(newSelected.map(o => o.value), newSelected);
+                    if (onChange)
+                      onChange(
+                        newSelected.map((o) => o.value),
+                        newSelected
+                      );
                   }
                 }
-              } else if (e.key === 'Escape') {
+              } else if (e.key === "Escape") {
                 setOpen(false);
               }
             }}
@@ -282,8 +297,11 @@ export function MultiSelect({
                 key={option.value + "-" + idx}
                 className={twMerge(
                   "cursor-pointer select-none relative px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-800",
-                  popupOptionSizeClasses[size] || popupOptionSizeClasses["default"],
-                  highlightIndex === idx ? "bg-blue-100" : ""
+                  popupOptionSizeClasses[size] ||
+                    popupOptionSizeClasses["default"],
+                  highlightIndex === idx
+                    ? "bg-blue-100 dark:bg-blue-900/50"
+                    : ""
                 )}
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => {
