@@ -3,7 +3,7 @@ import { Modal, Input } from "@ui-components";
 import { saveAsPNG } from "../utils/saveChart";
 import { useContext } from "react";
 import { ChartManagerContext } from "../ChartManagerContext";
-import { Download } from "lucide-react";
+import { Download, Loader2 } from "lucide-react";
 import dayjs from "dayjs";
 import minMax from "dayjs/plugin/minMax";
 import { renderPlot } from "../utils/renderPlot";
@@ -27,6 +27,7 @@ export function ChartExportModal({ isOpen, onClose, className = "" }) {
   const containerRef = useRef(null);
   const widthInputRef = useRef(null);
   const chartManager = useContext(ChartManagerContext);
+  const [downloadState, setDownloadState] = useState("idle"); // "idle" | "downloading" | "saved"
 
   useEffect(() => {
     if (isOpen && widthInputRef.current) {
@@ -53,6 +54,50 @@ export function ChartExportModal({ isOpen, onClose, className = "" }) {
     handleDimensionChange("width", dimensions.width);
     handleDimensionChange("height", dimensions.height);
   }, [isOpen]);
+
+  // Add reset timer function
+  const resetDownloadState = () => {
+    setTimeout(() => {
+      setDownloadState("idle");
+    }, 2000);
+  };
+
+  const handleDownload = async () => {
+    // Use requestAnimationFrame to ensure the UI updates before the heavy operation
+    requestAnimationFrame(() => {
+      setDownloadState("downloading");
+    });
+
+    try {
+      await saveAsPNG(containerRef.current);
+      setDownloadState("saved");
+      resetDownloadState();
+    } catch (error) {
+      setDownloadState("idle");
+      console.error("Failed to download:", error);
+    }
+  };
+
+  const buttonContent = {
+    idle: (
+      <div className="flex items-center animate-fade-up">
+        <Download size={16} className="mr-2" />
+        Download PNG
+      </div>
+    ),
+    downloading: (
+      <div className="flex items-center animate-fade-up">
+        <Loader2 size={16} className="mr-2 animate-spin" />
+        Downloading...
+      </div>
+    ),
+    saved: (
+      <div className="flex items-center animate-fade-up">
+        <Download size={16} className="mr-2" />
+        Saved
+      </div>
+    ),
+  };
 
   return (
     <Modal
@@ -112,15 +157,15 @@ export function ChartExportModal({ isOpen, onClose, className = "" }) {
               </div>
             </div>
             <button
-              onClick={() => {
-                saveAsPNG(containerRef.current);
-              }}
-              className="flex items-center px-4 py-1.5 text-sm font-medium text-white bg-blue-600 
+              onClick={handleDownload}
+              disabled={downloadState !== "idle"}
+              className="flex w-40 text-center justify-center items-center px-4 py-1.5 text-sm font-medium text-white bg-blue-600 
                 rounded-md hover:bg-blue-700 transition-all duration-200 
-                shadow-sm hover:shadow-md hover:-translate-y-0.5"
+                shadow-sm hover:shadow-md hover:-translate-y-0.5
+                disabled:bg-blue-400 disabled:cursor-not-allowed disabled:hover:translate-y-0
+                overflow-hidden"
             >
-              <Download size={16} className="mr-2" />
-              Download PNG
+              {buttonContent[downloadState]}
             </button>
           </div>
         </div>

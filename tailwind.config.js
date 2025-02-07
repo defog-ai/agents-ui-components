@@ -49,18 +49,29 @@ export default {
           },
         },
         pulse: {
-          '0%, 100%': {
+          "0%, 100%": {
             opacity: 1,
           },
-          '50%': {
-            opacity: .7,
+          "50%": {
+            opacity: 0.7,
+          },
+        },
+        "fade-up": {
+          "0%": {
+            opacity: "0",
+            transform: "translateY(10px)",
+          },
+          "100%": {
+            opacity: "1",
+            transform: "translateY(0)",
           },
         },
       },
       animation: {
         "fade-in-down": "fade-in-down 5s ease-out",
         "fade-in": "fade-in 0.2s ease-out",
-        'pulse': 'pulse 1.5s ease-in-out infinite',
+        pulse: "pulse 1.5s ease-in-out infinite",
+        "fade-up": "fade-up 0.2s ease-out",
       },
     },
   },
