@@ -13,21 +13,16 @@ const variantStyles = {
 const disabledStyles =
   "bg-gray-50 dark:bg-gray-700 text-gray-300 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-300 dark:hover:text-gray-500 cursor-not-allowed active:bg-gray-50 dark:active:bg-gray-700 active:text-gray-300 dark:active:text-gray-500 active:brightness-[100%] hover:active:brightness-[100%] active:[&:not(:hover)]:brightness-[100%]";
 
-/**
- * @typedef {Object} ButtonProps
- * @property {string} id - Id of the button.
- * @property {function} onClick - Function to be called when the button is clicked.
- * @property {string} className - Additional classes to be added to the button.
- * @property {React.ReactNode} children - The content of the button.
- * @property {React.ReactNode} icon - The icon of the button.
- * @property {boolean} disabled - If true, the button will be disabled.
- * @property {"normal" | "primary" | "secondary" | "danger"} variant - The variant of the button.
- */
+interface ButtonProps {
+  id?: string;
+  onClick?: (ev: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
+  className?: string;
+  children?: React.ReactNode;
+  icon?: React.ReactNode;
+  disabled?: boolean;
+  variant?: "normal" | "primary" | "secondary" | "danger";
+}
 
-/**
- * Button component
- * @param {ButtonProps} props
- */
 export function Button({
   id = null,
   onClick = () => {},
@@ -36,7 +31,7 @@ export function Button({
   icon = null,
   disabled = false,
   variant = "normal",
-}) {
+}: ButtonProps) {
   const variantStyle = useMemo(
     () => variantStyles[variant] || variantStyles.normal,
     [variant]
