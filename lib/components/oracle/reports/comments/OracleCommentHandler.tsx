@@ -133,7 +133,7 @@ function OracleCommentHandlerInner({
   editor: Editor;
   commentManager: CommentManager;
 }) {
-  const comments: OracleReportComment[] = useSyncExternalStore(
+  const comments = useSyncExternalStore(
     commentManager.subscribeToCommentUpdates,
     commentManager.getComments
   );
@@ -219,27 +219,29 @@ function OracleCommentHandlerInner({
         />
       )}
       <div className="comment-ramp h-full absolute -right-2 top-0">
-        {interactionState.hoveredElement && (
-          <MessageSquarePlus
-            className="comment-icon absolute w-5 left-2 cursor-pointer text-gray-400 hover:scale-110 hover:text-gray-500 transition-none"
-            style={{
-              top: `${interactionState.relativeTop}px`,
-            }}
-            onClick={() => {
-              if (interactionState.pmPos && interactionState.pmNode) {
-                editor
-                  .chain()
-                  .setNodeSelection(interactionState.pmPos.inside)
-                  .addComment({
-                    id: crypto.randomUUID(),
-                    content: "",
-                    user: localStorage.getItem("user"),
-                  })
-                  .run();
-              }
-            }}
-          />
-        )}
+        {interactionState.hoveredElement &&
+          !interactionState.editingId &&
+          !interactionState.hoveredId && (
+            <MessageSquarePlus
+              className="comment-icon absolute w-5 left-2 cursor-pointer text-gray-400 hover:scale-110 hover:text-gray-500 transition-none"
+              style={{
+                top: `${interactionState.relativeTop}px`,
+              }}
+              onClick={() => {
+                if (interactionState.pmPos && interactionState.pmNode) {
+                  editor
+                    .chain()
+                    .setNodeSelection(interactionState.pmPos.inside)
+                    .addComment({
+                      id: crypto.randomUUID(),
+                      content: "",
+                      user: localStorage.getItem("user"),
+                    })
+                    .run();
+                }
+              }}
+            />
+          )}
       </div>
     </NodeViewWrapper>
   );
