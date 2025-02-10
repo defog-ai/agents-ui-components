@@ -1,4 +1,5 @@
 import React from "react";
+import { twMerge } from "tailwind-merge";
 
 export interface DrawerProps {
   visible: boolean;
@@ -8,12 +9,14 @@ export interface DrawerProps {
   height?: string | number;
   title?: React.ReactNode;
   children?: React.ReactNode;
+  rootClassNames?: string;
 }
 
 export const Drawer: React.FC<DrawerProps> = ({
   visible,
   onClose,
   placement = "right",
+  rootClassNames = "",
   width = 256,
   height = 256,
   title,
@@ -23,7 +26,10 @@ export const Drawer: React.FC<DrawerProps> = ({
     <>
       {visible && (
         <div
-          className="fixed inset-0 bg-black/40 dark:bg-black/60 z-40"
+          className={twMerge(
+            "fixed inset-0 bg-black/40 dark:bg-black/60 z-40",
+            rootClassNames
+          )}
           onClick={onClose}
         />
       )}
@@ -45,7 +51,11 @@ export const Drawer: React.FC<DrawerProps> = ({
         }}
       >
         <div className="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
-          {title && <div className="text-lg font-medium text-gray-900 dark:text-gray-100">{title}</div>}
+          {title && (
+            <div className="text-lg font-medium text-gray-900 dark:text-gray-100">
+              {title}
+            </div>
+          )}
           <button
             className="bg-transparent border-none text-2xl cursor-pointer leading-none text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
             onClick={onClose}
@@ -53,7 +63,9 @@ export const Drawer: React.FC<DrawerProps> = ({
             ×
           </button>
         </div>
-        <div className="p-4 h-[calc(100%-65px)] overflow-y-auto text-gray-900 dark:text-gray-100">{children}</div>
+        <div className="p-4 h-[calc(100%-65px)] overflow-y-auto text-gray-900 dark:text-gray-100">
+          {children}
+        </div>
       </div>
     </>
   );

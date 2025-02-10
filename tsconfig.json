@@ -3,7 +3,9 @@
   "compilerOptions": {
     "baseUrl": "./",
     "paths": {
-      "@ui-components": ["lib/core-ui.ts"]
+      "@ui-components": ["lib/core-ui.ts"],
+      "@agent": ["lib/agent.ts"],
+      "@oracle": ["lib/oracle.ts"]
     },
     // Generate d.ts files
     "declaration": true,
