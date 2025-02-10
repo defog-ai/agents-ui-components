@@ -10,7 +10,7 @@ import { Trash } from "lucide-react";
  * Renders a follow-on analysis component that displays a list of analyses
  * and provides an input for generating new analyses.
  */
-export function OracleAnalysisFollowOn({
+export function OracleAnalysisDrawerWithFollowOn({
   initialAnalysisIds = [],
   recommendationIdx = 0,
 }: {

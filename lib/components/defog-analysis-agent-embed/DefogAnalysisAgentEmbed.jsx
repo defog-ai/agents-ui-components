@@ -29,7 +29,7 @@ export function EmbedInner({
   const messageManager = useContext(MessageManagerContext);
   const agentConfigContext = useContext(AgentConfigContext);
 
-  const { sqliteConn, token, apiEndpoint, hideRawAnalysis, hidePreviewTabs } =
+  const { sqliteConn, token, apiEndpoint, hidePreviewTabs } =
     agentConfigContext.val;
 
   const [availableDbs, setAvailableDbs] = useState(dbs);
