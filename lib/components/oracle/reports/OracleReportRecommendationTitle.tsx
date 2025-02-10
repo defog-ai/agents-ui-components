@@ -81,9 +81,12 @@ const RecommendationTitleComponent = ({ node }: NodeViewProps) => {
     return () => {
       if (drawerRoot.current) {
         try {
-          drawerRoot.current.unmount();
+          // add this 0 timeout to ensure the unmount happens after the drawer has finished rendering
+          setTimeout(() => {
+            drawerRoot.current.unmount();
+          }, 0);
         } finally {
-          // definitely delete the dom node though. sorry react :(
+          // delete the container dom node
           const node = document.getElementById(drawerRootId.current);
           if (node) {
             node.remove();
