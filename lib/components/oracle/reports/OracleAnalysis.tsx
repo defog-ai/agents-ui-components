@@ -120,7 +120,7 @@ export const OracleAnalysis = ({ analysisId }: OracleAnalysisProps) => {
     return (
       <div
         data-analysis-id={analysisId}
-        className="text-red-500 p-4 rounded-lg border dark:border-gray-500 drop-shadow-md bg-white dark:bg-gray-800 border-red-200 bg-red-50"
+        className="text-red-500 p-4 rounded-lg border dark:border-gray-500 drop-shadow-md dark:bg-gray-800 border-red-200 bg-red-50"
       >
         <h3 className="text-xl text-gray-900 dark:text-white font-semibold text-left mb-2">
           {toSentenceCase(analysisData?.analysis_json?.title)}
