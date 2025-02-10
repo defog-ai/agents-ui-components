@@ -113,7 +113,10 @@ export function OracleEmbed({ apiEndpoint }: { apiEndpoint: string }) {
               value: keyName,
               label: keyName,
             }))}
-            onChange={(v) => setSelectedApiKeyName(v)}
+            onChange={(v: string) => {
+              setSelectedApiKeyName(v);
+              setSelectedReportId(null);
+            }}
           />
           <div
             className={twMerge(
