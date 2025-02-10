@@ -76,7 +76,8 @@ export default {
     },
   },
   plugins: [
-    import("@tailwindcss/forms"),
+    require("@tailwindcss/forms"),
+    require("@tailwindcss/typography"),
     plugin(function ({ addUtilities }) {
       addUtilities({
         ".arrow-up": {

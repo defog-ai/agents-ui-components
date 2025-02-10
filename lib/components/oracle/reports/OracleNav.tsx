@@ -138,7 +138,7 @@ export const OracleNav = () => {
     }
   }, [comments]);
 
-  const canSubmit = status && !status.startsWith("Revision in progress");
+  const isBeingRevised = status?.startsWith("Revision in progress");
 
   const processComments = () => {
     commentDetails.current = {};
@@ -249,41 +249,29 @@ export const OracleNav = () => {
 
   return (
     <div className="flex flex-col">
-      <div className="flex items-center justify-between px-4 py-2 border-b dark:border-gray-700">
-        <div className="flex items-center gap-2">
+      <div className="flex items-center flex-row-reverse justify-between px-4 py-2 border-b dark:border-gray-700">
+        <div className="relative">
           <Button
             variant="secondary"
             onClick={() => {
-              window.history.back();
+              processComments();
+              setShowCommentsSidebar(!showCommentsSidebar);
             }}
+            className={
+              showCommentsSidebar ? "bg-gray-100 dark:bg-gray-700" : ""
+            }
           >
-            <ArrowLeft className="w-5 h-5" />
+            <MessageSquare className="w-5 h-5" />
           </Button>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="relative">
-            <Button
-              variant="secondary"
-              onClick={() => {
-                processComments();
-                setShowCommentsSidebar(!showCommentsSidebar);
-              }}
-              className={
-                showCommentsSidebar ? "bg-gray-100 dark:bg-gray-700" : ""
-              }
-            >
-              <MessageSquare className="w-5 h-5" />
-            </Button>
-            {comments.length > 0 && (
-              <div className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-                {comments.length}
-              </div>
-            )}
-          </div>
+          {comments.length > 0 && (
+            <div className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+              {comments.length}
+            </div>
+          )}
         </div>
       </div>
 
-      {!canSubmit && (
+      {isBeingRevised && (
         <div className="w-96 my-4 rounded-full border dark:border-none mx-auto bg-gray-50 dark:bg-gray-600 text-sm text-gray-600 dark:text-gray-300 p-4 flex flex-row shadow-md items-center">
           <Info className="min-w-6 mr-2 text-blue-500 dark:text-blue-400" />
           <p>
@@ -301,7 +289,7 @@ export const OracleNav = () => {
         </div>
       )}
 
-      {canSubmit && (
+      {status && (
         <div
           className={`fixed bottom-6 ${showCommentsSidebar ? "right-72" : "right-6"} z-[110] transition-all duration-200`}
         >
@@ -311,7 +299,7 @@ export const OracleNav = () => {
               processComments();
               setReviseModalOpen(true);
             }}
-            disabled={!canSubmit}
+            disabled={!status && !isBeingRevised}
             className="shadow-lg hover:shadow-xl transition-shadow"
           >
             Submit for revision

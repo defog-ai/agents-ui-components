@@ -73,7 +73,7 @@
     "react-use": "^17.6.0",
     "sanitize-html": "^2.13.1",
     "styled-components": "^6.1.11",
-    "tailwind-merge": "^2.4.0",
+    "tailwind-merge": "^2.6.0",
     "tiptap-markdown": "^0.8.10",
     "xlsx": "^0.18.5"
   },
@@ -87,6 +87,8 @@
     "@storybook/react-vite": "^8.4.7",
     "@storybook/test": "^8.4.7",
     "@tailwindcss/forms": "^0.5.7",
+    "@tailwindcss/postcss": "^4.0.6",
+    "@tailwindcss/typography": "^0.5.16",
     "@types/lodash.debounce": "^4.0.9",
     "@types/node": "^22.5.5",
     "@types/react": "^19.0.0",

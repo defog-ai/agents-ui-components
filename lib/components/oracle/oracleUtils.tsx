@@ -1,5 +1,9 @@
 import { parseData } from "@agent";
-import type { Analysis, OracleReportComment } from "./OracleReportContext";
+import type {
+  Analysis,
+  OracleReportComment,
+  Summary,
+} from "./OracleReportContext";
 
 import { OracleReportMultiTableExtension } from "./reports/OracleReportMultiTable";
 import { RecommendationTitle } from "./reports/OracleReportRecommendationTitle";
@@ -985,4 +989,138 @@ export const getReportStatus = async (
   const data = await res.json();
 
   return data.status;
+};
+
+export interface ReportData {
+  parsed: ReturnType<MDX["getParsed"]>;
+  summary: Summary;
+  analysisIds: string[];
+  comments: OracleReportComment[];
+}
+
+export async function fetchAndParseReportData(
+  apiEndpoint: string,
+  reportId: string,
+  keyName: string,
+  token: string
+): Promise<ReportData> {
+  const [mdx, status] = await getReportMDX(
+    apiEndpoint,
+    reportId,
+    keyName,
+    token
+  );
+
+  if (!mdx) {
+    throw Error();
+  }
+
+  const parsed = parseMDX(mdx);
+
+  const sum: Summary = await getReportExecutiveSummary(
+    apiEndpoint,
+    reportId,
+    keyName,
+    token
+  );
+
+  // add ids to each recommendation
+  sum.recommendations = sum.recommendations.map((rec) => ({
+    id: crypto.randomUUID(),
+    ...rec,
+  }));
+
+  const analysisIds = await getReportAnalysisIds(
+    apiEndpoint,
+    reportId,
+    keyName,
+    token
+  );
+
+  const fetchedComments = await getReportComments(
+    apiEndpoint,
+    reportId,
+    keyName,
+    token
+  );
+
+  return {
+    parsed,
+    summary: sum,
+    analysisIds: analysisIds,
+    comments: fetchedComments,
+  };
+}
+
+export interface ReportListItem {
+  report_id: string;
+  report_name: string;
+  data?: ReportData;
+  date_created: string;
+  inputs: Record<string, any>;
+  is_being_revised: boolean;
+  is_revision: boolean;
+  status: string;
+}
+
+export type ReportList = ReportListItem[];
+
+export const fetchReports = async (
+  apiEndpoint: string,
+  token: string,
+  apiKeyName: string
+): Promise<ReportList | null> => {
+  try {
+    const res = await fetch(
+      setupBaseUrl({
+        apiEndpoint,
+        protocol: "http",
+        path: "oracle/list_reports",
+      }),
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, key_name: apiKeyName }),
+      }
+    );
+
+    if (!res.ok) throw new Error("Failed to fetch reports");
+    const data = await res.json();
+
+    return data.reports;
+  } catch (error) {
+    console.error("Error fetching reports:", error);
+    return null;
+  }
+};
+
+export const deleteReport = async (
+  apiEndpoint: string,
+  reportId: string,
+  token: string,
+  apiKeyName: string
+) => {
+  try {
+    const res = await fetch(
+      setupBaseUrl({
+        apiEndpoint,
+        protocol: "http",
+        path: "oracle/delete_report",
+      }),
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          key_name: apiKeyName,
+          report_id: reportId,
+          token,
+        }),
+      }
+    );
+
+    return res.ok;
+  } catch (error) {
+    console.error("Error deleting report:", error);
+    return false;
+  }
 };

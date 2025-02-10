@@ -37,6 +37,7 @@
     "jsx": "react-jsx",
     "suppressExcessPropertyErrors": false,
     "suppressImplicitAnyIndexErrors": false,
+    "useUnknownInCatchVariables": false,
     "noImplicitAny": false,
     "strictNullChecks": false
   },
