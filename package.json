@@ -1,6 +1,6 @@
 {
   "name": "@defogdotai/agents-ui-components",
-  "version": "1.1.40",
+  "version": "1.1.43",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -15,6 +15,10 @@
   "main": "dist/agent.js",
   "types": "dist/agent.d.ts",
   "exports": {
+    "./oracle": {
+      "types": "./dist/oracle.d.ts",
+      "import": "./dist/oracle.js"
+    },
     "./agent": {
       "types": "./dist/agent.d.ts",
       "import": "./dist/agent.js"
@@ -38,9 +42,12 @@
     "@codemirror/state": "^6.5.1",
     "@headlessui/react": "^2.2.0",
     "@observablehq/plot": "^0.6.16",
+    "@sereneinserenade/tiptap-comment-extension": "^0.1.2",
     "@sqlite.org/sqlite-wasm": "^3.46.0-build2",
     "@tiptap/core": "^2.10.3",
     "@tiptap/pm": "^2.10.3",
+    "@tiptap/react": "^2.11.5",
+    "@tiptap/starter-kit": "^2.11.5",
     "@tiptap/suggestion": "^2.10.3",
     "@uiw/codemirror-extensions-classname": "^4.23.0",
     "@uiw/codemirror-themes": "^4.23.0",
@@ -67,6 +74,7 @@
     "sanitize-html": "^2.13.1",
     "styled-components": "^6.1.11",
     "tailwind-merge": "^2.4.0",
+    "tiptap-markdown": "^0.8.10",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
@@ -79,6 +87,7 @@
     "@storybook/react-vite": "^8.4.7",
     "@storybook/test": "^8.4.7",
     "@tailwindcss/forms": "^0.5.7",
+    "@types/lodash.debounce": "^4.0.9",
     "@types/node": "^22.5.5",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
@@ -104,5 +113,11 @@
     "vite": "^5.3.1",
     "vite-plugin-dts": "^4.0.0-beta.1",
     "vite-plugin-lib-inject-css": "^2.1.1"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@parcel/watcher",
+      "@swc/core"
+    ]
   }
 }
