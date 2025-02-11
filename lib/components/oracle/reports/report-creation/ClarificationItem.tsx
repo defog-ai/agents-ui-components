@@ -1,4 +1,5 @@
 import { MultiSelect, SingleSelect, TextArea } from "@ui-components";
+import { X } from "lucide-react";
 import { useMemo } from "react";
 
 export interface ClarificationObject {
@@ -8,6 +9,7 @@ export interface ClarificationObject {
   is_answered?: boolean;
   answer?: string | string[];
   onAnswerChange?: (answer: string | string[]) => void;
+  onDismiss?: () => void;
 }
 
 export const ClarificationItem = ({
@@ -15,6 +17,7 @@ export const ClarificationItem = ({
   options,
   input_type,
   onAnswerChange,
+  onDismiss,
 }: ClarificationObject) => {
   const component = useMemo(() => {
     switch (input_type) {
@@ -44,5 +47,18 @@ export const ClarificationItem = ({
     }
   }, []);
 
-  return component;
+  return (
+    <div className="relative">
+      {onDismiss && (
+        <button
+          onClick={onDismiss}
+          className="absolute -right-2 -top-2 p-1 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+          title="Dismiss"
+        >
+          <X className="w-4 h-4 text-gray-600" />
+        </button>
+      )}
+      {component}
+    </div>
+  );
 };
