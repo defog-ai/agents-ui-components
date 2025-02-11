@@ -170,6 +170,7 @@ export function OracleEmbed({ apiEndpoint }: { apiEndpoint: string }) {
         <div className="flex flex-col grow p-2 overflow-auto">
           {selectedReportId && (
             <OracleReport
+              key={selectedReportId}
               reportId={selectedReportId}
               apiEndpoint={apiEndpoint}
               keyName={selectedApiKeyName}
@@ -188,18 +189,39 @@ export function OracleEmbed({ apiEndpoint }: { apiEndpoint: string }) {
               }}
             />
           )}
-          <div
-            className={twMerge(
-              "w-full h-full m-auto",
-              selectedReportId ? "hidden" : ""
-            )}
-          >
-            <OracleDraftReport
-              token={token.current}
-              apiKeyName={selectedApiKeyName}
-              apiEndpoint={apiEndpoint}
-            />
-          </div>
+          {keyNames.map((keyName) => {
+            return (
+              <div
+                key={keyName}
+                className={twMerge(
+                  "w-full h-full m-auto",
+                  selectedReportId || selectedApiKeyName !== keyName
+                    ? "hidden"
+                    : ""
+                )}
+              >
+                <OracleDraftReport
+                  token={token.current}
+                  apiKeyName={keyName}
+                  apiEndpoint={apiEndpoint}
+                  onReportGenerated={(userQuestion, reportId, status) => {
+                    setReportHistory((prev) => ({
+                      ...prev,
+                      [keyName]: {
+                        ...prev[keyName],
+                        [reportId]: {
+                          report_id: reportId,
+                          report_name: userQuestion,
+                          status,
+                        },
+                      },
+                    }));
+                    setSelectedReportId(reportId);
+                  }}
+                />
+              </div>
+            );
+          })}
         </div>
       </div>
     </MessageManagerContext.Provider>

@@ -1,13 +1,19 @@
 import { useMemo } from "react";
 import { twMerge } from "tailwind-merge";
 
-const variantStyles = {
+const baseStyles = {
   normal:
-    "border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 hover:text-gray-800 dark:hover:text-gray-100 active:text-gray-800 dark:active:text-gray-100",
-  primary:
-    "bg-blue-500 text-white hover:bg-blue-600 hover:text-white active:text-white dark:bg-blue-600 dark:hover:bg-blue-700",
-  danger:
-    "bg-red-500 text-white hover:bg-red-600 hover:text-white active:text-white dark:bg-red-600 dark:hover:bg-red-700",
+    "border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-200",
+  primary: "bg-blue-500 text-white dark:bg-blue-600",
+  danger: "bg-red-500 text-white dark:bg-red-600",
+};
+
+const interactionStyles = "hover:opacity-80 active:opacity-90";
+
+const variantStyles = {
+  normal: `${baseStyles.normal} ${interactionStyles}`,
+  primary: `${baseStyles.primary} ${interactionStyles}`,
+  danger: `${baseStyles.danger} ${interactionStyles}`,
 };
 
 const disabledStyles =

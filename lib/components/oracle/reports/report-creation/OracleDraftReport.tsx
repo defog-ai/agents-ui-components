@@ -1,4 +1,5 @@
 import {
+  Button,
   MessageManagerContext,
   MultiSelect,
   SpinningLoader,
@@ -22,10 +23,30 @@ interface ReportDraft {
   clarifications?: ClarificationObject[];
 }
 
-export function OracleDraftReport({ apiEndpoint, apiKeyName, token }) {
+interface GenerateReportResponse {
+  report_id: string;
+  status: string;
+}
+
+export function OracleDraftReport({
+  apiEndpoint,
+  apiKeyName,
+  token,
+  onReportGenerated,
+}: {
+  apiEndpoint: string;
+  apiKeyName: string;
+  token: string;
+  onReportGenerated?: (
+    userQuestion: string,
+    reportId: string,
+    status: string
+  ) => void;
+}) {
   const [draft, setDraft] = useState<ReportDraft>({});
   const [loading, setLoading] = useState<boolean>(false);
   const loadingStatus = useRef<string>("");
+  const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
   const message = useContext(MessageManagerContext);
 
@@ -57,10 +78,71 @@ export function OracleDraftReport({ apiEndpoint, apiKeyName, token }) {
     [apiEndpoint, apiKeyName, token]
   );
 
+  const generateReport = useCallback<
+    () => Promise<GenerateReportResponse>
+  >(async () => {
+    if (!token) throw new Error("No token");
+
+    const res = await fetch(
+      setupBaseUrl({
+        apiEndpoint,
+        protocol: "http",
+        path: "oracle/begin_generation",
+      }),
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          key_name: apiKeyName,
+          token,
+          // jic text area has changed.
+          // if it's been emptied, use the original question
+          user_question: textAreaRef.current?.value || draft.userQuestion,
+          sources: [],
+          task_type: "exploration",
+          clarifications: draft.clarifications.filter(
+            (c) => c.answer && c.is_answered
+          ),
+        }),
+      }
+    );
+
+    if (!res.ok) throw new Error("Failed to generate report");
+
+    return await res.json();
+  }, [draft]);
+
+  const handleGenerateReport = useCallback(async () => {
+    setLoading(true);
+    loadingStatus.current = "Submitting report for generation...";
+    try {
+      const { report_id, status } = await generateReport();
+
+      onReportGenerated(
+        textAreaRef.current?.value || draft.userQuestion,
+        report_id,
+        status
+      );
+
+      message.success("Submitted. Your report is generating");
+
+      // clear everything
+      setDraft({});
+      loadingStatus.current = "";
+      textAreaRef.current.value = "";
+    } catch (error) {
+      message.error("Error generating report:", error);
+    } finally {
+      setLoading(false);
+    }
+    setLoading(false);
+  }, [draft, generateReport]);
+
   return (
     <div className="h-full overflow-auto py-4 px-1 lg:px-10">
       <div className="flex flex-col items-start justify-center min-h-full m-auto">
         <TextArea
+          ref={textAreaRef}
           rootClassNames="w-full"
           textAreaClassNames="rounded-xl"
           suffix={
@@ -107,8 +189,36 @@ export function OracleDraftReport({ apiEndpoint, apiKeyName, token }) {
             </div>
             <div className="space-y-6">
               {draft.clarifications.map((obj, idx) => (
-                <ClarificationItem {...obj} key={idx + obj.clarification} />
+                <ClarificationItem
+                  {...obj}
+                  key={idx + obj.clarification}
+                  onAnswerChange={(answer) => {
+                    setDraft((prev) => ({
+                      ...prev,
+                      clarifications: prev.clarifications.map((d, i) => {
+                        if (i === idx) {
+                          return {
+                            ...d,
+                            answer,
+                            is_answered: !answer
+                              ? false
+                              : typeof answer === "string"
+                                ? Boolean(answer)
+                                : answer.length > 0,
+                          };
+                        }
+                        return d;
+                      }),
+                    }));
+                  }}
+                />
               ))}
+              <Button
+                className="bg-gray-600 text-white border-0"
+                onClick={handleGenerateReport}
+              >
+                {loading ? loadingStatus.current : "Generate"}
+              </Button>
             </div>
           </div>
         )}
