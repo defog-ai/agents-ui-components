@@ -15,6 +15,7 @@ import CommentExtension from "@sereneinserenade/tiptap-comment-extension";
 import debounce from "lodash.debounce";
 import { Editor } from "@tiptap/core";
 import setupBaseUrl from "../utils/setupBaseUrl";
+import { useEffect, useRef, useState } from "react";
 
 // Custom hook for comment management
 const debouncedSendUpdates = debounce(
@@ -289,7 +290,6 @@ export function parseTables(
         '<multitable><oracle-table id="default-table"></oracle-table></multitable>',
       innerText: '<oracle-table id="default-table"></oracle-table>',
     };
-    console.log(parsed.tables["default-table"]);
     mdx += `<oracle-multi-table id="default-multi-table"><oracle-table id="default-table"></oracle-table></oracle-multi-table>`;
   }
 
@@ -648,7 +648,7 @@ export const getReportMDX = async (
 
   const data = await res.json();
 
-  return [data.tiptap_mdx || data.mdx, data.status];
+  return data.tiptap_mdx || data.mdx;
 };
 
 export const updateReportMDX = async (
@@ -992,7 +992,7 @@ export const getReportStatus = async (
 };
 
 export interface ReportData {
-  parsed: ReturnType<MDX["getParsed"]>;
+  parsed: ReturnType<MDX["getParsed"]> | null;
   summary: Summary;
   analysisIds: string[];
   comments: OracleReportComment[];
@@ -1004,25 +1004,16 @@ export async function fetchAndParseReportData(
   keyName: string,
   token: string
 ): Promise<ReportData> {
-  const [mdx, status] = await getReportMDX(
-    apiEndpoint,
-    reportId,
-    keyName,
-    token
-  );
+  const mdx = await getReportMDX(apiEndpoint, reportId, keyName, token);
 
-  if (!mdx) {
-    throw Error();
-  }
+  let parsed: ReturnType<MDX["getParsed"]> = null;
+  let sum: Summary = null;
+  let analysisIds: string[] = [];
+  let fetchedComments: OracleReportComment[] = [];
 
-  const parsed = parseMDX(mdx);
+  parsed = parseMDX(mdx);
 
-  const sum: Summary = await getReportExecutiveSummary(
-    apiEndpoint,
-    reportId,
-    keyName,
-    token
-  );
+  sum = await getReportExecutiveSummary(apiEndpoint, reportId, keyName, token);
 
   // add ids to each recommendation
   sum.recommendations = sum.recommendations.map((rec) => ({
@@ -1030,14 +1021,14 @@ export async function fetchAndParseReportData(
     ...rec,
   }));
 
-  const analysisIds = await getReportAnalysisIds(
+  analysisIds = await getReportAnalysisIds(
     apiEndpoint,
     reportId,
     keyName,
     token
   );
 
-  const fetchedComments = await getReportComments(
+  fetchedComments = await getReportComments(
     apiEndpoint,
     reportId,
     keyName,
@@ -1094,6 +1085,39 @@ export const fetchReports = async (
   }
 };
 
+export const fetchSingleReport = async (
+  apiEndpoint: string,
+  reportId: string,
+  token: string,
+  apiKeyName: string
+) => {
+  try {
+    const res = await fetch(
+      setupBaseUrl({
+        apiEndpoint,
+        protocol: "http",
+        path: "oracle/get_report",
+      }),
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          key_name: apiKeyName,
+          report_id: reportId,
+          token,
+        }),
+      }
+    );
+
+    if (!res.ok) throw new Error("Failed to fetch report");
+    const data = await res.json();
+    return data;
+  } catch (error) {
+    console.error("Error fetching report:", error);
+    return null;
+  }
+};
+
 export const deleteReport = async (
   apiEndpoint: string,
   reportId: string,
@@ -1123,4 +1147,89 @@ export const deleteReport = async (
     console.error("Error deleting report:", error);
     return false;
   }
+};
+
+export const useReportStatus = (
+  apiEndpoint: string,
+  reportId: string,
+  keyName: string,
+  token: string
+) => {
+  const intervalIdRef = useRef<NodeJS.Timeout | null>(null);
+  const [prevStatus, setPrevStatus] = useState<string | null>(null);
+  const [status, setStatus] = useState<string | null>("loading");
+
+  const stopPolling = () => {
+    if (intervalIdRef.current) {
+      clearInterval(intervalIdRef.current);
+    }
+  };
+
+  const startPolling = () => {
+    // Clear existing interval if any
+    stopPolling();
+
+    const fetchStatus = async () => {
+      try {
+        const currentStatus = await getReportStatus(
+          apiEndpoint,
+          reportId,
+          keyName,
+          token
+        );
+
+        setPrevStatus((oldStatus) => {
+          // // Check if status changed from revision to done/error
+          // if (
+          //   oldStatus &&
+          //   oldStatus.startsWith("Revision in progress") &&
+          //   (currentStatus === "done" || currentStatus === "error")
+          // ) {
+          //   window.location.reload();
+          // }
+          // Only update prevStatus if current status is different
+          if (oldStatus !== currentStatus) {
+            return currentStatus;
+          }
+          return oldStatus;
+        });
+        setStatus(currentStatus);
+        if (currentStatus === "done" || currentStatus === "error") {
+          stopPolling();
+        }
+        return currentStatus;
+      } catch (error) {
+        console.error("Error fetching report status:", error);
+        return null;
+      }
+    };
+
+    // Fetch immediately
+    fetchStatus();
+
+    // Set up polling every 5 seconds
+    intervalIdRef.current = setInterval(async () => {
+      const currentStatus = await fetchStatus();
+      // stop polling if status is "done" or "error"
+      if (currentStatus === "done" || currentStatus === "error") {
+        stopPolling();
+      }
+    }, 5000);
+  };
+
+  useEffect(() => {
+    startPolling();
+    // Cleanup on unmount
+    return () => {
+      stopPolling();
+    };
+  }, [reportId, keyName, token]);
+
+  return {
+    prevStatus,
+    status,
+    setStatus,
+    startPolling,
+    stopPolling,
+  };
 };

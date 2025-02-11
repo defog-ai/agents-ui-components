@@ -6,18 +6,14 @@ import {
   useSyncExternalStore,
 } from "react";
 import { Info, MessageSquare } from "lucide-react";
-import {
-  Button,
-  MessageManagerContext,
-  Modal,
-  TextArea,
-} from "@ui-components";
+import { Button, MessageManagerContext, Modal, TextArea } from "@ui-components";
 import { OracleReportContext } from "../OracleReportContext";
 import { EditorProvider, useCurrentEditor } from "@tiptap/react";
 import {
   revisionExtensions,
   getReportStatus,
   submitForRevision,
+  useReportStatus,
 } from "../oracleUtils";
 import { OracleCommentsSidebar } from "./tiptap-extensions/comments/OracleCommentsSidebar";
 
@@ -53,72 +49,12 @@ export const OracleNav = () => {
     };
   }>({});
 
-  const [status, setStatus] = useState<string | null>(null);
-  const [prevStatus, setPrevStatus] = useState<string | null>(null);
-  const intervalIdRef = useRef<NodeJS.Timeout | null>(null);
-
-  const startPolling = () => {
-    // Clear existing interval if any
-    if (intervalIdRef.current) {
-      clearInterval(intervalIdRef.current);
-    }
-
-    const fetchStatus = async () => {
-      try {
-        const currentStatus = await getReportStatus(
-          apiEndpoint,
-          reportId,
-          keyName,
-          token
-        );
-
-        setPrevStatus((oldStatus) => {
-          // Check if status changed from revision to done/error
-          if (
-            oldStatus &&
-            oldStatus.startsWith("Revision in progress") &&
-            (currentStatus === "done" || currentStatus === "error")
-          ) {
-            window.location.reload();
-          }
-          // Only update prevStatus if current status is different
-          if (oldStatus !== currentStatus) {
-            return currentStatus;
-          }
-          return oldStatus;
-        });
-        setStatus(currentStatus);
-        return currentStatus;
-      } catch (error) {
-        console.error("Error fetching report status:", error);
-        return null;
-      }
-    };
-
-    // Fetch immediately
-    fetchStatus();
-
-    // Set up polling every 5 seconds
-    intervalIdRef.current = setInterval(async () => {
-      const currentStatus = await fetchStatus();
-      // stop polling if status is "done" or "error"
-      if (currentStatus === "done" || currentStatus === "error") {
-        if (intervalIdRef.current) {
-          clearInterval(intervalIdRef.current);
-        }
-      }
-    }, 5000);
-  };
-
-  useEffect(() => {
-    startPolling();
-    // Cleanup on unmount
-    return () => {
-      if (intervalIdRef.current) {
-        clearInterval(intervalIdRef.current);
-      }
-    };
-  }, [reportId, keyName, token]);
+  const { status, setStatus, stopPolling, startPolling } = useReportStatus(
+    apiEndpoint,
+    reportId,
+    keyName,
+    token
+  );
 
   useEffect(() => {
     if (comments && comments.length > 0) {
@@ -313,10 +249,7 @@ export const OracleNav = () => {
         onOk={() => {
           try {
             // Clear existing polling before submission
-            if (intervalIdRef.current) {
-              clearInterval(intervalIdRef.current);
-              intervalIdRef.current = null;
-            }
+            stopPolling();
 
             submitForRevision(
               apiEndpoint,

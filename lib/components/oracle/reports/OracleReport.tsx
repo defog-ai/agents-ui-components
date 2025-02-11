@@ -9,6 +9,7 @@ import {
   Summary,
   fetchAndParseReportData,
   ReportData,
+  useReportStatus,
 } from "@oracle";
 import { AgentConfigContext } from "@agent";
 import { EditorProvider } from "@tiptap/react";
@@ -28,7 +29,6 @@ export function OracleReport({
   onReportParsed?: (data: ReportData | null) => void;
   reportData?: ReportData;
 }) {
-  const reportStatus = useRef<string | null>(null);
   const [tables, setTables] = useState<any>({});
   const [multiTables, setMultiTables] = useState<any>({});
   const [images, setImages] = useState<any>({});
@@ -43,9 +43,22 @@ export function OracleReport({
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
+  const { status } = useReportStatus(apiEndpoint, reportId, keyName, token);
+
+  useEffect(() => {
+    if (status === "error") {
+      setError("Error generating report");
+    }
+    if (status === "loading") {
+      setLoading(true);
+    }
+  }, [status]);
+
   useEffect(() => {
     const setup = async (reportId: string, keyName: string) => {
       try {
+        if (status !== "done") return;
+
         setLoading(true);
 
         let data: ReportData;
@@ -82,9 +95,7 @@ export function OracleReport({
     if (reportId && keyName) {
       setup(reportId, keyName);
     }
-  }, [reportId, keyName]);
-
-  useEffect(() => {});
+  }, [reportId, keyName, status]);
 
   if (loading) {
     return (
@@ -115,20 +126,20 @@ export function OracleReport({
     );
   }
 
-  if (!mdx) {
-    return (
-      <div
-        className={
-          "w-full h-full min-h-60 flex flex-col justify-center items-center"
-        }
-      >
-        <div className="mb-2 text-sm text-gray-400 dark:text-gray-500">
-          Fetching
-        </div>
-        <SpinningLoader classNames="w-5 h-5 text-gray-500 dark:text-gray-400" />
-      </div>
-    );
-  }
+  // if (!mdx && (status === "loading")) {
+  //   return (
+  //     <div
+  //       className={
+  //         "w-full h-full min-h-60 flex flex-col justify-center items-center"
+  //       }
+  //     >
+  //       <div className="mb-2 text-sm text-gray-400 dark:text-gray-500">
+  //         Fetching
+  //       </div>
+  //       <SpinningLoader classNames="w-5 h-5 text-gray-500 dark:text-gray-400" />
+  //     </div>
+  //   );
+  // }
 
   return (
     // sad reality for getting the chart container to work
@@ -162,19 +173,27 @@ export function OracleReport({
         }}
       >
         <div className="relative oracle-report-ctr">
-          <EditorProvider
-            extensions={extensions}
-            content={mdx}
-            immediatelyRender={false}
-            editable={false}
-            slotBefore={<OracleNav />}
-            editorProps={{
-              attributes: {
-                class:
-                  "max-w-2xl oracle-report-tiptap relative prose prose-base dark:prose-invert mx-auto p-2 mb-12 md:mb-0 focus:outline-none *:cursor-default",
-              },
-            }}
-          ></EditorProvider>
+          {status === "done" ? (
+            <EditorProvider
+              extensions={extensions}
+              content={mdx}
+              immediatelyRender={false}
+              editable={false}
+              slotBefore={<OracleNav />}
+              editorProps={{
+                attributes: {
+                  class:
+                    "max-w-2xl oracle-report-tiptap relative prose prose-base dark:prose-invert mx-auto p-2 mb-12 md:mb-0 focus:outline-none *:cursor-default",
+                },
+              }}
+            ></EditorProvider>
+          ) : (
+            <div className="w-full h-full min-h-60 flex flex-col justify-center items-center text-center rounded-md p-2">
+              <div className="mb-2 text-sm text-gray-400 dark:text-gray-200">
+                {status}
+              </div>
+            </div>
+          )}
         </div>
       </OracleReportContext.Provider>
     </AgentConfigContext.Provider>
