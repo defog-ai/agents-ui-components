@@ -45,8 +45,13 @@ export function OracleDraftReport({
 }) {
   const [draft, setDraft] = useState<ReportDraft>({});
   const [loading, setLoading] = useState<boolean>(false);
+  const [isMac, setIsMac] = useState<boolean>(false);
   const loadingStatus = useRef<string>("");
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    setIsMac(navigator.platform.toLowerCase().includes('mac'));
+  }, []);
 
   const message = useContext(MessageManagerContext);
 
@@ -147,7 +152,13 @@ export function OracleDraftReport({
           textAreaClassNames="rounded-xl"
           suffix={
             <span className="flex items-center">
-              Press <Command className="inline w-2.5 mx-1" /> + Enter to start
+              Press {isMac ? (
+                <>
+                  <Command className="inline w-2.5 mx-1" /> + Enter
+                </>
+              ) : (
+                'Ctrl + Enter'
+              )} to start
             </span>
           }
           disabled={loading}
