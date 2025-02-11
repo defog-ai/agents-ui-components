@@ -109,6 +109,8 @@ export function OracleEmbed({ apiEndpoint }: { apiEndpoint: string }) {
           <SingleSelect
             label="Select Database"
             value={selectedApiKeyName}
+            allowClear={false}
+            allowCreateNewOption={false}
             options={keyNames.map((keyName) => ({
               value: keyName,
               label: keyName,

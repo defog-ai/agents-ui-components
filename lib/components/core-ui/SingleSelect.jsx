@@ -310,8 +310,14 @@ export function SingleSelect({
                   "cursor-pointer select-none relative py-2 pl-3 pr-9 truncate",
                   popupOptionSizeClasses[size] ||
                     popupOptionSizeClasses["default"],
-                  highlightIndex === idx ? "bg-blue-100 dark:bg-blue-900/50" : ""
+                  highlightIndex === idx
+                    ? "bg-blue-100 dark:bg-blue-900/50"
+                    : ""
                 )}
+                // change highlight index on hover
+                onMouseEnter={() => setHighlightIndex(idx)}
+                onMouseLeave={() => setHighlightIndex(-1)}
+                // change selected option on click
                 onMouseDown={(e) => {
                   e.preventDefault();
                   setSelectedOption(option);
