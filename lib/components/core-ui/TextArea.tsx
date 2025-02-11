@@ -1,5 +1,5 @@
 import { CircleAlert } from "lucide-react";
-import React, { forwardRef, useEffect, useRef } from "react";
+import React, { forwardRef, Ref, useEffect, useRef } from "react";
 import { twMerge } from "tailwind-merge";
 
 function setHeight(el) {
@@ -13,29 +13,28 @@ const textAreaSizeClasses = {
   medium: "min-h-[60px]",
 };
 
-/**
- * @typedef {Object} TextAreaProps
- * @property {string} [value] - The value of the textarea. Setting this converts this to a controlled component.
- * @property {string} [defaultValue] - Default initial value of the textarea.
- * @property {string} [status] - The status of the textarea. Can be "error". If "error" is set, the textarea will have a red border.
- * @property {string} [label] - Label for the textarea.
- * @property {boolean} [disabled] - If true, the textarea will be disabled.
- * @property {number} [defaultRows] - Default number of rows for the textarea.
- * @property {string} [rootClassNames] - Additional classes to be added to the root div.
- * @property {string} [textAreaClassNames] - Additional classes to be added to the textarea element.
- * @property {string} [placeholder] - Placeholder text for the textarea.
- * @property {string} [id] - Id of the textarea.
- * @property {string} [name] - Name of the textarea.
- * @property {function} [onChange] - Function to be called when the textarea value changes.
- * @property {function} [onKeyDown] - Function to be called when a key is pressed down.
- * @property {object} [textAreaHtmlProps] - Additional props to be added to the textarea element.
- * @property {boolean} [autoResize] - If true, the textarea will resize automatically based on the content.
- * @property {React.Ref<HTMLTextAreaElement>} [ref] - Forwarded Ref to the textarea element.
- * @property {string} [size] - Size of the textarea.
- */
+interface TextAreaProps {
+  value?: string;
+  defaultValue?: string;
+  status?: string;
+  label?: string | React.ReactNode;
+  disabled?: boolean;
+  defaultRows?: number;
+  rootClassNames?: string;
+  textAreaClassNames?: string;
+  placeholder?: string;
+  id?: string;
+  name?: string;
+  onChange?: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+  onKeyDown?: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
+  textAreaHtmlProps?: object;
+  autoResize?: boolean;
+  ref?: React.Ref<HTMLTextAreaElement>;
+  size?: string;
+  suffix?: string | React.ReactNode;
+}
 
 /**
- * @type {React.FC<TextAreaProps>}
  * TextArea component
  * */
 let TextArea = forwardRef(function TextArea(
@@ -56,8 +55,9 @@ let TextArea = forwardRef(function TextArea(
     textAreaHtmlProps = {},
     autoResize = true,
     size = "default",
-  },
-  ref
+    suffix = "",
+  }: TextAreaProps,
+  ref: Ref<HTMLTextAreaElement>
 ) {
   const rootRef = useRef(null);
 
@@ -82,7 +82,7 @@ let TextArea = forwardRef(function TextArea(
           {label}
         </label>
       )}
-      <div className="relative rounded-md shadow-sm">
+      <div className="relative">
         <div className="">
           <textarea
             data-testid={id}
@@ -104,7 +104,8 @@ let TextArea = forwardRef(function TextArea(
               disabled
                 ? "bg-gray-100 dark:bg-gray-800 text-gray-400 focus:ring-gray-100 dark:focus:ring-gray-700 cursor-not-allowed"
                 : "bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100",
-              textAreaClassNames
+              textAreaClassNames,
+              suffix ? "pb-6" : ""
             )}
             onFocus={(ev) => {
               if (autoResize) {
@@ -120,6 +121,11 @@ let TextArea = forwardRef(function TextArea(
             {...textAreaHtmlProps}
             {...{ defaultValue, value }}
           />
+          {suffix && (
+            <div className="text-gray-400 text-[0.65rem] dark:text-gray-100 pointer-events-none relative bottom-6 left-2">
+              {suffix}
+            </div>
+          )}
         </div>
         {status === "error" && (
           <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
