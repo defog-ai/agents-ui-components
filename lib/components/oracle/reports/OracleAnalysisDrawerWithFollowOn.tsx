@@ -86,26 +86,6 @@ export function OracleAnalysisDrawerWithFollowOn({
                 console.log(d);
                 setAnalysisIds([...analysisIds, analysisId]);
               });
-
-              //   .then((d) => {
-              //     const newAnalysis: AnalysisParsed = {
-              //       analysis_id: analysisId,
-              //       mdx: d.mdx,
-              //       tables: d.tables || {},
-              //       multiTables: d.multiTables || {},
-              //       images: d.images || {},
-              //       analysis_json: d.analysis,
-              //     };
-
-              //     setAnalyses([...analyses, newAnalysis]);
-
-              //     setLoading(false);
-
-              //   })
-              //   .catch((e) => {
-              //     console.error(e);
-              //     setLoading(false);
-              //   });
             } catch (error) {
               console.error(error);
               setLoading(false);

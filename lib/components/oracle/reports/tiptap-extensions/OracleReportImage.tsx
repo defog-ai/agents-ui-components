@@ -6,9 +6,9 @@ import {
   Node,
 } from "@tiptap/react";
 import { useContext, useEffect, useState } from "react";
-import { OracleReportContext } from "../OracleReportContext";
+import { OracleReportContext } from "../../OracleReportContext";
 import { SpinningLoader } from "@ui-components";
-import { getReportImage } from "../oracleUtils";
+import { getReportImage } from "../../oracleUtils";
 
 function OracleReportImage({ node }: NodeViewProps) {
   const { apiEndpoint, images, keyName, reportId, token } =

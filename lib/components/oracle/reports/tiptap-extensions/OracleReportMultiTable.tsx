@@ -6,11 +6,11 @@ import {
   ReactNodeViewRenderer,
 } from "@tiptap/react";
 import { useContext, useMemo, useState } from "react";
-import { OracleReportContext } from "../OracleReportContext";
+import { OracleReportContext } from "../../OracleReportContext";
 import { Table, Tabs } from "@ui-components";
 import { ChartContainer } from "@agent";
-import { TABLE_TYPE_TO_NAME } from "../oracleUtils";
-import ErrorBoundary from "../../common/ErrorBoundary";
+import { TABLE_TYPE_TO_NAME } from "../../oracleUtils";
+import ErrorBoundary from "../../../common/ErrorBoundary";
 
 function OracleReportMultiTable({ node }: NodeViewProps) {
   const { multiTables, tables } = useContext(OracleReportContext);

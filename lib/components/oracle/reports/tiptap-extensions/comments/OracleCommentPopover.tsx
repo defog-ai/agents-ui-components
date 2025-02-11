@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState, useContext } from "react";
-import { type OracleReportComment } from "../../OracleReportContext";
+import { type OracleReportComment } from "../../../OracleReportContext";
 import { TextArea } from "@ui-components";
 import { twMerge } from "tailwind-merge";
 

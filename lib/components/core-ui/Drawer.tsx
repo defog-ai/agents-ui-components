@@ -24,7 +24,7 @@ const Drawer = forwardRef(
       title,
       children,
     }: DrawerProps,
-    ref: Ref<HTMLElement> = null
+    ref: Ref<HTMLDivElement> = null
   ) => {
     return (
       <>
