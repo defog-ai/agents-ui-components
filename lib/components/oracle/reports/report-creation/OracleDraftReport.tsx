@@ -222,6 +222,12 @@ export function OracleDraftReport({
                       }),
                     }));
                   }}
+                  onDismiss={() => {
+                    setDraft((prev) => ({
+                      ...prev,
+                      clarifications: prev.clarifications.filter((_, i) => i !== idx)
+                    }));
+                  }}
                 />
               ))}
               <Button
