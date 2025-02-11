@@ -8,8 +8,8 @@ import {
 } from "@tiptap/react";
 import React, { useContext, useRef, useState, useEffect } from "react";
 import { Drawer } from "@ui-components";
-import { OracleAnalysisDrawerWithFollowOn } from "./OracleAnalysisDrawerWithFollowOn";
-import { OracleReportContext } from "../OracleReportContext";
+import { OracleAnalysisDrawerWithFollowOn } from "../OracleAnalysisDrawerWithFollowOn";
+import { OracleReportContext } from "../../OracleReportContext";
 import { createRoot, Root } from "react-dom/client";
 
 interface RecommendationTitleAttrs {

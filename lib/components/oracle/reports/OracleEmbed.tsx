@@ -1,6 +1,6 @@
 import { Sidebar, SingleSelect, SpinningLoader } from "@ui-components";
 import { useEffect, useRef, useState } from "react";
-import { getApiKeyNames } from "../utils/utils";
+import { getApiKeyNames } from "../../utils/utils";
 import {
   fetchReports,
   OracleReport,
@@ -9,7 +9,6 @@ import {
 } from "@oracle";
 import { SquarePen } from "lucide-react";
 import { twMerge } from "tailwind-merge";
-import ErrorBoundary from "../common/ErrorBoundary";
 
 interface OracleReportType extends ReportListItem {
   reportData?: ReportData;

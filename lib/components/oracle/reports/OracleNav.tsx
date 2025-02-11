@@ -5,12 +5,11 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
-import { ArrowLeft, Info, MessageSquare } from "lucide-react";
+import { Info, MessageSquare } from "lucide-react";
 import {
   Button,
   MessageManagerContext,
   Modal,
-  SpinningLoader,
   TextArea,
 } from "@ui-components";
 import { OracleReportContext } from "../OracleReportContext";
@@ -20,7 +19,7 @@ import {
   getReportStatus,
   submitForRevision,
 } from "../oracleUtils";
-import { OracleCommentsSidebar } from "./comments/OracleCommentsSidebar";
+import { OracleCommentsSidebar } from "./tiptap-extensions/comments/OracleCommentsSidebar";
 
 export const OracleNav = () => {
   const [reviseModalOpen, setReviseModalOpen] = useState<boolean>(false);

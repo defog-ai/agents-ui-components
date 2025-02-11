@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState, useSyncExternalStore } from "react";
 import { OracleCommentPopover } from "./OracleCommentPopover";
-import type { OracleReportComment } from "../../OracleReportContext";
+import type { OracleReportComment } from "../../../OracleReportContext";
 import {
   Editor,
   mergeAttributes,
@@ -9,9 +9,9 @@ import {
   ReactNodeViewRenderer,
   useCurrentEditor,
 } from "@tiptap/react";
-import { OracleReportContext } from "../../OracleReportContext";
+import { OracleReportContext } from "../../../OracleReportContext";
 import { MessageSquarePlus } from "lucide-react";
-import type { CommentManager } from "../../oracleUtils";
+import type { CommentManager } from "../../../oracleUtils";
 
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {

@@ -1,6 +1,5 @@
 import { createContext } from "react";
-import { CommentManager, updateReportComments } from "./oracleUtils";
-import { Editor } from "@tiptap/core";
+import { CommentManager } from "./oracleUtils";
 
 export interface Segment {
   name: string;

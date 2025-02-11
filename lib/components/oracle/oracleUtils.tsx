@@ -5,12 +5,12 @@ import type {
   Summary,
 } from "./OracleReportContext";
 
-import { OracleReportMultiTableExtension } from "./reports/OracleReportMultiTable";
-import { RecommendationTitle } from "./reports/OracleReportRecommendationTitle";
+import { OracleReportMultiTableExtension } from "./reports/tiptap-extensions/OracleReportMultiTable";
+import { RecommendationTitle } from "./reports/tiptap-extensions/OracleReportRecommendationTitle";
 import StarterKit from "@tiptap/starter-kit";
-import { OracleReportImageExtension } from "./reports/OracleReportImage";
+import { OracleReportImageExtension } from "./reports/tiptap-extensions/OracleReportImage";
 import { Markdown } from "tiptap-markdown";
-import { OracleCommentHandlerExtension } from "./reports/comments/OracleCommentHandler";
+import { OracleCommentHandlerExtension } from "./reports/tiptap-extensions/comments/OracleCommentHandler";
 import CommentExtension from "@sereneinserenade/tiptap-comment-extension";
 import debounce from "lodash.debounce";
 import { Editor } from "@tiptap/core";

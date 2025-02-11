@@ -32,7 +32,7 @@ export const OracleAnalysis = ({ analysisId }: OracleAnalysisProps) => {
     let timeout: ReturnType<typeof setTimeout>;
 
     async function getStatus() {
-      let latestStatus;
+      let latestStatus: string;
       try {
         const data = await getReportAnalysis(
           apiEndpoint,
