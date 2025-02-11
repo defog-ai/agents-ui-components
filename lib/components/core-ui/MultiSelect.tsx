@@ -1,4 +1,4 @@
-import { CircleX, X } from "lucide-react";
+import { Check, CircleX, X } from "lucide-react";
 import { useEffect, useRef, useState, useMemo } from "react";
 import { twMerge } from "tailwind-merge";
 import { isNumber } from "../utils/utils";
@@ -20,44 +20,94 @@ const createNewOption = (val) => {
   };
 };
 
-/**
- * @typedef {Object} MultiSelectProps
- * @property {string} [rootClassNames] - Additional classes to be added to the root div.
- * @property {string} [popupClassName] - Additional classes to be added to the popup.
- * @property {function} [onChange] - Function to be called when the option is changed.
- * @property {Array<{label: string, value: string}>} [defaultValue] - The default value of the multi select.
- * @property {Array<{label: string, value: string}>} [value] - The value of the multi select.
- * @property {boolean} [disabled] - If true, the multi select will be disabled.
- * @property {Array<{label: string, value: string}>} [options] - The options to be displayed.
- * @property {string} [label] - The label of the multi select.
- * @property {function} [optionRenderer] - Function to render the option.
- * @property {function} [tagRenderer] - Function to render the tag.
- * @property {string} [placeholder] - The placeholder of the multi select.
- * @property {string} [size] - The size of the multi select. Can be "default" or "small".
- * @property {boolean} [allowClear] - If true, the multi select will have a clear button.
- * @property {boolean} [allowCreateNewOption] - If true, the multi select will allow creating new options.
- */
+interface Option {
+  label: string;
+  value: string;
+}
+
+interface MultiSelectProps {
+  /**
+   * Additional classes to be added to the root div.
+   */
+  rootClassNames?: string;
+  /**
+   * Additional classes to be added to the popup.
+   */
+  popupClassName?: string;
+  /**
+   * Function to be called when the option is changed.
+   */
+  onChange?: (
+    selectedValues: Option["value"][],
+    selectedOptions: Option[]
+  ) => void;
+  /**
+   * The default value of the multi select.
+   */
+  defaultValue?: Option["value"][];
+  /**
+   * The value of the multi select.
+   */
+  value?: Option["value"][];
+  /**
+   * If true, the multi select will be disabled.
+   */
+  disabled?: boolean;
+  /**
+   * The options to be displayed.
+   */
+  options?: Array<{ label: string; value: string }>;
+  /**
+   * The label of the multi select.
+   */
+  label?: string;
+  /**
+   * Function to render the option.
+   */
+  optionRenderer?: (option: Option) => React.ReactNode;
+  /**
+   * Function to render the tags which show the options that are selected.
+   */
+  tagRenderer?: (option: Option) => React.ReactNode;
+  /**
+   * The placeholder of the multi select.
+   */
+  placeholder?: string;
+  /**
+   * The size of the multi select. Can be "default" or "small".
+   */
+  size?: string;
+  /**
+   * If true, the multi select will have a clear button.
+   */
+  allowClear?: boolean;
+  /**
+   * If true, the multi select will allow creating new options.
+   */
+  allowCreateNewOption?: boolean;
+}
 
 /**
  * MultiSelect component
  * @param {MultiSelectProps} props
  * */
-export function MultiSelect({
-  rootClassNames = "",
-  popupClassName = "",
-  onChange = null,
-  defaultValue = [],
-  value = [],
-  disabled = false,
-  options = [],
-  label = null,
-  optionRenderer = null,
-  tagRenderer = null,
-  placeholder = "Select an option",
-  size = "default",
-  allowClear = true,
-  allowCreateNewOption = true,
-}) {
+export function MultiSelect(props: MultiSelectProps) {
+  const {
+    rootClassNames = "",
+    popupClassName = "",
+    onChange = null,
+    defaultValue = [],
+    value = [],
+    disabled = false,
+    options = [],
+    label = null,
+    optionRenderer = null,
+    tagRenderer = null,
+    placeholder = "Select an option",
+    size = "default",
+    allowClear = true,
+    allowCreateNewOption = true,
+  } = props;
   const [query, setQuery] = useState("");
   const ref = useRef(null);
   const [internalOptions, setInternalOptions] = useState(options);
@@ -68,12 +118,22 @@ export function MultiSelect({
   const updatePosition = () => {
     if (ref.current) {
       const rect = ref.current.getBoundingClientRect();
-      setDropdownStyle({
-        position: "fixed",
-        width: rect.width + "px",
-        top: rect.bottom + 4 + "px",
-        left: rect.left + "px",
-      });
+      // if this out of the window when rendering below the dropdown, render it on top
+      if (rect.bottom + 4 + rect.height > window.innerHeight) {
+        setDropdownStyle({
+          position: "fixed",
+          width: rect.width + "px",
+          top: rect.top - rect.height - 60 + "px",
+          left: rect.left + "px",
+        });
+      } else {
+        setDropdownStyle({
+          position: "fixed",
+          width: rect.width + "px",
+          top: rect.bottom + 4 + "px",
+          left: rect.left + "px",
+        });
+      }
     }
   };
 
@@ -132,7 +192,11 @@ export function MultiSelect({
       setInternalOptions(newInternalOptions);
     }
     setSelectedOptions(newSelected);
-  }, [value, allowCreateNewOption]);
+
+    // note on this dep array:
+    // we need to do a stringify here because value is an array
+    // and because of the default prop
+  }, [JSON.stringify(value), allowCreateNewOption]);
 
   useEffect(() => {
     const newInternalOptions = [...internalOptions];
@@ -246,7 +310,7 @@ export function MultiSelect({
             ) : (
               <div
                 key={opt.value + "-" + i}
-                className="border border-gray-300 dark:border-gray-600 shadow-sm flex flex-row bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 items-center rounded-md cursor-default px-3 py-1"
+                className="border border-gray-300 dark:border-gray-600 shadow-sm flex flex-row bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 items-center rounded-md cursor-default px-3 py-1 text-xs"
               >
                 {opt.label}
                 <button
@@ -305,7 +369,7 @@ export function MultiSelect({
                 )}
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => {
-                  let newSelected;
+                  let newSelected: Option[] = [];
                   if (selectedOptions.find((o) => o.value === option.value)) {
                     newSelected = selectedOptions.filter(
                       (o) => o.value !== option.value
@@ -322,8 +386,16 @@ export function MultiSelect({
                   setQuery("");
                   setOpen(false);
                 }}
+                // change highlight index on hover
+                onMouseEnter={() => setHighlightIndex(idx)}
+                onMouseLeave={() => setHighlightIndex(-1)}
               >
                 {optionRenderer ? optionRenderer(option) : option.label}
+                {selectedOptions.find((o) => o.value === option.value) && (
+                  <span className="absolute inset-y-0 right-0 flex items-center pr-4">
+                    <Check className="w-5 h-5" aria-hidden="true" />
+                  </span>
+                )}
               </li>
             ))}
           </ul>

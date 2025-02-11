@@ -1,4 +1,11 @@
-import { Sidebar, SingleSelect, SpinningLoader } from "@ui-components";
+import {
+  MessageManager,
+  MessageManagerContext,
+  MessageMonitor,
+  Sidebar,
+  SingleSelect,
+  SpinningLoader,
+} from "@ui-components";
 import { useEffect, useRef, useState } from "react";
 import { getApiKeyNames } from "../../utils/utils";
 import {
@@ -9,6 +16,7 @@ import {
 } from "@oracle";
 import { SquarePen } from "lucide-react";
 import { twMerge } from "tailwind-merge";
+import { OracleDraftReport } from "./report-creation/OracleDraftReport";
 
 interface OracleReportType extends ReportListItem {
   reportData?: ReportData;
@@ -32,6 +40,8 @@ export function OracleEmbed({ apiEndpoint }: { apiEndpoint: string }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
+
+  const messageManager = useRef(MessageManager());
 
   const token = useRef<string>(
     localStorage.getItem("defogToken") || import.meta.env.VITE_TOKEN
@@ -97,95 +107,101 @@ export function OracleEmbed({ apiEndpoint }: { apiEndpoint: string }) {
   }
 
   return (
-    <div className="flex flex-row min-w-full min-h-full max-h-full overflow-hidden text-gray-600 bg-white dark:bg-gray-900">
-      <Sidebar
-        open={true}
-        location="left"
-        rootClassNames="sticky top-0"
-        title={<span className="font-bold">History</span>}
-        contentClassNames={
-          "w-72 p-4 rounded-tl-lg relative sm:block min-h-96 max-h-full overflow-auto"
-        }
-      >
-        <div className="space-y-2">
-          <SingleSelect
-            label="Select Database"
-            value={selectedApiKeyName}
-            allowClear={false}
-            allowCreateNewOption={false}
-            options={keyNames.map((keyName) => ({
-              value: keyName,
-              label: keyName,
-            }))}
-            onChange={(v: string) => {
-              setSelectedApiKeyName(v);
-              setSelectedReportId(null);
-            }}
-          />
+    <MessageManagerContext.Provider value={messageManager.current}>
+      <MessageMonitor rootClassNames={"absolute left-0 right-0"} />
+      <div className="flex flex-row min-w-full min-h-full max-h-full overflow-hidden text-gray-600 bg-white dark:bg-gray-900">
+        <Sidebar
+          open={true}
+          location="left"
+          rootClassNames="sticky top-0 bg-gray-50"
+          title={<span className="font-bold">History</span>}
+          contentClassNames={
+            "w-72 p-4 rounded-tl-lg relative sm:block min-h-96 max-h-full overflow-auto"
+          }
+        >
+          <div className="space-y-2">
+            <SingleSelect
+              label="Select Database"
+              value={selectedApiKeyName}
+              allowClear={false}
+              allowCreateNewOption={false}
+              options={keyNames.map((keyName) => ({
+                value: keyName,
+                label: keyName,
+              }))}
+              onChange={(v: string) => {
+                setSelectedApiKeyName(v);
+                setSelectedReportId(null);
+              }}
+            />
+            <div
+              className={twMerge(
+                "title hover:cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 history-item p-2 text-sm",
+                !selectedReportId
+                  ? "font-medium bg-gray-100 dark:bg-gray-800 border-l-2 border-l-blue-500"
+                  : ""
+              )}
+              onClick={() => setSelectedReportId(null)}
+            >
+              <span>
+                <SquarePen /> New
+              </span>
+            </div>
+            {Object.values(reportHistory[selectedApiKeyName]).map(
+              (report: OracleReportType) => (
+                <div
+                  key={report.report_id}
+                  className={twMerge(
+                    "title hover:cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 history-item p-2 text-sm",
+                    report.report_id === selectedReportId
+                      ? "font-bold bg-gray-100 dark:bg-gray-800 border-l-2 border-l-blue-500"
+                      : ""
+                  )}
+                  onClick={() => {
+                    setSelectedReportId(report.report_id);
+                  }}
+                >
+                  <span>{report.report_name}</span>
+                </div>
+              )
+            )}
+          </div>
+        </Sidebar>
+        <div className="flex flex-col grow p-2 overflow-auto">
+          {selectedReportId && (
+            <OracleReport
+              reportId={selectedReportId}
+              apiEndpoint={apiEndpoint}
+              keyName={selectedApiKeyName}
+              token={token.current}
+              onReportParsed={(data: ReportData) => {
+                setReportHistory((prev) => ({
+                  ...prev,
+                  [selectedApiKeyName]: {
+                    ...prev[selectedApiKeyName],
+                    [selectedReportId]: {
+                      ...prev[selectedApiKeyName][selectedReportId],
+                      reportData: data,
+                    },
+                  },
+                }));
+              }}
+            />
+          )}
           <div
             className={twMerge(
-              "title hover:cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 history-item p-2 text-sm",
-              !selectedReportId
-                ? "font-medium bg-gray-100 dark:bg-gray-800 border-l-2 border-l-blue-500"
-                : ""
+              "w-full h-full m-auto",
+              selectedReportId ? "hidden" : ""
             )}
-            onClick={() => setSelectedReportId(null)}
           >
-            <span>
-              <SquarePen /> New
-            </span>
+            <OracleDraftReport
+              token={token.current}
+              apiKeyName={selectedApiKeyName}
+              apiEndpoint={apiEndpoint}
+            />
           </div>
-          {Object.values(reportHistory[selectedApiKeyName]).map(
-            (report: OracleReportType) => (
-              <div
-                key={report.report_id}
-                className={twMerge(
-                  "title hover:cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 history-item p-2 text-sm",
-                  report.report_id === selectedReportId
-                    ? "font-bold bg-gray-100 dark:bg-gray-800 border-l-2 border-l-blue-500"
-                    : ""
-                )}
-                onClick={() => {
-                  setSelectedReportId(report.report_id);
-                }}
-              >
-                <span>{report.report_name}</span>
-              </div>
-            )
-          )}
         </div>
-      </Sidebar>
-      <div className="flex flex-col grow p-2 overflow-auto">
-        {selectedReportId ? (
-          <OracleReport
-            reportId={selectedReportId}
-            apiEndpoint={apiEndpoint}
-            keyName={selectedApiKeyName}
-            token={token.current}
-            onReportParsed={(data: ReportData) => {
-              setReportHistory((prev) => ({
-                ...prev,
-                [selectedApiKeyName]: {
-                  ...prev[selectedApiKeyName],
-                  [selectedReportId]: {
-                    ...prev[selectedApiKeyName][selectedReportId],
-                    reportData: data,
-                  },
-                },
-              }));
-            }}
-          />
-        ) : (
-          <div className="flex flex-col h-full items-center justify-center gap-2">
-            <div className="text-gray-500 dark:text-gray-400">
-              Select a report
-            </div>
-            <div className="text-gray-500 dark:text-gray-400">
-              or start a new one
-            </div>
-          </div>
-        )}
       </div>
-    </div>
+    </MessageManagerContext.Provider>
   );
 }

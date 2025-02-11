@@ -71,12 +71,22 @@ export function SingleSelect({
   const updatePosition = () => {
     if (ref.current) {
       const rect = ref.current.getBoundingClientRect();
-      setDropdownStyle({
-        position: "fixed",
-        width: rect.width + "px",
-        top: rect.bottom + 4 + "px",
-        left: rect.left + "px",
-      });
+      // if this out of the window when rendering below the dropdown, render it on top
+      if (rect.bottom + 4 + rect.height > window.innerHeight) {
+        setDropdownStyle({
+          position: "fixed",
+          width: rect.width + "px",
+          top: rect.top - rect.height - 60 + "px",
+          left: rect.left + "px",
+        });
+      } else {
+        setDropdownStyle({
+          position: "fixed",
+          width: rect.width + "px",
+          top: rect.bottom + 4 + "px",
+          left: rect.left + "px",
+        });
+      }
     }
   };
 
