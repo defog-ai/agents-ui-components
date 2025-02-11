@@ -1085,39 +1085,6 @@ export const fetchReports = async (
   }
 };
 
-export const fetchSingleReport = async (
-  apiEndpoint: string,
-  reportId: string,
-  token: string,
-  apiKeyName: string
-) => {
-  try {
-    const res = await fetch(
-      setupBaseUrl({
-        apiEndpoint,
-        protocol: "http",
-        path: "oracle/get_report",
-      }),
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          key_name: apiKeyName,
-          report_id: reportId,
-          token,
-        }),
-      }
-    );
-
-    if (!res.ok) throw new Error("Failed to fetch report");
-    const data = await res.json();
-    return data;
-  } catch (error) {
-    console.error("Error fetching report:", error);
-    return null;
-  }
-};
-
 export const deleteReport = async (
   apiEndpoint: string,
   reportId: string,
