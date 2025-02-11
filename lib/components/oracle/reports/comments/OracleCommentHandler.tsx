@@ -114,12 +114,12 @@ function useCommentInteractions(editor: Editor) {
       }
     };
 
-    // editor.view.dom.addEventListener("mousemove", handleMouseMove, true);
-    // editor.view.dom.addEventListener("click", handleClick, true);
+    editor.view.dom.addEventListener("mousemove", handleMouseMove, true);
+    editor.view.dom.addEventListener("click", handleClick, true);
 
     return () => {
-      // editor.view.dom.removeEventListener("mousemove", handleMouseMove, true);
-      // editor.view.dom.removeEventListener("click", handleClick, true);
+      editor.view.dom.removeEventListener("mousemove", handleMouseMove, true);
+      editor.view.dom.removeEventListener("click", handleClick, true);
     };
   }, [editor, interactionState.editingId]);
 
