@@ -58,9 +58,12 @@ export function OracleEmbed({ apiEndpoint }: { apiEndpoint: string }) {
             );
             if (!reports) throw new Error("Failed to get reports");
 
-            reports.forEach((report) => {
-              histories[keyName][report.report_id] = report;
-            });
+            reports
+              // Filter out reports that are not done
+              .filter((report) => report.status === "done")
+              .forEach((report) => {
+                histories[keyName][report.report_id] = report;
+              });
           } catch (error) {
             setError("Failed to fetch reports for key name " + keyName);
             break;
