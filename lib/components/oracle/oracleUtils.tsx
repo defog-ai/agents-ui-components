@@ -1201,6 +1201,127 @@ export const useReportStatus = (
   };
 };
 
+interface GenerateReportResponse {
+  report_id: string;
+  status: string;
+}
+
+export const generateReport = async (
+  apiEndpoint: string,
+  token: string,
+  apiKeyName: string,
+  userQuestion: string,
+  sources: string[] = [],
+  clarifications = []
+): Promise<GenerateReportResponse> => {
+  if (!token) throw new Error("No token");
+  if (!userQuestion) throw new Error("No user question");
+  if (!apiKeyName) throw new Error("No api key name");
+
+  const res = await fetch(
+    setupBaseUrl({
+      apiEndpoint,
+      protocol: "http",
+      path: "oracle/begin_generation",
+    }),
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        key_name: apiKeyName,
+        token,
+        // jic text area has changed.
+        // if it's been emptied, use the original question
+        user_question: userQuestion,
+        sources: sources,
+        task_type: "exploration",
+        clarifications,
+      }),
+    }
+  );
+
+  if (!res.ok) throw new Error("Failed to generate report");
+
+  return await res.json();
+};
+
+export const getClarifications = async (
+  apiEndpoint: string,
+  token: string,
+  apiKeyName: string,
+  userQuestion: string
+) => {
+  if (!token) throw new Error("No token");
+  const res = await fetch(
+    setupBaseUrl({
+      apiEndpoint,
+      protocol: "http",
+      path: "oracle/clarify_question",
+    }),
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        key_name: apiKeyName,
+        token,
+        user_question: userQuestion,
+        task_type: "exploration",
+        answered_clarifications: [],
+      }),
+    }
+  );
+  if (!res.ok) throw new Error("Failed to get clarifications");
+  const data = await res.json();
+  return data.clarifications;
+};
+
+export interface SourceItem {
+  link: string;
+  position: number;
+  q: string;
+  snippet: string;
+  title: string;
+}
+
+/**
+ * Gets web sources for a user question. We never error from this route. returning an empty array is fine.
+ */
+export const getSources = async (
+  apiEndpoint: string,
+  token: string,
+  apiKeyName: string,
+  userQuestion: string
+): Promise<SourceItem[]> => {
+  try {
+    if (!token) throw new Error("No token");
+
+    const res = await fetch(
+      setupBaseUrl({
+        apiEndpoint,
+        protocol: "http",
+        path: "oracle/suggest_web_sources",
+      }),
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          key_name: apiKeyName,
+          token,
+          user_question: userQuestion,
+        }),
+      }
+    );
+
+    if (!res.ok) throw new Error("Failed to get sources");
+    const data: { num_results: number; organic: SourceItem[] } =
+      await res.json();
+    return data.organic;
+  } catch (e) {
+    console.error(e);
+    return [];
+  }
+};
+
 /**
  * Returns a string representation of the timestamp passed. (defaults to Date.now())
  * in the same format that the backend creates for reports

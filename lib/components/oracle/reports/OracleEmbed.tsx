@@ -106,8 +106,8 @@ export function OracleEmbed({ apiEndpoint }: { apiEndpoint: string }) {
             if (!reports) throw new Error("Failed to get reports");
 
             reports
-              // Filter out reports that are not done
-              .filter((report) => report.status === "done")
+              // Filter out reports that had errors
+              .filter((report) => report.status !== "error")
               // add to histories based on date created
               .forEach((report) => {
                 const date = new Date(report.date_created);
@@ -226,7 +226,9 @@ export function OracleEmbed({ apiEndpoint }: { apiEndpoint: string }) {
                             : ""
                         )}
                       >
-                        {report.report_name}
+                        {report.report_name ||
+                          report.inputs.user_question ||
+                          "Untitled report"}
                       </div>
                     ))}
                   </div>
