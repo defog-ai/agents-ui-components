@@ -9,13 +9,14 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { getApiKeyNames } from "../../utils/utils";
 import {
+  deleteReport,
   fetchReports,
   OracleReport,
   oracleReportTimestamp,
   ReportData,
   ReportListItem,
 } from "@oracle";
-import { SquarePen } from "lucide-react";
+import { SquarePen, Trash } from "lucide-react";
 import { twMerge } from "tailwind-merge";
 import { OracleDraftReport } from "./report-creation/OracleDraftReport";
 
@@ -170,7 +171,7 @@ export function OracleEmbed({ apiEndpoint }: { apiEndpoint: string }) {
         <Sidebar
           open={true}
           location="left"
-          rootClassNames="sticky top-0 bg-gray-50"
+          rootClassNames="sticky top-0 bg-gray-50 z-20"
           title={<span className="font-bold">History</span>}
           contentClassNames={
             "w-72 p-4 rounded-tl-lg relative sm:block min-h-96 max-h-full overflow-auto"
@@ -215,17 +216,17 @@ export function OracleEmbed({ apiEndpoint }: { apiEndpoint: string }) {
                     {reports.map((report: OracleReportType) => (
                       <div
                         key={report.report_id}
+                        onClick={() => {
+                          setSelectedReportId(report.report_id);
+                        }}
                         className={twMerge(
                           "title hover:cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 history-item p-2 text-sm",
                           report.report_id === selectedReportId
                             ? "font-bold bg-gray-100 dark:bg-gray-800 border-l-2 border-l-blue-500"
                             : ""
                         )}
-                        onClick={() => {
-                          setSelectedReportId(report.report_id);
-                        }}
                       >
-                        <span>{report.report_name}</span>
+                        {report.report_name}
                       </div>
                     ))}
                   </div>
@@ -242,6 +243,47 @@ export function OracleEmbed({ apiEndpoint }: { apiEndpoint: string }) {
               apiEndpoint={apiEndpoint}
               keyName={selectedApiKeyName}
               token={token.current}
+              onDelete={async () => {
+                const reportGroup = findReportGroupInHistory(
+                  selectedApiKeyName,
+                  selectedReportId,
+                  reportHistory
+                );
+                const deleteSucess = await deleteReport(
+                  apiEndpoint,
+                  selectedReportId,
+                  token.current,
+                  selectedApiKeyName
+                );
+
+                if (!deleteSucess) {
+                  messageManager.current.error("Failed to delete report");
+                  return;
+                } else {
+                  messageManager.current.success("Report deleted");
+
+                  // remove the report from the history
+                  setReportHistory((prev) => {
+                    const newReportList = prev[selectedApiKeyName][
+                      reportGroup
+                    ].filter((report) => report.report_id !== selectedReportId);
+
+                    const newHistory = {
+                      ...prev,
+                      [selectedApiKeyName]: {
+                        ...prev[selectedApiKeyName],
+                        [reportGroup]: newReportList,
+                      },
+                    };
+                    // if no reports left in group, remove group
+                    if (newReportList.length === 0) {
+                      delete newHistory[selectedApiKeyName][reportGroup];
+                    }
+                    return newHistory;
+                  });
+                  setSelectedReportId(null);
+                }
+              }}
               onReportParsed={(data: ReportData) => {
                 // find the group of this report in histories
                 const group = findReportGroupInHistory(

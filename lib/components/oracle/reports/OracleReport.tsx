@@ -20,12 +20,14 @@ export function OracleReport({
   keyName,
   token,
   onReportParsed = () => {},
+  onDelete = () => {},
   reportData = null,
 }: {
   apiEndpoint: string;
   reportId: string;
   keyName: string;
   token: string;
+  onDelete?: (reportId: string, apiKeyName: string) => void;
   onReportParsed?: (data: ReportData | null) => void;
   reportData?: ReportData;
 }) {
@@ -179,7 +181,7 @@ export function OracleReport({
               content={mdx}
               immediatelyRender={false}
               editable={false}
-              slotBefore={<OracleNav />}
+              slotBefore={<OracleNav onDelete={onDelete} />}
               editorProps={{
                 attributes: {
                   class:
