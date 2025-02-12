@@ -23,14 +23,10 @@ interface OracleReportType extends ReportListItem {
   reportData?: ReportData;
 }
 
+type groups = "Today" | "Yesterday" | "Past week" | "Past month" | "Earlier";
+
 interface ReportHistory {
-  [apiKeyName: string]: {
-    Today: { [reportId: string]: OracleReportType };
-    Yesterday: { [reportId: string]: OracleReportType };
-    "Past week": { [reportId: string]: OracleReportType };
-    "Past month": { [reportId: string]: OracleReportType };
-    Earlier: { [reportId: string]: OracleReportType };
-  };
+  [apiKeyName: string]: Record<groups, OracleReportType[]>;
 }
 
 const findReportGroupInHistory = (
@@ -40,10 +36,11 @@ const findReportGroupInHistory = (
 ) => {
   // default to Today
   if (!history[apiKeyName]) return "Today";
-  const groups = Object.keys(history[apiKeyName]);
+
+  const groups = Object.keys(history[apiKeyName]) as groups[];
 
   for (const group of groups) {
-    if (history[apiKeyName][group][reportId]) {
+    if (history[apiKeyName][group].some((r) => r.report_id === reportId)) {
       return group;
     }
   }
@@ -92,11 +89,11 @@ export function OracleEmbed({ apiEndpoint }: { apiEndpoint: string }) {
 
         for (const keyName of keyNames) {
           histories[keyName] = {
-            Today: {},
-            Yesterday: {},
-            "Past week": {},
-            "Past month": {},
-            Earlier: {},
+            Today: [],
+            Yesterday: [],
+            "Past week": [],
+            "Past month": [],
+            Earlier: [],
           };
 
           try {
@@ -114,17 +111,26 @@ export function OracleEmbed({ apiEndpoint }: { apiEndpoint: string }) {
               .forEach((report) => {
                 const date = new Date(report.date_created);
                 if (date.toDateString() === today.toDateString()) {
-                  histories[keyName]["Today"][report.report_id] = report;
+                  histories[keyName]["Today"].push(report);
                 } else if (date.toDateString() === yesterday.toDateString()) {
-                  histories[keyName]["Yesterday"][report.report_id] = report;
+                  histories[keyName]["Yesterday"].push(report);
                 } else if (date >= week) {
-                  histories[keyName]["Past week"][report.report_id] = report;
+                  histories[keyName]["Past week"].push(report);
                 } else if (date >= month) {
-                  histories[keyName]["Past month"][report.report_id] = report;
+                  histories[keyName]["Past month"].push(report);
                 } else {
-                  histories[keyName]["Earlier"][report.report_id] = report;
+                  histories[keyName]["Earlier"].push(report);
                 }
               });
+
+            // sort the reports within each group in the history by date created
+            Object.entries(histories[keyName]).forEach(([group, reports]) => {
+              reports.sort(
+                (a, b) =>
+                  new Date(a.date_created).getTime() -
+                  new Date(b.date_created).getTime()
+              );
+            });
           } catch (error) {
             setError("Failed to fetch reports for key name " + keyName);
             break;
@@ -206,7 +212,7 @@ export function OracleEmbed({ apiEndpoint }: { apiEndpoint: string }) {
                     <div className="px-2 mb-2 text-xs font-medium tracking-wide text-blue-400 uppercase">
                       {group}
                     </div>
-                    {Object.values(reports).map((report: OracleReportType) => (
+                    {reports.map((report: OracleReportType) => (
                       <div
                         key={report.report_id}
                         className={twMerge(
@@ -244,19 +250,23 @@ export function OracleEmbed({ apiEndpoint }: { apiEndpoint: string }) {
                   reportHistory
                 );
 
-                setReportHistory((prev) => ({
-                  ...prev,
-                  [selectedApiKeyName]: {
-                    ...prev[selectedApiKeyName],
-                    [group]: {
-                      ...prev[selectedApiKeyName][group],
-                      [selectedReportId]: {
-                        ...prev[selectedApiKeyName][group][selectedReportId],
-                        reportData: data,
-                      },
+                setReportHistory((prev) => {
+                  const prevReports = prev[selectedApiKeyName][group];
+                  // find this
+                  return {
+                    ...prev,
+                    [selectedApiKeyName]: {
+                      ...prev[selectedApiKeyName],
+                      [group]: [
+                        ...prev[selectedApiKeyName][group],
+                        {
+                          ...prev[selectedApiKeyName][group][selectedReportId],
+                          reportData: data,
+                        },
+                      ],
                     },
-                  },
-                }));
+                  };
+                });
               }}
             />
           )}
@@ -280,15 +290,15 @@ export function OracleEmbed({ apiEndpoint }: { apiEndpoint: string }) {
                       ...prev,
                       [keyName]: {
                         ...prev[keyName],
-                        Today: {
-                          ...prev[keyName]["Today"],
-                          [reportId]: {
+                        Today: [
+                          {
                             report_id: reportId,
                             report_name: userQuestion,
                             status,
                             date_created: oracleReportTimestamp(),
                           },
-                        },
+                          ...prev[keyName]["Today"],
+                        ],
                       },
                     }));
                     setSelectedReportId(reportId);
