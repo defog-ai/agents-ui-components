@@ -17,9 +17,9 @@ export {
   MessageManagerContext,
   MessageMonitor,
 } from "./components/core-ui/Message.jsx";
-export { Modal } from "./components/core-ui/Modal.jsx";
+export { Modal } from "./components/core-ui/Modal.tsx";
 export { MultiSelect } from "./components/core-ui/MultiSelect.tsx";
-export { Popover } from "./components/core-ui/Popover.jsx";
+export { Popover } from "./components/core-ui/Popover.tsx";
 export { RangeSlider } from "./components/core-ui/RangeSlider.jsx";
 export { Sidebar } from "./components/core-ui/Sidebar.jsx";
 export { SingleSelect } from "./components/core-ui/SingleSelect.jsx";
@@ -30,7 +30,7 @@ export { TextArea } from "./components/core-ui/TextArea.tsx";
 export { Toggle } from "./components/core-ui/Toggle.jsx";
 export { DropFiles } from "./components/core-ui/DropFiles.jsx";
 export { DropFilesHeadless } from "./components/core-ui/DropFilesHeadless.jsx";
-export { NavBar } from "./components/core-ui/NavBar.jsx";
+export { NavBar } from "./components/core-ui/NavBar.tsx";
 export { ColorPicker } from "./components/core-ui/ColorPicker.jsx";
 export { Drawer } from "./components/core-ui/Drawer.jsx";
 export { Popconfirm } from "./components/core-ui/Popconfirm.jsx";

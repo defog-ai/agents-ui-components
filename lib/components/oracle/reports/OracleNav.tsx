@@ -5,19 +5,30 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
-import { Info, MessageSquare } from "lucide-react";
-import { Button, MessageManagerContext, Modal, TextArea } from "@ui-components";
+import { Info, MessageSquare, Settings } from "lucide-react";
+import {
+  Button,
+  MessageManagerContext,
+  Modal,
+  NavBar,
+  Popover,
+  TextArea,
+} from "@ui-components";
 import { OracleReportContext } from "../OracleReportContext";
 import { EditorProvider, useCurrentEditor } from "@tiptap/react";
 import {
   revisionExtensions,
-  getReportStatus,
   submitForRevision,
   useReportStatus,
+  deleteReport,
 } from "../oracleUtils";
 import { OracleCommentsSidebar } from "./tiptap-extensions/comments/OracleCommentsSidebar";
 
-export const OracleNav = () => {
+export const OracleNav = ({
+  onDelete = () => {},
+}: {
+  onDelete: (reportId: string, apiKeyName: string) => void;
+}) => {
   const [reviseModalOpen, setReviseModalOpen] = useState<boolean>(false);
   const [showCommentsSidebar, setShowCommentsSidebar] =
     useState<boolean>(false);
@@ -180,6 +191,8 @@ export const OracleNav = () => {
     });
   };
 
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+
   if (!editor) return null;
 
   return (
@@ -204,6 +217,21 @@ export const OracleNav = () => {
             </div>
           )}
         </div>
+        <Button variant="danger" onClick={() => setDeleteModalOpen(true)}>
+          Delete
+        </Button>
+        <Modal
+          open={deleteModalOpen}
+          onOk={() => {
+            onDelete(reportId, keyName);
+            setDeleteModalOpen(false);
+          }}
+          onCancel={() => setDeleteModalOpen(false)}
+          okText="Yes"
+          okVariant="danger"
+        >
+          Are you sure?
+        </Modal>
       </div>
 
       {isBeingRevised && (
