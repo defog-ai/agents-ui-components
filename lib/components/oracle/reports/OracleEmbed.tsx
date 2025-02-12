@@ -252,18 +252,20 @@ export function OracleEmbed({ apiEndpoint }: { apiEndpoint: string }) {
 
                 setReportHistory((prev) => {
                   const prevReports = prev[selectedApiKeyName][group];
-                  // find this
+                  // if report is found, update it
                   return {
                     ...prev,
                     [selectedApiKeyName]: {
                       ...prev[selectedApiKeyName],
-                      [group]: [
-                        ...prev[selectedApiKeyName][group],
-                        {
-                          ...prev[selectedApiKeyName][group][selectedReportId],
-                          reportData: data,
-                        },
-                      ],
+                      [group]: prevReports.map((r) => {
+                        if (r.report_id === selectedReportId) {
+                          return {
+                            ...r,
+                            reportData: data,
+                          };
+                        }
+                        return r;
+                      }),
                     },
                   };
                 });
