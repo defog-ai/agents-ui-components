@@ -1,33 +1,37 @@
 import {
   Button,
   MessageManagerContext,
-  MultiSelect,
   SpinningLoader,
   TextArea,
 } from "@ui-components";
-import setupBaseUrl from "../../../utils/setupBaseUrl";
 import { Command } from "lucide-react";
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { ClarificationItem, ClarificationObject } from "./ClarificationItem";
+import {
+  generateReport,
+  getClarifications,
+  getSources,
+  SourceItem,
+} from "@oracle";
+import { SourceCard } from "./SourceItem";
 
 type QueryTaskType = "exploration" | "";
+
+interface SourceItemWithSelection extends SourceItem {
+  selected: boolean;
+}
+interface ReportDraft {
+  userQuestion?: string;
+  task_type?: QueryTaskType;
+  clarifications?: ClarificationObject[];
+  sources?: SourceItemWithSelection[];
+}
 
 /**
  * This stores the report before it is submitted for generation.
  * Stores the user question and the clarification questions + answers.
  * We don't "create" a report until the user finally submits
  */
-interface ReportDraft {
-  userQuestion?: string;
-  task_type?: QueryTaskType;
-  clarifications?: ClarificationObject[];
-}
-
-interface GenerateReportResponse {
-  report_id: string;
-  status: string;
-}
-
 export function OracleDraftReport({
   apiEndpoint,
   apiKeyName,
@@ -50,78 +54,23 @@ export function OracleDraftReport({
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    setIsMac(navigator.platform.toLowerCase().includes('mac'));
+    setIsMac(navigator.userAgent.toLowerCase().includes("mac"));
   }, []);
 
   const message = useContext(MessageManagerContext);
-
-  const getClarifications = useCallback(
-    async (userQuestion: string) => {
-      if (!token) throw new Error("No token");
-      const res = await fetch(
-        setupBaseUrl({
-          apiEndpoint,
-          protocol: "http",
-          path: "oracle/clarify_question",
-        }),
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            key_name: apiKeyName,
-            token,
-            user_question: userQuestion,
-            task_type: "exploration",
-            answered_clarifications: [],
-          }),
-        }
-      );
-      if (!res.ok) throw new Error("Failed to get clarifications");
-      const data = await res.json();
-      return data.clarifications;
-    },
-    [apiEndpoint, apiKeyName, token]
-  );
-
-  const generateReport = useCallback<
-    () => Promise<GenerateReportResponse>
-  >(async () => {
-    if (!token) throw new Error("No token");
-
-    const res = await fetch(
-      setupBaseUrl({
-        apiEndpoint,
-        protocol: "http",
-        path: "oracle/begin_generation",
-      }),
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          key_name: apiKeyName,
-          token,
-          // jic text area has changed.
-          // if it's been emptied, use the original question
-          user_question: textAreaRef.current?.value || draft.userQuestion,
-          sources: [],
-          task_type: "exploration",
-          clarifications: draft.clarifications.filter(
-            (c) => c.answer && c.is_answered
-          ),
-        }),
-      }
-    );
-
-    if (!res.ok) throw new Error("Failed to generate report");
-
-    return await res.json();
-  }, [draft]);
 
   const handleGenerateReport = useCallback(async () => {
     setLoading(true);
     loadingStatus.current = "Submitting report for generation...";
     try {
-      const { report_id, status } = await generateReport();
+      const { report_id, status } = await generateReport(
+        apiEndpoint,
+        token,
+        apiKeyName,
+        textAreaRef.current?.value || draft.userQuestion,
+        draft.sources.filter((s) => s.selected).map((s) => s.link),
+        draft.clarifications.filter((c) => c.answer && c.is_answered)
+      );
 
       onReportGenerated(
         textAreaRef.current?.value || draft.userQuestion,
@@ -141,7 +90,7 @@ export function OracleDraftReport({
       setLoading(false);
     }
     setLoading(false);
-  }, [draft, generateReport]);
+  }, [draft]);
 
   return (
     <div className="h-full overflow-auto py-4 px-1 lg:px-10">
@@ -152,13 +101,15 @@ export function OracleDraftReport({
           textAreaClassNames="rounded-xl"
           suffix={
             <span className="flex items-center">
-              Press {isMac ? (
+              Press{" "}
+              {isMac ? (
                 <>
                   <Command className="inline w-2.5 mx-1" /> + Enter
                 </>
               ) : (
-                'Ctrl + Enter'
-              )} to start
+                "Ctrl + Enter"
+              )}{" "}
+              to start
             </span>
           }
           disabled={loading}
@@ -179,10 +130,21 @@ export function OracleDraftReport({
                   ...prev,
                   userQuestion: question,
                 }));
-                const clarifications = await getClarifications(question);
+
+                const [clarifications, sources] = await Promise.all([
+                  getClarifications(apiEndpoint, token, apiKeyName, question),
+                  getSources(apiEndpoint, token, apiKeyName, question),
+                ]).catch((e) => {
+                  throw new Error("Error getting sources and clarifications");
+                });
+
                 setDraft((prev) => ({
                   ...prev,
                   clarifications,
+                  sources: sources.map((s) => ({
+                    ...s,
+                    selected: false,
+                  })),
                 }));
               } catch (e) {
                 message.error("Error getting clarifications");
@@ -195,41 +157,65 @@ export function OracleDraftReport({
 
         {!loading && draft.clarifications && draft.clarifications.length && (
           <div className="my-4 max-w-2xl">
-            <div className="prose text-lg font-light">
-              Could you please answer the following questions?
-            </div>
+            <div className="font-light mb-2">Add Details & Sources</div>
             <div className="space-y-6">
-              {draft.clarifications.map((obj, idx) => (
-                <ClarificationItem
-                  {...obj}
-                  key={idx + obj.clarification}
-                  onAnswerChange={(answer) => {
-                    setDraft((prev) => ({
-                      ...prev,
-                      clarifications: prev.clarifications.map((d, i) => {
-                        if (i === idx) {
-                          return {
-                            ...d,
-                            answer,
-                            is_answered: !answer
-                              ? false
-                              : typeof answer === "string"
-                                ? Boolean(answer)
-                                : answer.length > 0,
-                          };
-                        }
-                        return d;
-                      }),
-                    }));
-                  }}
-                  onDismiss={() => {
-                    setDraft((prev) => ({
-                      ...prev,
-                      clarifications: prev.clarifications.filter((_, i) => i !== idx)
-                    }));
-                  }}
-                />
-              ))}
+              <div className="space-y-2">
+                <div className="font-light text-sm">Sources</div>
+                <div className="bg-white dark:bg-gray-800 flex w-full flex-col pl-1">
+                  <div className="flex w-full items-center overflow-x-scroll gap-6 pb-3">
+                    {draft.sources.map((source, i) => (
+                      <SourceCard
+                        source={source}
+                        key={i}
+                        onSelected={() => {
+                          const newSources = draft.sources.slice();
+                          newSources[i].selected = !newSources[i].selected;
+                          setDraft((prev) => ({
+                            ...prev,
+                            sources: newSources,
+                          }));
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="font-light text-sm">Details</div>
+                {draft.clarifications.map((obj, idx) => (
+                  <ClarificationItem
+                    {...obj}
+                    key={idx + obj.clarification}
+                    onAnswerChange={(answer) => {
+                      setDraft((prev) => ({
+                        ...prev,
+                        clarifications: prev.clarifications.map((d, i) => {
+                          if (i === idx) {
+                            return {
+                              ...d,
+                              answer,
+                              is_answered: !answer
+                                ? false
+                                : typeof answer === "string"
+                                  ? Boolean(answer)
+                                  : answer.length > 0,
+                            };
+                          }
+                          return d;
+                        }),
+                      }));
+                    }}
+                    onDismiss={() => {
+                      setDraft((prev) => ({
+                        ...prev,
+                        clarifications: prev.clarifications.filter(
+                          (_, i) => i !== idx
+                        ),
+                      }));
+                    }}
+                  />
+                ))}
+              </div>
               <Button
                 className="bg-gray-600 text-white border-0"
                 onClick={handleGenerateReport}
