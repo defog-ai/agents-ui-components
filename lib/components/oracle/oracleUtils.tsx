@@ -1200,3 +1200,11 @@ export const useReportStatus = (
     stopPolling,
   };
 };
+
+/**
+ * Returns a string representation of the timestamp passed. (defaults to Date.now())
+ * in the same format that the backend creates for reports
+ * Sample format: "2025-02-11T08:13:28.761375",
+ */
+export const oracleReportTimestamp = (dateObj: Date = new Date()) =>
+  dateObj.toISOString().replace("Z", "");
