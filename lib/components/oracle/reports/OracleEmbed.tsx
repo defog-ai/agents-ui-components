@@ -55,7 +55,13 @@ const findReportGroupInHistory = (
  * This has a sidebar to select api key names, and a report selector which shows a list of already generated reports.
  * Has a button to start a new report.
  */
-export function OracleEmbed({ apiEndpoint }: { apiEndpoint: string }) {
+export function OracleEmbed({
+  apiEndpoint,
+  token,
+}: {
+  apiEndpoint: string;
+  token: string;
+}) {
   const [keyNames, setKeyNames] = useState([]);
   const [selectedApiKeyName, setSelectedApiKeyName] = useState("Default DB");
   const [reportHistory, setReportHistory] = useState<ReportHistory>({});
@@ -65,14 +71,10 @@ export function OracleEmbed({ apiEndpoint }: { apiEndpoint: string }) {
 
   const messageManager = useRef(MessageManager());
 
-  const token = useRef<string>(
-    localStorage.getItem("defogToken") || import.meta.env.VITE_TOKEN
-  );
-
   useEffect(() => {
     async function setup() {
       try {
-        const keyNames = await getApiKeyNames(token.current);
+        const keyNames = await getApiKeyNames(token);
         if (!keyNames) throw new Error("Failed to get api key names");
         setKeyNames(keyNames);
 
@@ -98,11 +100,7 @@ export function OracleEmbed({ apiEndpoint }: { apiEndpoint: string }) {
           };
 
           try {
-            const reports = await fetchReports(
-              apiEndpoint,
-              token.current,
-              keyName
-            );
+            const reports = await fetchReports(apiEndpoint, token, keyName);
             if (!reports) throw new Error("Failed to get reports");
 
             reports
@@ -244,7 +242,7 @@ export function OracleEmbed({ apiEndpoint }: { apiEndpoint: string }) {
               reportId={selectedReportId}
               apiEndpoint={apiEndpoint}
               keyName={selectedApiKeyName}
-              token={token.current}
+              token={token}
               onDelete={async () => {
                 const reportGroup = findReportGroupInHistory(
                   selectedApiKeyName,
@@ -254,7 +252,7 @@ export function OracleEmbed({ apiEndpoint }: { apiEndpoint: string }) {
                 const deleteSucess = await deleteReport(
                   apiEndpoint,
                   selectedReportId,
-                  token.current,
+                  token,
                   selectedApiKeyName
                 );
 
@@ -328,7 +326,7 @@ export function OracleEmbed({ apiEndpoint }: { apiEndpoint: string }) {
                 )}
               >
                 <OracleDraftReport
-                  token={token.current}
+                  token={token}
                   apiKeyName={keyName}
                   apiEndpoint={apiEndpoint}
                   onReportGenerated={(userQuestion, reportId, status) => {

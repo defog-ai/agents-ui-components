@@ -5,7 +5,10 @@ import "../../lib/styles/index.scss";
 function OracleEmbedTest() {
   return (
     <div className="h-screen">
-      <OracleEmbed apiEndpoint={import.meta.env.VITE_API_ENDPOINT} />
+      <OracleEmbed
+        apiEndpoint={import.meta.env.VITE_API_ENDPOINT}
+        token={import.meta.env.VITE_TOKEN}
+      />
     </div>
   );
 }
