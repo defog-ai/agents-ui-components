@@ -16,12 +16,7 @@ import {
 } from "@ui-components";
 import { OracleReportContext } from "../OracleReportContext";
 import { EditorProvider, useCurrentEditor } from "@tiptap/react";
-import {
-  revisionExtensions,
-  submitForRevision,
-  useReportStatus,
-  deleteReport,
-} from "../oracleUtils";
+import { revisionExtensions, submitForRevision } from "../oracleUtils";
 import { OracleCommentsSidebar } from "./tiptap-extensions/comments/OracleCommentsSidebar";
 
 export const OracleNav = ({
@@ -34,8 +29,21 @@ export const OracleNav = ({
     useState<boolean>(false);
 
   const message = useContext(MessageManagerContext);
-  const { apiEndpoint, reportId, keyName, token, commentManager } =
-    useContext(OracleReportContext);
+  const {
+    apiEndpoint,
+    reportId,
+    keyName,
+    token,
+    commentManager,
+    reportStatusManager,
+  } = useContext(OracleReportContext);
+
+  const { updateStatus, stopPolling, startPolling } = reportStatusManager;
+
+  const status = useSyncExternalStore(
+    reportStatusManager?.subscribeToStatusUpdates || (() => () => {}),
+    reportStatusManager?.getStatus || (() => null)
+  );
 
   const generalCommentsRef = useRef<HTMLTextAreaElement>(null);
 
@@ -59,13 +67,6 @@ export const OracleNav = ({
       user: string | null;
     };
   }>({});
-
-  const { status, setStatus, stopPolling, startPolling } = useReportStatus(
-    apiEndpoint,
-    reportId,
-    keyName,
-    token
-  );
 
   useEffect(() => {
     if (comments && comments.length > 0) {
@@ -195,8 +196,6 @@ export const OracleNav = ({
 
   if (!editor) return null;
 
-  console.log(status, isBeingRevised);
-
   return (
     <div className="flex flex-col">
       <div className="flex items-center flex-row-reverse justify-between px-4 py-2 border-b dark:border-gray-700">
@@ -294,7 +293,7 @@ export const OracleNav = ({
             )
               .then((res) => {
                 // set status to being revised
-                setStatus("Revision in progress");
+                updateStatus("Revision in progress");
                 setReviseModalOpen(false);
                 // Start polling again after getting server response
                 startPolling();
