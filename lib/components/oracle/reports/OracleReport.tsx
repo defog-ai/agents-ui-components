@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { SpinningLoader } from "@ui-components";
 import {
   extensions,
@@ -9,7 +9,7 @@ import {
   Summary,
   fetchAndParseReportData,
   ReportData,
-  useReportStatus,
+  reportStatusManager,
 } from "@oracle";
 import { AgentConfigContext } from "@agent";
 import { EditorProvider } from "@tiptap/react";
@@ -21,7 +21,6 @@ export function OracleReport({
   token,
   onReportParsed = () => {},
   onDelete = () => {},
-  reportData = null,
 }: {
   apiEndpoint: string;
   reportId: string;
@@ -29,7 +28,6 @@ export function OracleReport({
   token: string;
   onDelete?: (reportId: string, apiKeyName: string) => void;
   onReportParsed?: (data: ReportData | null) => void;
-  reportData?: ReportData;
 }) {
   const [tables, setTables] = useState<any>({});
   const [multiTables, setMultiTables] = useState<any>({});
@@ -45,7 +43,27 @@ export function OracleReport({
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
-  const { status } = useReportStatus(apiEndpoint, reportId, keyName, token);
+  const statusManager = useRef(
+    reportStatusManager({
+      apiEndpoint,
+      reportId,
+      keyName,
+      token,
+    })
+  ).current;
+
+  const status = useSyncExternalStore(
+    statusManager.subscribeToStatusUpdates,
+    statusManager.getStatus
+  );
+
+  useEffect(() => {
+    statusManager.startPolling();
+    return () => {
+      statusManager.stopPolling();
+    };
+  }, []);
+
   const isBeingRevised = status?.startsWith("Revision in progress");
 
   useEffect(() => {
@@ -60,23 +78,25 @@ export function OracleReport({
   useEffect(() => {
     const setup = async (reportId: string, keyName: string) => {
       try {
-        if (status !== "done" && !isBeingRevised) return;
+        // don't fetch if either the report is not done
+        // or if it's being revised and we already have the MDX
+        if (
+          !(status === "done" || (isBeingRevised && !mdx)) ||
+          !reportId ||
+          !keyName
+        )
+          return;
 
         setLoading(true);
 
         let data: ReportData;
 
-        if (!reportData) {
-          // fetch if not available
-          data = await fetchAndParseReportData(
-            apiEndpoint,
-            reportId,
-            keyName,
-            token
-          );
-        } else {
-          data = reportData;
-        }
+        data = await fetchAndParseReportData(
+          apiEndpoint,
+          reportId,
+          keyName,
+          token
+        );
 
         data.parsed.mdx && setMDX(data.parsed.mdx);
         data.parsed.tables && setTables(data.parsed.tables);
@@ -166,6 +186,7 @@ export function OracleReport({
           reportId: reportId,
           keyName: keyName,
           token: token,
+          reportStatusManager: statusManager,
           commentManager: commentManager({
             apiEndpoint: apiEndpoint,
             reportId: reportId,

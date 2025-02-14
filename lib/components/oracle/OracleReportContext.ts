@@ -1,5 +1,5 @@
 import { createContext } from "react";
-import { CommentManager } from "./oracleUtils";
+import { CommentManager, ReportStatusManager } from "./oracleUtils";
 
 export interface Segment {
   name: string;
@@ -141,6 +141,8 @@ export interface OracleReportContext {
   extra?: { [key: string]: any };
 
   commentManager?: CommentManager;
+
+  reportStatusManager?: ReportStatusManager;
 }
 
 /**

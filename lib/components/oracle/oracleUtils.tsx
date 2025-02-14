@@ -1116,20 +1116,55 @@ export const deleteReport = async (
   }
 };
 
-export const useReportStatus = (
-  apiEndpoint: string,
-  reportId: string,
-  keyName: string,
-  token: string
-) => {
-  const intervalIdRef = useRef<NodeJS.Timeout | null>(null);
-  const [prevStatus, setPrevStatus] = useState<string | null>(null);
-  const [status, setStatus] = useState<string | null>("loading");
+export interface ReportStatusManager {
+  getStatus: () => string | null;
+  startPolling: () => void;
+  stopPolling: () => void;
+  updateStatus: (newStatus: string) => void;
+  subscribeToStatusUpdates: (listener: () => void) => () => void;
+}
+
+export const reportStatusManager = ({
+  apiEndpoint,
+  reportId,
+  keyName,
+  token,
+}: {
+  apiEndpoint: string;
+  reportId: string;
+  keyName: string;
+  token: string;
+}): ReportStatusManager => {
+  let intervalIdRef = null;
+  let prevStatus: string | null = null;
+  let status: string | null = "loading";
+  let listeners: (() => void)[] = [];
+  // const [prevStatus, setPrevStatus] = useState<string | null>(null);
+  // const [status, setStatus] = useState<string | null>("loading");
 
   const stopPolling = () => {
-    if (intervalIdRef.current) {
-      clearInterval(intervalIdRef.current);
+    clearInterval(intervalIdRef);
+  };
+
+  const subscribeToStatusUpdates = (listener: () => void) => {
+    listeners.push(listener);
+    return () => {
+      listeners = listeners.filter((l) => l !== listener);
+    };
+  };
+
+  const updateStatus = (newStatus: string) => {
+    prevStatus = status;
+    status = newStatus;
+    if (status === "done" && prevStatus !== "done") {
+      stopPolling();
+      startPolling();
     }
+    listeners.forEach((l) => l());
+  };
+
+  const getStatus = () => {
+    return status;
   };
 
   const startPolling = () => {
@@ -1145,22 +1180,8 @@ export const useReportStatus = (
           token
         );
 
-        setPrevStatus((oldStatus) => {
-          // // Check if status changed from revision to done/error
-          // if (
-          //   oldStatus &&
-          //   oldStatus.startsWith("Revision in progress") &&
-          //   (currentStatus === "done" || currentStatus === "error")
-          // ) {
-          //   window.location.reload();
-          // }
-          // Only update prevStatus if current status is different
-          if (oldStatus !== currentStatus) {
-            return currentStatus;
-          }
-          return oldStatus;
-        });
-        setStatus(currentStatus);
+        updateStatus(currentStatus);
+
         if (currentStatus === "done" || currentStatus === "error") {
           stopPolling();
         }
@@ -1175,7 +1196,7 @@ export const useReportStatus = (
     fetchStatus();
 
     // Set up polling every 5 seconds
-    intervalIdRef.current = setInterval(async () => {
+    intervalIdRef = setInterval(async () => {
       const currentStatus = await fetchStatus();
       // stop polling if status is "done" or "error"
       if (currentStatus === "done" || currentStatus === "error") {
@@ -1184,18 +1205,10 @@ export const useReportStatus = (
     }, 5000);
   };
 
-  useEffect(() => {
-    startPolling();
-    // Cleanup on unmount
-    return () => {
-      stopPolling();
-    };
-  }, [reportId, keyName, token]);
-
   return {
-    prevStatus,
-    status,
-    setStatus,
+    getStatus,
+    updateStatus,
+    subscribeToStatusUpdates,
     startPolling,
     stopPolling,
   };
