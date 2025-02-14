@@ -1048,10 +1048,10 @@ export interface ReportListItem {
   report_name: string;
   data?: ReportData;
   date_created: string;
-  inputs: Record<string, any>;
-  is_being_revised: boolean;
-  is_revision: boolean;
-  status: string;
+  inputs?: Record<string, any>;
+  is_being_revised?: boolean;
+  is_revision?: boolean;
+  status?: string;
 }
 
 export type ReportList = ReportListItem[];

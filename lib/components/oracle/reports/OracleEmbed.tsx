@@ -7,7 +7,6 @@ import {
   SpinningLoader,
 } from "@ui-components";
 import { useEffect, useRef, useState } from "react";
-import { getApiKeyNames } from "../../utils/utils";
 import {
   deleteReport,
   fetchReports,
@@ -58,11 +57,12 @@ const findReportGroupInHistory = (
 export function OracleEmbed({
   apiEndpoint,
   token,
+  keyNames,
 }: {
   apiEndpoint: string;
   token: string;
+  keyNames: string[];
 }) {
-  const [keyNames, setKeyNames] = useState([]);
   const [selectedApiKeyName, setSelectedApiKeyName] = useState("Default DB");
   const [reportHistory, setReportHistory] = useState<ReportHistory>({});
   const [loading, setLoading] = useState(true);
@@ -74,10 +74,7 @@ export function OracleEmbed({
   useEffect(() => {
     async function setup() {
       try {
-        const keyNames = await getApiKeyNames(token);
-        if (!keyNames) throw new Error("Failed to get api key names");
-        setKeyNames(keyNames);
-
+        if (keyNames.length === 0) throw new Error("No api key names found");
         setSelectedApiKeyName(keyNames[0]);
 
         const histories: ReportHistory = {};
