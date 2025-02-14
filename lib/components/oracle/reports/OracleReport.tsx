@@ -46,6 +46,7 @@ export function OracleReport({
   const [loading, setLoading] = useState<boolean>(true);
 
   const { status } = useReportStatus(apiEndpoint, reportId, keyName, token);
+  const isBeingRevised = status?.startsWith("Revision in progress");
 
   useEffect(() => {
     if (status === "error") {
@@ -59,7 +60,7 @@ export function OracleReport({
   useEffect(() => {
     const setup = async (reportId: string, keyName: string) => {
       try {
-        if (status !== "done") return;
+        if (status !== "done" && !isBeingRevised) return;
 
         setLoading(true);
 
@@ -175,7 +176,7 @@ export function OracleReport({
         }}
       >
         <div className="relative oracle-report-ctr">
-          {status === "done" ? (
+          {status === "done" || isBeingRevised ? (
             <EditorProvider
               extensions={extensions}
               content={mdx}

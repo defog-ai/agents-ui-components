@@ -195,6 +195,8 @@ export const OracleNav = ({
 
   if (!editor) return null;
 
+  console.log(status, isBeingRevised);
+
   return (
     <div className="flex flex-col">
       <div className="flex items-center flex-row-reverse justify-between px-4 py-2 border-b dark:border-gray-700">
@@ -262,7 +264,7 @@ export const OracleNav = ({
               processComments();
               setReviseModalOpen(true);
             }}
-            disabled={!status && !isBeingRevised}
+            disabled={!status || isBeingRevised}
             className="shadow-lg hover:shadow-xl transition-shadow"
           >
             Submit for revision
@@ -310,11 +312,11 @@ export const OracleNav = ({
         className="dark:bg-gray-800 dark:text-gray-200"
         contentClassNames="overflow-auto"
       >
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="flex flex-row flex-wrap gap-4">
           {Object.values(commentDetails.current).map((comment, i) => (
             <div
               key={comment.id}
-              className="revise-modal-comment-container col-span-1"
+              className="revise-modal-comment-container w-full"
             >
               <div className="revise-modal-header">Highlighted text</div>
               <EditorProvider
@@ -352,7 +354,7 @@ export const OracleNav = ({
               />
             </div>
           ))}
-          <div className="col-span-full revise-modal-comment-container overflow-hidden">
+          <div className="w-full revise-modal-comment-container overflow-hidden">
             <div className="revise-modal-header">General comments</div>
             <TextArea
               autoResize={true}
