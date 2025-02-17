@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 import CodeMirror, { EditorView } from "@uiw/react-codemirror";
 import { python } from "@codemirror/lang-python";
@@ -17,6 +17,7 @@ export function CodeEditor({
   editable = true,
 }) {
   const [toolCode, setToolCode] = useState(code || "");
+  const editorRef = useRef(null);
 
   useEffect(() => {
     setToolCode(code || "");
@@ -24,18 +25,26 @@ export function CodeEditor({
 
   const updateCodeAndSql = (newVal) => {
     // update values of the code and the SQL
-    if (updateProp !== "sql" && updateProp !== "code_str") return;
+
     if (!stepId) return;
     if (!analysisId) return;
     if (!newVal) return;
 
+    // Update local state first
+    setToolCode(newVal);
+
+    // Notify parent of the change
     handleEdit({
       step_id: stepId,
       update_prop: updateProp,
       new_val: newVal,
       analysis_id: analysisId,
     });
-    setToolCode(newVal);
+  };
+
+  const handleCodeChange = (val) => {
+    console.log("val", val);
+    updateCodeAndSql(val);
   };
 
   return (
@@ -58,9 +67,10 @@ export function CodeEditor({
           )}
           value={toolCode}
           onChange={(val) => {
-            updateCodeAndSql(val);
+            handleCodeChange(val);
           }}
           editable={editable}
+          ref={editorRef}
         />
       </>
     </ErrorBoundary>
