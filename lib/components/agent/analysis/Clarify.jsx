@@ -17,11 +17,7 @@ export default function Clarify({
 
   if (data && data.clarification_questions && data.success) {
     data.clarification_questions.map((q, i) => {
-      if (q.ui_tool === "multi select") {
-        defaults.push(createDropdownOptions(q.ui_tool_options, q));
-      } else {
-        defaults.push("");
-      }
+      defaults.push("");
     });
   }
 
@@ -44,35 +40,6 @@ export default function Clarify({
     answers.current = answers.current.concat(
       clarification_questions.slice(answers.current.length)
     );
-  }
-
-  function createDropdownOptions(arr, q) {
-    if (!Array.isArray(arr) || !arr) {
-      return [];
-    }
-    const opts = arr.map((d) => ({
-      label: d,
-      value: d,
-      className: "analysis-dropdown-item",
-    }));
-
-    // sometimes a new option might have been created and selected
-    // make sure that one exists in the arr, if it doesn't add an option for it
-    // we can also just overwrite on the backend, but easier/faster to do it here
-    try {
-      q.response.map((d) => {
-        if (!arr.includes(d)) {
-          opts.push({
-            label: d,
-            value: d,
-            className: "analysis-dropdown-item",
-          });
-        }
-      });
-    } catch (e) {
-      console.log(e);
-    }
-    return opts;
   }
 
   function updateAnswer(newAns, i, formattedReponse = null) {
@@ -148,7 +115,7 @@ export default function Clarify({
                     <div className="w-full mb-4 min-w-64">
                       <p className="q-desc writer-target m-0 mb-2 text-primary-text"></p>
                       <div className="writer-children">
-                        {UIs[q.ui_tool](q, i, q.ui_tool_options)}
+                        {UIs["text input"](q, i)}
                       </div>
                     </div>
                   </div>
