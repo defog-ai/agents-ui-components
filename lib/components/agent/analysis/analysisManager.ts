@@ -651,14 +651,17 @@ function createAnalysisManager({
               }
             });
           } else {
-            newAnalysisData[requestType][prop] = newAnalysisData[requestType][
-              prop
-            ].concat(
-              // by default initialise all steps to show the initial active tab we determined when we created the question the first time.
-              response[prop].map((d) => ({
-                ...d,
-                activeTab: _activeTab,
-              }))
+            // Only add activeTab for gen_steps, not for clarification_questions
+            newAnalysisData[requestType][prop] = newAnalysisData[requestType][prop].concat(
+              response[prop].map((d) => {
+                if (requestType === 'gen_steps') {
+                  return {
+                    ...d,
+                    activeTab: _activeTab,
+                  };
+                }
+                return d;
+              })
             );
           }
         }
