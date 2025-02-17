@@ -13,7 +13,6 @@ export function StepOutputs({
           <>
             <p className="mb-2 font-bold text-sm">SQL</p>
             <CodeEditor
-              key={sql}
               className="tool-code-ctr"
               analysisId={analysisId}
               stepId={stepId}
