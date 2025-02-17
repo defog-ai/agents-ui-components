@@ -367,9 +367,8 @@ export function StepInputs({
   analysisId,
   stepId,
   step,
-  availableOutputNodes = [],
   setActiveNode = () => {},
-  handleEdit = () => {},
+  handleEdit,
   parentNodeOutputs = {},
 }) {
   let availableParentColumns = [];
@@ -395,6 +394,7 @@ export function StepInputs({
     newInputs[prop] = newVal;
     setInputs(newInputs);
 
+    if (!handleEdit) return;
     handleEdit({
       analysis_id: analysisId,
       step_id: stepId,

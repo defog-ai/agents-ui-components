@@ -68,8 +68,6 @@ export function StepResults({
       if (step_id !== stepId) return;
 
       // edit this in the context too
-      // but only do batch update when we click on another node
-      // so we can prevent react rerendering
       updateStepData(stepId, {
         [update_prop]: new_val,
       });
@@ -117,6 +115,7 @@ export function StepResults({
                           analysisId={analysisId}
                           stepId={stepId}
                           step={step}
+                          handleEdit={handleEdit}
                         />
                       </div>
                     </div>
@@ -135,6 +134,7 @@ export function StepResults({
                           code={step?.sql || ""}
                           language="sql"
                           editable={true}
+                          handleEdit={handleEdit}
                         />
                       </div>
                     </div>
@@ -168,7 +168,7 @@ export function StepResults({
                       <div className="flex justify-end ">
                         <StepReRun
                           className="h-10 px-4 py-2 font-mono text-white bg-gray-600 border border-gray-200 hover:bg-blue-500 hover:text-white active:hover:text-white hover:border-transparent"
-                          onClick={() => handleReRun(stepId)}
+                          onClick={() => handleReRun(step.id)}
                         />
                       </div>
                     </div>
