@@ -135,6 +135,9 @@ export function StepResults({
                           language="sql"
                           editable={true}
                           handleEdit={handleEdit}
+                          updateProp={"sql"}
+                          analysisId={analysisId}
+                          stepId={stepId}
                         />
                       </div>
                     </div>
