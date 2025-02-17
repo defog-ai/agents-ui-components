@@ -35,7 +35,7 @@ export function EmbedScaffolding({
     >
       <div
         className={twMerge(
-          "relative mb-2 text-gray-500 text-xs  z-10",
+          "relative mb-2 text-gray-500 dark:text-gray-400 text-xs  z-10",
           availableDbs.length > 1
             ? "w-full flex flex-row items-center"
             : "absolute right-0 top-0"
@@ -60,10 +60,10 @@ export function EmbedScaffolding({
                       onDbChange(db);
                     }}
                     className={twMerge(
-                      "p-2 bg-gray-200 border border-gray-300 rounded-full cursor-pointer whitespace-nowrap",
+                      "p-2 bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-full cursor-pointer whitespace-nowrap",
                       selectedDb === db
-                        ? "bg-gray-600 border-transparent text-white"
-                        : "hover:bg-gray-300",
+                        ? "bg-gray-600 dark:bg-gray-800 border-transparent text-white"
+                        : "hover:bg-gray-300 dark:hover:bg-gray-600",
                       fileUploading
                         ? "cursor-not-allowed bg-gray-200 text-gray-400 hover:bg-gray-200"
                         : ""
