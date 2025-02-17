@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
 
 import CodeMirror, { EditorView } from "@uiw/react-codemirror";
 import { python } from "@codemirror/lang-python";
@@ -13,10 +13,14 @@ export function CodeEditor({
   language = "sql",
   updateProp = null,
   className = "",
-  handleEdit = () => {},
+  handleEdit,
   editable = true,
 }) {
   const [toolCode, setToolCode] = useState(code || "");
+
+  useEffect(() => {
+    setToolCode(code || "");
+  }, [code]);
 
   const updateCodeAndSql = (newVal) => {
     // update values of the code and the SQL
@@ -33,8 +37,6 @@ export function CodeEditor({
     });
     setToolCode(newVal);
   };
-
-  const languageClass = `language-${language} `;
 
   return (
     <ErrorBoundary>
