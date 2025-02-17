@@ -9,7 +9,6 @@ import { MetadataTabContent } from "./tab-content/MetadataTabContent";
 import { AnalysisTabContent } from "./tab-content/AnalysisTabContent";
 import { PreviewDataTabContent } from "./tab-content/PreviewDataTabContent";
 import { TabNullState } from "./tab-content/TabNullState";
-import { getColumnDescriptionsForCsv } from "../utils/utils";
 import { addParsedCsvToSqlite, cleanTableNameForSqlite } from "../utils/sqlite";
 import { AgentConfigContext } from "../context/AgentContext";
 import { Setup } from "../context/Setup";
@@ -180,36 +179,6 @@ export function EmbedInner({
         table_name: sqliteTableName,
         data_type: d.dataType,
       }));
-
-      // get column descriptions.
-      // we do this at the end to have *some metadata* in case we error out here
-      const res = await getColumnDescriptionsForCsv({
-        apiEndpoint: apiEndpoint,
-        keyName: csvFileKeyName,
-        metadata: metadata,
-        tableName: sqliteTableName,
-        token,
-      });
-
-      if (!res.success || res.error_message || !res.descriptions) {
-        throw new Error(
-          res.error_message ||
-            "Failed to get column descriptions. Queries might be less precise."
-        );
-      }
-
-      const columnDescriptions = res.descriptions;
-
-      // if we got them successfully, merge them into the metadata object above
-      metadata.forEach((m) => {
-        const colDesc = columnDescriptions.find(
-          (d) => d.column_name === m.column_name
-        );
-
-        if (colDesc) {
-          m.column_description = colDesc.column_description;
-        }
-      });
     }
 
     return {

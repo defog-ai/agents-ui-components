@@ -29,7 +29,7 @@ const SQLFeedback = ({
       previous_context: previous_context,
       feedback: feedbackType,
       text: feedbackText,
-      key_name: keyName,
+      db_name: keyName,
       token: token,
       response: {
         question: question,
@@ -62,7 +62,7 @@ const SQLFeedback = ({
       question: question,
       sql: userProvidedSql,
       token: token,
-      key_name: keyName,
+      db_name: keyName,
     };
     const response = await fetch(url, {
       method: "POST",

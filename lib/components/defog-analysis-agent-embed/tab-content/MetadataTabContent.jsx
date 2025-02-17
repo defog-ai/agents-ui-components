@@ -37,7 +37,7 @@ export function MetadataTabContent({
           },
           body: JSON.stringify({
             token: token,
-            key_name: keyName,
+            db_name: keyName,
             temp: isTemp,
           }),
         });
@@ -133,7 +133,7 @@ export function MetadataTabContent({
 
               <Table
                 pagination={{
-                  defaultPageSize: 5,
+                  defaultPageSize: 10,
                 }}
                 paginationPosition="top"
                 rootClassNames="rounded-md max-w-full"

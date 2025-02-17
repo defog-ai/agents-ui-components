@@ -6,7 +6,7 @@ export interface CreateAnalysisRequestBody {
   is_root_analysis?: boolean;
   root_analysis_id?: string | null;
   user_question?: string | null;
-  key_name?: string | null;
+  db_name?: string | null;
   sql_only?: boolean;
 }
 

@@ -20,7 +20,7 @@ const StepFollowOn = ({
       // send data to the server
       const data = {
         user_question: question,
-        key_name: keyName,
+        db_name: keyName,
       };
 
       const response = await fetch(urlToConnect, {

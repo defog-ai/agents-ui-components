@@ -73,7 +73,7 @@ export default function StepResultAnalysis({
           question: question,
           data_csv: data_csv,
           sql: sql,
-          key_name: keyName,
+          db_name: keyName,
         });
       },
       onError: (e) => {

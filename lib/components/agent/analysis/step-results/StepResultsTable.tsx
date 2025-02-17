@@ -147,7 +147,7 @@ export function StepResultsTable({
             step_id: stepId,
             output_storage_key: nodeName,
             analysis_id: analysisId,
-            key_name: keyName,
+            db_name: keyName,
           }),
         }).then((r) => r.json());
 

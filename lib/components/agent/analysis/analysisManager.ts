@@ -508,7 +508,7 @@ function createAnalysisManager({
           sql_only: sqlOnly,
           token: token,
           temp: isTemp,
-          key_name: keyName,
+          db_name: keyName,
           db_creds: null,
           dev: devMode,
           previous_context: previousContext,
@@ -914,7 +914,7 @@ function createAnalysisManager({
       }
 
       const body = {
-        key_name: keyName,
+        db_name: keyName,
         analysis_id: analysisId,
         step_id: stepId,
         edited_step: editedStep,
@@ -972,7 +972,7 @@ function createAnalysisManager({
         inputs,
         analysis_id,
         outputs_storage_keys,
-        key_name: keyName,
+        db_name: keyName,
         planner_question_suffix: plannerQuestionSuffix,
         extra_tools: extraTools,
       }),
