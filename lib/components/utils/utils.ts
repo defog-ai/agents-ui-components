@@ -56,7 +56,7 @@ export const createAnalysis = async (
       body: JSON.stringify({
         custom_id: customId,
         token: token,
-        db_name: keyName,
+        key_name: keyName,
         ...bodyData,
       }),
     });
@@ -236,28 +236,6 @@ export function createPythonFunctionInputString(inputDict, indent = 2) {
   );
 }
 
-export function createInitialToolInputs(tools, toolName, parentIds) {
-  let initialInputs = {};
-
-  // if there's a pandas dataframe type in the inputs, default that to the parent's output
-  Object.values(tools[toolName].input_metadata).forEach((inp) => {
-    if (inp.type === "pandas.core.frame.DataFrame") {
-      try {
-        initialInputs[inp.name] = "global_dict." + parentIds?.[0];
-      } catch (e) {
-        console.log(e);
-      }
-    } else {
-      // cannot be undefined and has to be null
-      // undefined stuff doesn't get sent to the backend at all.
-      // null goes as None
-      initialInputs[inp.name] =
-        (Array.isArray(inp.default) ? inp.default[0] : inp.default) || null;
-    }
-  });
-  return initialInputs;
-}
-
 export function arrayOfObjectsToObject(arr, key, includeKeys = null) {
   return arr.reduce((acc, obj) => {
     acc[obj[key]] = Object.keys(obj).reduce((acc2, k) => {
@@ -341,7 +319,18 @@ export function isValidFileType(fileType) {
   return Object.values(FILE_TYPES).includes(fileType);
 }
 
-export function parseCsvFile(file, cb) {
+export function parseCsvFile(
+  file: File,
+  cb: ({
+    file,
+    rows,
+    columns,
+  }: {
+    file: File;
+    rows: any[];
+    columns: any[];
+  }) => void = (...args) => {}
+) {
   // if file type is not csv, error
   if (file.type !== "text/csv") {
     throw new Error("File type must be CSV");
@@ -363,7 +352,7 @@ export function parseCsvFile(file, cb) {
         };
       });
 
-      let rows = results.data;
+      let rows: any = results.data;
 
       rows.forEach((row, i) => {
         row.key = i;
@@ -374,11 +363,20 @@ export function parseCsvFile(file, cb) {
   });
 }
 
-export async function parseExcelFile(file, cb) {
+export async function parseExcelFile(
+  file: File,
+  cb: ({
+    file,
+    sheets,
+  }: {
+    file: File;
+    sheets: { [sheetName: string]: { rows: any[]; columns: any[] } };
+  }) => void = (...args) => {}
+) {
   const arrayBuf = await file.arrayBuffer();
   const d = read(arrayBuf);
   // go through all sheets, and stream to csvs
-  const sheetCsvs = {};
+  const sheets = {};
 
   d.SheetNames.forEach((sheetName) => {
     const rows = utils.sheet_to_json(d.Sheets[sheetName], { defval: null });
@@ -388,28 +386,11 @@ export async function parseExcelFile(file, cb) {
       key: d,
     }));
 
-    sheetCsvs[sheetName] = { rows, columns };
+    sheets[sheetName] = { rows, columns };
   });
 
-  cb({ file, sheetCsvs });
+  cb({ file, sheets });
 }
-
-// key_name = "Manufacturing"
-// metadata = [{"column_name": "id", "data_type": "INT"}, {"column_name": "name", "data_type": "TEXT"}]
-// table_name = "temp_table"
-
-// r = requests.post("https://demo.defog.ai/generate_column_descriptions_for_csv", json={"key_name": key_name, "metadata": metadata, "table_name": table_name})
-// metadata = r.json()
-
-/**
- *
- * @param {object} params
- * @param {string} params.apiEndpoint - Api endpoint
- * @param {string} params.keyName - Api key name
- * @param {Array<{ column_name: string, data_type: string }>} params.metadata - Metadata of the columns
- * @param {string} params.tableName - Name of the table
- * @returns {Promise<{ success: boolean, error_message?: string, descriptions?: Array<{ column_name: string, data_type: string, column_description: string }> }>}
- */
 
 /**
  * @param {object} params
@@ -446,7 +427,7 @@ export const generateQueryForCsv = async ({
       },
       body: JSON.stringify({
         question,
-        db_name: keyName,
+        key_name: keyName,
         db_type: "sqlite",
         metadata,
         previous_context: previousContext,
@@ -508,6 +489,7 @@ export const retryQueryForCsv = async ({
       },
       body: JSON.stringify({
         question,
+        key_name: keyName,
         db_type: "sqlite",
         metadata,
         previous_query: previousQuery,
@@ -589,12 +571,10 @@ export function convertWideToLong(
 /**
  * Tries to delete a specific step's analysis from local storage. Is stored in an object called analyseDataResults.
  *
- * @param {string} stepId
- *
- * @returns {JSON} returns the latest cache at the time of deletion
+ * returns the latest cache at the time of deletion
  */
-export function deleteStepAnalysisFromLocalStorage(stepId) {
-  let cached = localStorage.getItem("analyseDataResults");
+export function deleteStepAnalysisFromLocalStorage(stepId: string): JSON {
+  let cached: any = localStorage.getItem("analyseDataResults");
   try {
     if (!cached) {
       cached = {};
@@ -614,18 +594,18 @@ export function deleteStepAnalysisFromLocalStorage(stepId) {
 
 /**
  * Tries to save a step's analysis to local storage. Is stored in a property called analyseDataResults.
- * @param {string} stepId
- * @param {string} analysis
- *
- * @returns {JSON} The latest cache at the time of saving
+ * The latest cache at the time of saving
  */
-export function addStepAnalysisToLocalStorage(stepId, analysis) {
+export function addStepAnalysisToLocalStorage(
+  stepId: string,
+  analysis: string
+): JSON {
   // cast to string
   analysis = String(analysis);
   // try to set local storage
   // we re-get local storage here because the above request could have taken a long time, and
   // other steps elsewhere might have triggered analyse_data already and they would also try to set the local storage
-  let cached = localStorage.getItem("analyseDataResults");
+  let cached: any = localStorage.getItem("analyseDataResults");
   try {
     if (!cached) {
       cached = {};
@@ -672,15 +652,17 @@ export function getStepAnalysisFromLocalStorage(stepId) {
 
 /**
  * Gets the question type being asked.
- * @param {?string} token
- * @param {string} keyName
- * @param {?string} apiEndpoint
- * @param {string} question
- *
- * @returns {Promise<{question_type: QuestionType, default_open_tab: "table" | "chart", follow_on_analysis_index: number}>}
  */
-
-export async function getQuestionType(token, keyName, apiEndpoint, question) {
+export async function getQuestionType(
+  token: string | null,
+  keyName: string,
+  apiEndpoint: string | null,
+  question: string
+): Promise<{
+  question_type: QuestionType;
+  default_open_tab: "table" | "chart";
+  follow_on_analysis_index: number;
+}> {
   const urlToConnect = setupBaseUrl({
     protocol: "http",
     path: "get_question_type",
@@ -694,6 +676,7 @@ export async function getQuestionType(token, keyName, apiEndpoint, question) {
     },
     body: JSON.stringify({
       token,
+      key_name: keyName,
       question,
     }),
   });
@@ -714,19 +697,22 @@ export const raf = (fn) => {
   }
 };
 
-export const getApiKeyNames = async (token) => {
-  const res = await fetch(
-    (import.meta.env.VITE_API_ENDPOINT || "") + "/get_api_key_names",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        token: token,
-      }),
-    }
-  );
+export const getApiKeyNames = async (apiEndpoint: string, token: string) => {
+  const urlToConnect = setupBaseUrl({
+    protocol: "http",
+    path: "get_api_key_names",
+    apiEndpoint: apiEndpoint,
+  });
+
+  const res = await fetch(urlToConnect, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      token: token,
+    }),
+  });
   if (!res.ok) {
     throw new Error(
       "Failed to get api key names - are you sure your network is working?"
@@ -734,4 +720,41 @@ export const getApiKeyNames = async (token) => {
   }
   const data = await res.json();
   return data.api_key_names;
+};
+
+interface UserFile {
+  rows: { [key: string]: any }[];
+  columns: { title: string }[];
+}
+
+export const uploadFile = async (
+  apiEndpoint: string,
+  token: string,
+  fileName: string,
+  tables: { [key: string]: UserFile }
+): Promise<string> => {
+  const urlToConnect = setupBaseUrl({
+    protocol: "http",
+    path: "upload_file_as_db",
+    apiEndpoint: apiEndpoint,
+  });
+
+  const res = await fetch(urlToConnect, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      token: token,
+      file_name: fileName,
+      tables,
+    }),
+  });
+  if (!res.ok) {
+    throw new Error(
+      "Failed to create new api key name - are you sure your network is working?"
+    );
+  }
+  const data = await res.json();
+  return data.db_name;
 };

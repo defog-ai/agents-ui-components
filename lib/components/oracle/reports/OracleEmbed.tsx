@@ -3,8 +3,8 @@ import {
   MessageManagerContext,
   MessageMonitor,
   Sidebar,
-  SingleSelect,
   SpinningLoader,
+  SingleSelect,
 } from "@ui-components";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -15,9 +15,10 @@ import {
   ReportData,
   ReportListItem,
 } from "@oracle";
-import { SquarePen, Trash } from "lucide-react";
+import { SquarePen } from "lucide-react";
 import { twMerge } from "tailwind-merge";
 import { OracleDraftReport } from "./report-creation/OracleDraftReport";
+import { OracleNewDb } from "./new-db/OracleNewDb";
 
 interface OracleReportType extends ReportListItem {
   reportData?: ReportData;
@@ -70,12 +71,17 @@ export function OracleEmbed({
   const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
 
   const messageManager = useRef(MessageManager());
+  /**
+   * We set this to a random string every time.
+   * Just to prevent conflicts with uploaded files.
+   */
+  const { current: newApiKey } = useRef<string>(crypto.randomUUID().toString());
 
   useEffect(() => {
     async function setup() {
       try {
         if (keyNames.length === 0) throw new Error("No api key names found");
-        setSelectedApiKeyName(keyNames[0]);
+        setSelectedApiKeyName(newApiKey);
 
         const histories: ReportHistory = {};
 
@@ -166,7 +172,7 @@ export function OracleEmbed({
         <Sidebar
           open={true}
           location="left"
-          rootClassNames="sticky top-0 bg-gray-50 z-20"
+          rootClassNames="absolute left-0 min-h-full shadow-2xl lg:shadow-none lg:sticky top-0 bg-gray-50 z-20"
           title={<span className="font-bold">History</span>}
           contentClassNames={
             "w-72 p-4 rounded-tl-lg relative sm:block min-h-96 max-h-full overflow-auto"
@@ -178,61 +184,78 @@ export function OracleEmbed({
               value={selectedApiKeyName}
               allowClear={false}
               allowCreateNewOption={false}
-              options={keyNames.map((keyName) => ({
-                value: keyName,
-                label: keyName,
-              }))}
+              options={[
+                {
+                  value: newApiKey,
+                  label: "Upload new",
+                },
+              ].concat(
+                keyNames.map((keyName) => ({
+                  value: keyName,
+                  label: keyName,
+                }))
+              )}
               onChange={(v: string) => {
                 setSelectedApiKeyName(v);
                 setSelectedReportId(null);
               }}
             />
-            <div
-              className={twMerge(
-                "title hover:cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 history-item p-2 text-sm",
-                !selectedReportId
-                  ? "font-medium bg-gray-100 dark:bg-gray-800 border-l-2 border-l-blue-500"
-                  : ""
-              )}
-              onClick={() => setSelectedReportId(null)}
-            >
-              <span>
-                <SquarePen /> New
-              </span>
-            </div>
-            {Object.entries(reportHistory[selectedApiKeyName]).map(
-              ([group, reports]) => {
-                if (Object.keys(reports).length === 0) return null; // Skip empty groups
-                return (
-                  <div key={group} className="mb-6">
-                    <div className="px-2 mb-2 text-xs font-medium tracking-wide text-blue-400 uppercase">
-                      {group}
-                    </div>
-                    {reports.map((report: OracleReportType) => (
-                      <div
-                        key={report.report_id}
-                        onClick={() => {
-                          setSelectedReportId(report.report_id);
-                        }}
-                        className={twMerge(
-                          "title hover:cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 history-item p-2 text-sm",
-                          report.report_id === selectedReportId
-                            ? "font-bold bg-gray-100 dark:bg-gray-800 border-l-2 border-l-blue-500"
-                            : ""
-                        )}
-                      >
-                        {report.report_name ||
-                          report.inputs.user_question ||
-                          "Untitled report"}
-                      </div>
-                    ))}
-                  </div>
-                );
-              }
+            {selectedApiKeyName !== newApiKey ? (
+              <div
+                className={twMerge(
+                  "title hover:cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 history-item p-2 text-sm",
+                  !selectedReportId
+                    ? "font-medium bg-gray-100 dark:bg-gray-800 border-l-2 border-l-blue-500"
+                    : ""
+                )}
+                onClick={() => setSelectedReportId(null)}
+              >
+                <span>
+                  <SquarePen /> New
+                </span>
+              </div>
+            ) : (
+              <p className="text-xs">
+                Upload a new CSV/Excel file on the right
+              </p>
             )}
+            {selectedApiKeyName !== newApiKey &&
+              Object.entries(reportHistory[selectedApiKeyName]).map(
+                ([group, reports]) => {
+                  if (Object.keys(reports).length === 0) return null; // Skip empty groups
+                  return (
+                    <div key={group} className="mb-6">
+                      <div className="px-2 mb-2 text-xs font-medium tracking-wide text-blue-400 uppercase">
+                        {group}
+                      </div>
+                      {reports.map((report: OracleReportType) => (
+                        <div
+                          key={report.report_id}
+                          onClick={() => {
+                            setSelectedReportId(report.report_id);
+                          }}
+                          className={twMerge(
+                            "title hover:cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 history-item p-2 text-sm",
+                            report.report_id === selectedReportId
+                              ? "font-bold bg-gray-100 dark:bg-gray-800 border-l-2 border-l-blue-500"
+                              : ""
+                          )}
+                        >
+                          {report.report_name ||
+                            report.inputs.user_question ||
+                            "Untitled report"}
+                        </div>
+                      ))}
+                    </div>
+                  );
+                }
+              )}
           </div>
         </Sidebar>
         <div className="flex flex-col grow p-2 overflow-auto">
+          {selectedReportId === null && selectedApiKeyName === newApiKey && (
+            <OracleNewDb apiEndpoint={apiEndpoint} token={token} />
+          )}
           {selectedReportId && (
             <OracleReport
               key={selectedReportId}

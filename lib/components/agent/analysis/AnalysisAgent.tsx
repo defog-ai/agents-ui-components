@@ -9,7 +9,7 @@ import React, {
   useSyncExternalStore,
 } from "react";
 import AgentLoader from "../../common/AgentLoader";
-import { sentenceCase } from "../../utils/utils";
+import { sentenceCase } from "@utils/utils";
 import Clarify from "./Clarify";
 import type { AnalysisData, AnalysisManager } from "./analysisManager";
 import {

@@ -6,7 +6,7 @@ import {
   deleteStepAnalysisFromLocalStorage,
   escapeStringForCsv,
   parseData,
-} from "../../utils/utils";
+} from "@utils/utils";
 import { runQueryOnDb } from "../../utils/sqlite";
 import setupBaseUrl from "../..//utils/setupBaseUrl";
 import {

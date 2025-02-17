@@ -10,7 +10,7 @@ import {
 } from "react";
 import { AnalysisAgent } from "../analysis/AnalysisAgent";
 import { AnalysisTreeItem } from "./AnalysisTreeItem";
-import { getQuestionType, raf, sentenceCase } from "../../utils/utils";
+import { getQuestionType, raf, sentenceCase } from "@utils/utils";
 import { twMerge } from "tailwind-merge";
 import { Sidebar, MessageManagerContext, breakpoints } from "@ui-components";
 import ErrorBoundary from "../../common/ErrorBoundary";

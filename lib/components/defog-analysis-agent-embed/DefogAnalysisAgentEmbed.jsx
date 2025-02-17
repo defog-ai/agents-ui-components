@@ -226,12 +226,12 @@ export function EmbedInner({
     setSelectedDbName(newDbName);
   };
 
-  const addExcelToSqlite = async ({ file, sheetCsvs }) => {
+  const addExcelToSqlite = async ({ file, sheets }) => {
     const xlsData = {};
     let xlsMetadata = [];
 
-    for (const sheetName in sheetCsvs) {
-      const { columns, rows } = sheetCsvs[sheetName];
+    for (const sheetName in sheets) {
+      const { columns, rows } = sheets[sheetName];
       // add all these to the sqlite db
       // without adding them db list (we don't want them to show up as separate dbs)
 
@@ -274,12 +274,12 @@ export function EmbedInner({
             setFileUploading(false);
           }
         }}
-        onParseExcel={async ({ file, sheetCsvs }) => {
+        onParseExcel={async ({ file, sheets }) => {
           try {
             setFileUploading(true);
             const { xlsData, xlsMetadata } = await addExcelToSqlite({
               file,
-              sheetCsvs,
+              sheets,
             });
 
             const newDbName = file.name.split(".")[0];

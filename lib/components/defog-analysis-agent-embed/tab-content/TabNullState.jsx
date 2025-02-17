@@ -11,7 +11,7 @@ import {
   isValidFileType,
   parseCsvFile,
   parseExcelFile,
-} from "../../utils/utils";
+} from "@utils/utils";
 
 export function TabNullState({
   availableDbs = [],

@@ -1,4 +1,4 @@
-import { isNumber } from "../utils/utils";
+import { isNumber } from "@utils/utils";
 import { Check, ChevronsUpDownIcon, CircleX } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { twMerge } from "tailwind-merge";
@@ -25,27 +25,72 @@ const matchingValue = (option, value) => {
   return option.value === value || option.rawValue === value;
 };
 
-/**
- * @typedef {Object} SingleSelectProps - The props for the component
- * @property {string} [rootClassNames=""] - Additional classes to be added to the root div.
- * @property {string} [popupClassName=""] - Additional classes to be added to the popup.
- * @property {string} [labelClassNames=""] - Additional classes to be added to the label.
- * @property {function} [onChange=null] - Function to be called when the value changes.
- * @property {any} [defaultValue=undefined] - The default value of the select.
- * @property {any} [value=undefined] - The value of the select.
- * @property {boolean} [disabled=false] - If true, the select will be disabled.
- * @property {Array<{label: any, value: any}>} [options=[]] - The options of the select.
- * @property {string} [label=null] - The label of the select.
- * @property {function} [optionRenderer=null] - Function to render the options.
- * @property {string} [placeholder="Select an option"] - The placeholder of the select.
- * @property {string} [size="default"] - The size of the select. Can be "default" or "small".
- * @property {boolean} [allowClear=true] - If true, the select will have a clear button.
- * @property {boolean} [allowCreateNewOption=true] - If true, the select will allow creating new options.
- * */
+type Option = {
+  label: any;
+  value: any;
+};
+
+interface SingleSelectProps {
+  /**
+   * Additional classes to be added to the root div.
+   */
+  rootClassNames?: string;
+  /**
+   * Additional classes to be added to the popup.
+   */
+  popupClassName?: string;
+  /**
+   * Additional classes to be added to the label.
+   */
+  labelClassNames?: string;
+  /**
+   * Function to be called when the value changes.
+   */
+  onChange?: (value: any, option: Option) => void;
+  /**
+   * The default value of the select.
+   */
+  defaultValue?: any;
+  /**
+   * The value of the select.
+   */
+  value?: any;
+  /**
+   * If true, the select will be disabled.
+   */
+  disabled?: boolean;
+  /**
+   * The options of the select.
+   */
+  options?: Option[];
+  /**
+   * The label of the select.
+   */
+  label?: string;
+  /**
+   * Function to render the options.
+   */
+  optionRenderer?: (option: Option) => React.ReactNode;
+  /**
+   * The placeholder of the select.
+   */
+  placeholder?: string;
+  /**
+   * The size of the select. Can be "default" or "small".
+   */
+  size?: string;
+  /**
+   * If true, the select will have a clear button.
+   */
+  allowClear?: boolean;
+  /**
+   * If true, the select will allow creating new options.
+   */
+  allowCreateNewOption?: boolean;
+}
 
 /**
  * SingleSelect component
- * @param {SingleSelectProps} props
  * */
 export function SingleSelect({
   rootClassNames = "",
@@ -62,7 +107,7 @@ export function SingleSelect({
   size = "default",
   allowClear = true,
   allowCreateNewOption = true,
-}) {
+}: SingleSelectProps) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const [highlightIndex, setHighlightIndex] = useState(-1);

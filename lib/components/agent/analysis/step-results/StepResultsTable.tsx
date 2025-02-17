@@ -30,7 +30,7 @@ import "prismjs/components/prism-sql";
 import "prismjs/components/prism-python";
 
 import "prismjs/themes/prism.css";
-import { roundNumber } from "../../../utils/utils";
+import { roundNumber } from "@utils/utils";
 import setupBaseUrl from "../../../utils/setupBaseUrl";
 import { Button, Table } from "@ui-components";
 import { ChartContainer } from "../../../observable-charts/ChartContainer";

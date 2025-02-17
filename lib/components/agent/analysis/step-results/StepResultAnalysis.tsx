@@ -5,7 +5,7 @@ import { SpinningLoader } from "@ui-components";
 import {
   addStepAnalysisToLocalStorage,
   getStepAnalysisFromLocalStorage,
-} from "../../../utils/utils";
+} from "@utils/utils";
 import ErrorBoundary from "../../../common/ErrorBoundary";
 import { marked } from "marked";
 import sanitizeHtml from "sanitize-html";

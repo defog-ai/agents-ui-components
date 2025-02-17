@@ -1,5 +1,5 @@
 import { twMerge } from "tailwind-merge";
-import { sentenceCase } from "../../utils/utils";
+import { sentenceCase } from "@utils/utils";
 import { AnalysisTreeNode } from "./analysisTreeManager";
 import { SquarePen } from "lucide-react";
 
