@@ -5,7 +5,8 @@
     "paths": {
       "@ui-components": ["lib/core-ui.ts"],
       "@agent": ["lib/agent.ts"],
-      "@oracle": ["lib/oracle.ts"]
+      "@oracle": ["lib/oracle.ts"],
+      "@utils/*": ["lib/components/utils/*"]
     },
     // Generate d.ts files
     "declaration": true,

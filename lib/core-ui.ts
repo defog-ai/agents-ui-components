@@ -22,7 +22,7 @@ export { MultiSelect } from "./components/core-ui/MultiSelect.tsx";
 export { Popover } from "./components/core-ui/Popover.tsx";
 export { RangeSlider } from "./components/core-ui/RangeSlider.jsx";
 export { Sidebar } from "./components/core-ui/Sidebar.jsx";
-export { SingleSelect } from "./components/core-ui/SingleSelect.jsx";
+export { SingleSelect } from "./components/core-ui/SingleSelect.tsx";
 export { Slider } from "./components/core-ui/Slider.jsx";
 export { Table } from "./components/core-ui/Table.jsx";
 export { Tabs } from "./components/core-ui/Tabs.jsx";

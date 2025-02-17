@@ -6,7 +6,7 @@ import { StepInputs } from "./StepInputs";
 import { StepReRun } from "./StepReRun";
 import AgentLoader from "../../../common/AgentLoader";
 import ErrorBoundary from "../../../common/ErrorBoundary";
-import { toolDisplayNames } from "../../../utils/utils";
+import { toolDisplayNames } from "@utils/utils";
 import { Tabs } from "../../../core-ui/Tabs";
 
 import { AgentConfigContext } from "../../../context/AgentContext";

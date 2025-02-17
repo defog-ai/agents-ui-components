@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { Input, SingleSelect, TextArea } from "@ui-components";
 import { Trash2, CirclePlus, X } from "lucide-react";
-import { easyToolInputTypes } from "../../../utils/utils";
+import { easyToolInputTypes } from "@utils/utils";
 
 const inputTypeToUI = {
   list: (stepId, inputName, initialValue, onEdit) => {

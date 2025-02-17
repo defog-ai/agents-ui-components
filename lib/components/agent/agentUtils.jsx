@@ -10,7 +10,7 @@ dayjs.extend(customParseFormat);
 dayjs.extend(isoWeek);
 
 import { mean } from "d3-array";
-import { isNumber } from "../utils/utils";
+import { isNumber } from "@utils/utils";
 
 const dateFormats = [
   "MM/DD/YYYY HH:mm:ss",
@@ -565,15 +565,17 @@ export const getMostVisibleAnalysis = (analysisIds) => {
   let mostVisibleId = analysisIds[0]; // Default to first if none visible
   let mostVisibleElement = document.getElementById(mostVisibleId);
 
-  analysisIds.forEach(id => {
+  analysisIds.forEach((id) => {
     const element = document.getElementById(id);
     if (!element) return;
 
     const rect = element.getBoundingClientRect();
     const containerRect = element.parentElement.getBoundingClientRect();
-    
+
     // Calculate how much of the element is visible relative to container
-    const visibleHeight = Math.min(rect.bottom, containerRect.bottom) - Math.max(rect.top, containerRect.top);
+    const visibleHeight =
+      Math.min(rect.bottom, containerRect.bottom) -
+      Math.max(rect.top, containerRect.top);
     const visibility = Math.max(0, visibleHeight / containerRect.height);
 
     if (visibility > maxVisibility) {
@@ -585,6 +587,6 @@ export const getMostVisibleAnalysis = (analysisIds) => {
 
   return {
     id: mostVisibleId,
-    element: mostVisibleElement
+    element: mostVisibleElement,
   };
 };

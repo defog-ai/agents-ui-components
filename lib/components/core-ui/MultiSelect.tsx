@@ -1,7 +1,7 @@
 import { Check, CircleX, X } from "lucide-react";
 import { useEffect, useRef, useState, useMemo } from "react";
 import { twMerge } from "tailwind-merge";
-import { isNumber } from "../utils/utils";
+import { isNumber } from "@utils/utils";
 
 const inputSizeClasses = {
   default: "py-1.5 pl-3",

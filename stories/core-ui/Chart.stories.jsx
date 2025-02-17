@@ -1,4 +1,4 @@
-import { parseData } from "../../lib/components/utils/utils.js";
+import { parseData } from "../../lib/components/utils/utils.ts";
 import csv from "./csv-sample.csv?raw";
 import ChartContainer from "../../lib/components/observable-charts/ChartContainer.tsx";
 import { AgentConfigContext } from "../../lib/components/context/AgentContext.tsx";

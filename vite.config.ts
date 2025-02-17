@@ -20,6 +20,7 @@ export default ({ mode }) => {
         "@ui-components": resolve(__dirname, "./lib/core-ui.ts"),
         "@agent": resolve(__dirname, "./lib/agent.ts"),
         "@oracle": resolve(__dirname, "./lib/oracle.ts"),
+        "@utils": resolve(__dirname, "./lib/components/utils"),
       },
     },
 
