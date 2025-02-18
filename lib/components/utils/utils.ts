@@ -8,7 +8,7 @@ import Papa from "papaparse";
 import { cleanColumnNameForSqlite } from "./sqlite";
 import { read, utils } from "xlsx";
 
-export const getAnalysis = async (analysisId, apiEndpoint) => {
+export const getAnalysis = async (analysisId, token, apiEndpoint) => {
   const urlToConnect = setupBaseUrl({
     protocol: "http",
     path: "get_analysis",
@@ -23,6 +23,7 @@ export const getAnalysis = async (analysisId, apiEndpoint) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
+        token: token,
         analysis_id: analysisId,
       }),
     });

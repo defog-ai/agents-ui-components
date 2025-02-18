@@ -377,7 +377,7 @@ function createAnalysisManager({
         },
       };
     } else {
-      const res = await getAnalysis(analysisId, apiEndpoint);
+      const res = await getAnalysis(analysisId, token, apiEndpoint);
       if (!res.success) {
         // create a new analysis
         fetchedAnalysisData = await createAnalysis(
@@ -652,9 +652,11 @@ function createAnalysisManager({
             });
           } else {
             // Only add activeTab for gen_steps, not for clarification_questions
-            newAnalysisData[requestType][prop] = newAnalysisData[requestType][prop].concat(
+            newAnalysisData[requestType][prop] = newAnalysisData[requestType][
+              prop
+            ].concat(
               response[prop].map((d) => {
-                if (requestType === 'gen_steps') {
+                if (requestType === "gen_steps") {
                   return {
                     ...d,
                     activeTab: _activeTab,
