@@ -1261,7 +1261,7 @@ export const generateReport = async (
 export const getClarifications = async (
   apiEndpoint: string,
   token: string,
-  apiKeyName: string,
+  dbName: string,
   userQuestion: string
 ) => {
   if (!token) throw new Error("No token");
@@ -1275,7 +1275,7 @@ export const getClarifications = async (
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        key_name: apiKeyName,
+        db_name: dbName,
         token,
         user_question: userQuestion,
         task_type: "exploration",
