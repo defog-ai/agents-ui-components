@@ -208,7 +208,6 @@ export function StepResults({
                     apiEndpoint={apiEndpoint}
                     token={token}
                     keyName={keyName}
-                    analysisId={analysisId}
                   />
                 )}
                 <StepFollowOn
