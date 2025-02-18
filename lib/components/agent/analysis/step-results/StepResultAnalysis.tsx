@@ -19,6 +19,7 @@ export default function StepResultAnalysis({
   data_csv,
   apiEndpoint,
   sql,
+  token,
 }) {
   const [toolRunAnalysis, setToolRunAnalysis] = useState("");
 
@@ -74,6 +75,7 @@ export default function StepResultAnalysis({
           data_csv: data_csv,
           sql: sql,
           db_name: keyName,
+          token: token,
         });
       },
       onError: (e) => {
