@@ -238,6 +238,7 @@ export function StepResultsTable({
           data_csv={stepData?.csvString}
           sql={sql}
           apiEndpoint={apiEndpoint}
+          token={token}
         />
       )
     );
