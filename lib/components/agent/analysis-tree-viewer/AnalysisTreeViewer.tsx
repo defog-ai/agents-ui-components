@@ -211,7 +211,8 @@ const useAnalysisSubmit = (
               question,
               chartEditUrl,
               messageManager,
-              analysisTreeManager
+              analysisTreeManager,
+              token
             );
           }
           return;
@@ -259,7 +260,8 @@ const handleChartQuestion = async (
   question: string,
   chartEditUrl: string,
   messageManager: any,
-  analysisTreeManager: AnalysisTreeManager
+  analysisTreeManager: AnalysisTreeManager,
+  token: string | null
 ) => {
   const mostVisibleElement = getMostVisibleAnalysis(Object.keys(allAnalyses));
   const visibleAnalysis = allAnalyses[mostVisibleElement.id];
@@ -285,7 +287,7 @@ const handleChartQuestion = async (
   }
 
   try {
-    await stepOutput.chartManager.editChart(question, chartEditUrl, {
+    await stepOutput.chartManager.editChart(token, question, chartEditUrl, {
       onError: (e) => {
         messageManager.error(e.message);
         console.error(e);

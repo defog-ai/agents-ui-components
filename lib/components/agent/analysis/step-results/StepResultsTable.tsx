@@ -95,6 +95,7 @@ export function StepResultsTable({
   initialQuestion = null,
   handleEdit = (...args) => {},
   analysisTreeManager = null,
+  token = null,
 }: {
   stepId: string;
   keyName: string;
@@ -108,6 +109,7 @@ export function StepResultsTable({
   initialQuestion: string | null;
   handleEdit?: (...args: any) => void;
   analysisTreeManager?: AnalysisTreeManager;
+  token?: string | null;
 }) {
   const downloadCsvEndpoint = setupBaseUrl({
     protocol: "http",
@@ -252,6 +254,7 @@ export function StepResultsTable({
           initialQuestion={initialQuestion}
           initialOptionsExpanded={isChartOptionsExpanded}
           onOptionsExpandedChange={setIsChartOptionsExpanded}
+          token={token}
         />
       )
     );

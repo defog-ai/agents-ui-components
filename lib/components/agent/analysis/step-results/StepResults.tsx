@@ -200,6 +200,7 @@ export function StepResults({
                   analysisId={analysisId}
                   initialQuestion={step?.inputs?.question}
                   analysisTreeManager={analysisTreeManager}
+                  token={token}
                 />
                 {step?.sql && (
                   // get feedback from user if the sql is good or not
