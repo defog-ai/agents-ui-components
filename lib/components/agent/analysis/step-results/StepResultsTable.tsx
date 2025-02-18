@@ -301,7 +301,9 @@ export function StepResultsTable({
 
             {/* Fixed width wrapper */}
             {isAnalysisVisible && (
-              <div style={{ width: "100%" }}>{resultAnalysis}</div>
+              <div className="relative w-[100%] max-h-[600px] overflow-y-auto">
+                {resultAnalysis}
+              </div>
             )}
           </div>
         </div>
