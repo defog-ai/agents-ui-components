@@ -13,9 +13,11 @@ import { useContext, useState } from "react";
 export const OracleNewDb = ({
   apiEndpoint,
   token,
+  onDbCreated = (...args) => {},
 }: {
   apiEndpoint: string;
   token: string;
+  onDbCreated?: (dbName: string) => void;
 }) => {
   const message = useContext(MessageManagerContext);
   const [loading, setLoading] = useState<boolean>(false);
@@ -59,7 +61,9 @@ export const OracleNewDb = ({
                       [file.name]: { rows, columns },
                     }
                   );
+                  message.success(`DB ${dbName} created successfully`);
                   console.log(dbName);
+                  onDbCreated(dbName);
                 });
               } else {
                 parseExcelFile(file, async ({ file, sheets }) => {
@@ -69,7 +73,9 @@ export const OracleNewDb = ({
                     file.name,
                     sheets
                   );
+                  message.success(`DB ${dbName} created successfully`);
                   console.log(dbName);
+                  onDbCreated(dbName);
                 });
               }
             } catch (e) {
