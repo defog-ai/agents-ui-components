@@ -750,6 +750,7 @@ export const uploadFile = async (
       tables,
     }),
   });
+
   if (!res.ok) {
     throw new Error(
       "Failed to create new api key name - are you sure your network is working?"

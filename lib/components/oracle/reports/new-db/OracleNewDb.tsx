@@ -4,7 +4,6 @@ import {
   FILE_TYPES,
   isValidFileType,
   parseCsvFile,
-  parseData,
   parseExcelFile,
   uploadFile,
 } from "@utils/utils";
@@ -53,29 +52,41 @@ export const OracleNewDb = ({
 
               if (file.type === "text/csv") {
                 parseCsvFile(file, async ({ file, rows, columns }) => {
-                  const dbName = await uploadFile(
-                    apiEndpoint,
-                    token,
-                    file.name,
-                    {
-                      [file.name]: { rows, columns },
-                    }
-                  );
-                  message.success(`DB ${dbName} created successfully`);
-                  console.log(dbName);
-                  onDbCreated(dbName);
+                  try {
+                    const dbName = await uploadFile(
+                      apiEndpoint,
+                      token,
+                      file.name,
+                      {
+                        [file.name]: { rows, columns },
+                      }
+                    ).catch((e) => {
+                      throw e;
+                    });
+                    message.success(`DB ${dbName} created successfully`);
+                    console.log(dbName);
+                    onDbCreated(dbName);
+                  } catch (e) {
+                    throw e;
+                  }
                 });
               } else {
                 parseExcelFile(file, async ({ file, sheets }) => {
-                  const dbName = await uploadFile(
-                    apiEndpoint,
-                    token,
-                    file.name,
-                    sheets
-                  );
-                  message.success(`DB ${dbName} created successfully`);
-                  console.log(dbName);
-                  onDbCreated(dbName);
+                  try {
+                    const dbName = await uploadFile(
+                      apiEndpoint,
+                      token,
+                      file.name,
+                      sheets
+                    ).catch((e) => {
+                      throw e;
+                    });
+                    message.success(`DB ${dbName} created successfully`);
+                    console.log(dbName);
+                    onDbCreated(dbName);
+                  } catch (e) {
+                    throw e;
+                  }
                 });
               }
             } catch (e) {
