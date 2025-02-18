@@ -28,7 +28,7 @@ function OracleEmbedTest() {
         <OracleEmbed
           apiEndpoint={import.meta.env.VITE_API_ENDPOINT}
           token={import.meta.env.VITE_TOKEN}
-          keyNames={apiKeyNames}
+          initialKeyNames={apiKeyNames}
         />
       )}
     </div>
