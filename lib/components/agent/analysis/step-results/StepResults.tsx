@@ -205,7 +205,6 @@ export function StepResults({
                   <SQLFeedback
                     question={step?.inputs?.question}
                     sql={step?.sql}
-                    previous_context={step?.inputs?.previous_context}
                     apiEndpoint={apiEndpoint}
                     token={token}
                     keyName={keyName}
