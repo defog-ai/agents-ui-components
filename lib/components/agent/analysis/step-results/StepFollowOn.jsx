@@ -5,6 +5,7 @@ const StepFollowOn = ({
   question,
   keyName,
   apiEndpoint,
+  token,
   setCurrentQuestion = () => {},
 }) => {
   const [followOnQuestions, setFollowOnQuestions] = useState([]);
@@ -21,6 +22,7 @@ const StepFollowOn = ({
       const data = {
         user_question: question,
         db_name: keyName,
+        token: token,
       };
 
       const response = await fetch(urlToConnect, {
