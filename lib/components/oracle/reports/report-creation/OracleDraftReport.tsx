@@ -141,7 +141,7 @@ export function OracleDraftReport({
                 setDraft((prev) => ({
                   ...prev,
                   clarifications,
-                  sources: sources.map((s) => ({
+                  sources: (sources || []).map((s) => ({
                     ...s,
                     selected: false,
                   })),
