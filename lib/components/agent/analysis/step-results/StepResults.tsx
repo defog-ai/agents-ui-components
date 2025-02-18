@@ -218,6 +218,7 @@ export function StepResults({
                   keyName={keyName}
                   apiEndpoint={apiEndpoint}
                   setCurrentQuestion={setCurrentQuestion}
+                  token={token}
                 />
               </div>
             );
