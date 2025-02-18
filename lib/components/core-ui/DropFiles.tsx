@@ -108,7 +108,7 @@ export function DropFiles({
             onInput={(e) => {
               e.preventDefault();
               if (disabled) return;
-              onFileSelect(e);
+              onFileSelect(e as React.ChangeEvent<HTMLInputElement>);
 
               // set value to null jic user wants to upload the same file again
               e.currentTarget.value = null;
