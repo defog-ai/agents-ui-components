@@ -29,6 +29,61 @@ export const OracleNewDb = ({
           rootClassNames="border p-4 rounded-md text-gray-400"
           acceptedFileTypes={Object.values(FILE_TYPES)}
           showIcon={true}
+          onFileSelect={async (ev) => {
+            ev.preventDefault();
+            ev.stopPropagation();
+
+            // this is when the user selects a file from the file dialog
+            try {
+              let file = ev.target.files[0];
+              if (!file || !isValidFileType(file.type)) {
+                throw new Error("Only CSV or Excel files are accepted");
+              }
+
+              if (file.type === "text/csv") {
+                parseCsvFile(file, async ({ file, rows, columns }) => {
+                  try {
+                    const dbName = await uploadFile(
+                      apiEndpoint,
+                      token,
+                      file.name,
+                      {
+                        [file.name]: { rows, columns },
+                      }
+                    ).catch((e) => {
+                      throw e;
+                    });
+                    message.success(`DB ${dbName} created successfully`);
+                    console.log(dbName);
+                    onDbCreated(dbName);
+                  } catch (e) {
+                    throw e;
+                  }
+                });
+              } else {
+                parseExcelFile(file, async ({ file, sheets }) => {
+                  try {
+                    const dbName = await uploadFile(
+                      apiEndpoint,
+                      token,
+                      file.name,
+                      sheets
+                    ).catch((e) => {
+                      throw e;
+                    });
+                    message.success(`DB ${dbName} created successfully`);
+                    console.log(dbName);
+                    onDbCreated(dbName);
+                  } catch (e) {
+                    throw e;
+                  }
+                });
+              }
+            } catch (e) {
+              console.error(e);
+              message.error("Failed to parse the file");
+            }
+          }}
           onDrop={async (ev) => {
             setLoading(true);
             ev.preventDefault();

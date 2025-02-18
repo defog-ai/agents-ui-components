@@ -10,7 +10,7 @@ interface DropFilesProps {
   /** Function to be called when files are dropped. **/
   onDrop?: (e: React.DragEvent<HTMLDivElement>) => void;
   /** Function to be called when a file is selected. **/
-  onFileSelect?: (e: React.FormEvent<HTMLInputElement>) => void;
+  onFileSelect?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   /** Function to be called when a file is dragged over the dropzone. **/
   onDragOver?: (e: React.DragEvent<HTMLDivElement>) => void;
   /** Function to be called when a file is dragged over the dropzone. **/
