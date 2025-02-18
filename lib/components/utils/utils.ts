@@ -56,7 +56,7 @@ export const createAnalysis = async (
       body: JSON.stringify({
         custom_id: customId,
         token: token,
-        key_name: keyName,
+        db_name: keyName,
         ...bodyData,
       }),
     });
@@ -427,7 +427,7 @@ export const generateQueryForCsv = async ({
       },
       body: JSON.stringify({
         question,
-        key_name: keyName,
+        db_name: keyName,
         db_type: "sqlite",
         metadata,
         previous_context: previousContext,
@@ -489,7 +489,7 @@ export const retryQueryForCsv = async ({
       },
       body: JSON.stringify({
         question,
-        key_name: keyName,
+        db_name: keyName,
         db_type: "sqlite",
         metadata,
         previous_query: previousQuery,
@@ -676,7 +676,7 @@ export async function getQuestionType(
     },
     body: JSON.stringify({
       token,
-      key_name: keyName,
+      db_name: keyName,
       question,
     }),
   });
@@ -700,7 +700,7 @@ export const raf = (fn) => {
 export const getApiKeyNames = async (apiEndpoint: string, token: string) => {
   const urlToConnect = setupBaseUrl({
     protocol: "http",
-    path: "get_api_key_names",
+    path: "get_db_names",
     apiEndpoint: apiEndpoint,
   });
 
@@ -719,7 +719,7 @@ export const getApiKeyNames = async (apiEndpoint: string, token: string) => {
     );
   }
   const data = await res.json();
-  return data.api_key_names;
+  return data.db_names;
 };
 
 interface UserFile {

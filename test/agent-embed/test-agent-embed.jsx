@@ -9,7 +9,7 @@ function QueryDataPage() {
 
   const getApiKeyNames = async (token) => {
     const res = await fetch(
-      (import.meta.env.VITE_API_ENDPOINT || "") + "/get_api_key_names",
+      (import.meta.env.VITE_API_ENDPOINT || "") + "/get_db_names",
       {
         method: "POST",
         headers: {
@@ -26,7 +26,7 @@ function QueryDataPage() {
       );
     }
     const data = await res.json();
-    setApiKeyNames(data.api_key_names);
+    setApiKeyNames(data.db_names);
   };
 
   useEffect(() => {

@@ -13,7 +13,7 @@ const testEmail = process.env.VITE_TEST_EMAIL_ID;
 test("can select api key name", async ({ page }) => {
   await visitPage(page, {
     url: "http://localhost:5173/test/agent-embed/",
-    waitForRequest: "/get_api_key_names",
+    waitForRequest: "/get_db_names",
   });
 
   await selectApiKeyName(page);
@@ -24,7 +24,7 @@ test("can ask one sql-only question, then follow-on question", async ({
 }) => {
   await visitPage(page, {
     url: "http://localhost:5173/test/agent-embed/",
-    waitForRequest: "/get_api_key_names",
+    waitForRequest: "/get_db_names",
   });
 
   await selectApiKeyName(page);
@@ -48,7 +48,7 @@ test("check history management. can store history in local storage, and can clea
 }) => {
   await visitPage(page, {
     url: "http://localhost:5173/test/agent-embed/",
-    waitForRequest: "/get_api_key_names",
+    waitForRequest: "/get_db_names",
   });
 
   await selectApiKeyName(page);
@@ -73,7 +73,7 @@ test("check history management. can store history in local storage, and can clea
   await page.reload();
 
   await page.waitForResponse(
-    (response) => response.url().includes("/get_api_key_names"),
+    (response) => response.url().includes("/get_db_names"),
     { timeout: 10000 }
   );
 
@@ -117,7 +117,7 @@ test("can ask one advanced question with send email usage", async ({
   return true;
   await visitPage(page, {
     url: "http://localhost:5173/test/agent-embed/",
-    waitForRequest: "/get_api_key_names",
+    waitForRequest: "/get_db_names",
   });
 
   await selectApiKeyName(page);

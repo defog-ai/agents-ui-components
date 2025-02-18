@@ -380,7 +380,7 @@ export async function uploadFileOnNullTab(
  * @param page - Playwright Page object
  * @param options - Configuration options for the page visit
  * @param options.url - The URL to navigate to (default: "http://localhost:5173/test/agent-embed/")
- * @param options.waitForRequest - The request to wait for (default: "/get_api_key_names")
+ * @param options.waitForRequest - The request to wait for (default: "/get_db_names")
  * @param options.timeout - Timeout in milliseconds for waiting for the response (default: 10000)
  * @returns Promise<void>
  * @throws Will throw an error if navigation fails or if the response wait times out
@@ -395,7 +395,7 @@ export async function visitPage(
 ): Promise<void> {
   const {
     url = "http://localhost:5173/test/agent-embed/",
-    waitForRequest = "/get_api_key_names",
+    waitForRequest = "/get_db_names",
     timeout = 10000,
   } = options;
   let responsePromise = null;
