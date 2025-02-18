@@ -159,27 +159,29 @@ export function OracleDraftReport({
           <div className="my-4 max-w-2xl">
             <div className="font-light mb-2">Add Details & Sources</div>
             <div className="space-y-6">
-              <div className="space-y-2">
-                <div className="font-light text-sm">Sources</div>
-                <div className="bg-white dark:bg-gray-800 flex w-full flex-col pl-1">
-                  <div className="flex w-full items-center overflow-x-scroll gap-6 pb-3">
-                    {draft.sources.map((source, i) => (
-                      <SourceCard
-                        source={source}
-                        key={i}
-                        onSelected={() => {
-                          const newSources = draft.sources.slice();
-                          newSources[i].selected = !newSources[i].selected;
-                          setDraft((prev) => ({
-                            ...prev,
-                            sources: newSources,
-                          }));
-                        }}
-                      />
-                    ))}
+              {draft.sources?.length > 0 && (
+                <div className="space-y-2">
+                  <div className="font-light text-sm">Sources</div>
+                  <div className="bg-white dark:bg-gray-800 flex w-full flex-col pl-1">
+                    <div className="flex w-full items-center overflow-x-scroll gap-6 pb-3">
+                      {draft.sources.map((source, i) => (
+                        <SourceCard
+                          source={source}
+                          key={i}
+                          onSelected={() => {
+                            const newSources = draft.sources.slice();
+                            newSources[i].selected = !newSources[i].selected;
+                            setDraft((prev) => ({
+                              ...prev,
+                              sources: newSources,
+                            }));
+                          }}
+                        />
+                      ))}
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
               <div className="space-y-2">
                 <div className="font-light text-sm">Details</div>
                 {draft.clarifications.map((obj, idx) => (
