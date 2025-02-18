@@ -18,7 +18,7 @@ test.describe("Observable Charts", () => {
   test.beforeEach(async ({ page }) => {
     await visitPage(page, {
       url: "http://localhost:5173/test/agent-embed/",
-      waitForRequest: "/get_api_key_names",
+      waitForRequest: "/get_db_names",
     });
     await selectApiKeyName(page);
     await askQuestionUsingSearchBar(
