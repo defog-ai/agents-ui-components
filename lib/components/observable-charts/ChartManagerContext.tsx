@@ -164,6 +164,7 @@ interface ActionHandlers {
   setAvailableColumns: (newColumns: Array<Column>) => ChartManager;
   autoSelectVariables: () => ChartManager;
   editChart: (
+    token: string,
     userQuestion: string,
     chartEditUrl: string,
     callbacks?: {
@@ -326,6 +327,7 @@ export function createActionHandlers(): ActionHandlers {
       return this;
     },
     editChart: async function (
+      token: string,
       userQuestion: string,
       chartEditUrl: string,
       callbacks?: {
@@ -342,6 +344,7 @@ export function createActionHandlers(): ActionHandlers {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
+            token: token,
             user_request: userQuestion,
             current_chart_state: this.clone(["data", "availableColumns"]),
             columns: this.config.availableColumns.map((col) => ({

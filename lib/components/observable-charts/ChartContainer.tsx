@@ -121,7 +121,7 @@ export function ChartContainer({
   }, []);
 
   const agentConfigContext = useContext(AgentConfigContext);
-  const { apiEndpoint } = agentConfigContext.val;
+  const { apiEndpoint, token } = agentConfigContext.val;
 
   const chartEditUrl = setupBaseUrl({
     protocol: "http",
@@ -136,7 +136,7 @@ export function ChartContainer({
   useEffect(() => {
     // don't send request while chart is already loading
     if (initialQuestion && !chartManager.config.loading) {
-      chartManager.editChart(initialQuestion, chartEditUrl, {
+      chartManager.editChart(token, initialQuestion, chartEditUrl, {
         onError: (e) => {
           messageManager.error(e.message);
           console.error(e);
