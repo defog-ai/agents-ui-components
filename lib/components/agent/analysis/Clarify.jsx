@@ -1,4 +1,4 @@
-import { MultiSelect, Input } from "@ui-components";
+import { Input } from "@ui-components";
 import { useState, useRef } from "react";
 import AgentLoader from "../../common/AgentLoader";
 

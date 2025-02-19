@@ -3,7 +3,6 @@ import {
   generateQueryForCsv,
   retryQueryForCsv,
   getAnalysis,
-  deleteStepAnalysisFromLocalStorage,
   escapeStringForCsv,
   parseData,
 } from "@utils/utils";
@@ -21,7 +20,7 @@ const propNames: Record<string, string> = {
   gen_steps: "steps",
 };
 
-const agentRequestTypes: string[] = ["clarify", "gen_steps"];
+const agentRequestTypes: string[] = ["clarification_questions", "output"];
 
 /**
  * Raw outputs of a step.
@@ -52,95 +51,56 @@ export interface ParsedOutput {
   analysis: any;
 }
 
-function parseOutputs(
-  data: { outputs?: Record<string, OutputData> },
-  analysisData: AnalysisData | null
-): Record<string, ParsedOutput> {
-  let parsedOutputs: Record<string, ParsedOutput> = {};
-  // go through data and parse all tables
-  Object.keys(data?.outputs || {}).forEach((k) => {
-    parsedOutputs[k] = {} as ParsedOutput;
-    // check if this has data, reactive_vars and chart_images
-    parsedOutputs[k].csvString = data.outputs![k].data;
-    if (data.outputs![k].data) {
-      parsedOutputs[k].data = parseData(data.outputs![k].data);
-      parsedOutputs[k].chartManager = createChartManager({
-        data: parsedOutputs[k].data.data,
-        availableColumns: parsedOutputs[k].data.columns,
-      });
-    }
-    if (data.outputs![k].reactive_vars) {
-      parsedOutputs[k].reactive_vars = data.outputs![k].reactive_vars;
+function parseOutput(csvString: string): ParsedOutput {
+  const parsedOutput = {} as ParsedOutput;
 
-      // check if title is defined
-      if (!parsedOutputs[k]?.reactive_vars?.title) {
-        Object.defineProperty(parsedOutputs[k].reactive_vars, "title", {
-          get() {
-            return analysisData?.user_question;
-          },
-        });
-      }
-    }
-    if (data.outputs![k].chart_images) {
-      parsedOutputs[k].chart_images = data.outputs![k].chart_images;
-    }
-    if (data.outputs![k].analysis) {
-      parsedOutputs[k].analysis = data.outputs![k].analysis;
-    }
+  parsedOutput.csvString = csvString;
+  parsedOutput.data = parseData(csvString);
+  parsedOutput.chartManager = createChartManager({
+    data: parsedOutput.data.data,
+    availableColumns: parsedOutput.data.columns,
   });
-  return parsedOutputs;
+
+  return parsedOutput;
 }
 
-export interface Step {
-  code_str: string;
-  description: string;
-  error_message: string | null;
-  id: string;
-  instructions_used: string;
-  outputs_storage_keys: string[];
-  reference_queries: { question: string; sql: string }[];
-  sql?: string;
-  parent_step?: Step | null;
-  tool_name: string | null;
-  outputs: Record<string, { data: string }>;
-  activeTab?: "chart" | "table" | null;
-  input_metadata: Record<
-    string,
-    {
-      default: string | null;
-      description: string;
-      name: string;
-      type: string;
-    }
-  >;
-  inputs: Record<string, any>;
-  model_generated_inputs: Record<string, any>;
-  parsedOutputs?: { [key: string]: ParsedOutput };
+export interface Inputs {
+  question: string;
+  hard_filters: string[];
+  db_name: string;
+  previous_context: PreviousContext;
 }
 
 export interface AnalysisData {
-  analysis_id?: string;
-  currentStage?: string | null | undefined;
-  direct_parent_id?: string | null;
-  follow_up_analyses?: any[];
-  gen_steps?: {
-    success?: boolean;
-    steps: Step[];
-  };
-  clarify?: {
-    success?: boolean;
-    clarification_questions?: string[];
-  };
-  nextStage?: string | null;
-  parent_analyses?: string[];
-  timestamp?: string;
+  db_name: string;
+  error: string;
+  initial_question?: string;
+  tool_name?: string;
+  inputs?: Inputs;
+  assignment_understanding?: string | null;
+  clarification_questions?: {
+    question: string;
+    response: string;
+    response_formatted: string;
+  }[];
+  sql?: string;
+  output?: string;
+  parsedOutput?: ParsedOutput;
+}
+
+export interface Analysis {
+  analysis_id: string;
+  timestamp: string;
+  db_name: string;
+  currentStage: string;
+  nextStage: string;
   user_question?: string;
-  success?: boolean;
-  analysis_data?: any;
-  error_message?: string;
+  follow_up_analyses?: string[] | null;
+  parent_analyses?: string[] | null;
   is_root_analysis?: boolean;
-  root_analysis_id?: string;
-  [key: string]: any;
+  root_analysis_id?: string | null;
+  direct_parent_id?: string | null;
+  data?: AnalysisData | null;
 }
 
 export interface AnalysisManager {
@@ -153,7 +113,6 @@ export interface AnalysisManager {
   analysisData: AnalysisData;
   getAnalysisData: () => AnalysisData | null;
   subscribeToDataChanges: (callback: () => void) => () => void;
-  updateStepData: (update: Record<string, any>) => void;
   getAnalysisBusy: () => boolean;
   subscribeToAnalysisBusyChanges: (
     callback: (busy: boolean) => void
@@ -161,24 +120,10 @@ export interface AnalysisManager {
   setAnalysisBusy: (busy: boolean) => void;
   submit: (query: string, stageInput?: Record<string, any>) => Promise<void>;
   reRun: (stepId: string, sqliteConn?: any) => Promise<void>;
-  createNewStep: ({
-    tool_name,
-    inputs,
-    analysis_id,
-    outputs_storage_keys,
-  }: {
-    tool_name: string;
-    inputs: Record<string, any>;
-    analysis_id: string;
-    outputs_storage_keys: string[];
-  }) => Promise<void>;
   destroy: () => void;
   setOnNewDataCallback: (callback: (data: AnalysisData) => void) => void;
   didInit: boolean;
   reRunningSteps: string[];
-  getActiveStepId: () => string | null;
-  setActiveStepId: (stepId: string | null) => void;
-  getActiveStep: () => Step | null;
 }
 
 export interface AnalysisManagerConfig {
@@ -204,7 +149,6 @@ export interface AnalysisManagerConfig {
   onManagerDestroyed?: (...args: any[]) => void;
   onAbortError?: (...args: any[]) => void;
   createAnalysisRequestBody?: any;
-  activeTab?: "table" | "chart" | null;
 }
 
 function createAnalysisManager({
@@ -224,10 +168,8 @@ function createAnalysisManager({
   onManagerDestroyed = (...args: any[]) => {},
   onAbortError = (...args: any[]) => {},
   createAnalysisRequestBody = {},
-  activeTab = "table",
 }: AnalysisManagerConfig): AnalysisManager {
-  let analysisData: AnalysisData | null = null;
-  let reRunningSteps: string[] = [];
+  let analysis: Analysis | null = null;
   let wasNewAnalysisCreated = false;
   let listeners: (() => void)[] = [];
   let destroyed = false;
@@ -236,35 +178,27 @@ function createAnalysisManager({
   let _onNewData = onNewData;
   let analysisBusy = false;
   let analysisBusyListeners: ((busy: boolean) => void)[] = [];
-  let activeStepId: string | null = null;
-  let _activeTab = activeTab || "table";
 
   const clarifyEndpoint = setupBaseUrl({
     protocol: "http",
-    path: "clarify",
+    path: "query-data/clarify",
     apiEndpoint: apiEndpoint,
   });
 
-  const getStepEndpoint = setupBaseUrl({
+  const generateAnalysisEndpoint = setupBaseUrl({
     protocol: "http",
-    path: "generate_step",
+    path: "query-data/generate_analysis",
     apiEndpoint: apiEndpoint,
   });
 
   const reRunEndpoint = setupBaseUrl({
     protocol: "http",
-    path: "rerun_step",
-    apiEndpoint: apiEndpoint,
-  });
-
-  const createNewStepEndpoint = setupBaseUrl({
-    protocol: "http",
-    path: "manually_create_new_step",
+    path: "query-data/rerun_step",
     apiEndpoint: apiEndpoint,
   });
 
   function getAnalysisData(): AnalysisData | null {
-    return analysisData;
+    return analysis ? analysis?.data : null;
   }
 
   function getAnalysisBusy(): boolean {
@@ -285,33 +219,17 @@ function createAnalysisManager({
   function setAnalysisData(newData: AnalysisData | null): void {
     if (!newData) return;
 
-    analysisData = newData;
+    const newAnalysis = { ...analysis, data: newData };
 
-    analysisData["currentStage"] = getCurrentStage();
-    analysisData["nextStage"] = getNextStage();
+    newAnalysis.data["currentStage"] = getCurrentStage();
+    newAnalysis.data["nextStage"] = getNextStage();
 
-    // reparse all outputs
-    if (analysisData.gen_steps?.steps) {
-      analysisData.gen_steps.steps.forEach((stepData) => {
-        try {
-          stepData.parsedOutputs = parseOutputs(stepData, analysisData);
-        } catch (e) {
-          console.log("Error parsing outputs", e);
-          stepData.parsedOutputs = {};
-        }
-      });
-
-      if (
-        // if this has actual steps, set the activeStepId to the last step
-        analysisData.gen_steps.steps.length > 0
-      ) {
-        const lastStep =
-          analysisData.gen_steps.steps[analysisData.gen_steps.steps.length - 1];
-        setActiveStepId(lastStep.id);
-      } else {
-        setActiveStepId(null);
-      }
+    // reparse outputs
+    if (newAnalysis.data.output) {
+      newAnalysis.data.parsedOutput = parseOutput(newAnalysis.data.output!);
     }
+
+    analysis = newAnalysis;
 
     emitDataChange();
   }
@@ -327,20 +245,18 @@ function createAnalysisManager({
     sqliteConn,
   }: {
     question: string;
-    existingData?: AnalysisData | null;
+    existingData?: Analysis | null;
     sqliteConn?: any;
-  }): Promise<{ analysisData?: AnalysisData | null }> {
+  }): Promise<Analysis | null> {
     didInit = true;
-
-    if (analysisData) return {};
 
     // console.log("Analysis Manager init");
     // get analysis data
-    let fetchedAnalysisData: AnalysisData | null = null;
+    let fetchedAnalysis: Analysis | null = null;
     let newAnalysisCreated = false;
 
     if (existingData) {
-      fetchedAnalysisData = existingData;
+      fetchedAnalysis = existingData;
       newAnalysisCreated = false;
     }
 
@@ -355,8 +271,10 @@ function createAnalysisManager({
 
       console.log(step);
 
-      fetchedAnalysisData = {
+      fetchedAnalysis = {
         analysis_id: analysisId,
+        timestamp: new Date().toISOString(),
+        db_name: keyName,
         user_question: question,
         currentStage: "gen_steps",
         nextStage: null,
@@ -366,20 +284,12 @@ function createAnalysisManager({
           createAnalysisRequestBody.initialisation_details.root_analysis_id,
         direct_parent_id:
           createAnalysisRequestBody.initialisation_details.direct_parent_id,
-        clarify: {
-          success: true,
-          clarification_questions: [],
-        },
-        gen_steps: {
-          success: true,
-          steps: [step],
-        },
       };
     } else {
       const res = await getAnalysis(analysisId, token, apiEndpoint);
-      if (!res.success) {
+      if (!res) {
         // create a new analysis
-        fetchedAnalysisData = await createAnalysis(
+        fetchedAnalysis = await createAnalysis(
           token,
           keyName,
           apiEndpoint,
@@ -387,67 +297,23 @@ function createAnalysisManager({
           createAnalysisRequestBody
         );
 
-        if (
-          !fetchedAnalysisData.success ||
-          !fetchedAnalysisData.analysis_data
-        ) {
-          // this is a hacky fix for collaboration on documents.
-          // this might be an analysis that has been create already
-          // when a user creates an analysis on one doc, the yjs updates before
-          // the analysis can be added to the db. so another person on the same doc will get an error if
-          // they try to query the db too quickly.
-          // So we retry a few times
-          // retry after 1 second
-          if (retries < 2) {
-            retries++;
-            console.log("Analysis Manager retrying", retries);
-            await new Promise((resolve) => setTimeout(resolve, 1000)).then(
-              async () => {
-                await init({
-                  question,
-                  existingData,
-                  sqliteConn,
-                });
-              }
-            );
-          }
-
-          // if more than 4 retries
-          // stop loading, send error
-          throw new Error(fetchedAnalysisData?.error_message);
-        } else {
-          fetchedAnalysisData = fetchedAnalysisData.analysis_data;
-        }
-
         newAnalysisCreated = true;
       } else {
-        fetchedAnalysisData = res.analysis_data;
+        fetchedAnalysis = res.analysis_data;
       }
 
-      // console.log(analysisId);
-
-      // console.log(fetchedAnalysisData);
       wasNewAnalysisCreated = newAnalysisCreated;
     }
-
-    // if this has steps but steps are empty, delete gen_steps key
-    if (
-      fetchedAnalysisData?.gen_steps &&
-      fetchedAnalysisData.gen_steps.steps.length === 0
-    ) {
-      delete fetchedAnalysisData.gen_steps;
-    }
+    analysis = fetchedAnalysis;
 
     // update the analysis data
-    setAnalysisData(fetchedAnalysisData);
+    setAnalysisData(fetchedAnalysis.data);
 
-    return {
-      analysisData: fetchedAnalysisData,
-    };
+    return fetchedAnalysis;
   }
 
   function getCurrentStage(): string | undefined {
-    const lastExistingStage = Object.keys(analysisData || {})
+    const lastExistingStage = Object.keys(analysis.data || {})
       .filter((d) => agentRequestTypes.includes(d))
       .sort(
         (a, b) => agentRequestTypes.indexOf(a) - agentRequestTypes.indexOf(b)
@@ -477,12 +343,12 @@ function createAnalysisManager({
       setAnalysisBusy(true);
 
       let nextStage = getNextStage();
-      let endpoint;
+      let endpoint: string | URL | Request;
 
       if (nextStage === "clarify") {
         endpoint = clarifyEndpoint;
       } else if (nextStage === "gen_steps") {
-        endpoint = getStepEndpoint;
+        endpoint = generateAnalysisEndpoint;
       }
 
       if (!analysisData) return;
@@ -555,30 +421,6 @@ function createAnalysisManager({
       console.log(e);
       onAbortError(e);
     }
-  }
-
-  function updateStepData(update: Record<string, any>): void {
-    const newAnalysisData = { ...analysisData };
-    if (!newAnalysisData) return;
-
-    const stepIds = Object.keys(update);
-
-    stepIds.forEach((stepId) => {
-      if (newAnalysisData.gen_steps) {
-        const idx = newAnalysisData.gen_steps.steps.findIndex(
-          (d) => d.id === stepId
-        );
-
-        if (idx > -1) {
-          newAnalysisData.gen_steps.steps[idx] = {
-            ...newAnalysisData.gen_steps.steps[idx],
-            ...update[stepId],
-          };
-        }
-      }
-    });
-
-    setAnalysisData(newAnalysisData);
   }
 
   function mergeNewDataToAnalysis(
@@ -864,72 +706,22 @@ function createAnalysisManager({
           "Content-Type": "application/json",
         },
         body: JSON.stringify(body),
-      }).then((d) => d.json());
+      });
 
       console.log(res);
 
-      if (!res.success || !res.steps) {
-        throw new Error(res.error_message || "Could not rerun step");
+      if (!res.ok) {
+        throw new Error("Could not rerun step");
       }
 
-      const newAnalysisData = { ...analysisData };
-      if (!newAnalysisData.gen_steps) return;
-      newAnalysisData.gen_steps.steps = res.steps;
-      // remove this step's analysis from local storage
-      // do this before we setAnalysisData as that will trigger a re render
-      deleteStepAnalysisFromLocalStorage(stepId);
+      const data = await res.json();
 
-      setAnalysisData(newAnalysisData);
+      setAnalysisData(data);
     } catch (e) {
       throw new Error(e instanceof Error ? e.message : "Unknown error");
     } finally {
       setAnalysisBusy(false);
     }
-  }
-
-  async function createNewStep({
-    tool_name,
-    inputs,
-    analysis_id,
-    outputs_storage_keys,
-  }: {
-    tool_name: string;
-    inputs: Record<string, any>;
-    analysis_id: string;
-    outputs_storage_keys: string[];
-  }): Promise<void> {
-    const res = await fetch(createNewStepEndpoint, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        tool_name,
-        inputs,
-        analysis_id,
-        outputs_storage_keys,
-        db_name: keyName,
-        planner_question_suffix: plannerQuestionSuffix,
-        extra_tools: extraTools,
-      }),
-    }).then((d) => d.json());
-
-    if (!res.success || !res.new_steps) {
-      throw new Error(res.error_message || "Could not create new step");
-    }
-
-    const newAnalysisData = { ...analysisData };
-    if (!newAnalysisData) return;
-
-    if (!newAnalysisData.gen_steps) {
-      newAnalysisData.gen_steps = {
-        success: true,
-        steps: [],
-      };
-    }
-
-    newAnalysisData.gen_steps.steps = res.new_steps;
-    setAnalysisData(newAnalysisData);
   }
 
   function subscribeToDataChanges(listener: () => void): () => void {
@@ -963,21 +755,6 @@ function createAnalysisManager({
     _onNewData = callback;
   }
 
-  function getActiveStepId(): string | null {
-    return activeStepId;
-  }
-
-  function setActiveStepId(stepId: string | null): void {
-    activeStepId = stepId;
-  }
-
-  function getActiveStep(): Step | null {
-    if (!activeStepId || !analysisData?.gen_steps?.steps) return null;
-    return (
-      analysisData.gen_steps.steps.find((s) => s.id === activeStepId) || null
-    );
-  }
-
   return {
     init,
     get wasNewAnalysisCreated() {
@@ -986,35 +763,18 @@ function createAnalysisManager({
     set wasNewAnalysisCreated(val: boolean) {
       wasNewAnalysisCreated = val;
     },
-    get analysisData() {
-      return Object.assign({}, analysisData);
-    },
-    set analysisData(val: AnalysisData) {
-      analysisData = val;
-    },
-    get reRunningSteps() {
-      return reRunningSteps.slice();
-    },
-    set reRunningSteps(val: string[]) {
-      reRunningSteps = val;
-    },
     get didInit() {
       return didInit;
     },
     getAnalysisData,
     subscribeToDataChanges,
-    updateStepData,
     getAnalysisBusy,
     subscribeToAnalysisBusyChanges,
     setAnalysisBusy,
     submit,
     reRun,
-    createNewStep,
     destroy,
     setOnNewDataCallback,
-    getActiveStepId,
-    setActiveStepId,
-    getActiveStep,
   };
 }
 

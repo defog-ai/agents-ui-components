@@ -63,7 +63,7 @@ Before going into code, it's probably helpful to know the agent currently has a 
 
 - **Planner**: This will finally convert the user question into a plan containing multiple executable steps using tools.
 
-  Using the `assignment_understanding` above, we call our `/generate_step` endpoint, which runs the `generate_single_step` [function](https://github.com/defog-ai/defog-self-hosted/blob/main/backend/agents/planner_executor/planner_executor_agent.py#L536-L549). This takes in the current steps, and returns the next step.
+  Using the `assignment_understanding` above, we call our `/generate_analysis` endpoint, which runs the `generate_single_step` [function](https://github.com/defog-ai/defog-self-hosted/blob/main/backend/agents/planner_executor/planner_executor_agent.py#L536-L549). This takes in the current steps, and returns the next step.
 
   <Image src={"./assets/frontend/planner.png"} />
 
@@ -141,7 +141,7 @@ Most of the logic for our backend can be understood by looking at the endpoints 
 
 - The [clarify endpoint](https://github.com/defog-ai/defog-self-hosted/blob/main/backend/agent_routes.py#L234-L292) is pretty simple, needing only the user question and db metadata to run.
 
-The `generate_step` [function](https://github.com/defog-ai/defog-self-hosted/blob/main/backend/agent_routes.py#L48) is only slightly more complex, requiring a few things before we can generate a step:
+The `generate_analysis` [function](https://github.com/defog-ai/defog-self-hosted/blob/main/backend/agent_routes.py#L48) is only slightly more complex, requiring a few things before we can generate a step:
 
 - It will first collect all the "previous questions" the user has asked (because we want our UI allows for a "follow up" question type behaviour).
 - If it's a `sql_only` analysis, we manually construct a step, and run the data_fetcher tool using the `run_step` function. And return.

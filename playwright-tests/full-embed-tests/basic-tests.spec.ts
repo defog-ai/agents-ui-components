@@ -148,14 +148,14 @@ test("can ask one advanced question with send email usage", async ({
   let totalSteps = 0;
 
   page.on("request", (request) => {
-    if (request.url().includes("/generate_step")) {
+    if (request.url().includes("/generate_analysis")) {
       // ensure that the correct sql_only was sent to the server
       expect(request.postDataJSON().sql_only).toBe(false);
     }
   });
 
   page.on("response", async (response) => {
-    if (response.url().includes("/generate_step")) {
+    if (response.url().includes("/generate_analysis")) {
       const resData = await response.json();
       totalSteps++;
       if (resData.done) {
