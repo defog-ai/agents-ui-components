@@ -8,62 +8,67 @@ import Papa from "papaparse";
 import { cleanColumnNameForSqlite } from "./sqlite";
 import { read, utils } from "xlsx";
 
-export const getAnalysis = async (analysisId, token, apiEndpoint) => {
+export const getAnalysis = async (
+  analysisId: string,
+  token: string,
+  apiEndpoint: string
+) => {
   const urlToConnect = setupBaseUrl({
     protocol: "http",
-    path: "get_analysis",
+    path: "query-data/get_analysis",
     apiEndpoint,
   });
-  let response;
-  try {
-    response = await fetch(urlToConnect, {
-      method: "POST",
-      signal: AbortSignal.timeout(60000),
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        token: token,
-        analysis_id: analysisId,
-      }),
-    });
-  } catch (e) {
-    return { success: false, error_message: e };
+  const response = await fetch(urlToConnect, {
+    method: "POST",
+    signal: AbortSignal.timeout(60000),
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      token: token,
+      analysis_id: analysisId,
+    }),
+  });
+
+  if (!response.ok) {
+    return null;
   }
+
   const json = await response.json();
   return json;
 };
 
 export const createAnalysis = async (
-  token,
-  keyName,
-  apiEndpoint,
-  customId,
+  token: string,
+  keyName: string,
+  apiEndpoint: string,
+  customId: string,
   bodyData = {}
 ) => {
   const urlToConnect = setupBaseUrl({
     protocol: "http",
-    path: "create_analysis",
+    path: "query-data/create_analysis",
     apiEndpoint: apiEndpoint,
   });
-  let response;
-  try {
-    response = await fetch(urlToConnect, {
-      method: "POST",
-      signal: AbortSignal.timeout(60000),
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        custom_id: customId,
-        token: token,
-        db_name: keyName,
-        ...bodyData,
-      }),
-    });
-  } catch (e) {
-    return { success: false, error_message: e };
+
+  const response = await fetch(urlToConnect, {
+    method: "POST",
+    signal: AbortSignal.timeout(60000),
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      custom_id: customId,
+      token: token,
+      db_name: keyName,
+      ...bodyData,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to create analysis");
   }
+
   const json = await response.json();
   return json;
 };
@@ -414,7 +419,7 @@ export const generateQueryForCsv = async ({
 }) => {
   const urlToConnect = setupBaseUrl({
     protocol: "http",
-    path: "generate_query_csv",
+    path: "query-data/generate_query_csv",
     apiEndpoint,
   });
 
@@ -474,7 +479,7 @@ export const retryQueryForCsv = async ({
 }) => {
   const urlToConnect = setupBaseUrl({
     protocol: "http",
-    path: "retry_query_csv",
+    path: "query-data/retry_query_csv",
     apiEndpoint,
   });
 

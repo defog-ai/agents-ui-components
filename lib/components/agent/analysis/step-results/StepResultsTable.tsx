@@ -113,7 +113,7 @@ export function StepResultsTable({
 }) {
   const downloadCsvEndpoint = setupBaseUrl({
     protocol: "http",
-    path: "download_csv",
+    path: "query-data/download_csv",
     apiEndpoint: apiEndpoint,
   });
   const messageManager = useContext(MessageManagerContext);

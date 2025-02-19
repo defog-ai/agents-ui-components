@@ -14,7 +14,7 @@ const StepFollowOn = ({
     try {
       const urlToConnect = setupBaseUrl({
         protocol: "http",
-        path: "generate_follow_on_questions",
+        path: "query-data/generate_follow_on_questions",
         apiEndpoint: apiEndpoint,
       });
 
