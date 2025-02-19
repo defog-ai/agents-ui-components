@@ -10,7 +10,7 @@ import { toolDisplayNames } from "@utils/utils";
 import { Tabs } from "../../../core-ui/Tabs";
 
 import { AgentConfigContext } from "../../../context/AgentContext";
-import { SkeletalLoader } from "@ui-components";
+import { Button, SkeletalLoader, SpinningLoader } from "@ui-components";
 import SQLFeedback from "./SQLFeedback";
 import StepFollowOn from "./StepFollowOn";
 import { CodeEditor } from "./CodeEditor";
@@ -74,6 +74,13 @@ export function StepResults({
     },
     [stepId]
   );
+
+  // rerunningstepsis array of object: {id: res.pre_tool_run_message,
+  // timeout: funciton
+  // clearTimeout: function}
+  const isStepReRunning = useMemo(() => {
+    return reRunningSteps.some((s) => s.id === stepId);
+  }, [reRunningSteps, stepId]);
 
   const tabs = useMemo(() => {
     return [
@@ -167,10 +174,13 @@ export function StepResults({
                       />
                       {/* Re-run Button - Bottom Right */}
                       <div className="flex justify-end ">
-                        <StepReRun
+                        <Button
+                          disabled={isStepReRunning}
                           className="h-10 px-4 py-2 font-mono text-white bg-gray-600 border border-gray-200 hover:bg-blue-500 hover:text-white active:hover:text-white hover:border-transparent"
                           onClick={() => handleReRun(step.id)}
-                        />
+                        >
+                          Re run
+                        </Button>
                       </div>
                     </div>
                   </div>
@@ -230,14 +240,7 @@ export function StepResults({
         ),
       },
     ];
-  }, [step]);
-
-  // rerunningstepsis array of object: {id: res.pre_tool_run_message,
-  // timeout: funciton
-  // clearTimeout: function}
-  const isStepReRunning = useMemo(() => {
-    return reRunningSteps.some((s) => s.id === stepId);
-  }, [reRunningSteps, stepId]);
+  }, [step, isStepReRunning]);
 
   return !parsedOutputs || !step ? (
     <></>
@@ -247,10 +250,8 @@ export function StepResults({
       {analysisBusy && (
         <div className="absolute top-0 left-0 z-20 flex flex-col items-center justify-center w-full h-full bg-white dark:bg-gray-900 bg-opacity-90 dark:bg-opacity-90 text-md dark:text-gray-300">
           <span className="my-1">
-            Last executed step:{" "}
-            {toolDisplayNames[step?.tool_name]?.name || step?.tool_name}
+            <SpinningLoader></SpinningLoader>Running
           </span>
-          <span className="my-1">Now executing the next step</span>
           <SkeletalLoader classNames="text-gray-500 dark:text-gray-400 w-5 h-5" />
         </div>
       )}

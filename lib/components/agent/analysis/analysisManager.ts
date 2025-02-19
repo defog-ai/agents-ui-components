@@ -94,7 +94,6 @@ function parseOutputs(
 export interface Step {
   code_str: string;
   description: string;
-  done: boolean;
   error_message: string | null;
   id: string;
   instructions_used: string;
@@ -497,64 +496,60 @@ function createAnalysisManager({
         },
       });
 
-      let done = false;
+      const body = {
+        ...stageInput,
+        request_type: nextStage,
+        analysis_id: analysisId,
+        user_question: query,
+        sql_only: sqlOnly,
+        token: token,
+        temp: isTemp,
+        db_name: keyName,
+        db_creds: null,
+        dev: devMode,
+        previous_context: previousContext,
+        root_analysis_id: rootAnalysisId,
+        extra_tools: extraTools,
+        planner_question_suffix: plannerQuestionSuffix,
+      };
 
-      while (!done) {
-        const body = {
-          ...stageInput,
-          request_type: nextStage,
-          analysis_id: analysisId,
-          user_question: query,
-          sql_only: sqlOnly,
-          token: token,
-          temp: isTemp,
-          db_name: keyName,
-          db_creds: null,
-          dev: devMode,
-          previous_context: previousContext,
-          root_analysis_id: rootAnalysisId,
-          extra_tools: extraTools,
-          planner_question_suffix: plannerQuestionSuffix,
-        };
+      console.groupCollapsed("Analysis Manager submitting");
+      console.log("Analysis data:", analysisData);
+      console.log("Request body", body);
 
-        console.groupCollapsed("Analysis Manager submitting");
-        console.log("Analysis data:", analysisData);
-        console.log("Request body", body);
-
-        if (!endpoint) {
-          throw new Error("Endpoint not found");
-        }
-
-        let res;
-
-        try {
-          res = await fetch(endpoint, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            signal: AbortSignal.timeout(60000),
-            body: JSON.stringify(body),
-          }).then((d) => d.json());
-        } catch {
-          // if the fetch fails, manually construct a res so that we can handle
-          // whatever the new analysis data will be
-          res = {
-            error_message: "Request timed out. Please try again.",
-          };
-        }
-
-        console.log(res);
-        console.groupEnd();
-
-        if (!res || !res.success) {
-          res = {
-            error_message: (res && res.error_message) || "Could not fetch data",
-          };
-        }
-
-        done = mergeNewDataToAnalysis(query, res, nextStage!);
+      if (!endpoint) {
+        throw new Error("Endpoint not found");
       }
+
+      let res;
+
+      try {
+        res = await fetch(endpoint, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          signal: AbortSignal.timeout(60000),
+          body: JSON.stringify(body),
+        }).then((d) => d.json());
+      } catch {
+        // if the fetch fails, manually construct a res so that we can handle
+        // whatever the new analysis data will be
+        res = {
+          error_message: "Request timed out. Please try again.",
+        };
+      }
+
+      console.log(res);
+      console.groupEnd();
+
+      if (!res || !res.success) {
+        res = {
+          error_message: (res && res.error_message) || "Could not fetch data",
+        };
+      }
+
+      mergeNewDataToAnalysis(query, res, nextStage!);
     } catch (e) {
       setAnalysisBusy(false);
       console.log(e);
@@ -596,8 +591,6 @@ function createAnalysisManager({
 
     newAnalysisData["user_question"] = query;
     let prop: string;
-    let skip = false;
-    let done = true;
 
     try {
       // if there was an error, throw it
@@ -625,83 +618,21 @@ function createAnalysisManager({
       }
 
       if (response && response.success && response[prop]) {
-        if (!newAnalysisData[requestType]) {
-          newAnalysisData = { ...newAnalysisData, [requestType]: response };
-        } else {
-          // check if the response has an "overwrite_key"
-          // if there's an overwrite_key provided,
-          // then go through old data, and the new_data
-          // if the overwrite_key is found in the old data, replace it with the elements that exist new_data with the same overwrite_key
-          // if it's not found, just append the item to the end
-          const overwrite_key = response.overwrite_key;
-          if (overwrite_key) {
-            response[prop].forEach(async (res: any) => {
-              const idx = newAnalysisData[requestType][prop].findIndex(
-                (d: any) => d[overwrite_key] === res[overwrite_key]
-              );
-
-              if (idx > -1) {
-                newAnalysisData[requestType][prop][idx] = res;
-                if (requestType === "gen_steps" && res.id) {
-                  // if this is gen_steps, we also need to update the latest tool run data
-                  // update it in the cache
-                }
-              } else {
-                newAnalysisData[requestType][prop].push(res);
-              }
-            });
-          } else {
-            // Only add activeTab for gen_steps, not for clarification_questions
-            newAnalysisData[requestType][prop] = newAnalysisData[requestType][
-              prop
-            ].concat(
-              response[prop].map((d) => {
-                if (requestType === "gen_steps") {
-                  return {
-                    ...d,
-                    activeTab: _activeTab,
-                  };
-                }
-                return d;
-              })
-            );
-          }
-        }
+        newAnalysisData = { ...newAnalysisData, [requestType]: response };
       }
-
-      done = response.done || false;
     } catch (e) {
       console.log(e);
       response = { error_message: e };
 
-      // if we have an error, and the current stage's data is empty, remove it
-      if (
-        newAnalysisData &&
-        newAnalysisData.currentStage &&
-        newAnalysisData?.[newAnalysisData.currentStage]?.[
-          propNames[newAnalysisData.currentStage]
-        ]?.length === 0
-      ) {
-        delete newAnalysisData[newAnalysisData.currentStage];
-      }
-
-      // set done to true so that we don't send any more requests
-      done = true;
-      setAnalysisBusy(false);
+      // if we have an error, remove the current stage data
+      delete newAnalysisData[newAnalysisData.currentStage];
     } finally {
-      if (!skip) {
-        if (done) {
-          setAnalysisBusy(false);
-        }
-
-        setAnalysisData(newAnalysisData);
-        if (_onNewData && typeof _onNewData === "function") {
-          _onNewData(response, newAnalysisData);
-        }
+      setAnalysisBusy(false);
+      setAnalysisData(newAnalysisData);
+      if (_onNewData && typeof _onNewData === "function") {
+        _onNewData(response, newAnalysisData);
       }
     }
-
-    return done;
   }
 
   function runQueryOnCsvAndGetOutput(query: string, sqliteConn: any) {
@@ -815,7 +746,6 @@ function createAnalysisManager({
         },
       },
       outputs_storage_keys: ["answer"],
-      done: true,
       id: stepId,
       error_message: null,
       input_metadata: {
@@ -919,6 +849,7 @@ function createAnalysisManager({
       }
 
       const body = {
+        token: token,
         db_name: keyName,
         analysis_id: analysisId,
         step_id: stepId,
