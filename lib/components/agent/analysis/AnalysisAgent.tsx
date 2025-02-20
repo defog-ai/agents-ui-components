@@ -117,7 +117,7 @@ interface Props {
     analysisManager?: AnalysisManager | null;
     analysisTreeManager?: AnalysisTreeManager | null;
   };
-  setCurrentQuestion?: (question: string) => void;
+  submitFollowOn?: (followOnQuestion: string) => void;
   /**
    * Callback when container height changes
    */
@@ -182,7 +182,7 @@ export const AnalysisAgent = ({
     analysisManager: null,
     analysisTreeManager: null,
   },
-  setCurrentQuestion = (...args) => {},
+  submitFollowOn = (...args) => {},
   onHeightChange = (...args) => {},
 }: Props) => {
   const { apiEndpoint, token, sqliteConn, updateConfig, analysisDataCache } =
@@ -260,6 +260,20 @@ export const AnalysisAgent = ({
       !analysis?.data?.clarification_questions
     ) {
       handleSubmit(analysis?.data?.initial_question, {}, null);
+    }
+
+    // if we got clarification question, and they were empty, and haven't submitted already to get an output, submit the next stage
+    // if this was a clarify request, and the clarifier just returns empty array
+    // in the clarification_questions, submit the next stage
+    if (
+      analysis?.data?.clarification_questions &&
+      analysis?.data?.clarification_questions.length === 0 &&
+      !analysis?.data?.parsedOutput &&
+      !analysis?.data?.error
+    ) {
+      handleSubmit(analysis?.data?.initial_question, {
+        clarification_questions: [],
+      });
     }
 
     // update context
@@ -396,11 +410,9 @@ export const AnalysisAgent = ({
     </>
   );
 
-  console.log("analysis busy", analysisBusy);
-
   if (analysisBusy) {
     return (
-      <div className="flex flex-col w-full h-full bg-gray-50 dark:bg-gray-900 rounded-3xl">
+      <div className="flex flex-col w-full h-full bg-gray-50 dark:bg-gray-900 rounded-3xl max-h-96 border dark:border-gray-200">
         {titleDiv}
         <AgentLoader
           message={
@@ -480,6 +492,10 @@ export const AnalysisAgent = ({
                       analysisBusy={analysisBusy}
                       handleReRun={(...args: any[]) => {}}
                       analysisTreeManager={initialConfig?.analysisTreeManager}
+                      submitFollowOn={(followOnQuestion: string) => {
+                        console.log("clicked follow on", followOnQuestion);
+                        submitFollowOn(followOnQuestion);
+                      }}
                     />
                   )}
                 </ErrorBoundary>

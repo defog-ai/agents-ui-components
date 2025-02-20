@@ -48,6 +48,8 @@ let DraggableInput = forwardRef(function DraggableInput(
     if (question) {
       // @ts-ignore
       ref.current.value = question;
+      // @ts-ignore
+      ref.current.focus();
     }
   }, [question, ref]);
 

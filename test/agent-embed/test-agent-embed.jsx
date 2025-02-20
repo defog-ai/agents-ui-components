@@ -52,6 +52,14 @@ function QueryDataPage() {
     }
   }, []);
 
+  const dbList = useMemo(() => {
+    return apiDbNames.map((name) => ({
+      name: name,
+      dbName: name,
+      predefinedQuestions: ["show me any 5 rows"],
+    }));
+  }, [apiDbNames]);
+
   return (
     <StrictMode>
       <div className="flex flex-col">
@@ -78,11 +86,7 @@ function QueryDataPage() {
               "Show me any 5 rows from the dataset",
             ]}
             showAnalysisUnderstanding={true}
-            dbs={apiDbNames.map((name) => ({
-              name: name,
-              dbName: name,
-              predefinedQuestions: ["show me any 5 rows"],
-            }))}
+            dbs={dbList}
             disableMessages={false}
             initialTrees={initialTrees}
             onTreeChange={(dbName, tree) => {

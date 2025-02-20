@@ -348,7 +348,7 @@ const AnalysisTreeContent = ({
   analysisTreeManager,
   autoScroll,
   setLoading,
-  setCurrentQuestion,
+  submitFollowOn,
 }: {
   dbName: string;
   activeRootAnalysisId: string;
@@ -358,7 +358,7 @@ const AnalysisTreeContent = ({
   analysisTreeManager: AnalysisTreeManager;
   autoScroll: boolean;
   setLoading: (loading: boolean) => void;
-  setCurrentQuestion: (question: string) => void;
+  submitFollowOn: (question: string) => void;
 }) => {
   if (!activeRootAnalysisId || !nestedTree[activeRootAnalysisId]) return null;
 
@@ -423,7 +423,7 @@ const AnalysisTreeContent = ({
             nestedTree[activeRootAnalysisId].analysisManager || null,
           analysisTreeManager,
         }}
-        setCurrentQuestion={setCurrentQuestion}
+        submitFollowOn={submitFollowOn}
       />
 
       {nestedTree[activeRootAnalysisId].flatOrderedChildren.map(
@@ -483,7 +483,7 @@ const AnalysisTreeContent = ({
               analysisManager: child.analysisManager || null,
               analysisTreeManager,
             }}
-            setCurrentQuestion={setCurrentQuestion}
+            submitFollowOn={submitFollowOn}
           />
         )
       )}
@@ -570,7 +570,7 @@ export function AnalysisTreeViewer({
   // State
   const [loading, setLoading] = useState(false);
   const [sqlOnly, setSqlOnly] = useState(true);
-  const [currentQuestion, setCurrentQuestion] = useState("");
+  const [followOnQuestion, submitFollowOn] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(defaultSidebarOpen);
   const [activeAnalysisId, setActiveAnalysisId] = useState<string | null>(
     analysisTreeManager.getActiveAnalysisId()
@@ -726,7 +726,7 @@ export function AnalysisTreeViewer({
                   <AnalysisTreeItem
                     isDummy={true}
                     onClick={() => {
-                      setCurrentQuestion("");
+                      submitFollowOn("");
                       disableScrollEvent.current = true;
                       analysisTreeManager.setActiveRootAnalysisId(null);
                       analysisTreeManager.setActiveAnalysisId(null);
@@ -829,7 +829,7 @@ export function AnalysisTreeViewer({
                   analysisTreeManager={analysisTreeManager}
                   autoScroll={autoScroll}
                   setLoading={setLoading}
-                  setCurrentQuestion={setCurrentQuestion}
+                  submitFollowOn={submitFollowOn}
                 />
               )}
 
@@ -864,7 +864,7 @@ export function AnalysisTreeViewer({
                 forceSqlOnly={forceSqlOnly}
                 setSqlOnly={setSqlOnly}
                 sqlOnly={sqlOnly}
-                question={currentQuestion}
+                question={followOnQuestion}
                 onNewConversationTextClick={() => {
                   disableScrollEvent.current = true;
                   analysisTreeManager.setActiveRootAnalysisId(null);
