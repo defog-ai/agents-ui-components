@@ -410,22 +410,6 @@ export const AnalysisAgent = ({
     </>
   );
 
-  if (analysisBusy) {
-    return (
-      <div className="flex flex-col w-full h-full bg-gray-50 dark:bg-gray-900 rounded-3xl max-h-96 border dark:border-gray-200">
-        {titleDiv}
-        <AgentLoader
-          message={
-            !analysis?.data?.clarification_questions
-              ? "Thinking about whether I need to clarify the question..."
-              : "Fetching data..."
-          }
-          classNames={"m-0 h-40 bg-transparent"}
-        />
-      </div>
-    );
-  }
-
   return (
     <ErrorBoundary>
       <div
@@ -439,71 +423,85 @@ export const AnalysisAgent = ({
           rootClassNames
         )}
       >
-        <>
-          {/* if we don't have external search bar (like in analysistreeviewer), show a search bar of it's own here */}
-          {!hasExternalSearchBar && !analysis?.data?.clarification_questions ? (
-            <div className="relative w-10/12 mx-auto top-6">
-              <Input
-                ref={independentAnalysisSearchRef}
-                onPressEnter={(ev: any) => {
-                  handleSubmit(ev.target.value);
-                  ev.target.value = "";
-                }}
-                placeholder={searchBarPlaceholder || "Ask a question"}
-                disabled={disabled || analysisBusy}
-                inputClassNames="w-full mx-auto shadow-custom hover:border-blue-500 focus:border-blue-500"
-              />
-            </div>
-          ) : (
-            <></>
-          )}
-
-          {/* if we have clarifications, but no output */}
-          {analysis?.data?.clarification_questions &&
-          !analysis?.data?.output ? (
-            <div className="w-full transition-all bg-gray-50 dark:bg-gray-900 rounded-3xl">
-              {titleDiv}
-              <Clarify
-                questions={analysis?.data?.clarification_questions || []}
-                handleSubmit={(stageInput: Object, submitStage: string) => {
-                  handleSubmit(
-                    analysis?.user_question,
-                    stageInput,
-                    submitStage
-                  );
-                }}
-                globalLoading={analysisBusy}
-              />
-            </div>
-          ) : (
-            <></>
-          )}
-
-          {/* if we have outputs */}
-          {analysis?.data?.output && analysis?.data?.parsedOutput && (
-            <div className="flex flex-col-reverse w-full h-full analysis-content lg:flex-row">
-              <div className="relative flex flex-col min-w-0 analysis-results grow dark:border-gray-600">
-                {titleDiv}
-                <ErrorBoundary>
-                  {analysis?.data?.parsedOutput && (
-                    <AnalysisResults
-                      dbName={dbName}
-                      analysis={analysis}
-                      analysisBusy={analysisBusy}
-                      handleReRun={(...args: any[]) => {}}
-                      analysisTreeManager={initialConfig?.analysisTreeManager}
-                      submitFollowOn={(followOnQuestion: string) => {
-                        console.log("clicked follow on", followOnQuestion);
-                        submitFollowOn(followOnQuestion);
-                      }}
-                    />
-                  )}
-                </ErrorBoundary>
+        {analysisBusy ? (
+          <div className="flex flex-col w-full h-full bg-gray-50 dark:bg-gray-900 rounded-3xl max-h-96 border dark:border-gray-200">
+            {titleDiv}
+            <AgentLoader
+              message={
+                !analysis?.data?.clarification_questions
+                  ? "Thinking about whether I need to clarify the question..."
+                  : "Fetching data..."
+              }
+              classNames={"m-0 h-40 bg-transparent"}
+            />
+          </div>
+        ) : (
+          <>
+            {/* if we don't have external search bar (like in analysistreeviewer), show a search bar of it's own here */}
+            {!hasExternalSearchBar &&
+            !analysis?.data?.clarification_questions ? (
+              <div className="relative w-10/12 mx-auto top-6">
+                <Input
+                  ref={independentAnalysisSearchRef}
+                  onPressEnter={(ev: any) => {
+                    handleSubmit(ev.target.value);
+                    ev.target.value = "";
+                  }}
+                  placeholder={searchBarPlaceholder || "Ask a question"}
+                  disabled={disabled || analysisBusy}
+                  inputClassNames="w-full mx-auto shadow-custom hover:border-blue-500 focus:border-blue-500"
+                />
               </div>
-            </div>
-          )}
-        </>
-        {/* )} */}
+            ) : (
+              <></>
+            )}
+
+            {/* if we have clarifications, but no output */}
+            {analysis?.data?.clarification_questions &&
+            !analysis?.data?.output ? (
+              <div className="w-full transition-all bg-gray-50 dark:bg-gray-900 rounded-3xl">
+                {titleDiv}
+                <Clarify
+                  questions={analysis?.data?.clarification_questions || []}
+                  handleSubmit={(stageInput: Object, submitStage: string) => {
+                    handleSubmit(
+                      analysis?.user_question,
+                      stageInput,
+                      submitStage
+                    );
+                  }}
+                  globalLoading={analysisBusy}
+                />
+              </div>
+            ) : (
+              <></>
+            )}
+
+            {/* if we have outputs */}
+            {analysis?.data?.output && analysis?.data?.parsedOutput && (
+              <div className="flex flex-col-reverse w-full h-full analysis-content lg:flex-row">
+                <div className="relative flex flex-col min-w-0 analysis-results grow dark:border-gray-600">
+                  {titleDiv}
+                  <ErrorBoundary>
+                    {analysis?.data?.parsedOutput && (
+                      <AnalysisResults
+                        dbName={dbName}
+                        analysis={analysis}
+                        analysisBusy={analysisBusy}
+                        handleReRun={(...args: any[]) => {}}
+                        analysisTreeManager={initialConfig?.analysisTreeManager}
+                        submitFollowOn={(followOnQuestion: string) => {
+                          console.log("clicked follow on", followOnQuestion);
+                          submitFollowOn(followOnQuestion);
+                        }}
+                      />
+                    )}
+                  </ErrorBoundary>
+                </div>
+              </div>
+            )}
+          </>
+        )}
       </div>
     </ErrorBoundary>
   );

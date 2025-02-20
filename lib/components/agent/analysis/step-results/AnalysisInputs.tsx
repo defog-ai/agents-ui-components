@@ -57,7 +57,6 @@ export function AnalysisInputs({ initialInputs, handleEdit }) {
               <div key={i} className="flex items-center gap-2 group">
                 <Input
                   rootClassNames="flex-1"
-                  size="small"
                   value={filter}
                   placeholder="Filter condition"
                   onChange={(ev) => {
