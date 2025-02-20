@@ -1,6 +1,6 @@
 import { CircleAlert } from "lucide-react";
 
-export function StepError({ error_message = null }) {
+export function AnalysisError({ error_message = null }) {
   return (
     <div className="p-4 mb-4 border rounded-lg bg-rose-50 border-rose-200">
       <div className="flex items-center gap-2 mb-2">

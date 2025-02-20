@@ -7,8 +7,6 @@ import { twMerge } from "tailwind-merge";
 import ErrorBoundary from "../../../common/ErrorBoundary";
 
 export function CodeEditor({
-  analysisId = null,
-  stepId = null,
   code = null,
   language = "sql",
   updateProp = null,
@@ -25,9 +23,6 @@ export function CodeEditor({
 
   const updateCodeAndSql = (newVal) => {
     // update values of the code and the SQL
-
-    if (!stepId) return;
-    if (!analysisId) return;
     if (!newVal) return;
 
     // Update local state first
@@ -35,15 +30,12 @@ export function CodeEditor({
 
     // Notify parent of the change
     handleEdit({
-      step_id: stepId,
       update_prop: updateProp,
       new_val: newVal,
-      analysis_id: analysisId,
     });
   };
 
   const handleCodeChange = (val) => {
-    console.log("val", val);
     updateCodeAndSql(val);
   };
 

@@ -19,6 +19,13 @@ export function EmbedScaffolding({
   onDbChange = (...args) => {},
   children = null,
   fileUploading = false,
+}: {
+  rootClassNames?: ((selectedDb: any) => string) | string;
+  availableDbs?: any[];
+  defaultSelectedDb?: any;
+  onDbChange?: (selectedDb: any) => void;
+  children?: React.ReactNode;
+  fileUploading?: boolean;
 }) {
   const [selectedDb, setSelectedDb] = useState(defaultSelectedDb);
 
@@ -86,7 +93,7 @@ export function EmbedScaffolding({
               onDbChange(null);
             }}
             className={twMerge(
-              "text-xs z-[1000] p-2 border flex items-center border-secondary-highlight-1/5 bg-secondary-highlight-1/80 hover:bg-secondary-highlight-1 text-white  rounded-full cursor-pointer whitespace-nowrap",
+              "text-xs z-[100] p-2 border flex items-center border-secondary-highlight-1/5 bg-secondary-highlight-1/80 hover:bg-secondary-highlight-1 text-white  rounded-full cursor-pointer whitespace-nowrap",
               fileUploading
                 ? "cursor-not-allowed bg-gray-200 text-gray-400 hover:bg-gray-200"
                 : "",

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import {
   useEffect,
   useState,
@@ -8,38 +7,27 @@ import {
   useContext,
 } from "react";
 import { MessageManagerContext } from "@ui-components";
-import { chartNames, roundColumns } from "../../agentUtils";
+import { roundColumns } from "../../agentUtils";
 
-import {
-  Download,
-  ChartBarIcon,
-  Copy,
-  TableIcon,
-  Sparkles,
-  ChevronRightIcon,
-} from "lucide-react";
+import { Download, ChartBarIcon, TableIcon, Sparkles } from "lucide-react";
 import ErrorBoundary from "../../../common/ErrorBoundary";
-import ChartImage from "./ChartImage";
 
-import Editor from "react-simple-code-editor";
-// @ts-ignore
-import { highlight, languages } from "prismjs/components/prism-core";
-
+import "prismjs";
 import "prismjs/components/prism-clike";
 import "prismjs/components/prism-sql";
 import "prismjs/components/prism-python";
 
 import "prismjs/themes/prism.css";
-import { roundNumber } from "@utils/utils";
 import setupBaseUrl from "../../../utils/setupBaseUrl";
 import { Button, Table } from "@ui-components";
 import { ChartContainer } from "../../../observable-charts/ChartContainer";
-import StepResultAnalysis from "./StepResultAnalysis";
+import { AnalyseCSV } from "./AnalyseCSV";
 
-import type { ParsedOutput, Step } from "../analysisManager";
+import type { Analysis } from "../analysisManager";
 import type { AnalysisTreeManager } from "../../analysis-tree-viewer/analysisTreeManager";
 import { KeyboardShortcutIndicator } from "../../../core-ui/KeyboardShortcutIndicator";
 import { KEYMAP, matchesKey } from "../../../../constants/keymap";
+import { EmbedContext } from "@agent";
 
 interface TabItem {
   key: string;
@@ -82,35 +70,18 @@ const AnalysisDrawerHandle = ({ isOpen, onClick }) => (
 );
 
 // tabBarLeftContent: extra content for the tab bar on the left side
-export function StepResultsTable({
-  stepId,
-  keyName,
-  analysisId,
-  nodeName,
-  apiEndpoint,
-  stepData = null,
-  codeStr = null,
-  sql = null,
-  chartImages = null,
-  initialQuestion = null,
-  handleEdit = (...args) => {},
+export function AnalysisOutputsTable({
+  dbName,
+  analysis = null,
   analysisTreeManager = null,
-  token = null,
 }: {
-  stepId: string;
-  keyName: string;
-  analysisId: string;
-  nodeName: string;
-  apiEndpoint: string;
-  stepData?: ParsedOutput | null;
-  codeStr?: string | null;
-  sql?: string | null;
-  chartImages?: any;
-  initialQuestion: string | null;
-  handleEdit?: (...args: any) => void;
+  dbName: string;
+  analysis?: Analysis | null;
+  analysisBusy?: boolean;
+  handleReRun?: (...args: any) => void;
   analysisTreeManager?: AnalysisTreeManager;
-  token?: string | null;
 }) {
+  const { apiEndpoint, token } = useContext(EmbedContext);
   const downloadCsvEndpoint = setupBaseUrl({
     protocol: "http",
     path: "query-data/download_csv",
@@ -118,11 +89,14 @@ export function StepResultsTable({
   });
   const messageManager = useContext(MessageManagerContext);
   const tableChartRef = useRef(null);
-  const [sqlQuery, setSqlQuery] = useState(sql);
-  const [toolCode, setToolCode] = useState(codeStr);
+  const [sqlQuery, setSqlQuery] = useState(analysis?.data?.sql);
   const [csvLoading, setCsvLoading] = useState(false);
   const [isAnalysisVisible, setIsAnalysisVisible] = useState(true);
   const [isChartOptionsExpanded, setIsChartOptionsExpanded] = useState(false);
+
+  const message = useContext(MessageManagerContext);
+  const analysisId = analysis.analysis_id;
+  const parsedOutputs = analysis?.data?.parsedOutput;
 
   async function saveCsv() {
     if (csvLoading) return;
@@ -130,7 +104,7 @@ export function StepResultsTable({
     let csv = "";
     try {
       // tableData: {columns: Array(4), data: Array(1)}
-      const tableData = stepData?.data;
+      const tableData = parsedOutputs?.data;
       if (!tableData) return;
       const { columns, data } = tableData;
 
@@ -146,10 +120,8 @@ export function StepResultsTable({
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            step_id: stepId,
-            output_storage_key: nodeName,
             analysis_id: analysisId,
-            db_name: keyName,
+            db_name: dbName,
           }),
         }).then((r) => r.json());
 
@@ -182,7 +154,7 @@ export function StepResultsTable({
       a.href = url;
       // name with time stamp but without miliseconds
 
-      a.download = `${nodeName}-${new Date().toISOString().split(".")[0]}.csv`;
+      a.download = `${analysisId}-${new Date().toISOString().split(".")[0]}.csv`;
       a.click();
       URL.revokeObjectURL(url);
       // delete a tag
@@ -197,68 +169,40 @@ export function StepResultsTable({
   }
 
   const activeTab = useSyncExternalStore(
-    (l) => analysisTreeManager.subscribeToActiveTabChanges(analysisId, l),
-    () => analysisTreeManager.getActiveTab(analysisId)
+    (l) =>
+      analysisTreeManager.subscribeToActiveTabChanges(analysis.analysis_id, l),
+    () => analysisTreeManager.getActiveTab(analysis.analysis_id)
   );
-
-  const updateCodeAndSql = (
-    updateProp: string | null = null,
-    newVal: string
-  ) => {
-    // update values of the code and the SQL
-    if (updateProp !== "sql" && updateProp !== "code") return;
-    if (!stepId) return;
-    if (!newVal) return;
-
-    if (updateProp === "sql") {
-      setSqlQuery(newVal);
-    }
-    if (updateProp === "code") {
-      setToolCode(newVal);
-    }
-    handleEdit({
-      step_id: stepId,
-      update_prop: updateProp,
-      new_val: newVal,
-    });
-  };
-
-  useEffect(() => {
-    setSqlQuery(sql);
-    setToolCode(codeStr);
-  }, [sql, codeStr]);
 
   const [results, setResults] = useState<TabItem[]>([]);
 
   const resultAnalysis = useMemo(() => {
     return (
-      stepData?.csvString && (
-        <StepResultAnalysis
-          stepId={stepId}
-          keyName={keyName}
-          question={initialQuestion}
-          data_csv={stepData?.csvString}
-          sql={sql}
+      parsedOutputs?.csvString && (
+        <AnalyseCSV
+          analysisId={analysis.analysis_id}
+          dbName={dbName}
+          question={analysis?.data?.initial_question}
+          data_csv={parsedOutputs?.csvString}
+          sql={analysis?.data?.sql}
           apiEndpoint={apiEndpoint}
           token={token}
         />
       )
     );
-  }, [stepData, stepId, keyName, initialQuestion, sql, apiEndpoint]);
+  }, [analysis, dbName, apiEndpoint]);
 
   const chartContainer = useMemo(() => {
     return (
-      stepData && (
+      parsedOutputs && (
         <ChartContainer
-          stepData={stepData}
-          initialQuestion={initialQuestion}
+          stepData={parsedOutputs}
+          initialQuestion={analysis?.data?.initial_question}
           initialOptionsExpanded={isChartOptionsExpanded}
-          onOptionsExpandedChange={setIsChartOptionsExpanded}
-          token={token}
         />
       )
     );
-  }, [stepData, initialQuestion, isChartOptionsExpanded]);
+  }, [analysis, isChartOptionsExpanded]);
 
   const renderContent = (content) => (
     <div className="flex">
@@ -325,7 +269,7 @@ export function StepResultsTable({
 
   useEffect(() => {
     let tabs: TabItem[] = [];
-    const tableData = stepData?.data;
+    const tableData = parsedOutputs?.data;
 
     if (tableData) {
       const roundedData = roundColumns(tableData.data, tableData.columns);
@@ -347,10 +291,8 @@ export function StepResultsTable({
         tabLabel: "Table",
         icon: <TableIcon className="w-4 h-4 mb-0.5 mr-1 inline" />,
       });
-    }
 
-    if (!chartImages || chartImages.length <= 0) {
-      if (stepData) {
+      if (parsedOutputs?.data) {
         tabs.push({
           component: renderContent(
             <ErrorBoundary>{chartContainer}</ErrorBoundary>
@@ -360,42 +302,10 @@ export function StepResultsTable({
           icon: <ChartBarIcon className="w-4 h-4 mb-0.5 mr-1 inline" />,
         });
       }
-    } else {
-      tabs.push({
-        component: (
-          <ErrorBoundary>
-            <ChartImage apiEndpoint={apiEndpoint} images={chartImages} />
-          </ErrorBoundary>
-        ),
-        key: "chart",
-        tabLabel: chartNames[chartImages[0].type] || "Chart",
-      });
-    }
-
-    if (toolCode !== null) {
-      tabs.push({
-        component: (
-          <ErrorBoundary>
-            <>
-              <p>The following code was run:</p>
-              <Editor
-                className="language-python table-code-ctr"
-                value={toolCode}
-                highlight={(code) =>
-                  highlight(code, languages.python, "python")
-                }
-                onValueChange={(newVal) => updateCodeAndSql("code", newVal)}
-              />
-            </>
-          </ErrorBoundary>
-        ),
-        key: "code",
-        tabLabel: "Code",
-      });
     }
 
     setResults(tabs);
-  }, [stepData, chartImages, toolCode, sqlQuery, isAnalysisVisible]);
+  }, [analysis, sqlQuery, isAnalysisVisible]);
 
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
@@ -476,9 +386,8 @@ export function StepResultsTable({
               onClick={async () => {
                 await saveCsv();
               }}
-              title="Download CSV"
               disabled={csvLoading}
-              variant="ghost"
+              variant="secondary"
               className="flex mb-2 items-center px-2.5 py-1.5 hover:text-white text-white rounded-md border border-blue-200/50 
                 bg-blue-500 hover:bg-blue-600/95 dark:bg-blue-900/20 dark:hover:bg-blue-800/30 
                 shadow-sm  transition-all duration-200 

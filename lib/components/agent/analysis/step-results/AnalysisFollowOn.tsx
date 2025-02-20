@@ -1,14 +1,15 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import setupBaseUrl from "../../../utils/setupBaseUrl";
+import { EmbedContext } from "@agent";
 
-const StepFollowOn = ({
+export const AnalysisFollowOn = ({
+  dbName,
   question,
-  keyName,
-  apiEndpoint,
-  token,
-  setCurrentQuestion = () => {},
+  setCurrentQuestion = (followOnQuestion: string) => {},
 }) => {
   const [followOnQuestions, setFollowOnQuestions] = useState([]);
+
+  const { apiEndpoint, token } = useContext(EmbedContext);
 
   async function generateFollowOnQuestions() {
     try {
@@ -21,7 +22,7 @@ const StepFollowOn = ({
       // send data to the server
       const data = {
         user_question: question,
-        db_name: keyName,
+        db_name: dbName,
         token: token,
       };
 
@@ -73,5 +74,3 @@ const StepFollowOn = ({
     </div>
   );
 };
-
-export default StepFollowOn;

@@ -8,7 +8,7 @@ import Papa from "papaparse";
 import { cleanColumnNameForSqlite } from "./sqlite";
 import { read, utils } from "xlsx";
 
-export const getAnalysis = async (
+export const fetchAnalysis = async (
   analysisId: string,
   token: string,
   apiEndpoint: string
@@ -40,7 +40,7 @@ export const getAnalysis = async (
 
 export const createAnalysis = async (
   token: string,
-  keyName: string,
+  dbName: string,
   apiEndpoint: string,
   customId: string,
   bodyData = {}
@@ -60,7 +60,7 @@ export const createAnalysis = async (
     body: JSON.stringify({
       custom_id: customId,
       token: token,
-      db_name: keyName,
+      db_name: dbName,
       ...bodyData,
     }),
   });
@@ -401,7 +401,7 @@ export async function parseExcelFile(
 /**
  * @param {object} params
  * @param {string} params.question - Question to generate query
- * @param {string} params.keyName - API Key name
+ * @param {string} params.dbName - API Key name
  * @param {?Array<{ column_name: string, data_type: string, table_name: string }>} params.metadata - Metadata of the columns
  * @param {string} params.apiEndpoint - API endpoint
  * @param {PreviousContext} params.previousContext - Previous context
@@ -411,7 +411,7 @@ export async function parseExcelFile(
  */
 export const generateQueryForCsv = async ({
   question,
-  keyName,
+  dbName,
   metadata,
   apiEndpoint,
   previousContext = [],
@@ -433,7 +433,7 @@ export const generateQueryForCsv = async ({
       },
       body: JSON.stringify({
         question,
-        db_name: keyName,
+        db_name: dbName,
         db_type: "sqlite",
         metadata,
         previous_context: previousContext,
@@ -459,7 +459,7 @@ export const generateQueryForCsv = async ({
 /**
  * @param {object} params
  * @param {string} params.question - Question to generate query
- * @param {string} params.keyName - API Key name
+ * @param {string} params.dbName - API Key name
  * @param {?Array<{ column_name: string, data_type: string, table_name: string }>} params.metadata - Metadata of the columns
  * @param {string} params.apiEndpoint - API endpoint
  * @param {string} params.previousQuery - Previous query
@@ -470,7 +470,7 @@ export const generateQueryForCsv = async ({
  */
 export const retryQueryForCsv = async ({
   question,
-  keyName,
+  dbName,
   metadata,
   apiEndpoint,
   previousQuery,
@@ -495,7 +495,7 @@ export const retryQueryForCsv = async ({
       },
       body: JSON.stringify({
         question,
-        db_name: keyName,
+        db_name: dbName,
         db_type: "sqlite",
         metadata,
         previous_query: previousQuery,
@@ -661,7 +661,7 @@ export function getStepAnalysisFromLocalStorage(stepId) {
  */
 export async function getQuestionType(
   token: string | null,
-  keyName: string,
+  dbName: string,
   apiEndpoint: string | null,
   question: string
 ): Promise<{
@@ -682,7 +682,7 @@ export async function getQuestionType(
     },
     body: JSON.stringify({
       token,
-      db_name: keyName,
+      db_name: dbName,
       question,
     }),
   });
@@ -703,7 +703,7 @@ export const raf = (fn) => {
   }
 };
 
-export const getApiKeyNames = async (apiEndpoint: string, token: string) => {
+export const getApidbNames = async (apiEndpoint: string, token: string) => {
   const urlToConnect = setupBaseUrl({
     protocol: "http",
     path: "get_db_names",

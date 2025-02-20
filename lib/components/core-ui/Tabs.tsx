@@ -176,6 +176,7 @@ export function Tabs({
               >
                 <div
                   style={{
+                    // @ts-ignore
                     writingMode: showVerticalTabs ? "tb-rl" : "",
                     transform: showVerticalTabs ? "rotate(-180deg)" : "",
                   }}

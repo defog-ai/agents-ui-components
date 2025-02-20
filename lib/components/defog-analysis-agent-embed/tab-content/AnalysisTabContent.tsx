@@ -1,8 +1,9 @@
 import ErrorBoundary from "../../common/ErrorBoundary";
 import { AnalysisTreeViewer } from "../../agent/analysis-tree-viewer/AnalysisTreeViewer";
+import { AnalysisTree } from "lib/components/agent/analysis-tree-viewer/analysisTreeManager";
 
 export function AnalysisTabContent({
-  keyName,
+  dbName,
   treeManager,
   predefinedQuestions,
   searchBarDraggable = true,
@@ -12,12 +13,24 @@ export function AnalysisTabContent({
   sideBarClasses = "h-full",
   searchBarClasses = "",
   defaultSidebarOpen = null,
-  onTreeChange = () => {},
+  onTreeChange = (...args) => {},
+}: {
+  dbName: string;
+  treeManager: any;
+  predefinedQuestions?: string[];
+  searchBarDraggable?: boolean;
+  isTemp?: boolean;
+  forceSqlOnly?: boolean;
+  metadata?: any;
+  sideBarClasses?: string;
+  searchBarClasses?: string;
+  defaultSidebarOpen?: boolean;
+  onTreeChange?: (dbName: string, tree: AnalysisTree) => void;
 }) {
   return (
     <ErrorBoundary>
       <AnalysisTreeViewer
-        keyName={keyName}
+        dbName={dbName}
         metadata={metadata}
         isTemp={isTemp}
         forceSqlOnly={forceSqlOnly}
