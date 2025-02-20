@@ -102,7 +102,7 @@ export function Modal({
   return (
     <div
       className={twMerge(
-        "fixed inset-0 z-[200] flex items-center justify-center p-4",
+        "fixed inset-0 z-[1000] flex items-center justify-center p-4",
         rootClassNames
       )}
       onClick={() => {
@@ -111,11 +111,11 @@ export function Modal({
       }}
     >
       {showBackdrop && (
-        <div className="bg-black opacity-40 absolute inset-0 z-10 w-full h-full left-0 top-0 pointer-events-none" />
+        <div className="bg-black opacity-40 absolute inset-0 w-full h-full left-0 top-0 pointer-events-none" />
       )}
       <div
         className={twMerge(
-          "z-10 agui-item agui-modal bg-gray-100 border border-gray-200 w-full max-w-2xl max-h-full rounded-md relative p-4 m-auto gap-2 flex flex-col shadow-lg",
+          "agui-item agui-modal bg-gray-100 border border-gray-200 w-full max-w-2xl max-h-full rounded-md relative p-4 m-auto gap-2 flex flex-col shadow-lg",
           contentClassNames
         )}
         onClick={(e) => e.stopPropagation()}

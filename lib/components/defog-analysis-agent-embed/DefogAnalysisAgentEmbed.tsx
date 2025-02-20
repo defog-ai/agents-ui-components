@@ -4,41 +4,41 @@ import { useContext, useEffect, useMemo, useState } from "react";
 import { MessageManagerContext, Tabs } from "@ui-components";
 import { EmbedScaffolding } from "./EmbedScaffolding";
 import { twMerge } from "tailwind-merge";
-import { AnalysisTreeManager } from "../agent/analysis-tree-viewer/analysisTreeManager";
+import {
+  AnalysisTree,
+  AnalysisTreeManager,
+} from "../agent/analysis-tree-viewer/analysisTreeManager";
 import { MetadataTabContent } from "./tab-content/MetadataTabContent";
 import { AnalysisTabContent } from "./tab-content/AnalysisTabContent";
 import { PreviewDataTabContent } from "./tab-content/PreviewDataTabContent";
 import { TabNullState } from "./tab-content/TabNullState";
 import { addParsedCsvToSqlite, cleanTableNameForSqlite } from "../utils/sqlite";
-import { AgentConfigContext } from "../context/AgentContext";
+import { EmbedContext } from "../context/EmbedContext";
 import { Setup } from "../context/Setup";
 
 export function EmbedInner({
-  csvFileKeyName = null,
+  csvFileDbName = null,
   uploadedCsvPredefinedQuestions = ["Show me any 5 rows"],
   dbs,
   searchBarDraggable = true,
   searchBarClasses = "",
   limitCsvUploadSize = true,
   maxCsvUploadSize = 10,
-  uploadedCsvIsSqlOnly = true,
   defaultSidebarOpen = true,
   onTreeChange,
-}) {
+}: Partial<EmbedProps>) {
   const messageManager = useContext(MessageManagerContext);
-  const agentConfigContext = useContext(AgentConfigContext);
-
   const { sqliteConn, token, apiEndpoint, hidePreviewTabs } =
-    agentConfigContext.val;
+    useContext(EmbedContext);
 
   const [availableDbs, setAvailableDbs] = useState(dbs);
 
   const [selectedDbName, setSelectedDbName] = useState(
-    dbs.length === 1 ? dbs[0].name : null
+    dbs.length === 1 ? dbs[0].dbName : null
   );
 
   useEffect(() => {
-    // to handle edge case where the network request to getApiKeyNames resolves
+    // to handle edge case where the network request to getDbNames resolves
     // after first render
     // we solved this with a loader on query-data, but still keeping this useEffect here
     // to reflect a prop change
@@ -60,42 +60,40 @@ export function EmbedInner({
 
     // also set selected db if there's only one
     if (dbs.length === 1) {
-      setSelectedDbName(dbs[0].name);
+      setSelectedDbName(dbs[0].dbName);
     }
   }, [dbs]);
 
   const selectedDb = useMemo(() => {
-    return availableDbs.find((d) => d.name === selectedDbName);
-  }, [selectedDbName, availableDbs]);
-
-  const selectedDbKeyName = useMemo(() => {
-    return availableDbs.find((d) => d.name === selectedDbName)?.keyName;
+    return availableDbs.find((d) => d.dbName === selectedDbName);
   }, [selectedDbName, availableDbs]);
 
   const selectedDbMetadata = useMemo(() => {
     return (
-      availableDbs.find((d) => d.name === selectedDbName)?.metadata || null
+      availableDbs.find((d) => d.dbName === selectedDbName)?.metadata || null
     );
   }, [selectedDbName, availableDbs]);
 
   const selectedDbIsSqlOnly = useMemo(() => {
     return (
-      availableDbs.find((d) => d.name === selectedDbName)?.sqlOnly || false
+      availableDbs.find((d) => d.dbName === selectedDbName)?.sqlOnly || false
     );
   }, [selectedDbName, availableDbs]);
 
   const selectedDbIsTemp = useMemo(() => {
-    return availableDbs.find((d) => d.name === selectedDbName)?.isTemp || false;
+    return (
+      availableDbs.find((d) => d.dbName === selectedDbName)?.isTemp || false
+    );
   }, [selectedDbName, availableDbs]);
 
   const selectedDbManager = useMemo(() => {
-    return availableDbs.find((d) => d.name === selectedDbName)
+    return availableDbs.find((d) => d.dbName === selectedDbName)
       ?.analysisTreeManager;
   }, [selectedDbName, availableDbs]);
 
   const selectedDbPredefinedQuestions = useMemo(() => {
     return (
-      availableDbs.find((d) => d.name === selectedDbName)
+      availableDbs.find((d) => d.dbName === selectedDbName)
         ?.predefinedQuestions || []
     );
   }, [selectedDbName, availableDbs]);
@@ -112,7 +110,7 @@ export function EmbedInner({
    * @param {{dataIndex: string, title: string, key: string}[]} param0.columns - The columns of the csv.
    * @param {{[column_name: string]: any}[]} param0.rows - The rows of the csv.
    *
-   * @returns {{columns: {dataIndex: string, title: string, key: string}[], csvFileKeyName: string, metadata: {column_name: string, table_name: string, data_type: string, column_description?: string}[], tableData: {sqlite_table_name: {data: any[], columns: string[]}}, sqliteTableName: string, newDbName: string}}
+   * @returns {{columns: {dataIndex: string, title: string, key: string}[], csvFileDbName: string, metadata: {column_name: string, table_name: string, data_type: string, column_description?: string}[], tableData: {sqlite_table_name: {data: any[], columns: string[]}}, sqliteTableName: string, newDbName: string}}
    */
   const addCsvToSqlite = async ({ file, columns, rows }) => {
     if (!sqliteConn) {
@@ -127,7 +125,7 @@ export function EmbedInner({
 
     let newDbName = file.name.split(".")[0];
     // if this already exists, add a random number to the end
-    if (availableDbs.find((d) => d.name === newDbName)) {
+    if (availableDbs.find((d) => d.dbName === newDbName)) {
       newDbName = newDbName + "_" + Math.floor(Math.random() * 1000);
     }
     const sqliteTableName = cleanTableNameForSqlite("csv_" + newDbName);
@@ -202,9 +200,9 @@ export function EmbedInner({
       // if there's a temp one, replace it
       const tempDb = {
         name: newDbName,
-        keyName: csvFileKeyName,
+        dbName: csvFileDbName,
         isTemp: true,
-        sqlOnly: uploadedCsvIsSqlOnly && true,
+        sqlOnly: true,
         metadata: metadata ? metadata : null,
         data: Object.assign({}, tableData || {}),
         columns: columns,
@@ -317,14 +315,14 @@ export function EmbedInner({
               : ""
           ),
         content:
-          !selectedDbManager || !selectedDbKeyName || !token ? (
+          !selectedDbManager || !selectedDbName || !token ? (
             nullTab
           ) : (
             <AnalysisTabContent
-              key={selectedDbKeyName}
+              key={selectedDbName}
               predefinedQuestions={selectedDbPredefinedQuestions}
               isTemp={selectedDbIsTemp}
-              keyName={selectedDbKeyName}
+              dbName={selectedDbName}
               treeManager={selectedDbManager}
               forceSqlOnly={selectedDbIsSqlOnly}
               metadata={selectedDbMetadata}
@@ -341,14 +339,14 @@ export function EmbedInner({
           nullTab
         ) : (
           <MetadataTabContent
-            key={selectedDbKeyName}
+            key={selectedDbName}
             apiEndpoint={apiEndpoint}
             db={selectedDb}
             token={token}
             onGetMetadata={({ metadata, error }) => {
               setAvailableDbs((prev) => {
                 const newDbs = [...prev];
-                const idx = prev.findIndex((d) => d.name === selectedDbName);
+                const idx = prev.findIndex((d) => d.dbName === selectedDbName);
                 if (idx < 0) return newDbs;
                 newDbs[idx] = Object.assign({}, newDbs[idx]);
 
@@ -379,14 +377,14 @@ export function EmbedInner({
           nullTab
         ) : (
           <PreviewDataTabContent
-            key={selectedDbKeyName}
+            key={selectedDbName}
             apiEndpoint={apiEndpoint}
             db={selectedDb}
             token={token}
             onGetData={({ data }) => {
               setAvailableDbs((prev) => {
                 const newDbs = [...prev];
-                const idx = prev.findIndex((d) => d.name === selectedDbName);
+                const idx = prev.findIndex((d) => d.dbName === selectedDbName);
                 if (idx < 0) return newDbs;
 
                 newDbs[idx] = Object.assign({}, newDbs[idx]);
@@ -420,21 +418,21 @@ export function EmbedInner({
         // set some presets for the temp db
         // set is temp to true in the context
         // and also sqlOnly to true
-        agentConfigContext.update({
-          ...agentConfigContext.val,
-          isTemp: true,
-          sqlOnly: true,
-          keyName: selectedDb.keyName,
-          metadata: selectedDb.metadata,
-        });
+        // analysisContext.update({
+        //   ...analysisContext.val,
+        //   isTemp: true,
+        //   sqlOnly: true,
+        //   dbName: selectedDb.dbName,
+        //   metadata: selectedDb.metadata,
+        // });
       } else {
-        agentConfigContext.update({
-          ...agentConfigContext.val,
-          isTemp: false,
-          sqlOnly: false,
-          keyName: selectedDb.keyName,
-          metadata: selectedDb.metadata,
-        });
+        // analysisContext.update({
+        //   ...analysisContext.val,
+        //   isTemp: false,
+        //   sqlOnly: false,
+        //   dbName: selectedDb.dbName,
+        //   metadata: selectedDb.metadata,
+        // });
       }
     }
   }, [selectedDb]);
@@ -442,20 +440,20 @@ export function EmbedInner({
   return (
     <EmbedScaffolding
       defaultSelectedDb={selectedDbName}
-      availableDbs={availableDbs.map((d) => d.name)}
+      availableDbs={availableDbs.map((d) => d.dbName)}
       onDbChange={(selectedDbName) => setSelectedDbName(selectedDbName)}
       rootClassNames=""
       fileUploading={fileUploading}
     >
       {hidePreviewTabs ? (
-        !selectedDbManager || !selectedDbKeyName || !token ? (
+        !selectedDbManager || !selectedDbName || !token ? (
           nullTab
         ) : (
           <AnalysisTabContent
-            key={selectedDbKeyName}
+            key={selectedDbName}
             predefinedQuestions={selectedDbPredefinedQuestions}
             isTemp={selectedDbIsTemp}
-            keyName={selectedDbKeyName}
+            dbName={selectedDbName}
             treeManager={selectedDbManager}
             forceSqlOnly={selectedDbIsSqlOnly}
             metadata={selectedDbMetadata}
@@ -482,37 +480,116 @@ export function EmbedInner({
   );
 }
 
-/**
- * @typedef {Object} EmbedProps
- * @property {String} token - The hashed password.
- * @property {Object=} user - User email/name. Default is "admin".
- * @property {Boolean=} hideRawAnalysis - Whether to hide the raw analysis of results.
- * @property {Array<string>=} hiddenCharts - The list of charts that *will be hidden*.
- * @property {Boolean=} hideSqlTab - Whether to hide the SQL/Code tab.
- * @property {Boolean=} hidePreviewTabs - Whether to hide the "view data structure" and "preview data" tabs.
- * @property {String} apiEndpoint - The API endpoint to use for the requests. Default is https://demo.defog.ai.
- * @property {Boolean=} devMode -  If the component should be in dev mode.
- * @property {Boolean=} showAnalysisUnderstanding - Poorly named. Whether to show "analysis understanding" aka description of the results created by a model under the table.
- * @property {Boolean=} showCode - Whether to show tool code.
- * @property {Boolean=} allowDashboardAdd - Whether to allow addition to dashboards.
- * @property {Boolean=} disableMessages - Whether to disable messages
- * @property {Array<{name: string, keyName: string, predefinedQuestions?: string[], isTemp?: false, sqlOnly?: false}>=} dbs - The list of databases to show in the dropdown. Each object should have a keyName and predefinedQuestions array.
- * @property {Boolean=true} uploadedCsvIsSqlOnly - Whether all uploaded csvs should be sql only.
- * @property {Array<string>=} uploadedCsvPredefinedQuestions - The predefined questions for the uploaded CSVs
- * @property {Boolean=} searchBarDraggable -  If the main search bad should be draggable.
- * @property {String=} searchBarClasses -  The classes for the search bar.
- * @property {String=} csvFileKeyName -  The key name for the csv file.
- * @property {Boolean=} limitCsvUploadSize -  If the file size should be limited to maxCsvUploadSize.
- * @property {Number=} maxCsvUploadSize -  The max file size allowed, in mbs. Default is 10.
- * @property {Boolean=} defaultSidebarOpen -  If the sidebar should be open by default.
- * @property {(keyName, treeWithoutManagers, fullTree) => void=} onTreeChange - Callback for when the analysis tree changes for a particular key. Will be called on addition or removal of analyses.
- * @property {{[apiKeyName: string]: {}}=} initialTrees - An object of initial trees to populate the UI with.
- *
- */
+interface EmbedProps {
+  /**
+   * The hashed password.
+   */
+  token: string;
+  /**
+   * User email/name. Default is "admin".
+   */
+  user: Object;
+  /**
+   * Whether to hide the raw analysis of results.
+   */
+  hideRawAnalysis: boolean;
+  /**
+   * The list of charts that *will be hidden*.
+   */
+  hiddenCharts: Array<string>;
+  /**
+   * Whether to hide the SQL/Code tab.
+   */
+  hideSqlTab: boolean;
+  /**
+   * Whether to hide the "view data structure" and "preview data" tabs.
+   */
+  hidePreviewTabs: boolean;
+  /**
+   * The API endpoint to use for the requests. Default is https://demo.defog.ai.
+   */
+  apiEndpoint: string;
+  /**
+   *  If the component should be in dev mode.
+   */
+  devMode: boolean;
+  /**
+   * Poorly named. Whether to show "analysis understanding" aka description of the results created by a model under the table.
+   */
+  showAnalysisUnderstanding: boolean;
+  /**
+   * Whether to show tool code.
+   */
+  showCode: boolean;
+  /**
+   * Whether to allow addition to dashboards.
+   */
+  allowDashboardAdd: boolean;
+  /**
+   * Whether to disable messages
+   */
+  disableMessages: boolean;
+  /**
+   * The list of databases to show in the dropdown. Each object should have a dbName and predefinedQuestions array.
+   */
+  dbs: Array<{
+    name: string;
+    dbName: string;
+    predefinedQuestions?: string[];
+    isTemp?: boolean;
+    sqlOnly?: boolean;
+    metadata?: any;
+    data?: any;
+    columns?: any;
+    sqliteTableName?: string;
+    analysisTreeManager?: any;
+    metadataFetchingError?: boolean | string;
+    dataFetchingError?: boolean | string;
+  }>;
+  /**
+   * Whether all uploaded csvs should be sql only.
+   */
+  true: boolean;
+  /**
+   * The predefined questions for the uploaded CSVs
+   */
+  uploadedCsvPredefinedQuestions: Array<string>;
+  /**
+   *  If the main search bad should be draggable.
+   */
+  searchBarDraggable: boolean;
+  /**
+   *  The classes for the search bar.
+   */
+  searchBarClasses: string;
+  /**
+   *  The key name for the csv file.
+   */
+  csvFileDbName: string;
+  /**
+   *  If the file size should be limited to maxCsvUploadSize.
+   */
+  limitCsvUploadSize: boolean;
+  /**
+   *  The max file size allowed, in mbs. Default is 10.
+   */
+  maxCsvUploadSize: number;
+  /**
+   *  If the sidebar should be open by default.
+   */
+  defaultSidebarOpen: boolean;
+  /**
+   * Callback for when the analysis tree changes for a particular key. Will be called on addition or removal of analyses.
+   */
+  onTreeChange: (dbName: string, tree: AnalysisTree) => void;
+  /**
+   * An object of initial trees to populate the UI with.
+   */
+  initialTrees: { [DbName: string]: {} };
+}
 
 /**
  * Embed component, renders the tabbed view with database selection + csv upload for agents.
- * @param {EmbedProps} props - The props of the component
  */
 
 export function DefogAnalysisAgentEmbed({
@@ -523,23 +600,21 @@ export function DefogAnalysisAgentEmbed({
   hiddenCharts = [],
   hideSqlTab = false,
   hidePreviewTabs = false,
-  devMode = false,
   showAnalysisUnderstanding = true,
   showCode = false,
   allowDashboardAdd = true,
   disableMessages = false,
   dbs = [],
-  uploadedCsvIsSqlOnly = true,
   uploadedCsvPredefinedQuestions = ["Show me any 5 rows"],
   searchBarDraggable = true,
   searchBarClasses = "",
-  csvFileKeyName = null,
+  csvFileDbName = null,
   limitCsvUploadSize = true,
   maxCsvUploadSize = 10,
   defaultSidebarOpen = true,
-  onTreeChange = () => {},
+  onTreeChange = (...args) => {},
   initialTrees = null,
-}) {
+}: EmbedProps) {
   // use the simple db list
   // and add some extra props to them
   // including the analysis tree manager which helps us "remember" questions for each db
@@ -551,8 +626,8 @@ export function DefogAnalysisAgentEmbed({
       data: {},
       metadataFetchingError: false,
       analysisTreeManager: AnalysisTreeManager(
-        (initialTrees && initialTrees[d.keyName]) || {},
-        d.keyName + "_" + Math.floor(Math.random() * 1000)
+        (initialTrees && initialTrees[d.dbName]) || {},
+        d.dbName + "_" + Math.floor(Math.random() * 1000)
       ),
       // do this after so that sqlOnly, and isTemp can be overwritten if defined by the user
       ...d,
@@ -579,33 +654,31 @@ export function DefogAnalysisAgentEmbed({
           hideSqlTab={hideSqlTab}
           hidePreviewTabs={hidePreviewTabs}
           apiEndpoint={apiEndpoint}
-          devMode={devMode}
           showAnalysisUnderstanding={showAnalysisUnderstanding}
           showCode={showCode}
           allowDashboardAdd={allowDashboardAdd}
           disableMessages={disableMessages}
         >
           <EmbedInner
-            uploadedCsvIsSqlOnly={uploadedCsvIsSqlOnly}
             dbs={dbsWithManagers}
             uploadedCsvPredefinedQuestions={uploadedCsvPredefinedQuestions}
             searchBarClasses={searchBarClasses}
             searchBarDraggable={searchBarDraggable}
-            // if csvFileKeyName is defined, use that
-            // otherwise use the first db's keyName if available
-            csvFileKeyName={
-              csvFileKeyName || (dbs.length > 0 ? dbs[0].keyName : null)
+            // if csvFileDbName is defined, use that
+            // otherwise use the first db's dbName if available
+            csvFileDbName={
+              csvFileDbName || (dbs.length > 0 ? dbs[0].dbName : null)
             }
             limitCsvUploadSize={limitCsvUploadSize}
             maxCsvUploadSize={maxCsvUploadSize}
             defaultSidebarOpen={defaultSidebarOpen}
-            onTreeChange={(keyName, tree) => {
+            onTreeChange={(dbName, tree) => {
               try {
                 // make a copy of the tree
                 const treeCopyWithoutManagers = JSON.parse(
                   JSON.stringify(tree)
                 );
-                const treeCopy = JSON.parse(JSON.stringify(tree));
+
                 // remove all analysisManagers
                 // we do this because analysisManagers have functions as properties
                 // which can't be stringified (for now that is the major use case as we're storing to localStorage)
@@ -621,7 +694,7 @@ export function DefogAnalysisAgentEmbed({
                   );
                 });
 
-                onTreeChange(keyName, treeCopyWithoutManagers, treeCopy);
+                onTreeChange(dbName, treeCopyWithoutManagers);
               } catch (e) {
                 console.error(e);
               }

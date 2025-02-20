@@ -1,5 +1,5 @@
 "use client";
-import { useContext, useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import setupBaseUrl from "../../../utils/setupBaseUrl";
 import { SpinningLoader } from "@ui-components";
 import {
@@ -12,9 +12,9 @@ import sanitizeHtml from "sanitize-html";
 import { createWebsocketManager } from "../../../utils/websocket-manager";
 import { Sparkles } from "lucide-react";
 
-export default function StepResultAnalysis({
-  stepId,
-  keyName,
+export function AnalyseCSV({
+  dbName,
+  analysisId,
   question,
   data_csv,
   apiEndpoint,
@@ -33,7 +33,7 @@ export default function StepResultAnalysis({
   });
 
   useEffect(() => {
-    let analysis = getStepAnalysisFromLocalStorage(stepId);
+    let analysis = getStepAnalysisFromLocalStorage(analysisId);
     if (analysis) {
       setToolRunAnalysis(analysis);
       return;
@@ -47,7 +47,7 @@ export default function StepResultAnalysis({
         if (message === "Defog data analysis has ended") {
           ws.destroy();
           setToolRunAnalysis((curr) => {
-            addStepAnalysisToLocalStorage(stepId, curr);
+            addStepAnalysisToLocalStorage(analysisId, curr);
             return curr;
           });
         } else {
@@ -74,7 +74,7 @@ export default function StepResultAnalysis({
           question: question,
           data_csv: data_csv,
           sql: sql,
-          db_name: keyName,
+          db_name: dbName,
           token: token,
         });
       },

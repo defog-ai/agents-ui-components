@@ -14,7 +14,7 @@ import { getQuestionType, raf, sentenceCase } from "@utils/utils";
 import { twMerge } from "tailwind-merge";
 import { Sidebar, MessageManagerContext, breakpoints } from "@ui-components";
 import ErrorBoundary from "../../common/ErrorBoundary";
-import { AgentConfigContext } from "../../context/AgentContext";
+import { EmbedContext } from "../../context/EmbedContext";
 import { DraggableInput } from "./DraggableInput";
 import { getMostVisibleAnalysis } from "../agentUtils";
 import setupBaseUrl from "../../utils/setupBaseUrl";
@@ -120,7 +120,7 @@ const createNewAnalysis = async (
   question: string,
   isRoot: boolean,
   rootAnalysisId: string | null,
-  keyName: string,
+  dbName: string,
   directParentId: string | null,
   sqlOnly: boolean,
   forceSqlOnly: boolean,
@@ -132,7 +132,7 @@ const createNewAnalysis = async (
     question,
     analysisId: newId,
     rootAnalysisId: isRoot ? newId : rootAnalysisId,
-    keyName,
+    dbName,
     isRoot,
     directParentId,
     sqlOnly: forceSqlOnly || sqlOnly,
@@ -151,7 +151,7 @@ const createNewAnalysis = async (
 
 const useAnalysisSubmit = (
   analysisTreeManager: AnalysisTreeManager,
-  keyName: string,
+  dbName: string,
   forceSqlOnly: boolean,
   sqlOnly: boolean,
   isTemp: boolean,
@@ -182,7 +182,7 @@ const useAnalysisSubmit = (
         if (Object.keys(allAnalyses).length > 0) {
           const res = await getQuestionType(
             token,
-            keyName,
+            dbName,
             apiEndpoint,
             question
           );
@@ -198,7 +198,7 @@ const useAnalysisSubmit = (
               question,
               isRoot,
               rootAnalysisId,
-              keyName,
+              dbName,
               directParentId,
               sqlOnly,
               forceSqlOnly,
@@ -223,7 +223,7 @@ const useAnalysisSubmit = (
           question,
           isRoot,
           rootAnalysisId,
-          keyName,
+          dbName,
           directParentId,
           sqlOnly,
           forceSqlOnly,
@@ -249,7 +249,7 @@ const useAnalysisSubmit = (
       forceSqlOnly,
       sqlOnly,
       isTemp,
-      keyName,
+      dbName,
       analysisDomRefs,
     ]
   );
@@ -265,34 +265,30 @@ const handleChartQuestion = async (
 ) => {
   const mostVisibleElement = getMostVisibleAnalysis(Object.keys(allAnalyses));
   const visibleAnalysis = allAnalyses[mostVisibleElement.id];
-
-  if (!visibleAnalysis?.analysisManager?.getAnalysisData?.()) {
+  const analysisOutputs =
+    visibleAnalysis?.analysisManager?.getAnalysis()?.data?.parsedOutput;
+  if (!analysisOutputs) {
     messageManager.error("No visible analysis found to edit chart");
     return;
   }
 
-  const activeStep = visibleAnalysis.analysisManager.getActiveStep();
-  if (!activeStep || !activeStep?.parsedOutputs) return;
-
-  const stepOutputs = Object.values(activeStep.parsedOutputs);
-  if (stepOutputs.length === 0) {
-    messageManager.error("No outputs found in the visible analysis");
-    return;
-  }
-
-  const stepOutput = stepOutputs[0];
-  if (!stepOutput?.chartManager?.config) {
+  if (!analysisOutputs?.chartManager?.config) {
     messageManager.error("No chart found in the visible analysis");
     return;
   }
 
   try {
-    await stepOutput.chartManager.editChart(token, question, chartEditUrl, {
-      onError: (e) => {
-        messageManager.error(e.message);
-        console.error(e);
-      },
-    });
+    await analysisOutputs.chartManager.editChart(
+      token,
+      question,
+      chartEditUrl,
+      {
+        onError: (e) => {
+          messageManager.error(e.message);
+          console.error(e);
+        },
+      }
+    );
     analysisTreeManager.setActiveTab(mostVisibleElement.id, "chart");
   } catch (e: any) {
     messageManager.error(e.message);
@@ -344,6 +340,7 @@ const useInitialScroll = (
 };
 
 const AnalysisTreeContent = ({
+  dbName,
   activeRootAnalysisId,
   nestedTree,
   metadata,
@@ -353,6 +350,7 @@ const AnalysisTreeContent = ({
   setLoading,
   setCurrentQuestion,
 }: {
+  dbName: string;
   activeRootAnalysisId: string;
   nestedTree: NestedAnalysisTree;
   metadata: any;
@@ -381,6 +379,7 @@ const AnalysisTreeContent = ({
     <>
       <AnalysisAgent
         key={activeRootAnalysisId}
+        dbName={dbName}
         setGlobalLoading={setLoading}
         metadata={metadata}
         rootClassNames={getAnalysisClasses(activeRootAnalysisId)}
@@ -393,8 +392,8 @@ const AnalysisTreeContent = ({
         hasExternalSearchBar={true}
         sqlOnly={nestedTree[activeRootAnalysisId].sqlOnly}
         isTemp={nestedTree[activeRootAnalysisId].isTemp}
-        keyName={nestedTree[activeRootAnalysisId].keyName}
-        previousContext={[]}
+        // this is a root analysis, so can just be empty array returned
+        previousContextCreator={() => []}
         onManagerCreated={(
           analysisManager: AnalysisManager,
           id: string,
@@ -408,7 +407,6 @@ const AnalysisTreeContent = ({
           });
         }}
         onManagerDestroyed={(id: string) => {
-          console.log(activeRootAnalysisId, id);
           analysisTreeManager.removeAnalysis({
             analysisId: activeRootAnalysisId,
             isRoot: nestedTree[activeRootAnalysisId].isRoot,
@@ -431,6 +429,7 @@ const AnalysisTreeContent = ({
       {nestedTree[activeRootAnalysisId].flatOrderedChildren.map(
         (child: AnalysisTreeNode) => (
           <AnalysisAgent
+            dbName={dbName}
             key={child.analysisId}
             metadata={metadata}
             rootClassNames={getAnalysisClasses(child.analysisId)}
@@ -442,16 +441,20 @@ const AnalysisTreeContent = ({
             hasExternalSearchBar={true}
             sqlOnly={child.sqlOnly}
             isTemp={child.isTemp}
-            keyName={child.keyName}
-            previousContext={child.allParents
-              .reverse()
-              .map((parent: any) => ({
-                analysis_id: parent.analysisId,
-                user_question: parent.user_question,
-                steps:
-                  parent?.analysisManager?.analysisData.gen_steps?.steps || [],
-              }))
-              .filter((d: any) => d.steps.length > 0)}
+            previousContextCreator={() => {
+              return child.allParents
+                .reverse()
+                .map((parent: AnalysisTreeNode) => {
+                  const analysis = parent?.analysisManager?.analysis;
+                  if (!analysis || !analysis?.data) return null;
+
+                  return {
+                    question: analysis?.data?.inputs?.question,
+                    sql: analysis?.data?.sql,
+                  };
+                })
+                .filter((d: any) => d);
+            }}
             onManagerCreated={(
               analysisManager: AnalysisManager,
               id: string,
@@ -465,8 +468,6 @@ const AnalysisTreeContent = ({
               });
             }}
             onManagerDestroyed={(id: string) => {
-              console.log(activeRootAnalysisId, id);
-
               analysisTreeManager.removeAnalysis({
                 analysisId: child.analysisId,
                 isRoot: child.isRoot,
@@ -532,7 +533,7 @@ const QuickstartSection = ({
  */
 export function AnalysisTreeViewer({
   analysisTreeManager,
-  keyName,
+  dbName,
   isTemp = false,
   forceSqlOnly = false,
   metadata = null,
@@ -542,11 +543,10 @@ export function AnalysisTreeViewer({
   searchBarClasses = "",
   searchBarDraggable = true,
   defaultSidebarOpen = false,
-  showToggle = true,
   onTreeChange = () => {},
 }: {
   analysisTreeManager: AnalysisTreeManager;
-  keyName: string;
+  dbName: string;
   isTemp?: boolean;
   forceSqlOnly?: boolean;
   metadata?: any;
@@ -556,11 +556,10 @@ export function AnalysisTreeViewer({
   searchBarClasses?: string;
   searchBarDraggable?: boolean;
   defaultSidebarOpen?: boolean;
-  showToggle?: boolean;
-  onTreeChange?: (keyName: string, analysisTree: AnalysisTree) => void;
+  onTreeChange?: (dbName: string, analysisTree: AnalysisTree) => void;
 }) {
   const messageManager = useContext(MessageManagerContext);
-  const { token, apiEndpoint } = useContext(AgentConfigContext).val;
+  const { token, apiEndpoint } = useContext(EmbedContext);
 
   // Refs
   const searchRef = useRef<HTMLTextAreaElement>(null);
@@ -634,7 +633,7 @@ export function AnalysisTreeViewer({
 
   const handleSubmit = useAnalysisSubmit(
     analysisTreeManager,
-    keyName,
+    dbName,
     forceSqlOnly,
     sqlOnly,
     isTemp,
@@ -655,8 +654,8 @@ export function AnalysisTreeViewer({
 
   useEffect(() => {
     if (isTemp) return;
-    onTreeChange(keyName, analysisTree);
-  }, [onTreeChange, keyName, analysisTree, isTemp]);
+    onTreeChange(dbName, analysisTree);
+  }, [onTreeChange, dbName, analysisTree, isTemp]);
 
   useAnalysisRefs(allAnalyses, analysisDomRefs);
 
@@ -822,6 +821,7 @@ export function AnalysisTreeViewer({
               activeRootAnalysisId &&
               nestedTree[activeRootAnalysisId] && (
                 <AnalysisTreeContent
+                  dbName={dbName}
                   activeRootAnalysisId={activeRootAnalysisId}
                   nestedTree={nestedTree}
                   metadata={metadata}

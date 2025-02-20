@@ -18,7 +18,7 @@ interface Analysis {
   timestamp: number;
   isRoot: boolean;
   isTemp: boolean;
-  keyName: string;
+  dbName: string;
   rootAnalysisId: string;
   sqlOnly: boolean;
   user_question: string;
@@ -83,7 +83,7 @@ export interface AnalysisTreeManager {
   getActiveRootAnalysisId: () => string | null;
   submit: (params: {
     question: string;
-    keyName: string;
+    dbName: string;
     analysisId: string;
     rootAnalysisId: string | null;
     isRoot?: boolean;
@@ -430,7 +430,7 @@ export function AnalysisTreeManager(
 
   async function submit({
     question,
-    keyName,
+    dbName,
     analysisId,
     rootAnalysisId,
     isRoot = false,
@@ -440,7 +440,7 @@ export function AnalysisTreeManager(
     activeTab,
   }: {
     question: string;
-    keyName: string;
+    dbName: string;
     analysisId: string;
     rootAnalysisId: string;
     isRoot?: boolean;
@@ -456,7 +456,7 @@ export function AnalysisTreeManager(
       rootAnalysisId: isRoot ? analysisId : rootAnalysisId,
       user_question: question,
       isTemp,
-      keyName,
+      dbName,
       sqlOnly,
       timestamp: Date.now(),
       activeTab,
@@ -537,13 +537,13 @@ export function AnalysisTreeManager(
  * Validates an analysis object. This is to prevent UI crashes in case of illegal/abnormal analyses being stored in localStorage/passed down for some reason.
  *
  * An analysis should:
- * - Be an object with the following keys: analysisId, createAnalysisRequestBody, directParentId, isRoot, isTemp, keyName, rootAnalysisId, sqlOnly, userQuestion
+ * - Be an object with the following keys: analysisId, createAnalysisRequestBody, directParentId, isRoot, isTemp, dbName, rootAnalysisId, sqlOnly, userQuestion
  * - analysisId should be a string
  * - createAnalysisRequestBody should be an object
  * - directParentId should be a string or null
  * - isRoot should be a boolean
  * - isTemp should be a boolean
- * - keyName should be a string
+ * - dbName should be a string
  * - rootAnalysisId should be a string
  * - sqlOnly should be a boolean
  * - userQuestion should be a string
@@ -568,7 +568,7 @@ export function validateAnalysis(analysis: Analysis): boolean {
 
   if (typeof analysis.isRoot !== "boolean") return false;
   if (typeof analysis.isTemp !== "boolean") return false;
-  if (typeof analysis.keyName !== "string") return false;
+  if (typeof analysis.dbName !== "string") return false;
   if (typeof analysis.rootAnalysisId !== "string") return false;
   if (typeof analysis.sqlOnly !== "boolean") return false;
   if (typeof analysis.user_question !== "string") return false;

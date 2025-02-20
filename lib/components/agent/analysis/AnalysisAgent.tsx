@@ -1,8 +1,6 @@
 import React, {
   useEffect,
   useRef,
-  useState,
-  Fragment,
   useContext,
   useCallback,
   useMemo,
@@ -11,38 +9,28 @@ import React, {
 import AgentLoader from "../../common/AgentLoader";
 import { sentenceCase } from "@utils/utils";
 import Clarify from "./Clarify";
-import type { AnalysisData, AnalysisManager } from "./analysisManager";
-import {
-  breakpoints,
-  Input,
-  MessageManagerContext,
-  useWindowSize,
-} from "@ui-components";
+import type { AnalysisManager } from "./analysisManager";
+import { Input, MessageManagerContext } from "@ui-components";
 import { twMerge } from "tailwind-merge";
-import { AgentConfigContext } from "../../context/AgentContext";
+import { EmbedContext } from "../../context/EmbedContext";
 import ErrorBoundary from "../../common/ErrorBoundary";
 import { CircleStop } from "lucide-react";
-import { StepResults } from "./step-results/StepResults";
 import createAnalysisManager from "./analysisManager";
 import type {
   AnalysisTreeManager,
   CreateAnalysisRequestBody,
 } from "../analysis-tree-viewer/analysisTreeManager";
+import { AnalysisResults } from "./step-results/AnalysisResults";
 
 interface Props {
-  /**
-   * Analysis ID
-   */
   analysisId: string;
+
+  dbName: string;
 
   /**
    * Root of this analysis. Is the same as analysisId if this is the root analysis.
    */
   rootAnalysisId: string;
-  /**
-   * Api key name
-   */
-  keyName: string;
   /**
    * Whether this is a temp analysis. Used in CSVs.
    */
@@ -101,7 +89,7 @@ interface Props {
   /**
    * Details about parent questions that the user has asked so far before this analysis. Has to be an array of Objects.
    */
-  previousContext?: PreviousContext;
+  previousContextCreator?: () => PreviousContext;
   /**
    * Global loading. Useful if you are handling multiple analysis..
    */
@@ -150,7 +138,7 @@ interface Props {
  * Props:
  * - analysisId: string - Unique identifier for the analysis.
  * - rootAnalysisId: string - Root identifier for a series of analyses.
- * - keyName: string - Key name used for identification.
+ * - dbName: string - Key name used for identification.
  * - isTemp: boolean - Flag to indicate if the analysis is temporary.
  * - metadata: ColumnMetadata[] | null - Metadata associated with the analysis.
  * - sqlOnly: boolean - Indicates if the analysis is SQL-only.
@@ -162,7 +150,7 @@ interface Props {
  * - searchBarPlaceholder: string | null - Placeholder text for the search bar.
  * - extraTools: Array - Additional tools available for the analysis.
  * - plannerQuestionSuffix: string | null - Suffix for planner questions.
- * - previousContext: PreviousContext - Context from previous analyses.
+ * - previousContextCreator: PreviousContext - Context from previous analyses.
  * - setGlobalLoading: Function - Callback to set global loading state.
  * - onManagerCreated: Function - Callback when AnalysisManager is created.
  * - onManagerDestroyed: Function - Callback when AnalysisManager is destroyed.
@@ -174,7 +162,7 @@ interface Props {
 export const AnalysisAgent = ({
   analysisId,
   rootAnalysisId,
-  keyName,
+  dbName,
   isTemp = false,
   metadata = null,
   sqlOnly = false,
@@ -185,7 +173,7 @@ export const AnalysisAgent = ({
   searchBarPlaceholder = null,
   extraTools = [],
   plannerQuestionSuffix = null,
-  previousContext = [],
+  previousContextCreator = () => [],
   setGlobalLoading = (...args) => {},
   onManagerCreated = (...args) => {},
   onManagerDestroyed = (...args) => {},
@@ -197,19 +185,8 @@ export const AnalysisAgent = ({
   setCurrentQuestion = (...args) => {},
   onHeightChange = (...args) => {},
 }: Props) => {
-  const agentConfigContext = useContext(AgentConfigContext);
-  const { devMode, apiEndpoint, token } = agentConfigContext.val;
-
-  const [reRunningSteps, setRerunningSteps] = useState([]);
-
-  // we use this to prevent multiple rerender/updates when a user edits the step inputs
-  // we flush these pending updates to the actual analysis data when the user submits the step for re running
-  const pendingStepUpdates = useRef<{ [stepId: string]: any }>({});
-
-  const windowSize = useWindowSize();
-  const collapsed = useMemo(() => {
-    return windowSize[0] < breakpoints.lg;
-  }, [windowSize[0] < breakpoints.lg]);
+  const { apiEndpoint, token, sqliteConn, updateConfig, analysisDataCache } =
+    useContext(EmbedContext);
 
   // in case this isn't called from analysis tree viewer (which has a central singular search bar)
   // we will have an independent search bar for each analysis as well
@@ -241,48 +218,6 @@ export const AnalysisAgent = ({
 
   const messageManager = useContext(MessageManagerContext);
 
-  function onMainSocketMessage(
-    response: DefaultResponse,
-    newAnalysisData: AnalysisData
-  ) {
-    try {
-      if (response.error_message) {
-        // messageManager.error(response.error_message);
-        throw new Error(response.error_message);
-      }
-
-      if (response && response?.done) {
-        setGlobalLoading(false);
-      }
-
-      if (newAnalysisData) {
-        // if current stage is clarify
-        // but clarification steps length is 0
-        // submit again
-        if (
-          newAnalysisData.currentStage === "clarify" &&
-          !newAnalysisData?.clarify?.clarification_questions?.length
-        ) {
-          handleSubmit(
-            newAnalysisData.user_question,
-            { clarification_questions: [] },
-            null
-          );
-        }
-      }
-    } catch (e) {
-      messageManager.error(e);
-      console.log(e);
-
-      setGlobalLoading(false);
-
-      // if the current stage is null, just destroy this analysis
-      if (!newAnalysisData.currentStage) {
-        // analysisManager.destroy();
-      }
-    }
-  }
-
   const analysisManager = useMemo<AnalysisManager>(() => {
     return (
       initialConfig.analysisManager ||
@@ -291,24 +226,19 @@ export const AnalysisAgent = ({
         rootAnalysisId,
         apiEndpoint,
         token,
-        keyName,
-        devMode,
+        dbName,
         metadata,
         isTemp,
         sqlOnly,
         extraTools,
         plannerQuestionSuffix,
-        previousContext,
-        onNewData: onMainSocketMessage,
+        previousContextCreator,
         onAbortError: (e) => {
           messageManager.error(e);
           setGlobalLoading(false);
         },
         onManagerDestroyed: () => onManagerDestroyed(analysisId, ctr.current),
         createAnalysisRequestBody,
-        activeTab: initialConfig.analysisTreeManager
-          ? initialConfig.analysisTreeManager.getActiveTab(analysisId)
-          : "table",
       })
     );
   }, [analysisId, messageManager]);
@@ -318,55 +248,50 @@ export const AnalysisAgent = ({
     analysisManager.getAnalysisBusy
   );
 
-  const analysisData = useSyncExternalStore(
+  const analysis = useSyncExternalStore(
     analysisManager.subscribeToDataChanges,
-    analysisManager.getAnalysisData
+    analysisManager.getAnalysis
   );
 
   useEffect(() => {
+    if (
+      initiateAutoSubmit &&
+      analysis?.data?.initial_question &&
+      !analysis?.data?.clarification_questions
+    ) {
+      handleSubmit(analysis?.data?.initial_question, {}, null);
+    }
+
     // update context
-    agentConfigContext.update({
-      ...agentConfigContext.val,
+    updateConfig({
       analysisDataCache: {
-        ...agentConfigContext.val.analysisDataCache,
-        [analysisId]: analysisData,
+        ...analysisDataCache,
+        [analysisId]: analysis,
       },
     });
 
     // if stage is done, also set busy to false
-    if (analysisData && analysisData.stageDone) {
-      setGlobalLoading(false);
-    }
-  }, [analysisData]);
+    setGlobalLoading(false);
+  }, [analysis]);
 
   useEffect(() => {
     if (analysisManager.didInit) return;
 
     async function initialiseAnalysis() {
       try {
-        const { analysisData = {} } = await analysisManager.init({
+        await analysisManager.init({
           question:
             createAnalysisRequestBody?.initialisation_details?.user_question,
-          existingData:
-            agentConfigContext?.val?.analysisDataCache?.[analysisId] || null,
-          sqliteConn: agentConfigContext?.val?.sqliteConn,
+          existingData: analysisDataCache?.[analysisId] || null,
+          sqliteConn,
         });
 
-        if (
-          initiateAutoSubmit &&
-          !analysisManager?.analysisData?.currentStage
-        ) {
-          handleSubmit(analysisManager?.analysisData?.user_question, {}, null);
-        }
-
         if (analysisManager.wasNewAnalysisCreated) {
-          // also have to set agentConfigContext in this case
-          agentConfigContext.update({
-            ...agentConfigContext.val,
-            analyses: [...agentConfigContext.val.analyses, analysisId],
+          // also have to set analysisContext in this case
+          updateConfig({
             analysisDataCache: {
-              ...agentConfigContext.val.analysisDataCache,
-              [analysisId]: analysisData,
+              ...analysisDataCache,
+              [analysisId]: analysis,
             },
           });
         }
@@ -430,25 +355,13 @@ export const AnalysisAgent = ({
       }
 
       try {
-        // first flush any updates
-        analysisManager.updateStepData(pendingStepUpdates.current);
-        pendingStepUpdates.current = {};
-
-        await analysisManager.reRun(
-          stepId,
-          agentConfigContext?.val?.sqliteConn
-        );
+        await analysisManager.reRun(stepId, sqliteConn);
       } catch (e: any) {
         messageManager.error(e);
         console.log(e.stack);
       }
     },
-    [
-      analysisId,
-      analysisManager,
-      agentConfigContext?.val?.sqliteConn,
-      messageManager,
-    ]
+    [analysisId, analysisManager, sqliteConn, messageManager]
   );
 
   const titleDiv = (
@@ -456,16 +369,16 @@ export const AnalysisAgent = ({
       <div className="flex flex-row flex-wrap items-center gap-4 p-6 transition-all duration-200 lg:items-start">
         <h1 className="font-bold text-xl text-gray-700 dark:text-gray-200 basis-0 grow min-w-[50%]">
           {sentenceCase(
-            analysisData?.user_question ||
+            analysis?.user_question ||
               createAnalysisRequestBody.user_question ||
               ""
           )}
         </h1>
         {!analysisBusy &&
-        analysisData &&
+        analysis &&
         !(
-          !analysisData ||
-          (!analysisData.currentStage && hasExternalSearchBar)
+          !analysis ||
+          (!analysis?.data?.clarification_questions && hasExternalSearchBar)
         ) ? null : (
           <div
             className="cursor-pointer basis-0 text-nowrap whitespace-nowrap group"
@@ -483,10 +396,23 @@ export const AnalysisAgent = ({
     </>
   );
 
-  const activeStep = useMemo(() => {
-    if (!analysisData || !analysisData.gen_steps) return null;
-    return analysisManager.getActiveStep();
-  }, [analysisData, analysisManager]);
+  console.log("analysis busy", analysisBusy);
+
+  if (analysisBusy) {
+    return (
+      <div className="flex flex-col w-full h-full bg-gray-50 dark:bg-gray-900 rounded-3xl">
+        {titleDiv}
+        <AgentLoader
+          message={
+            !analysis?.data?.clarification_questions
+              ? "Thinking about whether I need to clarify the question..."
+              : "Fetching data..."
+          }
+          classNames={"m-0 h-40 bg-transparent"}
+        />
+      </div>
+    );
+  }
 
   return (
     <ErrorBoundary>
@@ -494,134 +420,74 @@ export const AnalysisAgent = ({
         ref={ctr}
         id={analysisId}
         className={twMerge(
-          "analysis-agent-container h-max min-h-20 relative grow outline-none focus:outline-none rounded-3xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800",
+          "analysis-agent-container h-max min-h-20 relative grow outline-none focus:outline-none rounded-3xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 overflow-hidden",
           independentAnalysisSearchRef
             ? "bg-gray-50 dark:bg-gray-900"
             : "max-w-full",
           rootClassNames
         )}
       >
-        {/* if we don't have anlaysis data, and current stage is null, and we DO have a search ref */}
-        {/* means tis is being externally initialised using analysis viewer and initateautosubmit is true */}
-        {!analysisData ||
-        (!analysisData.currentStage && hasExternalSearchBar) ? (
-          <div className="w-full transition-all bg-gray-50 dark:bg-gray-900 rounded-3xl">
-            {titleDiv}
-            <AgentLoader
-              message={
-                sqlOnly
-                  ? "Fetching data..."
-                  : !analysisData
-                    ? "Setting up..."
-                    : "Thinking..."
-              }
-              classNames={"m-0 h-full bg-transparent"}
-            />
-          </div>
-        ) : (
-          <>
-            {!hasExternalSearchBar && !analysisData.currentStage ? (
-              <div className="relative w-10/12 mx-auto top-6">
-                <Input
-                  ref={independentAnalysisSearchRef}
-                  onPressEnter={(ev: any) => {
-                    handleSubmit(ev.target.value);
-                    ev.target.value = "";
-                  }}
-                  placeholder={searchBarPlaceholder || "Ask a question"}
-                  disabled={disabled || analysisBusy}
-                  inputClassNames="w-full mx-auto shadow-custom hover:border-blue-500 focus:border-blue-500"
-                />
-              </div>
-            ) : (
-              <></>
-            )}
-            {analysisData.currentStage === "clarify" ? (
-              <div className="w-full transition-all bg-gray-50 dark:bg-gray-900 rounded-3xl">
+        <>
+          {/* if we don't have external search bar (like in analysistreeviewer), show a search bar of it's own here */}
+          {!hasExternalSearchBar && !analysis?.data?.clarification_questions ? (
+            <div className="relative w-10/12 mx-auto top-6">
+              <Input
+                ref={independentAnalysisSearchRef}
+                onPressEnter={(ev: any) => {
+                  handleSubmit(ev.target.value);
+                  ev.target.value = "";
+                }}
+                placeholder={searchBarPlaceholder || "Ask a question"}
+                disabled={disabled || analysisBusy}
+                inputClassNames="w-full mx-auto shadow-custom hover:border-blue-500 focus:border-blue-500"
+              />
+            </div>
+          ) : (
+            <></>
+          )}
+
+          {/* if we have clarifications, but no output */}
+          {analysis?.data?.clarification_questions &&
+          !analysis?.data?.output ? (
+            <div className="w-full transition-all bg-gray-50 dark:bg-gray-900 rounded-3xl">
+              {titleDiv}
+              <Clarify
+                questions={analysis?.data?.clarification_questions || []}
+                handleSubmit={(stageInput: Object, submitStage: string) => {
+                  handleSubmit(
+                    analysis?.user_question,
+                    stageInput,
+                    submitStage
+                  );
+                }}
+                globalLoading={analysisBusy}
+              />
+            </div>
+          ) : (
+            <></>
+          )}
+
+          {/* if we have outputs */}
+          {analysis?.data?.output && analysis?.data?.parsedOutput && (
+            <div className="flex flex-col-reverse w-full h-full analysis-content lg:flex-row">
+              <div className="relative flex flex-col min-w-0 analysis-results grow dark:border-gray-600">
                 {titleDiv}
-                <Clarify
-                  data={analysisData.clarify}
-                  handleSubmit={(stageInput: Object, submitStage: string) => {
-                    handleSubmit(
-                      analysisData?.user_question,
-                      stageInput,
-                      submitStage
-                    );
-                  }}
-                  globalLoading={analysisBusy}
-                  stageDone={
-                    analysisData.currentStage === "clarify"
-                      ? !analysisBusy
-                      : true
-                  }
-                  isCurrentStage={analysisData.currentStage === "clarify"}
-                />
+                <ErrorBoundary>
+                  {analysis?.data?.parsedOutput && (
+                    <AnalysisResults
+                      dbName={dbName}
+                      analysis={analysis}
+                      analysisBusy={analysisBusy}
+                      handleReRun={(...args: any[]) => {}}
+                      analysisTreeManager={initialConfig?.analysisTreeManager}
+                    />
+                  )}
+                </ErrorBoundary>
               </div>
-            ) : (
-              <></>
-            )}
-
-            {analysisData.currentStage === "gen_steps" ? (
-              <div className="flex flex-col-reverse w-full h-full analysis-content lg:flex-row">
-                <div className="relative flex flex-col min-w-0 analysis-results grow dark:border-gray-600">
-                  {titleDiv}
-                  <ErrorBoundary>
-                    {analysisData?.gen_steps?.steps.length ? (
-                      <>
-                        <div className="w-full px-6 grow rounded-3xl bg-gray-50 dark:bg-gray-900">
-                          {activeStep && (
-                            // if this is sqlonly, we will wait for tool run data to be updated before showing anything
-                            // because in the normal case, the tool run data can be fetched from the servers
-                            // but in sql only case, we only have a local copy
-                            <StepResults
-                              analysisId={analysisId}
-                              analysisData={analysisData}
-                              step={activeStep}
-                              apiEndpoint={apiEndpoint}
-                              handleReRun={handleReRun}
-                              reRunningSteps={reRunningSteps}
-                              keyName={keyName}
-                              token={token}
-                              updateStepData={(stepId, updates) => {
-                                if (!analysisManager) return;
-                                if (analysisBusy) return;
-
-                                pendingStepUpdates.current = {
-                                  ...pendingStepUpdates.current,
-                                  [stepId]: Object.assign(
-                                    {},
-                                    pendingStepUpdates.current[stepId],
-                                    updates
-                                  ),
-                                };
-                              }}
-                              analysisBusy={analysisBusy}
-                              setCurrentQuestion={setCurrentQuestion}
-                              analysisTreeManager={
-                                initialConfig.analysisTreeManager
-                              }
-                            ></StepResults>
-                          )}
-                        </div>
-                      </>
-                    ) : (
-                      analysisBusy && (
-                        <div className="flex items-center justify-center w-full h-full bg-gray-50 dark:bg-gray-900 rounded-3xl">
-                          <AgentLoader
-                            message={"Fetching data..."}
-                            classNames={"m-0 h-40 bg-transparent"}
-                          />
-                        </div>
-                      )
-                    )}
-                  </ErrorBoundary>
-                </div>
-              </div>
-            ) : (
-              <></>
-            )}
-          </>
-        )}
+            </div>
+          )}
+        </>
+        {/* )} */}
       </div>
     </ErrorBoundary>
   );

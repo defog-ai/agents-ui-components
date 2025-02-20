@@ -2,7 +2,7 @@ import {
   createAnalysis,
   generateQueryForCsv,
   retryQueryForCsv,
-  getAnalysis,
+  fetchAnalysis,
   escapeStringForCsv,
   parseData,
 } from "@utils/utils";
@@ -13,14 +13,7 @@ import {
   createChartManager,
 } from "../../observable-charts/ChartManagerContext";
 
-// the name of the prop where the data is stored for each stage
-const propNames: Record<string, string> = {
-  clarify: "clarification_questions",
-  gen_approaches: "approaches",
-  gen_steps: "steps",
-};
-
-const agentRequestTypes: string[] = ["clarification_questions", "output"];
+type Stage = "clarify" | "generate_analysis";
 
 /**
  * Raw outputs of a step.
@@ -74,6 +67,7 @@ export interface Inputs {
 export interface AnalysisData {
   db_name: string;
   error: string;
+  instructions_used?: string;
   initial_question?: string;
   tool_name?: string;
   inputs?: Inputs;
@@ -92,8 +86,6 @@ export interface Analysis {
   analysis_id: string;
   timestamp: string;
   db_name: string;
-  currentStage: string;
-  nextStage: string;
   user_question?: string;
   follow_up_analyses?: string[] | null;
   parent_analyses?: string[] | null;
@@ -106,12 +98,12 @@ export interface Analysis {
 export interface AnalysisManager {
   init: (params: {
     question: string;
-    existingData?: AnalysisData | null;
+    existingData?: Analysis | null;
     sqliteConn?: any;
-  }) => Promise<{ analysisData?: AnalysisData }>;
+  }) => Promise<void>;
+  analysis: Analysis | null;
   wasNewAnalysisCreated: boolean;
-  analysisData: AnalysisData;
-  getAnalysisData: () => AnalysisData | null;
+  getAnalysis: () => Analysis | null;
   subscribeToDataChanges: (callback: () => void) => () => void;
   getAnalysisBusy: () => boolean;
   subscribeToAnalysisBusyChanges: (
@@ -123,7 +115,6 @@ export interface AnalysisManager {
   destroy: () => void;
   setOnNewDataCallback: (callback: (data: AnalysisData) => void) => void;
   didInit: boolean;
-  reRunningSteps: string[];
 }
 
 export interface AnalysisManagerConfig {
@@ -131,8 +122,7 @@ export interface AnalysisManagerConfig {
   rootAnalysisId?: string;
   apiEndpoint: string;
   token: string | null;
-  keyName: string;
-  devMode: boolean;
+  dbName: string;
   metadata: ColumnMetadata[] | null;
   isTemp: boolean;
   sqlOnly?: boolean;
@@ -144,7 +134,7 @@ export interface AnalysisManagerConfig {
     output_metadata: any;
   }>;
   plannerQuestionSuffix?: string | null;
-  previousContext?: PreviousContext;
+  previousContextCreator?: () => PreviousContext;
   onNewData?: (...args: any[]) => void;
   onManagerDestroyed?: (...args: any[]) => void;
   onAbortError?: (...args: any[]) => void;
@@ -156,14 +146,13 @@ function createAnalysisManager({
   rootAnalysisId,
   apiEndpoint,
   token,
-  keyName,
-  devMode,
+  dbName,
   metadata,
   isTemp,
   sqlOnly = false,
   extraTools = [],
   plannerQuestionSuffix = "",
-  previousContext = [],
+  previousContextCreator = () => [],
   onNewData = (...args: any[]) => {},
   onManagerDestroyed = (...args: any[]) => {},
   onAbortError = (...args: any[]) => {},
@@ -197,8 +186,8 @@ function createAnalysisManager({
     apiEndpoint: apiEndpoint,
   });
 
-  function getAnalysisData(): AnalysisData | null {
-    return analysis ? analysis?.data : null;
+  function getAnalysis(): Analysis | null {
+    return analysis || null;
   }
 
   function getAnalysisBusy(): boolean {
@@ -216,16 +205,11 @@ function createAnalysisManager({
     onManagerDestroyed();
   }
 
-  function setAnalysisData(newData: AnalysisData | null): void {
-    if (!newData) return;
-
-    const newAnalysis = { ...analysis, data: newData };
-
-    newAnalysis.data["currentStage"] = getCurrentStage();
-    newAnalysis.data["nextStage"] = getNextStage();
+  function updateAnalysis(newAnalysis: Analysis | null): void {
+    if (!newAnalysis) return;
 
     // reparse outputs
-    if (newAnalysis.data.output) {
+    if (newAnalysis?.data?.output) {
       newAnalysis.data.parsedOutput = parseOutput(newAnalysis.data.output!);
     }
 
@@ -247,7 +231,7 @@ function createAnalysisManager({
     question: string;
     existingData?: Analysis | null;
     sqliteConn?: any;
-  }): Promise<Analysis | null> {
+  }): Promise<void> {
     didInit = true;
 
     // console.log("Analysis Manager init");
@@ -274,10 +258,8 @@ function createAnalysisManager({
       fetchedAnalysis = {
         analysis_id: analysisId,
         timestamp: new Date().toISOString(),
-        db_name: keyName,
+        db_name: dbName,
         user_question: question,
-        currentStage: "gen_steps",
-        nextStage: null,
         is_root_analysis:
           createAnalysisRequestBody.initialisation_details.is_root_analysis,
         root_analysis_id:
@@ -286,12 +268,12 @@ function createAnalysisManager({
           createAnalysisRequestBody.initialisation_details.direct_parent_id,
       };
     } else {
-      const res = await getAnalysis(analysisId, token, apiEndpoint);
+      const res = await fetchAnalysis(analysisId, token, apiEndpoint);
       if (!res) {
         // create a new analysis
         fetchedAnalysis = await createAnalysis(
           token,
-          keyName,
+          dbName,
           apiEndpoint,
           analysisId,
           createAnalysisRequestBody
@@ -299,36 +281,19 @@ function createAnalysisManager({
 
         newAnalysisCreated = true;
       } else {
-        fetchedAnalysis = res.analysis_data;
+        fetchedAnalysis = res;
       }
 
       wasNewAnalysisCreated = newAnalysisCreated;
     }
-    analysis = fetchedAnalysis;
 
     // update the analysis data
-    setAnalysisData(fetchedAnalysis.data);
-
-    return fetchedAnalysis;
+    updateAnalysis(fetchedAnalysis);
   }
 
-  function getCurrentStage(): string | undefined {
-    const lastExistingStage = Object.keys(analysis.data || {})
-      .filter((d) => agentRequestTypes.includes(d))
-      .sort(
-        (a, b) => agentRequestTypes.indexOf(a) - agentRequestTypes.indexOf(b)
-      )
-      .pop();
-
-    return lastExistingStage;
-  }
-
-  function getNextStage(): string {
-    const currentStage = getCurrentStage();
-    const nextStageIndex =
-      (currentStage ? agentRequestTypes.indexOf(currentStage) : -1) + 1;
-
-    return agentRequestTypes[nextStageIndex];
+  function getNextStage(): Stage {
+    if (!analysis?.data?.clarification_questions) return "clarify";
+    else return "generate_analysis";
   }
 
   async function submit(
@@ -347,20 +312,9 @@ function createAnalysisManager({
 
       if (nextStage === "clarify") {
         endpoint = clarifyEndpoint;
-      } else if (nextStage === "gen_steps") {
+      } else if (nextStage === "generate_analysis") {
         endpoint = generateAnalysisEndpoint;
       }
-
-      if (!analysisData) return;
-
-      // set empty prop as next stage so that current stage changes
-      setAnalysisData({
-        ...analysisData,
-        [nextStage!]: {
-          success: true,
-          [propNames[nextStage!]]: [],
-        },
-      });
 
       const body = {
         ...stageInput,
@@ -370,110 +324,55 @@ function createAnalysisManager({
         sql_only: sqlOnly,
         token: token,
         temp: isTemp,
-        db_name: keyName,
+        db_name: dbName,
         db_creds: null,
-        dev: devMode,
-        previous_context: previousContext,
+        previous_context: previousContextCreator(),
         root_analysis_id: rootAnalysisId,
         extra_tools: extraTools,
         planner_question_suffix: plannerQuestionSuffix,
       };
 
       console.groupCollapsed("Analysis Manager submitting");
-      console.log("Analysis data:", analysisData);
+      // console.log("Analysis data:", analysisData);
       console.log("Request body", body);
 
       if (!endpoint) {
         throw new Error("Endpoint not found");
       }
 
-      let res;
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        signal: AbortSignal.timeout(60000),
+        body: JSON.stringify(body),
+      });
 
-      try {
-        res = await fetch(endpoint, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          signal: AbortSignal.timeout(60000),
-          body: JSON.stringify(body),
-        }).then((d) => d.json());
-      } catch {
-        // if the fetch fails, manually construct a res so that we can handle
-        // whatever the new analysis data will be
-        res = {
-          error_message: "Request timed out. Please try again.",
-        };
+      if (!res.ok) {
+        throw new Error("Failed to submit.");
       }
 
-      console.log(res);
+      const newAnalysis = await res.json();
+
+      console.log(newAnalysis);
       console.groupEnd();
 
-      if (!res || !res.success) {
-        res = {
-          error_message: (res && res.error_message) || "Could not fetch data",
-        };
-      }
+      updateAnalysis(newAnalysis);
 
-      mergeNewDataToAnalysis(query, res, nextStage!);
+      // if this was a clarify request, and the clarifier just returns empty array
+      // in the clarification_questions, submit the next stage
+      if (
+        newAnalysis?.data?.clarification_questions &&
+        newAnalysis?.data?.clarification_questions.length === 0
+      ) {
+        submit(query, { clarification_questions: [] });
+      }
     } catch (e) {
-      setAnalysisBusy(false);
       console.log(e);
       onAbortError(e);
-    }
-  }
-
-  function mergeNewDataToAnalysis(
-    query: string,
-    response: any,
-    requestType: string
-  ): boolean {
-    let newAnalysisData = { ...analysisData };
-    if (!newAnalysisData) return true;
-
-    newAnalysisData["user_question"] = query;
-    let prop: string;
-
-    try {
-      // if there was an error, throw it
-      // the catch block handles what to do with the anlaysis data in case of an error
-      // and sends it back to the front end
-      if (response.error_message) {
-        throw new Error(response.error_message);
-      }
-
-      prop = propNames[requestType];
-
-      const nextStage =
-        agentRequestTypes[agentRequestTypes.indexOf(requestType) + 1];
-
-      if (nextStage) {
-        // if any of the stages including and after nextStage exists
-        // remove all data from those stages (to mimic what happens on the backend)
-        let idx = agentRequestTypes.indexOf(nextStage) + 1;
-        if (idx < agentRequestTypes.length) {
-          while (idx < agentRequestTypes.length) {
-            delete newAnalysisData[agentRequestTypes[idx]];
-            idx++;
-          }
-        }
-      }
-
-      if (response && response.success && response[prop]) {
-        newAnalysisData = { ...newAnalysisData, [requestType]: response };
-      }
-    } catch (e) {
-      console.log(e);
-      response = { error_message: e };
-
-      // if we have an error, remove the current stage data
-      delete newAnalysisData[newAnalysisData.currentStage];
     } finally {
       setAnalysisBusy(false);
-      setAnalysisData(newAnalysisData);
-      if (_onNewData && typeof _onNewData === "function") {
-        _onNewData(response, newAnalysisData);
-      }
     }
   }
 
@@ -510,9 +409,9 @@ function createAnalysisManager({
           column_description: d.column_description || "",
           table_name: d.table_name,
         })),
-      keyName: keyName,
+      dbName: dbName,
       apiEndpoint: apiEndpoint,
-      previousContext: previousContext,
+      previousContext: previousContextCreator(),
       token,
     });
 
@@ -546,7 +445,7 @@ function createAnalysisManager({
             column_description: d.column_description || "",
             table_name: d.table_name,
           })),
-        keyName: keyName,
+        dbName: dbName,
         apiEndpoint: apiEndpoint,
         previousQuery: res.sql,
         error: previousError,
@@ -583,7 +482,6 @@ function createAnalysisManager({
       inputs: {
         question: question,
         global_dict: {
-          dev: devMode,
           temp: isTemp,
         },
       },
@@ -601,7 +499,6 @@ function createAnalysisManager({
       model_generated_inputs: {
         question: question,
         global_dict: {
-          dev: devMode,
           temp: isTemp,
         },
       },
@@ -628,7 +525,7 @@ function createAnalysisManager({
     delete tempAnalysisData.gen_steps;
     delete tempAnalysisData.clarify;
 
-    setAnalysisData(tempAnalysisData);
+    updateAnalysis(tempAnalysisData);
 
     // we can only have one step in this
     // if the question has changed, we will generate a completely new step
@@ -649,7 +546,7 @@ function createAnalysisManager({
         token
       );
       newAnalysisData.gen_steps.steps = [newStep];
-      setAnalysisData(newAnalysisData);
+      updateAnalysis(newAnalysisData);
     } else {
       if (!sql) {
         throw new Error("No SQL generated.");
@@ -665,7 +562,7 @@ function createAnalysisManager({
       newStep.sql = sql;
 
       newAnalysisData.gen_steps.steps = [newStep];
-      setAnalysisData(newAnalysisData);
+      updateAnalysis(newAnalysisData);
     }
   }
 
@@ -692,7 +589,7 @@ function createAnalysisManager({
 
       const body = {
         token: token,
-        db_name: keyName,
+        db_name: dbName,
         analysis_id: analysisId,
         step_id: stepId,
         edited_step: editedStep,
@@ -716,7 +613,7 @@ function createAnalysisManager({
 
       const data = await res.json();
 
-      setAnalysisData(data);
+      updateAnalysis(data);
     } catch (e) {
       throw new Error(e instanceof Error ? e.message : "Unknown error");
     } finally {
@@ -766,7 +663,10 @@ function createAnalysisManager({
     get didInit() {
       return didInit;
     },
-    getAnalysisData,
+    get analysis() {
+      return analysis;
+    },
+    getAnalysis,
     subscribeToDataChanges,
     getAnalysisBusy,
     subscribeToAnalysisBusyChanges,
