@@ -353,21 +353,12 @@ function createAnalysisManager({
         throw new Error("Failed to submit.");
       }
 
-      const newAnalysis = await res.json();
+      const newAnalysis: Analysis = await res.json();
 
       console.log(newAnalysis);
       console.groupEnd();
 
       updateAnalysis(newAnalysis);
-
-      // if this was a clarify request, and the clarifier just returns empty array
-      // in the clarification_questions, submit the next stage
-      if (
-        newAnalysis?.data?.clarification_questions &&
-        newAnalysis?.data?.clarification_questions.length === 0
-      ) {
-        submit(query, { clarification_questions: [] });
-      }
     } catch (e) {
       console.log(e);
       onAbortError(e);

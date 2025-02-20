@@ -27,12 +27,14 @@ export function AnalysisResults({
   analysis,
   analysisBusy = false,
   handleReRun = (...args: any[]) => {},
+  submitFollowOn = (followOnQuestion: string) => {},
   analysisTreeManager = null,
 }: {
   dbName: string;
   analysis: Analysis;
   analysisBusy?: boolean;
   handleReRun: (...args: any[]) => void;
+  submitFollowOn: (...args: any[]) => void;
   analysisTreeManager: AnalysisTreeManager;
 }) {
   const { hideSqlTab } = useContext(EmbedContext);
@@ -164,6 +166,7 @@ export function AnalysisResults({
             <AnalysisFollowOn
               dbName={dbName}
               question={analysisData?.inputs?.question}
+              submitFollowOn={submitFollowOn}
             />
           </div>
         ),

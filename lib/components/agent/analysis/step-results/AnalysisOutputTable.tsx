@@ -30,7 +30,7 @@ import { KEYMAP, matchesKey } from "../../../../constants/keymap";
 import { EmbedContext } from "@agent";
 
 interface TabItem {
-  key: string;
+  key: "table" | "chart";
   tabLabel: string;
   icon?: React.ReactNode;
   component: React.ReactNode;
