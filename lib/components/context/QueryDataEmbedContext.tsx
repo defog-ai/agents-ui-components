@@ -1,31 +1,27 @@
 import { createContext } from "react";
-import { Analysis } from "../agent/analysis/analysisManager";
+import { Analysis } from "../query-data/analysis/analysisManager";
 
-export interface EmbedConfig {
+export interface QueryDataEmbedConfig {
   apiEndpoint: string | null;
   token: string | null;
-  sqliteConn: any;
   hiddenCharts: string[];
   hideSqlTab: boolean;
   hidePreviewTabs: boolean;
   hideRawAnalysis: boolean;
-  showAnalysisUnderstanding: boolean;
   analysisDataCache: Record<string, Analysis>;
-  updateConfig: (config: Partial<EmbedConfig>) => void;
+  updateConfig: (config: Partial<QueryDataEmbedConfig>) => void;
 }
 
 /**
  * Default agent configuration.
  */
-export const defaultEmbedConfig: EmbedConfig = {
+export const defaultQueryDataEmbedConfig: QueryDataEmbedConfig = {
   apiEndpoint: "https://demo.defog.ai",
-  sqliteConn: null,
   hiddenCharts: [],
   hideSqlTab: false,
   hidePreviewTabs: false,
   token: null,
   hideRawAnalysis: true,
-  showAnalysisUnderstanding: true,
   analysisDataCache: {},
   updateConfig: () => {},
 };
@@ -33,11 +29,11 @@ export const defaultEmbedConfig: EmbedConfig = {
 /**
  * Create analysis configuration.
  */
-export function createEmbedConfig(
-  partialConfig: Partial<EmbedConfig> = {}
-): EmbedConfig {
+export function createQueryDataEmbedConfig(
+  partialConfig: Partial<QueryDataEmbedConfig> = {}
+): QueryDataEmbedConfig {
   // only set defined keys
-  const newConfig = Object.assign({}, defaultEmbedConfig);
+  const newConfig = Object.assign({}, defaultQueryDataEmbedConfig);
 
   Object.keys(partialConfig).forEach((key) => {
     if (partialConfig[key] !== undefined) {
@@ -51,6 +47,6 @@ export function createEmbedConfig(
 // defining this so explicitly here only to allow vscode's intellisense to work
 // we can also just do createContext()
 // but defining this here lets jsdoc + intellisense play together nicely
-export const EmbedContext = createContext<EmbedConfig>(
-  Object.assign({}, defaultEmbedConfig)
+export const QueryDataEmbedContext = createContext<QueryDataEmbedConfig>(
+  Object.assign({}, defaultQueryDataEmbedConfig)
 );

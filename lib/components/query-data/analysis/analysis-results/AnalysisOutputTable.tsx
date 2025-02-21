@@ -27,7 +27,7 @@ import type { Analysis } from "../analysisManager";
 import type { AnalysisTreeManager } from "../../analysis-tree-viewer/analysisTreeManager";
 import { KeyboardShortcutIndicator } from "../../../core-ui/KeyboardShortcutIndicator";
 import { KEYMAP, matchesKey } from "../../../../constants/keymap";
-import { EmbedContext } from "@agent";
+import { QueryDataEmbedContext } from "@agent";
 
 interface TabItem {
   key: "table" | "chart";
@@ -81,7 +81,7 @@ export function AnalysisOutputsTable({
   handleReRun?: (...args: any) => void;
   analysisTreeManager?: AnalysisTreeManager;
 }) {
-  const { apiEndpoint, token } = useContext(EmbedContext);
+  const { apiEndpoint, token } = useContext(QueryDataEmbedContext);
   const downloadCsvEndpoint = setupBaseUrl({
     protocol: "http",
     path: "query-data/download_csv",

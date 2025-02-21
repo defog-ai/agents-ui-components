@@ -6,7 +6,7 @@ import AgentLoader from "../../../common/AgentLoader";
 import ErrorBoundary from "../../../common/ErrorBoundary";
 import { Tabs } from "../../../core-ui/Tabs";
 
-import { EmbedContext } from "@agent";
+import { QueryDataEmbedContext } from "@agent";
 import { Button, SkeletalLoader, SpinningLoader } from "@ui-components";
 import SQLFeedback from "./SQLFeedback";
 import { AnalysisFollowOn } from "./AnalysisFollowOn";
@@ -30,7 +30,7 @@ export function AnalysisResults({
   submitFollowOn: (...args: any[]) => void;
   analysisTreeManager: AnalysisTreeManager;
 }) {
-  const { hideSqlTab } = useContext(EmbedContext);
+  const { hideSqlTab } = useContext(QueryDataEmbedContext);
   const analysisData = analysis?.data;
   const analysisId = analysis?.analysis_id;
 
@@ -195,17 +195,19 @@ export function AnalysisResults({
         <div className="tool-run-loading">
           <AgentLoader message={"Running analysis..."} />
         </div>
-      ) : analysisData?.error ? (
-        <AnalysisError error_message={analysisData?.error}></AnalysisError>
-      ) : hideSqlTab ? (
-        <div>{tabs.filter((d) => d.name === "Analysis")?.[0]?.content}</div>
       ) : (
-        <Tabs
-          disableSingleSelect={true}
-          defaultSelected="Analysis"
-          // @ts-ignore
-          tabs={tabs}
-        />
+        <>
+          {hideSqlTab ? (
+            <div>{tabs.filter((d) => d.name === "Analysis")?.[0]?.content}</div>
+          ) : (
+            <Tabs
+              disableSingleSelect={true}
+              defaultSelected="Analysis"
+              // @ts-ignore
+              tabs={tabs}
+            />
+          )}
+        </>
       )}
     </div>
   );

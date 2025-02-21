@@ -1,5 +1,5 @@
 import { AnalysisTreeViewer } from "../../lib/agent";
-import { AnalysisTreeManager } from "../../lib/components/agent/analysis-tree-viewer/analysisTreeManager";
+import { AnalysisTreeManager } from "../../lib/components/query-data/analysis-tree-viewer/analysisTreeManager";
 import "../../lib/styles/index.scss";
 
 import { Setup } from "../../lib/components/context/Setup";

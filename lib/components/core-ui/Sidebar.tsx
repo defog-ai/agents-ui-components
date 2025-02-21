@@ -14,6 +14,7 @@ interface SidebarProps {
   iconSize?: number;
   location?: string;
   open?: boolean;
+  beforeTitle?: React.ReactNode;
   disableClose?: boolean;
   onChange?: (isOpen: boolean) => void;
 }
@@ -34,6 +35,7 @@ export function Sidebar({
   location = "left",
   open = null,
   disableClose = false,
+  beforeTitle = null,
   onChange = (...args) => {},
 }: SidebarProps) {
   const [sidebarOpen, setSidebarOpen] = useState(disableClose ? true : open);
@@ -84,6 +86,7 @@ export function Sidebar({
           className={twMerge("w-80 block", contentClassNames)}
           ref={contentRef}
         >
+          {beforeTitle || <></>}
           {title ? <h2 className="mb-3 font-sans">{title}</h2> : <></>}
           {children}
         </div>

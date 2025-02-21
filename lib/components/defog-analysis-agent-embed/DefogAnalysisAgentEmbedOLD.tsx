@@ -7,13 +7,13 @@ import { twMerge } from "tailwind-merge";
 import {
   AnalysisTree,
   AnalysisTreeManager,
-} from "../agent/analysis-tree-viewer/analysisTreeManager";
+} from "../query-data/analysis-tree-viewer/analysisTreeManager";
 import { MetadataTabContent } from "./tab-content/MetadataTabContent";
 import { AnalysisTabContent } from "./tab-content/AnalysisTabContent";
 import { PreviewDataTabContent } from "./tab-content/PreviewDataTabContent";
 import { TabNullState } from "./tab-content/TabNullState";
 import { addParsedCsvToSqlite, cleanTableNameForSqlite } from "../utils/sqlite";
-import { EmbedContext } from "../context/EmbedContext";
+import { QueryDataEmbedContext } from "../context/QueryDataEmbedContext";
 import { Setup } from "../context/Setup";
 
 export function EmbedInner({
@@ -28,8 +28,9 @@ export function EmbedInner({
   onTreeChange,
 }: Partial<EmbedProps>) {
   const messageManager = useContext(MessageManagerContext);
-  const { sqliteConn, token, apiEndpoint, hidePreviewTabs } =
-    useContext(EmbedContext);
+  const { sqliteConn, token, apiEndpoint, hidePreviewTabs } = useContext(
+    QueryDataEmbedContext
+  );
 
   const [availableDbs, setAvailableDbs] = useState(dbs);
 

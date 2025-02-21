@@ -1,13 +1,5 @@
-import {
-  createAnalysis,
-  generateQueryForCsv,
-  retryQueryForCsv,
-  fetchAnalysis,
-  escapeStringForCsv,
-  parseData,
-} from "@utils/utils";
-import { runQueryOnDb } from "../../utils/sqlite";
-import setupBaseUrl from "../..//utils/setupBaseUrl";
+import { createAnalysis, fetchAnalysis, parseData } from "@utils/utils";
+import setupBaseUrl from "../../utils/setupBaseUrl";
 import {
   ChartManager,
   createChartManager,
@@ -99,7 +91,6 @@ export interface AnalysisManager {
   init: (params: {
     question: string;
     existingData?: Analysis | null;
-    sqliteConn?: any;
   }) => Promise<void>;
   analysis: Analysis | null;
   wasNewAnalysisCreated: boolean;
@@ -226,11 +217,9 @@ function createAnalysisManager({
   async function init({
     question,
     existingData = null,
-    sqliteConn,
   }: {
     question: string;
     existingData?: Analysis | null;
-    sqliteConn?: any;
   }): Promise<void> {
     didInit = true;
 
@@ -242,31 +231,6 @@ function createAnalysisManager({
     if (existingData) {
       fetchedAnalysis = existingData;
       newAnalysisCreated = false;
-    }
-
-    // if this is sql only, and is temp, then we don't want to fetch the analysis data from the backend
-    // we will send a request to api.defog.ai/query_csv route
-    // and get back the sql query to run on the sqlite database
-    // run the sql on the sqlite database
-    // then create analysis data object with the required format
-    // or if it's an error, then tool_run_details = {error_message: error}
-    else if (sqlOnly && isTemp) {
-      const step = await generateStepForCsv(question, sqliteConn, token);
-
-      console.log(step);
-
-      fetchedAnalysis = {
-        analysis_id: analysisId,
-        timestamp: new Date().toISOString(),
-        db_name: dbName,
-        user_question: question,
-        is_root_analysis:
-          createAnalysisRequestBody.initialisation_details.is_root_analysis,
-        root_analysis_id:
-          createAnalysisRequestBody.initialisation_details.root_analysis_id,
-        direct_parent_id:
-          createAnalysisRequestBody.initialisation_details.direct_parent_id,
-      };
     } else {
       const res = await fetchAnalysis(analysisId, token, apiEndpoint);
       if (!res) {
@@ -364,196 +328,6 @@ function createAnalysisManager({
       onAbortError(e);
     } finally {
       setAnalysisBusy(false);
-    }
-  }
-
-  function runQueryOnCsvAndGetOutput(query: string, sqliteConn: any) {
-    // run query on sqlite
-    const { columns, rows, error } = runQueryOnDb({
-      conn: sqliteConn,
-      query: query,
-    });
-
-    // convert rows to csv
-    const csvStr =
-      columns.join(",") +
-      "\n" +
-      rows
-        .map((d) => d.map((cell) => `"${escapeStringForCsv(cell)}"`).join(","))
-        .join("\n");
-
-    return { columns, rows, csvStr, error };
-  }
-
-  async function generateStepForCsv(
-    question: string,
-    sqliteConn: any,
-    token: string | null
-  ): Promise<Step> {
-    const res = await generateQueryForCsv({
-      question: question,
-      metadata:
-        metadata &&
-        metadata.map((d) => ({
-          column_name: d.column_name || "",
-          data_type: d.data_type || "",
-          column_description: d.column_description || "",
-          table_name: d.table_name,
-        })),
-      dbName: dbName,
-      apiEndpoint: apiEndpoint,
-      previousContext: previousContextCreator(),
-      token,
-    });
-
-    const stepId = crypto.randomUUID();
-
-    let answerCsv: string;
-    let answerSql: string;
-
-    if (!res.sql) {
-      throw new Error("No SQL generated.");
-    }
-    const { csvStr, error } = runQueryOnCsvAndGetOutput(res.sql, sqliteConn);
-
-    if (error) {
-      console.error("There was an error running this query");
-      console.error(res.sql);
-      console.error(error);
-    }
-
-    const previousError = error;
-
-    if (error) {
-      console.info("Retrying the query");
-      const retryRes = await retryQueryForCsv({
-        question: question,
-        metadata:
-          metadata &&
-          metadata.map((d) => ({
-            column_name: d.column_name || "",
-            data_type: d.data_type || "",
-            column_description: d.column_description || "",
-            table_name: d.table_name,
-          })),
-        dbName: dbName,
-        apiEndpoint: apiEndpoint,
-        previousQuery: res.sql,
-        error: previousError,
-        token,
-      });
-
-      if (retryRes.error_message || !retryRes.success) {
-        throw new Error(retryRes.error_message || "Something went wrong.");
-      }
-
-      if (!retryRes.sql) {
-        throw new Error("No SQL generated.");
-      }
-
-      const { csvStr, error } = runQueryOnCsvAndGetOutput(
-        retryRes.sql,
-        sqliteConn
-      );
-
-      if (error) {
-        throw new Error(error);
-      }
-
-      answerCsv = csvStr;
-      answerSql = retryRes.sql;
-    } else {
-      answerCsv = csvStr;
-      answerSql = res.sql;
-    }
-
-    const step: Step = {
-      description: question,
-      tool_name: "data_fetcher_and_aggregator",
-      inputs: {
-        question: question,
-        global_dict: {
-          temp: isTemp,
-        },
-      },
-      outputs_storage_keys: ["answer"],
-      id: stepId,
-      error_message: null,
-      input_metadata: {
-        question: {
-          name: "question",
-          type: "str",
-          default: null,
-          description: question,
-        },
-      },
-      model_generated_inputs: {
-        question: question,
-        global_dict: {
-          temp: isTemp,
-        },
-      },
-      sql: answerSql,
-      outputs: {
-        answer: { data: answerCsv },
-      },
-      code_str: "",
-      instructions_used: "",
-      reference_queries: [],
-      parsedOutputs: {},
-    };
-
-    return step;
-  }
-
-  async function reRunCsv(sqliteConn: any): Promise<void> {
-    if (!analysisData) return;
-    const newAnalysisData = { ...analysisData };
-    if (!newAnalysisData || !newAnalysisData.gen_steps?.steps) return;
-
-    // empty the steps that we show a loader on the frontend
-    const tempAnalysisData = { ...analysisData };
-    delete tempAnalysisData.gen_steps;
-    delete tempAnalysisData.clarify;
-
-    updateAnalysis(tempAnalysisData);
-
-    // we can only have one step in this
-    // if the question has changed, we will generate a completely new step
-    // if the sql has changed, we will just run that sql and update the step accordingly
-    const currentStep = newAnalysisData.gen_steps.steps[0];
-    const currentQuestion = currentStep.inputs.question;
-    const sql = currentStep.sql;
-
-    const originalQuestion = currentStep.model_generated_inputs.question;
-
-    console.log(currentQuestion, originalQuestion);
-
-    if (currentQuestion !== originalQuestion) {
-      // generate a new step
-      const newStep = await generateStepForCsv(
-        currentQuestion,
-        sqliteConn,
-        token
-      );
-      newAnalysisData.gen_steps.steps = [newStep];
-      updateAnalysis(newAnalysisData);
-    } else {
-      if (!sql) {
-        throw new Error("No SQL generated.");
-      }
-
-      // re run the sql and update the step
-      const { csvStr } = runQueryOnCsvAndGetOutput(sql, sqliteConn);
-
-      const newStep = { ...currentStep };
-      newStep.outputs = {
-        answer: { data: csvStr },
-      };
-      newStep.sql = sql;
-
-      newAnalysisData.gen_steps.steps = [newStep];
-      updateAnalysis(newAnalysisData);
     }
   }
 

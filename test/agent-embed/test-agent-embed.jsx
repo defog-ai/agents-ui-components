@@ -1,10 +1,11 @@
 import React, { StrictMode, useEffect, useMemo, useState } from "react";
 import ReactDOM from "react-dom/client";
 import "../../lib/styles/index.scss";
-import { DefogAnalysisAgentEmbed } from "../../lib/agent";
+import { QueryDataEmbed } from "@agent";
+import { SpinningLoader } from "@ui-components";
 
 function QueryDataPage() {
-  const [apiDbNames, setApiDbNames] = useState(["Default DB"]);
+  const [apiDbNames, setApiDbNames] = useState(null);
   const [darkMode, setDarkMode] = useState(false);
 
   const getApiDbNames = async (token) => {
@@ -53,11 +54,12 @@ function QueryDataPage() {
   }, []);
 
   const dbList = useMemo(() => {
-    return apiDbNames.map((name) => ({
-      name: name,
-      dbName: name,
-      predefinedQuestions: ["show me any 5 rows"],
-    }));
+    return !apiDbNames
+      ? null
+      : apiDbNames.map((name) => ({
+          dbName: name,
+          predefinedQuestions: ["show me any 5 rows"],
+        }));
   }, [apiDbNames]);
 
   return (
@@ -75,38 +77,43 @@ function QueryDataPage() {
         <div
           className={`h-screen ${darkMode ? "dark bg-gray-900" : "bg-white"}`}
         >
-          <DefogAnalysisAgentEmbed
-            hiddenCharts={["boxplot", "histogram"]}
-            token={import.meta.env.VITE_TOKEN}
-            searchBarDraggable={false}
-            hidePreviewTabs={false}
-            apiEndpoint={import.meta.env.VITE_API_ENDPOINT}
-            // these are the ones that will be shown for new csvs uploaded
-            uploadedCsvPredefinedQuestions={[
-              "Show me any 5 rows from the dataset",
-            ]}
-            showAnalysisUnderstanding={true}
-            dbs={dbList}
-            disableMessages={false}
-            initialTrees={initialTrees}
-            onTreeChange={(dbName, tree) => {
-              try {
-                // save in local storage in an object called analysisTrees
-                let trees = localStorage.getItem("analysisTrees");
-                if (!trees) {
-                  trees = {};
-                  localStorage.setItem("analysisTrees", "{}");
-                } else {
-                  trees = JSON.parse(trees);
-                }
+          {dbList ? (
+            <QueryDataEmbed
+              initialDbList={dbList}
+              hiddenCharts={["boxplot", "histogram"]}
+              token={import.meta.env.VITE_TOKEN}
+              searchBarDraggable={false}
+              hidePreviewTabs={false}
+              apiEndpoint={import.meta.env.VITE_API_ENDPOINT}
+              // these are the ones that will be shown for new csvs uploaded
+              uploadedCsvPredefinedQuestions={[
+                "Show me any 5 rows from the dataset",
+              ]}
+              showAnalysisUnderstanding={true}
+              dbs={dbList}
+              disableMessages={false}
+              initialTrees={initialTrees}
+              onTreeChange={(dbName, tree) => {
+                try {
+                  // save in local storage in an object called analysisTrees
+                  let trees = localStorage.getItem("analysisTrees");
+                  if (!trees) {
+                    trees = {};
+                    localStorage.setItem("analysisTrees", "{}");
+                  } else {
+                    trees = JSON.parse(trees);
+                  }
 
-                trees[dbName] = tree;
-                localStorage.setItem("analysisTrees", JSON.stringify(trees));
-              } catch (e) {
-                console.error(e);
-              }
-            }}
-          />
+                  trees[dbName] = tree;
+                  localStorage.setItem("analysisTrees", JSON.stringify(trees));
+                } catch (e) {
+                  console.error(e);
+                }
+              }}
+            />
+          ) : (
+            <SpinningLoader />
+          )}
         </div>
       </div>
     </StrictMode>

@@ -14,7 +14,7 @@ import { getQuestionType, raf, sentenceCase } from "@utils/utils";
 import { twMerge } from "tailwind-merge";
 import { Sidebar, MessageManagerContext, breakpoints } from "@ui-components";
 import ErrorBoundary from "../../common/ErrorBoundary";
-import { EmbedContext } from "../../context/EmbedContext";
+import { QueryDataEmbedContext } from "../../context/QueryDataEmbedContext";
 import { DraggableInput } from "./DraggableInput";
 import { getMostVisibleAnalysis } from "../agentUtils";
 import setupBaseUrl from "../../utils/setupBaseUrl";
@@ -419,8 +419,6 @@ const AnalysisTreeContent = ({
           setLoading(false);
         }}
         initialConfig={{
-          analysisManager:
-            nestedTree[activeRootAnalysisId].analysisManager || null,
           analysisTreeManager,
         }}
         submitFollowOn={submitFollowOn}
@@ -480,7 +478,6 @@ const AnalysisTreeContent = ({
               setLoading(false);
             }}
             initialConfig={{
-              analysisManager: child.analysisManager || null,
               analysisTreeManager,
             }}
             submitFollowOn={submitFollowOn}
@@ -544,6 +541,7 @@ export function AnalysisTreeViewer({
   searchBarDraggable = true,
   defaultSidebarOpen = false,
   onTreeChange = () => {},
+  beforeTitle = null,
 }: {
   analysisTreeManager: AnalysisTreeManager;
   dbName: string;
@@ -556,10 +554,11 @@ export function AnalysisTreeViewer({
   searchBarClasses?: string;
   searchBarDraggable?: boolean;
   defaultSidebarOpen?: boolean;
+  beforeTitle?: React.ReactNode;
   onTreeChange?: (dbName: string, analysisTree: AnalysisTree) => void;
 }) {
   const messageManager = useContext(MessageManagerContext);
-  const { token, apiEndpoint } = useContext(EmbedContext);
+  const { token, apiEndpoint } = useContext(QueryDataEmbedContext);
 
   // Refs
   const searchRef = useRef<HTMLTextAreaElement>(null);
@@ -693,6 +692,7 @@ export function AnalysisTreeViewer({
               onChange={(open: boolean) => {
                 setSidebarOpen(open);
               }}
+              beforeTitle={beforeTitle}
               title={
                 <span className="font-bold">
                   History
@@ -710,12 +710,12 @@ export function AnalysisTreeViewer({
                 </span>
               }
               rootClassNames={twMerge(
-                "transition-all z-20 h-[calc(100%-1rem)] rounded-md rounded-l-none lg:rounded-none lg:rounded-tr-md lg:rounded-br-md bg-gray-100 dark:bg-gray-800 border-r sticky top-0 lg:relative",
+                "transition-all z-20 h-[calc(100%-1rem)] absolute left-0 min-h-full shadow-2xl lg:shadow-none lg:sticky top-0 bg-gray-50 z-20",
                 sideBarClasses
               )}
-              iconClassNames={`${sidebarOpen ? "" : "text-white dark:text-gray-500 bg-secondary-highlight-2"}`}
-              openClassNames={"border-gray-300 dark:border-gray-700 shadow-md"}
-              closedClassNames={"border-transparent bg-transparent shadow-none"}
+              // iconClassNames={`${sidebarOpen ? "" : "text-gray-600 dark:text-gray-500 bg-gray-100"}`}
+              // openClassNames={"border-gray-300 dark:border-gray-700 shadow-md"}
+              // closedClassNames={"border-transparent bg-transparent shadow-none"}
               contentClassNames={
                 "w-72 p-4 rounded-tl-lg relative sm:block min-h-96 h-full"
               }

@@ -14,8 +14,8 @@ import {
 } from "./ChartManagerContext";
 import { MessageManagerContext, SkeletalLoader } from "@ui-components";
 import setupBaseUrl from "../utils/setupBaseUrl";
-import { EmbedContext } from "../context/EmbedContext";
-import { ParsedOutput } from "../agent/analysis/analysisManager";
+import { QueryDataEmbedContext } from "../context/QueryDataEmbedContext";
+import { ParsedOutput } from "../query-data/analysis/analysisManager";
 import { KeyboardShortcutIndicator } from "../core-ui/KeyboardShortcutIndicator";
 import { KEYMAP } from "../../constants/keymap";
 
@@ -120,7 +120,7 @@ export function ChartContainer({
     chartManager.setConfigCallback = setChartConfig;
   }, []);
 
-  const { apiEndpoint, token } = useContext(EmbedContext);
+  const { apiEndpoint, token } = useContext(QueryDataEmbedContext);
 
   const chartEditUrl = setupBaseUrl({
     protocol: "http",

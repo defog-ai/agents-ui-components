@@ -6,7 +6,7 @@ import {
   SpinningLoader,
   SingleSelect,
 } from "@ui-components";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   deleteReport,
   fetchReports,
@@ -17,8 +17,8 @@ import {
 } from "@oracle";
 import { SquarePen } from "lucide-react";
 import { twMerge } from "tailwind-merge";
-import { OracleDraftReport } from "./report-creation/OracleDraftReport";
-import { OracleNewDb } from "./new-db/OracleNewDb";
+import { OracleDraftReport } from "../reports/report-creation/OracleDraftReport";
+import { OracleNewDb } from "./OracleNewDb";
 
 interface OracleReportType extends ReportListItem {
   reportData?: ReportData;
@@ -149,6 +149,34 @@ export function OracleEmbed({
     setup();
   }, []);
 
+  const dbSelector = useMemo(
+    () => (
+      <SingleSelect
+        label="Select Database"
+        rootClassNames="mb-2"
+        value={selectedKeyName}
+        allowClear={false}
+        allowCreateNewOption={false}
+        options={[
+          {
+            value: newApiKey,
+            label: "Upload new",
+          },
+        ].concat(
+          keyNames.map((keyName) => ({
+            value: keyName,
+            label: keyName,
+          }))
+        )}
+        onChange={(v: string) => {
+          setSelectedKeyName(v);
+          setSelectedReportId(null);
+        }}
+      />
+    ),
+    [selectedKeyName, keyNames]
+  );
+
   if (error) {
     return (
       <div className="w-screen h-screen flex items-center justify-center bg-rose-50 text-rose-500">
@@ -170,6 +198,7 @@ export function OracleEmbed({
       <div className="flex flex-row min-w-full min-h-full max-h-full overflow-hidden text-gray-600 bg-white dark:bg-gray-900">
         <Sidebar
           open={true}
+          beforeTitle={dbSelector}
           location="left"
           rootClassNames="absolute left-0 min-h-full shadow-2xl lg:shadow-none lg:sticky top-0 bg-gray-50 z-20"
           title={<span className="font-bold">History</span>}
@@ -178,27 +207,6 @@ export function OracleEmbed({
           }
         >
           <div className="space-y-4">
-            <SingleSelect
-              label="Select Database"
-              value={selectedKeyName}
-              allowClear={false}
-              allowCreateNewOption={false}
-              options={[
-                {
-                  value: newApiKey,
-                  label: "Upload new",
-                },
-              ].concat(
-                keyNames.map((keyName) => ({
-                  value: keyName,
-                  label: keyName,
-                }))
-              )}
-              onChange={(v: string) => {
-                setSelectedKeyName(v);
-                setSelectedReportId(null);
-              }}
-            />
             {selectedKeyName !== newApiKey ? (
               <div
                 className={twMerge(
@@ -209,9 +217,9 @@ export function OracleEmbed({
                 )}
                 onClick={() => setSelectedReportId(null)}
               >
-                <span>
-                  <SquarePen /> New
-                </span>
+                <div className="flex flex-row items-center gap-2">
+                  <SquarePen /> <span>New</span>
+                </div>
               </div>
             ) : (
               <p className="text-xs">
