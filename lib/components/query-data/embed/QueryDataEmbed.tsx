@@ -2,7 +2,10 @@
 
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
+  MessageManager,
   MessageManagerContext,
+  MessageMonitor,
+  Modal,
   SingleSelect,
   SpinningLoader,
 } from "@ui-components";
@@ -181,14 +184,17 @@ export function QueryDataEmbed({
     dbList.length ? dbList[0] : null
   );
 
-  const message = useContext(MessageManagerContext);
+  const { current: message } = useRef(MessageManager());
+
+  const [modalOpen, setModalOpen] = useState(false);
 
   const selector = useMemo(() => {
     return (
       <SingleSelect
         label="Select database"
+        popupClassName="!max-w-full"
         rootClassNames="mb-2"
-        defaultValue={newApiKey}
+        value={selectedDb?.dbName}
         allowClear={false}
         placeholder="Select Database"
         allowCreateNewOption={false}
@@ -205,75 +211,112 @@ export function QueryDataEmbed({
         )}
         onChange={(v: string) => {
           const matchingDb = dbList.find((db) => db.dbName === v);
-          setSelectedDb(matchingDb || dbList[0]);
+          if (v === newApiKey) {
+            setModalOpen(true);
+          } else {
+            setSelectedDb(matchingDb || dbList[0]);
+          }
         }}
       />
     );
   }, [selectedDb, dbList]);
 
+  const wasUploaded = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (wasUploaded.current) {
+      setSelectedDb(
+        dbList.find((db) => db.dbName === wasUploaded.current) || dbList[0]
+      );
+      wasUploaded.current = null;
+    }
+  }, [dbList]);
+
   const content = useMemo(() => {
     if (!selectedDb) return null;
 
-    if (selectedDb.dbName === newApiKey) {
-      return (
-        <QueryDataNewDb
-          apiEndpoint={apiEndpoint}
-          token={token}
-          onDbCreated={async (dbName) => {
+    return (
+      <ErrorBoundary>
+        <AnalysisTreeViewer
+          defaultSidebarOpen={true}
+          beforeTitle={selector}
+          searchBarDraggable={searchBarDraggable}
+          dbName={selectedDb.dbName}
+          metadata={selectedDb.metadata}
+          analysisTreeManager={trees.current[selectedDb.dbName].treeManager}
+          autoScroll={true}
+          predefinedQuestions={selectedDb.predefinedQuestions || []}
+          onTreeChange={(dbName, tree) => {
             try {
-              trees.current = {
-                ...trees.current,
-                [dbName]: {
-                  dbName: dbName,
-                  treeManager: AnalysisTreeManager(),
-                },
-              };
-
-              const metadata = await getMetadata(apiEndpoint, token, dbName);
-
-              setDbList((prev) => [
-                ...prev,
-                { dbName, predefinedQuestions: [], metadata },
-              ]);
-
-              setSelectedDb(
-                dbList.find((db) => db.dbName === dbName) || dbList[0]
-              );
-            } catch (error) {
-              message.error(error);
+              onTreeChange(dbName, tree);
+            } catch (e) {
+              console.error(e);
             }
           }}
         />
-      );
-    } else {
-      return (
-        <ErrorBoundary>
-          <AnalysisTreeViewer
-            beforeTitle={selector}
-            searchBarDraggable={searchBarDraggable}
-            dbName={selectedDb.dbName}
-            metadata={selectedDb.metadata}
-            analysisTreeManager={trees.current[selectedDb.dbName].treeManager}
-            autoScroll={true}
-            predefinedQuestions={selectedDb.predefinedQuestions || []}
-            onTreeChange={(dbName, tree) => {
-              try {
-                onTreeChange(dbName, tree);
-              } catch (e) {
-                console.error(e);
-              }
-            }}
-          />
-        </ErrorBoundary>
-      );
-    }
+      </ErrorBoundary>
+    );
   }, [selectedDb.dbName, selector]);
 
   return (
-    <QueryDataEmbedContext.Provider value={embedConfig}>
-      <div className="relative w-full h-full">
-        {initialised ? <>{content}</> : <SpinningLoader />}
-      </div>
-    </QueryDataEmbedContext.Provider>
+    <MessageManagerContext.Provider value={message}>
+      <MessageMonitor rootClassNames={"absolute left-0 right-0"} />
+      <QueryDataEmbedContext.Provider value={embedConfig}>
+        <div className="relative w-full h-full">
+          {initialised ? <>{content}</> : <SpinningLoader />}
+          <Modal
+            title="Upload new database"
+            open={modalOpen}
+            footer={false}
+            onCancel={() => setModalOpen(false)}
+          >
+            <QueryDataNewDb
+              apiEndpoint={apiEndpoint}
+              token={token}
+              onDbCreated={async (dbName) => {
+                try {
+                  trees.current = {
+                    ...trees.current,
+                    [dbName]: {
+                      dbName: dbName,
+                      treeManager: AnalysisTreeManager(),
+                    },
+                  };
+
+                  const metadata = await getMetadata(
+                    apiEndpoint,
+                    token,
+                    dbName
+                  );
+
+                  setDbList((prev) => [
+                    ...prev,
+                    {
+                      dbName,
+                      predefinedQuestions: [
+                        "What are the tables available?",
+                        "Show me 5 rows",
+                      ],
+                      metadata,
+                    },
+                  ]);
+
+                  message.success(
+                    "Database uploaded successfully, access it by the name: " +
+                      dbName
+                  );
+
+                  wasUploaded.current = dbName;
+                } catch (error) {
+                  message.error(error);
+                } finally {
+                  setModalOpen(false);
+                }
+              }}
+            />
+          </Modal>
+        </div>
+      </QueryDataEmbedContext.Provider>
+    </MessageManagerContext.Provider>
   );
 }

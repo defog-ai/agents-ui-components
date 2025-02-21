@@ -21,11 +21,12 @@ export const QueryDataNewDb = ({
   const [loading, setLoading] = useState<boolean>(false);
 
   return (
-    <div className="h-full overflow-auto py-4 px-1 lg:px-10">
+    <div className="h-full">
       <div className="flex items-center justify-center h-full">
         <DropFiles
           disabled={loading}
-          rootClassNames="border p-4 rounded-md text-gray-400"
+          rootClassNames="w-full h-full border p-4 rounded-md text-gray-400 text-center"
+          iconClassNames="mx-auto"
           acceptedFileTypes={Object.values(FILE_TYPES)}
           showIcon={true}
           onFileSelect={async (ev) => {
@@ -52,8 +53,7 @@ export const QueryDataNewDb = ({
                     ).catch((e) => {
                       throw e;
                     });
-                    message.success(`DB ${dbName} created successfully`);
-                    console.log(dbName);
+
                     onDbCreated(dbName);
                   } catch (e) {
                     throw e;
@@ -70,8 +70,7 @@ export const QueryDataNewDb = ({
                     ).catch((e) => {
                       throw e;
                     });
-                    message.success(`DB ${dbName} created successfully`);
-                    console.log(dbName);
+
                     onDbCreated(dbName);
                   } catch (e) {
                     throw e;
