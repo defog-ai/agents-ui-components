@@ -4,7 +4,7 @@ import AgentLoader from "../../common/AgentLoader";
 
 interface ClarificationQuestion {
   question: string;
-  answer?: string;
+  response?: string;
 }
 
 export default function Clarify({
@@ -51,9 +51,9 @@ export default function Clarify({
                   <div className="w-full mb-4 min-w-64">
                     <Input
                       onChange={(ev) => {
-                        answers.current[i].answer = ev.target.value;
+                        answers.current[i].response = ev.target.value;
                       }}
-                      defaultValue={q.answer}
+                      defaultValue={q.response}
                       placeholder="Your response. Leave blank if the question above is not relevant"
                       inputClassNames="ring-0 bg-transparent rounded-none border-b border-dotted border-gray-300 focus:border-blue-500 focus:border-solid focus:ring-0 focus:border-b-primary-highlight shadow-none pl-0 w-full"
                     ></Input>
