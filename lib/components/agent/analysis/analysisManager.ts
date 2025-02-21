@@ -111,7 +111,7 @@ export interface AnalysisManager {
   ) => () => void;
   setAnalysisBusy: (busy: boolean) => void;
   submit: (query: string, stageInput?: Record<string, any>) => Promise<void>;
-  reRun: (stepId: string, sqliteConn?: any) => Promise<void>;
+  reRun: (editedInputs: EditedInputs) => Promise<void>;
   destroy: () => void;
   setOnNewDataCallback: (callback: (data: AnalysisData) => void) => void;
   didInit: boolean;
@@ -182,7 +182,7 @@ function createAnalysisManager({
 
   const reRunEndpoint = setupBaseUrl({
     protocol: "http",
-    path: "query-data/rerun_step",
+    path: "query-data/rerun",
     apiEndpoint: apiEndpoint,
   });
 
@@ -557,35 +557,19 @@ function createAnalysisManager({
     }
   }
 
-  async function reRun(stepId: string, sqliteConn: any): Promise<void> {
-    if (!analysisData?.gen_steps?.steps) {
-      throw new Error("No steps found in analysis data");
+  async function reRun(editedInputs: EditedInputs): Promise<void> {
+    if (!editedInputs) {
+      throw new Error("No inputs provided");
     }
 
     try {
-      if (isTemp && sqlOnly) {
-        reRunCsv(sqliteConn);
-        return;
-      }
       setAnalysisBusy(true);
-
-      // find the edited step in analysisData.gen_steps.steps
-      const editedStep = analysisData.gen_steps.steps.find(
-        (d) => d.id === stepId
-      );
-
-      if (!editedStep) {
-        throw new Error("Step not found");
-      }
 
       const body = {
         token: token,
         db_name: dbName,
         analysis_id: analysisId,
-        step_id: stepId,
-        edited_step: editedStep,
-        planner_question_suffix: plannerQuestionSuffix,
-        extra_tools: extraTools,
+        edited_inputs: editedInputs,
       };
 
       const res = await fetch(reRunEndpoint, {
@@ -595,8 +579,6 @@ function createAnalysisManager({
         },
         body: JSON.stringify(body),
       });
-
-      console.log(res);
 
       if (!res.ok) {
         throw new Error("Could not rerun step");

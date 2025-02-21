@@ -21,7 +21,7 @@ export function CodeEditor({
     setToolCode(code || "");
   }, [code]);
 
-  const updateCodeAndSql = (newVal) => {
+  const updateCodeAndSql = (newVal: string) => {
     // update values of the code and the SQL
     if (!newVal) return;
 
@@ -29,10 +29,7 @@ export function CodeEditor({
     setToolCode(newVal);
 
     // Notify parent of the change
-    handleEdit({
-      update_prop: updateProp,
-      new_val: newVal,
-    });
+    handleEdit(updateProp, newVal);
   };
 
   const handleCodeChange = (val) => {

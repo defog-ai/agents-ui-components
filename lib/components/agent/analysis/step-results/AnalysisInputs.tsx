@@ -12,10 +12,7 @@ export function AnalysisInputs({ initialInputs, handleEdit }) {
     setInputs(newInputs);
 
     if (!handleEdit) return;
-    handleEdit({
-      update_prop: "inputs",
-      new_val: newInputs,
-    });
+    handleEdit(prop, newVal);
   }
 
   return (

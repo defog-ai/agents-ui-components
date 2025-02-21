@@ -19,3 +19,9 @@ declare type PreviousContextItem = {
 };
 
 declare type PreviousContext = PreviousContextItem[] | null;
+
+declare interface EditedInputs {
+  question: string;
+  sql: string;
+  hard_filters: string[];
+}

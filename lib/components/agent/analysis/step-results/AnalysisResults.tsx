@@ -1,12 +1,9 @@
-import { useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { useCallback, useContext, useMemo, useRef } from "react";
 import { AnalysisOutputsTable } from "./AnalysisOutputTable";
 import { AnalysisError } from "./AnalysisError";
 import { AnalysisInputs } from "./AnalysisInputs";
-
-import { StepReRun } from "./StepReRun";
 import AgentLoader from "../../../common/AgentLoader";
 import ErrorBoundary from "../../../common/ErrorBoundary";
-import { toolDisplayNames } from "@utils/utils";
 import { Tabs } from "../../../core-ui/Tabs";
 
 import { EmbedContext } from "@agent";
@@ -16,24 +13,20 @@ import { AnalysisFollowOn } from "./AnalysisFollowOn";
 import { CodeEditor } from "./CodeEditor";
 import type { AnalysisTreeManager } from "../../analysis-tree-viewer/analysisTreeManager";
 import type { Analysis, AnalysisData } from "../analysisManager";
-import { Database } from "lucide-react";
 import React from "react";
-const toolIcons = {
-  data_fetcher_and_aggregator: Database,
-};
 
 export function AnalysisResults({
   dbName,
   analysis,
   analysisBusy = false,
-  handleReRun = (...args: any[]) => {},
+  handleReRun = (editedInputs: EditedInputs) => {},
   submitFollowOn = (followOnQuestion: string) => {},
   analysisTreeManager = null,
 }: {
   dbName: string;
   analysis: Analysis;
   analysisBusy?: boolean;
-  handleReRun: (...args: any[]) => void;
+  handleReRun: (editedInputs: EditedInputs) => void;
   submitFollowOn: (...args: any[]) => void;
   analysisTreeManager: AnalysisTreeManager;
 }) {
@@ -41,16 +34,17 @@ export function AnalysisResults({
   const analysisData = analysis?.data;
   const analysisId = analysis?.analysis_id;
 
+  const editedInputs = useRef<EditedInputs>({
+    question: analysis?.data?.inputs?.question || "",
+    sql: analysis?.data?.sql || "",
+    hard_filters: analysis?.data?.inputs?.hard_filters || [],
+  });
+
   const handleEdit = useCallback(
-    ({ update_prop, new_val }) => {
+    (update_prop: string, new_val: string | string[]) => {
       if (!update_prop) return;
 
-      console.log(update_prop, new_val);
-
-      // // edit this in the context too
-      // updateStepData(stepId, {
-      //   [update_prop]: new_val,
-      // });
+      editedInputs.current[update_prop] = new_val;
     },
     [analysisData]
   );
@@ -131,7 +125,7 @@ export function AnalysisResults({
                         <Button
                           disabled={analysisBusy}
                           className="h-10 px-4 py-2 font-mono text-white bg-gray-600 border border-gray-200 hover:bg-blue-500 hover:text-white active:hover:text-white hover:border-transparent"
-                          onClick={() => handleReRun(analysisId)}
+                          onClick={() => handleReRun(editedInputs.current)}
                         >
                           Re run
                         </Button>

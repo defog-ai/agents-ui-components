@@ -488,7 +488,15 @@ export const AnalysisAgent = ({
                         dbName={dbName}
                         analysis={analysis}
                         analysisBusy={analysisBusy}
-                        handleReRun={(...args: any[]) => {}}
+                        handleReRun={async (editedInputs) => {
+                          console.log(editedInputs);
+                          try {
+                            await analysisManager.reRun(editedInputs);
+                          } catch (e) {
+                            console.log(e);
+                            messageManager.error(e.message);
+                          }
+                        }}
                         analysisTreeManager={initialConfig?.analysisTreeManager}
                         submitFollowOn={(followOnQuestion: string) => {
                           console.log("clicked follow on", followOnQuestion);
