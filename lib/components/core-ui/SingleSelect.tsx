@@ -108,7 +108,7 @@ export function SingleSelect({
   allowClear = true,
   allowCreateNewOption = true,
 }: SingleSelectProps) {
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(null);
   const [open, setOpen] = useState(false);
   const [highlightIndex, setHighlightIndex] = useState(-1);
   const [dropdownStyle, setDropdownStyle] = useState({});
@@ -360,9 +360,9 @@ export function SingleSelect({
         </button>
         {open && filteredOptions.length > 0 && (
           <ul
-            style={{ ...dropdownStyle, minWidth: "fit-content" }}
+            style={{ ...dropdownStyle }}
             className={twMerge(
-              "z-[100] max-h-60 overflow-auto rounded-md bg-white dark:bg-gray-900 py-1 text-base shadow-lg border border-gray-200 dark:border-gray-700",
+              "z-[100] w-fit max-w-full max-h-60 overflow-auto rounded-md bg-white dark:bg-gray-900 py-1 text-base shadow-lg border border-gray-200 dark:border-gray-700",
               popupClassName
             )}
           >
