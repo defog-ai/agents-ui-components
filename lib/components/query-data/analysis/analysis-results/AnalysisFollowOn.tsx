@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from "react";
 import setupBaseUrl from "../../../utils/setupBaseUrl";
-import { EmbedContext } from "@agent";
+import { QueryDataEmbedContext } from "@agent";
 
 export const AnalysisFollowOn = ({
   dbName,
@@ -9,7 +9,7 @@ export const AnalysisFollowOn = ({
 }) => {
   const [followOnQuestions, setFollowOnQuestions] = useState([]);
 
-  const { apiEndpoint, token } = useContext(EmbedContext);
+  const { apiEndpoint, token } = useContext(QueryDataEmbedContext);
 
   async function generateFollowOnQuestions() {
     try {

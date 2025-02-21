@@ -3,7 +3,7 @@ import { SingleSelect as Select, Button } from "@ui-components";
 import { CalendarIcon, HashIcon, CaseSensitive, Settings2 } from "lucide-react";
 import { reorderColumns } from "./columnOrdering.js";
 import { ChartManagerContext } from "./ChartManagerContext";
-import { EmbedContext } from "@agent";
+import { QueryDataEmbedContext } from "@agent";
 // import FilterBuilder from "./Filtering";
 import { KeyboardShortcutIndicator } from "../core-ui/KeyboardShortcutIndicator";
 import { KEYMAP } from "../../constants/keymap";
@@ -26,7 +26,7 @@ export function PrimarySelection({ columns, showChartTypeOnly = false }) {
 
   const [orderedColumns, setOrderedColumns] = useState(columns);
 
-  const { hiddenCharts = [] } = useContext(EmbedContext);
+  const { hiddenCharts = [] } = useContext(QueryDataEmbedContext);
 
   // Add state for showing/hiding filters
   const [showFilters, setShowFilters] = useState(false);

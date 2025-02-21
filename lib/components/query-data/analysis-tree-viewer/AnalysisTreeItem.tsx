@@ -44,9 +44,9 @@ export function AnalysisTreeItem({
           }}
         >
           {isDummy ? (
-            <span>
-              <SquarePen /> New
-            </span>
+            <div className="flex flex-row items-center gap-2">
+              <SquarePen /> <span>New</span>
+            </div>
           ) : (
             sentenceCase(analysis?.user_question)
           )}

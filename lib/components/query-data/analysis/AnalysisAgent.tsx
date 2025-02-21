@@ -12,7 +12,7 @@ import Clarify from "./Clarify";
 import type { AnalysisManager } from "./analysisManager";
 import { Input, MessageManagerContext } from "@ui-components";
 import { twMerge } from "tailwind-merge";
-import { EmbedContext } from "../../context/EmbedContext";
+import { QueryDataEmbedContext } from "../../context/QueryDataEmbedContext";
 import ErrorBoundary from "../../common/ErrorBoundary";
 import { CircleStop } from "lucide-react";
 import createAnalysisManager from "./analysisManager";
@@ -20,7 +20,7 @@ import type {
   AnalysisTreeManager,
   CreateAnalysisRequestBody,
 } from "../analysis-tree-viewer/analysisTreeManager";
-import { AnalysisResults } from "./step-results/AnalysisResults";
+import { AnalysisResults } from "./analysis-results/AnalysisResults";
 
 interface Props {
   analysisId: string;
@@ -185,8 +185,9 @@ export const AnalysisAgent = ({
   submitFollowOn = (...args) => {},
   onHeightChange = (...args) => {},
 }: Props) => {
-  const { apiEndpoint, token, sqliteConn, updateConfig, analysisDataCache } =
-    useContext(EmbedContext);
+  const { apiEndpoint, token, updateConfig, analysisDataCache } = useContext(
+    QueryDataEmbedContext
+  );
 
   // in case this isn't called from analysis tree viewer (which has a central singular search bar)
   // we will have an independent search bar for each analysis as well
@@ -297,7 +298,6 @@ export const AnalysisAgent = ({
           question:
             createAnalysisRequestBody?.initialisation_details?.user_question,
           existingData: analysisDataCache?.[analysisId] || null,
-          sqliteConn,
         });
 
         if (analysisManager.wasNewAnalysisCreated) {
@@ -357,25 +357,6 @@ export const AnalysisAgent = ({
       sqlOnly,
       hasExternalSearchBar,
     ]
-  );
-
-  const handleReRun = useCallback(
-    async (stepId: string) => {
-      if (!stepId || !analysisId || !analysisManager) {
-        console.log(stepId, analysisId, analysisManager);
-        messageManager.error("Invalid step id or analysis data");
-
-        return;
-      }
-
-      try {
-        await analysisManager.reRun(stepId, sqliteConn);
-      } catch (e: any) {
-        messageManager.error(e);
-        console.log(e.stack);
-      }
-    },
-    [analysisId, analysisManager, sqliteConn, messageManager]
   );
 
   const titleDiv = (

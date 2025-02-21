@@ -2,13 +2,13 @@ import { useState, useCallback, useContext } from "react";
 import { MessageManagerContext, Modal, Tabs } from "@ui-components";
 import CodeMirror, { EditorView } from "@uiw/react-codemirror";
 import { sql as codemirrorSql } from "@codemirror/lang-sql";
-import { EmbedContext } from "@agent";
+import { QueryDataEmbedContext } from "@agent";
 
 const SQLFeedback = ({ dbName, question, sql }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const [userProvidedSql, setUserProvidedSql] = useState("\n\n\n\n\n\n\n");
-  const { apiEndpoint, token } = useContext(EmbedContext);
+  const { apiEndpoint, token } = useContext(QueryDataEmbedContext);
 
   const message = useContext(MessageManagerContext);
 

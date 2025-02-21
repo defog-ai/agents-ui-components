@@ -1,6 +1,6 @@
 import ErrorBoundary from "../../common/ErrorBoundary";
-import { AnalysisTreeViewer } from "../../agent/analysis-tree-viewer/AnalysisTreeViewer";
-import { AnalysisTree } from "lib/components/agent/analysis-tree-viewer/analysisTreeManager";
+import { AnalysisTreeViewer } from "../../query-data/analysis-tree-viewer/AnalysisTreeViewer";
+import { AnalysisTree } from "lib/components/query-data/analysis-tree-viewer/analysisTreeManager";
 
 export function AnalysisTabContent({
   dbName,

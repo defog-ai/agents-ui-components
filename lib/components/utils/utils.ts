@@ -3,9 +3,8 @@ import setupBaseUrl from "./setupBaseUrl";
 import { Annotation, EditorState, Transaction } from "@codemirror/state";
 import { csvParse } from "d3";
 import { useEffect, useState } from "react";
-import { reFormatData } from "../agent/agentUtils";
+import { reFormatData } from "../query-data/agentUtils";
 import Papa from "papaparse";
-import { cleanColumnNameForSqlite } from "./sqlite";
 import { read, utils } from "xlsx";
 
 export const fetchAnalysis = async (
@@ -346,9 +345,6 @@ export function parseCsvFile(
     dynamicTyping: true,
     skipEmptyLines: true,
     header: true,
-    transformHeader: (header) => {
-      return cleanColumnNameForSqlite(header);
-    },
     complete: (results) => {
       const columns = results.meta.fields.map((f) => {
         return {
@@ -397,127 +393,6 @@ export async function parseExcelFile(
 
   cb({ file, sheets });
 }
-
-/**
- * @param {object} params
- * @param {string} params.question - Question to generate query
- * @param {string} params.dbName - API Key name
- * @param {?Array<{ column_name: string, data_type: string, table_name: string }>} params.metadata - Metadata of the columns
- * @param {string} params.apiEndpoint - API endpoint
- * @param {PreviousContext} params.previousContext - Previous context
- * @param {string} params.token - Token
- *
- * @returns {Promise<{ success: boolean, error_message?: string, sql?: string }>}
- */
-export const generateQueryForCsv = async ({
-  question,
-  dbName,
-  metadata,
-  apiEndpoint,
-  previousContext = [],
-  token,
-}) => {
-  const urlToConnect = setupBaseUrl({
-    protocol: "http",
-    path: "query-data/generate_query_csv",
-    apiEndpoint,
-  });
-
-  let response;
-  try {
-    response = await fetch(urlToConnect, {
-      method: "POST",
-      signal: AbortSignal.timeout(60000),
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        question,
-        db_name: dbName,
-        db_type: "sqlite",
-        metadata,
-        previous_context: previousContext,
-        token,
-      }),
-    });
-
-    const json = await response.json();
-
-    if (json.error || !json.sql) {
-      throw new Error(json.error || "Failed to generate query");
-    }
-
-    return {
-      success: true,
-      sql: json.sql,
-    };
-  } catch (e) {
-    return { success: false, error_message: e };
-  }
-};
-
-/**
- * @param {object} params
- * @param {string} params.question - Question to generate query
- * @param {string} params.dbName - API Key name
- * @param {?Array<{ column_name: string, data_type: string, table_name: string }>} params.metadata - Metadata of the columns
- * @param {string} params.apiEndpoint - API endpoint
- * @param {string} params.previousQuery - Previous query
- * @param {string|null} params.error - Error message
- * @param {string|null} params.token - Token
- *
- * @returns {Promise<{ success: boolean, error_message?: string, sql?: string }>}
- */
-export const retryQueryForCsv = async ({
-  question,
-  dbName,
-  metadata,
-  apiEndpoint,
-  previousQuery,
-  error,
-  token,
-}) => {
-  const urlToConnect = setupBaseUrl({
-    protocol: "http",
-    path: "query-data/retry_query_csv",
-    apiEndpoint,
-  });
-
-  console.log(error);
-
-  let response;
-  try {
-    response = await fetch(urlToConnect, {
-      method: "POST",
-      signal: AbortSignal.timeout(60000),
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        question,
-        db_name: dbName,
-        db_type: "sqlite",
-        metadata,
-        previous_query: previousQuery,
-        error: error,
-        token,
-      }),
-    });
-
-    const json = await response.json();
-
-    if (json.error || !json.sql) {
-      throw new Error(json.error || "Failed to generate query");
-    }
-
-    return {
-      success: true,
-      sql: json.sql,
-    };
-  } catch (e) {
-    return { success: false, error_message: e };
-  }
-};
 
 // sigh. sometimes model returns numbers as strings for some reason.
 // so use regex instead of typeof
@@ -765,3 +640,31 @@ export const uploadFile = async (
   const data = await res.json();
   return data.db_name;
 };
+
+export async function getMetadata(apiEndpoint, token, dbName) {
+  const urlToConnect = setupBaseUrl({
+    protocol: "http",
+    path: "integration/get_metadata",
+    apiEndpoint,
+  });
+  const res = await fetch(urlToConnect, {
+    signal: AbortSignal.timeout(60000),
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      token: token,
+      db_name: dbName,
+    }),
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to get metadata");
+  }
+
+  const fetchedMetadata = await res.json();
+
+  return fetchedMetadata;
+}

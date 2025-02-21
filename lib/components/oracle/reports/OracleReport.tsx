@@ -11,7 +11,7 @@ import {
   ReportData,
   reportStatusManager,
 } from "@oracle";
-import { AgentConfigContext } from "@agent";
+import { QueryDataEmbedContext } from "@agent";
 import { EditorProvider } from "@tiptap/react";
 
 export function OracleReport({
@@ -169,7 +169,7 @@ export function OracleReport({
     // it makes a request to this api endpoint to edit the chart's config
     // which defaults to demo.defog.ai if not provided
     // (╯°□°)╯︵ ┻━┻
-    <AgentConfigContext.Provider
+    <QueryDataEmbedContext.Provider
       value={{
         // @ts-ignore
         val: { apiEndpoint: apiEndpoint || "" },
@@ -220,6 +220,6 @@ export function OracleReport({
           )}
         </div>
       </OracleReportContext.Provider>
-    </AgentConfigContext.Provider>
+    </QueryDataEmbedContext.Provider>
   );
 }
