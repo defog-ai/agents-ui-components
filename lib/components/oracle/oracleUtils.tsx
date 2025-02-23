@@ -1235,13 +1235,13 @@ export const generateReport = async (
     setupBaseUrl({
       apiEndpoint,
       protocol: "http",
-      path: "oracle/begin_generation",
+      path: "oracle/generate_report",
     }),
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        key_name: apiKeyName,
+        db_name: apiKeyName,
         token,
         // jic text area has changed.
         // if it's been emptied, use the original question
