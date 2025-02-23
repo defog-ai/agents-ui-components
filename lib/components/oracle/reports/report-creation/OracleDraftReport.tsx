@@ -125,7 +125,8 @@ export function OracleDraftReport({
               const question = e.currentTarget.value;
               try {
                 setLoading(true);
-                loadingStatus.current = "Thinking...";
+                loadingStatus.current =
+                  "Analyzing database and thinking if I need to ask clarifying questions...";
                 setDraft((prev) => ({
                   ...prev,
                   userQuestion: question,
