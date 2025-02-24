@@ -128,6 +128,12 @@ export function QueryDataEmbed({
     }, {})
   );
 
+  const [selectedDb, setSelectedDb] = useState(null);
+
+  const { current: message } = useRef(MessageManager());
+
+  const [modalOpen, setModalOpen] = useState(false);
+
   useEffect(() => {
     async function setupMetadata() {
       const fetchedMetadata = {};
@@ -142,14 +148,16 @@ export function QueryDataEmbed({
         }
       }
 
-      setDbList((prev) => {
-        return prev.map((d) => {
-          return {
-            ...d,
-            metadata: fetchedMetadata[d.dbName],
-          };
-        });
+      const newDbList = dbList.map((d) => {
+        return {
+          ...d,
+          metadata: fetchedMetadata[d.dbName],
+        };
       });
+
+      setSelectedDb(newDbList[0]);
+
+      setDbList(newDbList);
 
       setInitialised(true);
     }
@@ -157,15 +165,8 @@ export function QueryDataEmbed({
     setupMetadata();
   }, []);
 
-  const [selectedDb, setSelectedDb] = useState(
-    dbList.length ? dbList[0] : null
-  );
-
-  const { current: message } = useRef(MessageManager());
-
-  const [modalOpen, setModalOpen] = useState(false);
-
   const selector = useMemo(() => {
+    if (!selectedDb || !initialised) return null;
     return (
       <SingleSelect
         label="Select database"
@@ -210,7 +211,7 @@ export function QueryDataEmbed({
   }, [dbList]);
 
   const treeContent = useMemo(() => {
-    if (!selectedDb) return null;
+    if (!selectedDb || !initialised) return null;
 
     return (
       <ErrorBoundary>
@@ -233,11 +234,12 @@ export function QueryDataEmbed({
         />
       </ErrorBoundary>
     );
-  }, [selectedDb.dbName, selector]);
+  }, [selectedDb, selector, initialised]);
 
   const dataStructureContent = useMemo(() => {
-    return <div>"Preview data content!!"</div>;
-  }, [selectedDb.dbName, selector]);
+    if (!selectedDb || !initialised) return null;
+    return <MetadataTabContent metadata={selectedDb.metadata} />;
+  }, [dbList, selectedDb, initialised, selector]);
 
   const tabs = useMemo<Tab[]>(() => {
     return [
@@ -247,12 +249,8 @@ export function QueryDataEmbed({
       },
       {
         name: "View data structure",
-        content: <MetadataTabContent metadata={selectedDb.metadata} />,
+        content: dataStructureContent,
       },
-      // {
-      //   name: "Data",
-      //   content: dataContent,
-      // },
     ];
   }, [treeContent, dataStructureContent]);
 
