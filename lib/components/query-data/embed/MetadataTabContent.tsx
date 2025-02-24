@@ -29,16 +29,6 @@ export function MetadataTabContent({ metadata = null }) {
       ]
     : [];
 
-  const [selectedTables, setSelectedTables] = useState(tables);
-
-  const tableRows = Array.isArray(metadata)
-    ? metadata.filter((d) => {
-        return selectedTables.length === 0
-          ? true
-          : selectedTables.includes(d.table_name);
-      })
-    : [];
-
   if (!metadata)
     return (
       <div className="flex items-center justify-center w-full h-full bg-gray-50 text-sm text-gray-400">
@@ -71,7 +61,7 @@ export function MetadataTabContent({ metadata = null }) {
               paginationPosition="top"
               rootClassNames="rounded-md max-w-full"
               columns={columns}
-              rows={tableRows}
+              rows={metadata}
               columnHeaderClassNames="py-2"
             />
           </div>
