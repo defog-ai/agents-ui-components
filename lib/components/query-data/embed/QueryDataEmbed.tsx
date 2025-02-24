@@ -13,8 +13,8 @@ import {
   AnalysisTree,
   AnalysisTreeManager,
 } from "../analysis-tree-viewer/analysisTreeManager";
-import { MetadataTabContent } from "../analysis/analysis-results/MetadataTabContent";
-import { PreviewDataTabContent } from "../../defog-analysis-agent-embed/tab-content/PreviewDataTabContent";
+import { MetadataTabContent } from "./MetadataTabContent";
+// import { PreviewDataTabContent } from "../../defog-analysis-agent-embed/tab-content/PreviewDataTabContent";
 import {
   createQueryDataEmbedConfig,
   QueryDataEmbedContext,
