@@ -23,6 +23,8 @@ import { QueryDataNewDb } from "./QueryDataNewDb";
 import ErrorBoundary from "../../../../lib/components/common/ErrorBoundary";
 import { AnalysisTreeViewer } from "@agent";
 import { getMetadata } from "@utils/utils";
+import { Tab, Tabs } from "../../../../lib/components/core-ui/Tabs";
+import { twMerge } from "tailwind-merge";
 
 interface EmbedProps {
   /**
@@ -153,9 +155,9 @@ export function QueryDataEmbed({
 
   useEffect(() => {
     async function setupMetadata() {
-      dbList.forEach(async (db) => {
-        if (db.dbName === newApiKey) return;
-        const fetchedMetadata = {};
+      const fetchedMetadata = {};
+      for await (const db of dbList) {
+        if (db.dbName === newApiKey) continue;
         try {
           const metadata = await getMetadata(apiEndpoint, token, db.dbName);
           fetchedMetadata[db.dbName] = metadata;
@@ -163,18 +165,18 @@ export function QueryDataEmbed({
           console.error(error);
           fetchedMetadata[db.dbName] = null;
         }
+      }
 
-        setDbList((prev) => {
-          return prev.map((d) => {
-            return {
-              ...d,
-              metadata: fetchedMetadata[d.dbName],
-            };
-          });
+      setDbList((prev) => {
+        return prev.map((d) => {
+          return {
+            ...d,
+            metadata: fetchedMetadata[d.dbName],
+          };
         });
-
-        setInitialised(true);
       });
+
+      setInitialised(true);
     }
 
     setupMetadata();
@@ -232,7 +234,7 @@ export function QueryDataEmbed({
     }
   }, [dbList]);
 
-  const content = useMemo(() => {
+  const treeContent = useMemo(() => {
     if (!selectedDb) return null;
 
     return (
@@ -258,12 +260,46 @@ export function QueryDataEmbed({
     );
   }, [selectedDb.dbName, selector]);
 
+  const dataStructureContent = useMemo(() => {
+    return <div>"Preview data content!!"</div>;
+  }, [selectedDb.dbName, selector]);
+
+  const tabs = useMemo<Tab[]>(() => {
+    return [
+      {
+        name: "Query",
+        content: treeContent,
+      },
+      {
+        name: "View data structure",
+        content: <MetadataTabContent metadata={selectedDb.metadata} />,
+      },
+      // {
+      //   name: "Data",
+      //   content: dataContent,
+      // },
+    ];
+  }, [treeContent, dataStructureContent]);
+
   return (
     <MessageManagerContext.Provider value={message}>
       <MessageMonitor rootClassNames={"absolute left-0 right-0"} />
       <QueryDataEmbedContext.Provider value={embedConfig}>
-        <div className="relative w-full h-full">
-          {initialised ? <>{content}</> : <SpinningLoader />}
+        <div className="relative w-full h-full p-2">
+          {initialised ? (
+            <Tabs
+              size="small"
+              tabs={tabs}
+              vertical={true}
+              contentClassNames="p-0 mt-2 sm:mt-0 bg-white"
+              defaultTabClassNames="p-0 sm:mt-0 h-full"
+              selectedTabHeaderClasses={(nm) =>
+                nm === "Tree" ? "bg-transparent" : ""
+              }
+            />
+          ) : (
+            <SpinningLoader />
+          )}
           <Modal
             title="Upload new database"
             open={modalOpen}

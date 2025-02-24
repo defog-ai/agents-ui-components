@@ -4,25 +4,40 @@ import { breakpoints } from "../hooks/useBreakPoint";
 import { useWindowSize } from "../hooks/useWindowSize";
 import { SingleSelect } from "./SingleSelect";
 
-/**
- * @typedef {{name: string, content?: [React.ReactNode], classNames?: string, headerClassNames?: string}} Tab
- * @property {string} name - The name of the tab.
- * @property {React.ReactNode} content - The content of the tab.
- * @property {string} [classNames] - Additional classes to be added to the tab content.
- * @property {function} [headerClassNames] - Additional classes to be added to the tab header.
- *
- * @typedef {Object} TabsProps
- * @property {Array<Tab>} [tabs] - The tabs to be displayed.
- * @property {string} [defaultSelected] - The default selected tab.
- * @property {string} [selected] - The selected tab.
- * @property {"small" | "normal"} [size] - The tab size
- * @property {string} [rootClassNames] - Additional classes to be added to the root div.
- * @property {string} [defaultTabClassNames] - Additional classes to be added to all tabs.
- * @property {string} [contentClassNames] - Additional classes to be added to the tab content.
- * @property {function|string} [selectedTabHeaderClasses] - Additional classes to be added to the selected tab's header. Can be a string or a function that takes the selected tab name as an argument.
- * @property {boolean} [vertical] - If true, the tabs will be displayed vertically. If disableSingleSelect is false, changes to a horizontal single select on the phone. Otherwise, goes to horizontal tabs.
- * @property {boolean} [disableSingleSelect] - If disableSingleSelect is true, we will always show tabs, and never resort to a dropdown. If vertical is true and disableSingleSelect is false, we will show normal tabs on top on <=sm and vertical tabs above sm
- */
+export type Tab = {
+  /**
+   * The name of the tab.
+   */
+  name: string;
+
+  /**
+   * The content of the tab.
+   */
+  content?: React.ReactNode;
+
+  /**
+   * Additional classes to be added to the tab content.
+   */
+  classNames?: string;
+
+  /**
+   * Additional classes to be added to the tab header.
+   */
+  headerClassNames?: string | Function;
+};
+
+interface TabsProps {
+  tabs?: Array<Tab>;
+  defaultSelected?: string;
+  selected?: string;
+  size?: "small" | "normal";
+  rootClassNames?: string;
+  defaultTabClassNames?: string;
+  contentClassNames?: string;
+  selectedTabHeaderClasses?: Function | string;
+  vertical?: boolean;
+  disableSingleSelect?: boolean;
+}
 
 /**
  * Tabs component
@@ -47,7 +62,7 @@ export function Tabs({
   selectedTabHeaderClasses = (...args) => "bg-primary-highlight",
   vertical = false,
   disableSingleSelect = false,
-}) {
+}: TabsProps) {
   const windowSize = useWindowSize();
 
   const showVerticalTabs = useMemo(() => {
@@ -56,7 +71,7 @@ export function Tabs({
 
   const [selectedTab, setSelectedTab] = useState(
     (defaultSelected && tabs.find((tab) => tab.name === defaultSelected)) ||
-      selected ||
+      (selected && tabs.find((tab) => tab.name === selected)) ||
       tabs[0]
   );
 
@@ -72,7 +87,7 @@ export function Tabs({
   return (
     <div
       className={twMerge(
-        "relative",
+        "relative w-full h-full",
         showVerticalTabs
           ? "flex flex-col sm:flex sm:flex-row"
           : "flex flex-col",
@@ -207,33 +222,25 @@ export function Tabs({
       </div>
       <div
         className={twMerge(
-          "grow",
-          showVerticalTabs ? "sm:grow" : "",
-          contentClassNames
+          "rounded-b-2xl bg-white dark:bg-gray-800 p-4 grow min-w-0 min-h-0",
+          contentClassNames,
+          selectedTab?.classNames
         )}
       >
-        <div
-          className={twMerge(
-            "rounded-b-2xl bg-white dark:bg-gray-800 p-4",
-            defaultTabClassNames,
-            selectedTab?.classNames
-          )}
-        >
-          {tabs.map((tab) => (
-            <div
-              key={tab.name}
-              className={twMerge(
-                defaultTabClassNames,
-                selectedTab?.classNames,
-                selectedTab.name === tab.name
-                  ? "relative"
-                  : "fixed left-[-1000px] top-[-1000px] z-[-1] pointer-events-none *:pointer-events-none opacity-0"
-              )}
-            >
-              {tab.content}
-            </div>
-          ))}
-        </div>
+        {tabs.map((tab) => (
+          <div
+            key={tab.name}
+            className={twMerge(
+              defaultTabClassNames,
+              selectedTab?.classNames,
+              selectedTab.name === tab.name
+                ? "relative h-full overflow-y-auto"
+                : "fixed left-[-1000px] top-[-1000px] z-[-1] pointer-events-none *:pointer-events-none opacity-0"
+            )}
+          >
+            {tab.content}
+          </div>
+        ))}
       </div>
     </div>
   );
