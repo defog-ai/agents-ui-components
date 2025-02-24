@@ -55,14 +55,7 @@ interface EmbedProps {
    * The API endpoint to use for the requests. Default is https://demo.defog.ai.
    */
   apiEndpoint: string;
-  /**
-   * Poorly named. Whether to show "analysis understanding" aka description of the results created by a model under the table.
-   */
-  showAnalysisUnderstanding?: boolean;
-  /**
-   * Whether to show tool code.
-   */
-  showCode?: boolean;
+
   /**
    * Initial db names.
    */
@@ -70,11 +63,6 @@ interface EmbedProps {
   /**
    * Whether to allow addition to dashboards.
    */
-  allowDashboardAdd: boolean;
-  /**
-   * The predefined questions for the uploaded CSVs
-   */
-  uploadedCsvPredefinedQuestions: Array<string>;
   /**
    * Callback for when the analysis tree changes for a particular Db. Will be called on addition or removal of analyses.
    */
@@ -94,11 +82,7 @@ export function QueryDataEmbed({
   hiddenCharts = [],
   hideSqlTab = false,
   hidePreviewTabs = false,
-  showAnalysisUnderstanding = true,
   searchBarDraggable = false,
-  showCode = false,
-  allowDashboardAdd = true,
-  uploadedCsvPredefinedQuestions = ["Show me any 5 rows"],
   onTreeChange = (...args) => {},
 }: EmbedProps) {
   const [initialised, setInitialised] = useState(false);
