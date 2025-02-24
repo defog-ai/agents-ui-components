@@ -7,6 +7,7 @@ import { SpinningLoader } from "@ui-components";
 
 function OracleEmbedTest() {
   const [apiKeyNames, setApiKeyNames] = useState<string[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     async function setup() {
@@ -15,6 +16,7 @@ function OracleEmbedTest() {
         import.meta.env.VITE_TOKEN
       );
       setApiKeyNames(keyNames);
+      setLoading(false);
     }
 
     setup();
@@ -22,7 +24,7 @@ function OracleEmbedTest() {
 
   return (
     <div className="h-screen">
-      {!apiKeyNames.length ? (
+      {loading ? (
         <SpinningLoader />
       ) : (
         <OracleEmbed
