@@ -114,25 +114,16 @@ export function QueryDataEmbed({
       predefinedQuestions: string[];
       metadata?: any;
     }[]
-  >([
-    ...initialDbList,
-    {
-      dbName: newApiKey,
-      predefinedQuestions: [],
-      metadata: null,
-    },
-  ]);
+  >(initialDbList);
 
   const trees = useRef(
-    Object.keys(initialTrees || {}).reduce((acc, k) => {
-      const initialDb = initialDbList.find((db) => db.dbName === k);
-      if (!initialDb) return acc;
-
-      acc[k] = {
-        dbName: k,
-        predefinedQuestions: initialDb.predefinedQuestions,
-        treeManager: AnalysisTreeManager(initialTrees[k] || {}),
+    initialDbList.reduce((acc, db) => {
+      acc[db.dbName] = {
+        dbName: db.dbName,
+        predefinedQuestions: db.predefinedQuestions,
+        treeManager: AnalysisTreeManager(initialTrees[db.dbName] || {}),
       };
+
       return acc;
     }, {})
   );
