@@ -29,21 +29,8 @@ export const OracleNav = ({
     useState<boolean>(false);
 
   const message = useContext(MessageManagerContext);
-  const {
-    apiEndpoint,
-    reportId,
-    keyName,
-    token,
-    commentManager,
-    reportStatusManager,
-  } = useContext(OracleReportContext);
-
-  const { updateStatus, stopPolling, startPolling } = reportStatusManager;
-
-  const status = useSyncExternalStore(
-    reportStatusManager?.subscribeToStatusUpdates || (() => () => {}),
-    reportStatusManager?.getStatus || (() => null)
-  );
+  const { apiEndpoint, reportId, keyName, token, commentManager } =
+    useContext(OracleReportContext);
 
   const generalCommentsRef = useRef<HTMLTextAreaElement>(null);
 

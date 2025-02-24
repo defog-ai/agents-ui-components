@@ -685,42 +685,6 @@ export const updateReportMDX = async (
   }
 };
 
-export const getReportExecutiveSummary = async (
-  apiEndpoint: string,
-  reportId: string,
-  keyName: string,
-  token: string
-) => {
-  const res = await fetch(
-    setupBaseUrl({
-      protocol: "http",
-      path: `oracle/get_report_summary`,
-      apiEndpoint,
-    }),
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        // disable cors for the download
-        mode: "no-cors",
-      },
-      body: JSON.stringify({
-        key_name: keyName,
-        token: token,
-        report_id: reportId,
-      }),
-    }
-  );
-
-  if (!res.ok) {
-    throw new Error("Failed to fetch executive summary");
-  }
-
-  const data = await res.json();
-
-  return data.executive_summary;
-};
-
 export const getReportImage = async (
   apiEndpoint: string,
   reportId: string,
@@ -797,49 +761,6 @@ export const getReportAnalysesMdx = async (
   const data = await res.json();
 
   return data.analyses_mdx;
-};
-
-export const getAnalysisStatus = async (
-  apiEndpoint: string,
-  reportId: string,
-  analysisId: string,
-  keyName: string,
-  token: string
-): Promise<string> => {
-  const res = await fetch(
-    setupBaseUrl({
-      protocol: "http",
-      path: `oracle/get_analysis_status`,
-      apiEndpoint,
-    }),
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        // disable cors for the download
-        mode: "no-cors",
-      },
-      body: JSON.stringify({
-        key_name: keyName,
-        token: token,
-        report_id: reportId,
-        analysis_id: analysisId,
-      }),
-    }
-  );
-
-  if (!res.ok) {
-    throw new Error("Failed to fetch analysis status");
-  }
-
-  const data = await res.json();
-
-  return data.status + "";
-};
-
-export const ANALYSIS_STATUS = {
-  DONE: "DONE",
-  ERROR: "ERROR",
 };
 
 export const getReportComments = async (
@@ -955,42 +876,6 @@ export const submitForRevision = async (
   return data;
 };
 
-export const getReportStatus = async (
-  apiEndpoint: string,
-  reportId: string,
-  keyName: string,
-  token: string
-) => {
-  const res = await fetch(
-    setupBaseUrl({
-      protocol: "http",
-      path: `oracle/get_report_status`,
-      apiEndpoint,
-    }),
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        // disable cors for the download
-        mode: "no-cors",
-      },
-      body: JSON.stringify({
-        key_name: keyName,
-        token: token,
-        report_id: reportId,
-      }),
-    }
-  );
-
-  if (!res.ok) {
-    throw new Error("Failed to fetch report status");
-  }
-
-  const data = await res.json();
-
-  return data.status;
-};
-
 export interface ReportData {
   parsed: ReturnType<MDX["getParsed"]> | null;
   summary: Summary;
@@ -1012,14 +897,6 @@ export async function fetchAndParseReportData(
   let fetchedComments: OracleReportComment[] = [];
 
   parsed = parseMDX(mdx);
-
-  sum = await getReportExecutiveSummary(apiEndpoint, reportId, keyName, token);
-
-  // add ids to each recommendation
-  sum.recommendations = sum.recommendations.map((rec) => ({
-    id: crypto.randomUUID(),
-    ...rec,
-  }));
 
   analysisIds = await getReportAnalysisIds(
     apiEndpoint,
@@ -1114,104 +991,6 @@ export const deleteReport = async (
     console.error("Error deleting report:", error);
     return false;
   }
-};
-
-export interface ReportStatusManager {
-  getStatus: () => string | null;
-  startPolling: () => void;
-  stopPolling: () => void;
-  updateStatus: (newStatus: string) => void;
-  subscribeToStatusUpdates: (listener: () => void) => () => void;
-}
-
-export const reportStatusManager = ({
-  apiEndpoint,
-  reportId,
-  keyName,
-  token,
-}: {
-  apiEndpoint: string;
-  reportId: string;
-  keyName: string;
-  token: string;
-}): ReportStatusManager => {
-  let intervalIdRef = null;
-  let prevStatus: string | null = null;
-  let status: string | null = "loading";
-  let listeners: (() => void)[] = [];
-  // const [prevStatus, setPrevStatus] = useState<string | null>(null);
-  // const [status, setStatus] = useState<string | null>("loading");
-
-  const stopPolling = () => {
-    clearInterval(intervalIdRef);
-  };
-
-  const subscribeToStatusUpdates = (listener: () => void) => {
-    listeners.push(listener);
-    return () => {
-      listeners = listeners.filter((l) => l !== listener);
-    };
-  };
-
-  const updateStatus = (newStatus: string) => {
-    prevStatus = status;
-    status = newStatus;
-    if (status === "done" && prevStatus !== "done") {
-      stopPolling();
-      startPolling();
-    }
-    listeners.forEach((l) => l());
-  };
-
-  const getStatus = () => {
-    return status;
-  };
-
-  const startPolling = () => {
-    // Clear existing interval if any
-    stopPolling();
-
-    const fetchStatus = async () => {
-      try {
-        const currentStatus = await getReportStatus(
-          apiEndpoint,
-          reportId,
-          keyName,
-          token
-        );
-
-        updateStatus(currentStatus);
-
-        if (currentStatus === "done" || currentStatus === "error") {
-          stopPolling();
-        }
-        return currentStatus;
-      } catch (error) {
-        console.error("Error fetching report status:", error);
-        return null;
-      }
-    };
-
-    // Fetch immediately
-    fetchStatus();
-
-    // Set up polling every 5 seconds
-    intervalIdRef = setInterval(async () => {
-      const currentStatus = await fetchStatus();
-      // stop polling if status is "done" or "error"
-      if (currentStatus === "done" || currentStatus === "error") {
-        stopPolling();
-      }
-    }, 5000);
-  };
-
-  return {
-    getStatus,
-    updateStatus,
-    subscribeToStatusUpdates,
-    startPolling,
-    stopPolling,
-  };
 };
 
 interface GenerateReportResponse {
