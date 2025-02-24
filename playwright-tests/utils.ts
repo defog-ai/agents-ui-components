@@ -165,12 +165,12 @@ export async function fullyTestSQLOnlyQuestionForNonTempDb({
   followOnQuestions: string[];
 }> {
   const requestPromiseGenerate = page.waitForRequest((request) =>
-    request.url().includes("/generate_step")
+    request.url().includes("/generate_analysis")
   );
 
-  // start waiting for to the network response for `/generate_step`
+  // start waiting for to the network response for `/generate_analysis`
   const responsePromiseGenerate = page.waitForResponse(
-    (response) => response.url().includes("/generate_step"),
+    (response) => response.url().includes("/generate_analysis"),
     { timeout: 10000 }
   );
 
@@ -200,7 +200,7 @@ export async function fullyTestSQLOnlyQuestionForNonTempDb({
   const resGenerateData = await responseGenerate.json();
 
   // ensure that the correct sql_only was sent to the server
-  // i.e., sql_only should be true in the payload sent to /generate_step
+  // i.e., sql_only should be true in the payload sent to /generate_analysis
   expect(requestGenerate.postDataJSON().sql_only).toBe(true);
 
   // ensure that the backend responded with a success
@@ -292,7 +292,7 @@ export async function fullyTestSQLOnlyQuestionForTempDb({
   const resGenerateCsvQuery = await responseGenerate.json();
 
   // ensure that the correct sql_only was sent to the server
-  // i.e., sql_only should be true in the payload sent to /generate_step
+  // i.e., sql_only should be true in the payload sent to /generate_analysis
   expect(requestGenerate.postDataJSON().question).toBe(question);
 
   // ensure that the backend responded with a success

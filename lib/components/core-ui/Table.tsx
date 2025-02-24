@@ -554,7 +554,7 @@ export function Table({
           <input
             ref={searchInputRef}
             type="text"
-            className="w-full px-3 py-2 text-sm border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
             placeholder="Search..."
             value={searchQuery}
             onChange={(e) => {

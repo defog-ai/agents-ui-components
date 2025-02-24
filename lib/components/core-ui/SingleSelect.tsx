@@ -108,7 +108,7 @@ export function SingleSelect({
   allowClear = true,
   allowCreateNewOption = true,
 }: SingleSelectProps) {
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(null);
   const [open, setOpen] = useState(false);
   const [highlightIndex, setHighlightIndex] = useState(-1);
   const [dropdownStyle, setDropdownStyle] = useState({});
@@ -116,20 +116,28 @@ export function SingleSelect({
   const updatePosition = () => {
     if (ref.current) {
       const rect = ref.current.getBoundingClientRect();
-      // if this out of the window when rendering below the dropdown, render it on top
-      if (rect.bottom + 4 + rect.height > window.innerHeight) {
+      const parentRect = ref.current.parentElement.getBoundingClientRect();
+
+      // Calculate position relative to the parent container
+      if (rect.bottom + 4 + rect.height + 240 > window.innerHeight) {
+        // Position above the input
         setDropdownStyle({
-          position: "fixed",
-          width: rect.width + "px",
-          top: rect.top - rect.height - 60 + "px",
-          left: rect.left + "px",
+          position: "absolute",
+          width: "100%",
+          bottom: "100%",
+          marginBottom: "4px",
+          left: "0",
+          zIndex: 50,
         });
       } else {
+        // Position below the input
         setDropdownStyle({
-          position: "fixed",
-          width: rect.width + "px",
-          top: rect.bottom + 4 + "px",
-          left: rect.left + "px",
+          position: "absolute",
+          width: "100%",
+          top: "100%",
+          marginTop: "4px",
+          left: "0",
+          zIndex: 50,
         });
       }
     }
@@ -162,7 +170,7 @@ export function SingleSelect({
   }, [options]);
 
   const filteredOptions =
-    query === ""
+    query === null
       ? internalOptions
       : internalOptions.filter((option) => {
           const labelText =
@@ -273,7 +281,7 @@ export function SingleSelect({
               : "bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
           )}
           value={
-            query !== ""
+            query !== null
               ? query
               : typeof selectedOption?.label === "string"
                 ? selectedOption?.label
@@ -286,7 +294,7 @@ export function SingleSelect({
           onFocus={() => setOpen(true)}
           onBlur={() => {
             setTimeout(() => setOpen(false), 200);
-            setQuery("");
+            setQuery(null);
           }}
           readOnly={disabled}
           onKeyDown={(e) => {
@@ -312,7 +320,7 @@ export function SingleSelect({
               if (open && filteredOptions.length > 0 && highlightIndex >= 0) {
                 const option = filteredOptions[highlightIndex];
                 setSelectedOption(option);
-                setQuery("");
+                setQuery(null);
                 setOpen(false);
                 if (onChange) onChange(option.value, option);
               }
@@ -329,7 +337,7 @@ export function SingleSelect({
               ev.preventDefault();
               ev.stopPropagation();
               setSelectedOption(null);
-              setQuery("");
+              setQuery(null);
               if (onChange) onChange(null, null);
             }}
           >
@@ -352,9 +360,9 @@ export function SingleSelect({
         </button>
         {open && filteredOptions.length > 0 && (
           <ul
-            style={{ ...dropdownStyle, minWidth: "fit-content" }}
+            style={{ ...dropdownStyle }}
             className={twMerge(
-              "z-[100] max-h-60 overflow-auto rounded-md bg-white dark:bg-gray-900 py-1 text-base shadow-lg border border-gray-200 dark:border-gray-700",
+              "z-[100] w-fit max-w-full max-h-60 overflow-auto rounded-md bg-white dark:bg-gray-900 py-1 text-base shadow-lg border border-gray-200 dark:border-gray-700",
               popupClassName
             )}
           >
@@ -376,7 +384,7 @@ export function SingleSelect({
                 onMouseDown={(e) => {
                   e.preventDefault();
                   setSelectedOption(option);
-                  setQuery("");
+                  setQuery(null);
                   setOpen(false);
                   if (onChange) onChange(option.value, option);
                 }}

@@ -13,10 +13,15 @@ declare interface ColumnMetadata {
 
 declare type QuestionType = "analysis" | "follow-on-analysis" | "edit-chart";
 
-declare type PreviousContext =
-  | {
-      analysis_id: string;
-      user_question: string;
-      steps: Step[];
-    }[]
-  | null;
+declare type PreviousContextItem = {
+  question: string;
+  sql: string;
+};
+
+declare type PreviousContext = PreviousContextItem[] | null;
+
+declare interface EditedInputs {
+  question: string;
+  sql: string;
+  hard_filters: string[];
+}

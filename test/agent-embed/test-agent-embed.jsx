@@ -1,13 +1,14 @@
 import React, { StrictMode, useEffect, useMemo, useState } from "react";
 import ReactDOM from "react-dom/client";
 import "../../lib/styles/index.scss";
-import { DefogAnalysisAgentEmbed } from "../../lib/agent";
+import { QueryDataEmbed } from "@agent";
+import { SpinningLoader } from "@ui-components";
 
 function QueryDataPage() {
-  const [apiKeyNames, setApiKeyNames] = useState(["Default DB"]);
+  const [apiDbNames, setApiDbNames] = useState(null);
   const [darkMode, setDarkMode] = useState(false);
 
-  const getApiKeyNames = async (token) => {
+  const getApiDbNames = async (token) => {
     const res = await fetch(
       (import.meta.env.VITE_API_ENDPOINT || "") + "/get_db_names",
       {
@@ -26,11 +27,11 @@ function QueryDataPage() {
       );
     }
     const data = await res.json();
-    setApiKeyNames(data.db_names);
+    setApiDbNames(data.db_names);
   };
 
   useEffect(() => {
-    getApiKeyNames(import.meta.env.VITE_TOKEN);
+    getApiDbNames(import.meta.env.VITE_TOKEN);
   }, []);
 
   useEffect(() => {
@@ -52,6 +53,15 @@ function QueryDataPage() {
     }
   }, []);
 
+  const dbList = useMemo(() => {
+    return !apiDbNames
+      ? null
+      : apiDbNames.map((name) => ({
+          name,
+          predefinedQuestions: ["show me any 5 rows"],
+        }));
+  }, [apiDbNames]);
+
   return (
     <StrictMode>
       <div className="flex flex-col">
@@ -67,42 +77,43 @@ function QueryDataPage() {
         <div
           className={`h-screen ${darkMode ? "dark bg-gray-900" : "bg-white"}`}
         >
-          <DefogAnalysisAgentEmbed
-            hiddenCharts={["boxplot", "histogram"]}
-            token={import.meta.env.VITE_TOKEN}
-            searchBarDraggable={false}
-            hidePreviewTabs={false}
-            apiEndpoint={import.meta.env.VITE_API_ENDPOINT}
-            // these are the ones that will be shown for new csvs uploaded
-            uploadedCsvPredefinedQuestions={[
-              "Show me any 5 rows from the dataset",
-            ]}
-            showAnalysisUnderstanding={true}
-            dbs={apiKeyNames.map((name) => ({
-              name: name,
-              keyName: name,
-              predefinedQuestions: ["show me any 5 rows"],
-            }))}
-            disableMessages={false}
-            initialTrees={initialTrees}
-            onTreeChange={(keyName, tree) => {
-              try {
-                // save in local storage in an object called analysisTrees
-                let trees = localStorage.getItem("analysisTrees");
-                if (!trees) {
-                  trees = {};
-                  localStorage.setItem("analysisTrees", "{}");
-                } else {
-                  trees = JSON.parse(trees);
-                }
+          {dbList ? (
+            <QueryDataEmbed
+              initialDbList={dbList}
+              hiddenCharts={["boxplot", "histogram"]}
+              token={import.meta.env.VITE_TOKEN}
+              searchBarDraggable={false}
+              hidePreviewTabs={false}
+              apiEndpoint={import.meta.env.VITE_API_ENDPOINT}
+              // these are the ones that will be shown for new csvs uploaded
+              uploadedCsvPredefinedQuestions={[
+                "Show me any 5 rows from the dataset",
+              ]}
+              showAnalysisUnderstanding={true}
+              dbs={dbList}
+              disableMessages={false}
+              initialTrees={initialTrees}
+              onTreeChange={(dbName, tree) => {
+                try {
+                  // save in local storage in an object called analysisTrees
+                  let trees = localStorage.getItem("analysisTrees");
+                  if (!trees) {
+                    trees = {};
+                    localStorage.setItem("analysisTrees", "{}");
+                  } else {
+                    trees = JSON.parse(trees);
+                  }
 
-                trees[keyName] = tree;
-                localStorage.setItem("analysisTrees", JSON.stringify(trees));
-              } catch (e) {
-                console.error(e);
-              }
-            }}
-          />
+                  trees[dbName] = tree;
+                  localStorage.setItem("analysisTrees", JSON.stringify(trees));
+                } catch (e) {
+                  console.error(e);
+                }
+              }}
+            />
+          ) : (
+            <SpinningLoader />
+          )}
         </div>
       </div>
     </StrictMode>

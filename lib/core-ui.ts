@@ -1,3 +1,5 @@
+export { Handle } from "./components/core-ui/Handle.tsx";
+
 export {
   useBreakPoint,
   breakpoints,

@@ -3,7 +3,7 @@ import ReactDOM from "react-dom/client";
 import "../../lib/styles/index.scss";
 import { Setup } from "../../lib/components/context/Setup";
 import { AnalysisTreeViewer } from "../../lib/agent.ts";
-import { AnalysisTreeManager } from "../../lib/components/agent/analysis-tree-viewer/analysisTreeManager";
+import { AnalysisTreeManager } from "../../lib/components/query-data/analysis-tree-viewer/analysisTreeManager.ts";
 
 const dbs = [
   {
