@@ -26,7 +26,6 @@ export default ({ mode }) => {
 
     build: {
       lib: {
-        // Could also be a dictionary or array of multiple entry points
         entry: {
           oracle: resolve(__dirname, "lib/oracle.ts"),
           agent: resolve(__dirname, "lib/agent.ts"),
@@ -37,10 +36,15 @@ export default ({ mode }) => {
       },
       manifest: true,
       rollupOptions: {
-        // make sure to externalize deps that shouldn't be bundled
-        // into your library
-        external: [...Object.keys(peerDependencies)],
+        external: ["react", "react-dom"],
+        output: {
+          entryFileNames: "[name].js",
+        },
       },
+      minify: true,
+      sourcemap: false,
+      cssCodeSplit: true,
+      reportCompressedSize: true,
     },
   });
 };

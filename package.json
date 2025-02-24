@@ -1,6 +1,6 @@
 {
   "name": "@defogdotai/agents-ui-components",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -43,9 +43,7 @@
     "@headlessui/react": "^2.2.0",
     "@observablehq/plot": "^0.6.16",
     "@sereneinserenade/tiptap-comment-extension": "^0.1.2",
-    "@sqlite.org/sqlite-wasm": "^3.46.0-build2",
     "@tiptap/core": "^2.10.3",
-    "@tiptap/pm": "^2.10.3",
     "@tiptap/react": "^2.11.5",
     "@tiptap/starter-kit": "^2.11.5",
     "@tiptap/suggestion": "^2.10.3",
