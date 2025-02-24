@@ -57,7 +57,7 @@ function QueryDataPage() {
     return !apiDbNames
       ? null
       : apiDbNames.map((name) => ({
-          dbName: name,
+          name,
           predefinedQuestions: ["show me any 5 rows"],
         }));
   }, [apiDbNames]);

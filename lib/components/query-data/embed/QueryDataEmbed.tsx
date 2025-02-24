@@ -59,7 +59,7 @@ interface EmbedProps {
   /**
    * Initial db names.
    */
-  initialDbList: { dbName: string; predefinedQuestions: string[] }[];
+  initialDbList: { name: string; predefinedQuestions: string[] }[];
   /**
    * Whether to allow addition to dashboards.
    */
@@ -110,7 +110,7 @@ export function QueryDataEmbed({
 
   const [dbList, setDbList] = useState<
     {
-      dbName: string;
+      name: string;
       predefinedQuestions: string[];
       metadata?: any;
     }[]
@@ -118,10 +118,10 @@ export function QueryDataEmbed({
 
   const trees = useRef(
     initialDbList.reduce((acc, db) => {
-      acc[db.dbName] = {
-        dbName: db.dbName,
+      acc[db.name] = {
+        dbName: db.name,
         predefinedQuestions: db.predefinedQuestions,
-        treeManager: AnalysisTreeManager(initialTrees[db.dbName] || {}),
+        treeManager: AnalysisTreeManager(initialTrees[db.name] || {}),
       };
 
       return acc;
@@ -138,20 +138,20 @@ export function QueryDataEmbed({
     async function setupMetadata() {
       const fetchedMetadata = {};
       for await (const db of dbList) {
-        if (db.dbName === newApiKey) continue;
+        if (db.name === newApiKey) continue;
         try {
-          const metadata = await getMetadata(apiEndpoint, token, db.dbName);
-          fetchedMetadata[db.dbName] = metadata;
+          const metadata = await getMetadata(apiEndpoint, token, db.name);
+          fetchedMetadata[db.name] = metadata;
         } catch (error) {
           console.error(error);
-          fetchedMetadata[db.dbName] = null;
+          fetchedMetadata[db.name] = null;
         }
       }
 
       const newDbList = dbList.map((d) => {
         return {
           ...d,
-          metadata: fetchedMetadata[d.dbName],
+          metadata: fetchedMetadata[d.name],
         };
       });
 
@@ -172,7 +172,7 @@ export function QueryDataEmbed({
         label="Select database"
         popupClassName="!max-w-full"
         rootClassNames="mb-2"
-        value={selectedDb?.dbName}
+        value={selectedDb?.name}
         allowClear={false}
         placeholder="Select Database"
         allowCreateNewOption={false}
@@ -183,12 +183,12 @@ export function QueryDataEmbed({
           },
         ].concat(
           dbList.map((db) => ({
-            value: db.dbName,
-            label: db.dbName,
+            value: db.name,
+            label: db.name,
           }))
         )}
         onChange={(v: string) => {
-          const matchingDb = dbList.find((db) => db.dbName === v);
+          const matchingDb = dbList.find((db) => db.name === v);
           if (v === newApiKey) {
             setModalOpen(true);
           } else {
@@ -204,7 +204,7 @@ export function QueryDataEmbed({
   useEffect(() => {
     if (wasUploaded.current) {
       setSelectedDb(
-        dbList.find((db) => db.dbName === wasUploaded.current) || dbList[0]
+        dbList.find((db) => db.name === wasUploaded.current) || dbList[0]
       );
       wasUploaded.current = null;
     }
@@ -219,9 +219,9 @@ export function QueryDataEmbed({
           defaultSidebarOpen={true}
           beforeTitle={selector}
           searchBarDraggable={searchBarDraggable}
-          dbName={selectedDb.dbName}
+          dbName={selectedDb.name}
           metadata={selectedDb.metadata}
-          analysisTreeManager={trees.current[selectedDb.dbName].treeManager}
+          analysisTreeManager={trees.current[selectedDb.name].treeManager}
           autoScroll={true}
           predefinedQuestions={selectedDb.predefinedQuestions || []}
           onTreeChange={(dbName, tree) => {
@@ -301,7 +301,7 @@ export function QueryDataEmbed({
                   setDbList((prev) => [
                     ...prev,
                     {
-                      dbName,
+                      name: dbName,
                       predefinedQuestions: [
                         "What are the tables available?",
                         "Show me 5 rows",
