@@ -9,7 +9,6 @@ import {
   Summary,
   fetchAndParseReportData,
   ReportData,
-  reportStatusManager,
 } from "@oracle";
 import { QueryDataEmbedContext } from "@agent";
 import { EditorProvider } from "@tiptap/react";
@@ -43,50 +42,11 @@ export function OracleReport({
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
-  const statusManager = useRef(
-    reportStatusManager({
-      apiEndpoint,
-      reportId,
-      keyName,
-      token,
-    })
-  ).current;
-
-  const status = useSyncExternalStore(
-    statusManager.subscribeToStatusUpdates,
-    statusManager.getStatus
-  );
-
-  useEffect(() => {
-    statusManager.startPolling();
-    return () => {
-      statusManager.stopPolling();
-    };
-  }, []);
-
-  const isBeingRevised = status?.startsWith("Revision in progress");
-
-  useEffect(() => {
-    if (status === "error") {
-      setError("Error generating report");
-    }
-    if (status === "loading") {
-      setLoading(true);
-    }
-  }, [status]);
-
   useEffect(() => {
     const setup = async (reportId: string, keyName: string) => {
       try {
         // don't fetch if either the report is not done
         // or if it's being revised and we already have the MDX
-        if (
-          !(status === "done" || (isBeingRevised && !mdx)) ||
-          !reportId ||
-          !keyName
-        )
-          return;
-
         setLoading(true);
 
         let data: ReportData;
@@ -186,7 +146,6 @@ export function OracleReport({
           reportId: reportId,
           keyName: keyName,
           token: token,
-          reportStatusManager: statusManager,
           commentManager: commentManager({
             apiEndpoint: apiEndpoint,
             reportId: reportId,
@@ -197,27 +156,19 @@ export function OracleReport({
         }}
       >
         <div className="relative oracle-report-ctr">
-          {status === "done" || isBeingRevised ? (
-            <EditorProvider
-              extensions={extensions}
-              content={mdx}
-              immediatelyRender={false}
-              editable={false}
-              slotBefore={<OracleNav onDelete={onDelete} />}
-              editorProps={{
-                attributes: {
-                  class:
-                    "max-w-2xl oracle-report-tiptap relative prose prose-base dark:prose-invert mx-auto p-2 mb-12 md:mb-0 focus:outline-none *:cursor-default",
-                },
-              }}
-            ></EditorProvider>
-          ) : (
-            <div className="w-full h-full min-h-60 flex flex-col justify-center items-center text-center rounded-md p-2">
-              <div className="mb-2 text-sm text-gray-400 dark:text-gray-200">
-                {status}
-              </div>
-            </div>
-          )}
+          <EditorProvider
+            extensions={extensions}
+            content={mdx}
+            immediatelyRender={false}
+            editable={false}
+            slotBefore={<OracleNav onDelete={onDelete} />}
+            editorProps={{
+              attributes: {
+                class:
+                  "max-w-2xl oracle-report-tiptap relative prose prose-base dark:prose-invert mx-auto p-2 mb-12 md:mb-0 focus:outline-none *:cursor-default",
+              },
+            }}
+          ></EditorProvider>
         </div>
       </OracleReportContext.Provider>
     </QueryDataEmbedContext.Provider>
