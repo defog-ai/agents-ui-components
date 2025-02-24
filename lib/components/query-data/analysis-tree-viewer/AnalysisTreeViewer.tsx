@@ -680,201 +680,193 @@ export function AnalysisTreeViewer({
 
   return (
     <ErrorBoundary>
-      <div className="relative h-full">
-        {activeAnalysisId && activeRootAnalysisId && (
-          <div className="lg:hidden absolute bottom-0 left-0 w-full h-[5%] pointer-events-none bg-gradient-to-b from-transparent to-gray-300 z-10"></div>
-        )}
-        <div className="flex flex-row w-full h-full max-w-full text-gray-600 bg-white dark:bg-gray-900 analysis-tree-viewer">
-          <div className="absolute left-0 top-0 z-[20] lg:sticky h-full">
-            <Sidebar
-              location="left"
-              open={sidebarOpen}
-              onChange={(open: boolean) => {
-                setSidebarOpen(open);
-              }}
-              beforeTitle={beforeTitle}
-              title={
-                <span className="font-bold">
-                  History
-                  <span
-                    title="Clear history"
-                    className="inline pl-2 text-xs font-light text-gray-400 underline cursor-pointer dark:text-gray-500 hover:text-blue-500 dark:hover:text-blue-500"
-                    onClick={() => {
-                      analysisTreeManager.reset();
-                      analysisTreeManager.setActiveAnalysisId(null);
-                      analysisTreeManager.setActiveRootAnalysisId(null);
-                    }}
-                  >
-                    Clear
-                  </span>
-                </span>
-              }
-              rootClassNames={twMerge(
-                "transition-all z-20 h-[calc(100%-1rem)] absolute left-0 min-h-full shadow-2xl lg:shadow-none lg:sticky top-0 bg-gray-50 z-20",
-                sideBarClasses
-              )}
-              // iconClassNames={`${sidebarOpen ? "" : "text-gray-600 dark:text-gray-500 bg-gray-100"}`}
-              // openClassNames={"border-gray-300 dark:border-gray-700 shadow-md"}
-              // closedClassNames={"border-transparent bg-transparent shadow-none"}
-              contentClassNames={
-                "w-72 p-4 rounded-tl-lg relative sm:block min-h-96 h-full"
-              }
-            >
-              <div className="flex flex-col w-full h-full overflow-y-auto">
-                {/* New Analysis */}
-                <div className="sticky top-0 mb-4">
-                  <AnalysisTreeItem
-                    isDummy={true}
-                    onClick={() => {
-                      submitFollowOn("");
-                      disableScrollEvent.current = true;
-                      analysisTreeManager.setActiveRootAnalysisId(null);
-                      analysisTreeManager.setActiveAnalysisId(null);
-                    }}
-                  />
-                </div>
-
-                {/* Groups */}
-                {Object.entries(analysisIdsGrouped).map(([group, analyses]) => {
-                  if (analyses.length === 0) return null;
-                  return (
-                    <div key={group} className="mb-6">
-                      <div className="px-2 mb-2 text-xs font-medium tracking-wide text-blue-400 uppercase">
-                        {group}
-                      </div>
-                      {analyses.map((rootAnalysisId: string) => {
-                        const root = nestedTree[rootAnalysisId];
-
-                        return (
-                          <div key={root?.analysisId}>
-                            <AnalysisTreeItem
-                              key={root?.analysisId}
-                              analysis={root}
-                              activeAnalysisId={activeAnalysisId}
-                              onClick={(analysis) => {
-                                analysisTreeManager.setActiveRootAnalysisId(
-                                  rootAnalysisId
-                                );
-                                analysisTreeManager.setActiveAnalysisId(
-                                  analysis?.analysisId || rootAnalysisId
-                                );
-
-                                if (window.innerWidth < breakpoints.lg) {
-                                  setSidebarOpen(false);
-                                }
-                                // if there's a current timeout, clear it
-                                // and also make sure we reset scroll events till our new one fires
-                                if (currentScrollTimeout.current) {
-                                  clearTimeout(currentScrollTimeout.current);
-                                  currentScrollTimeout.current = null;
-                                  disableScrollEvent.current = false;
-                                }
-
-                                currentScrollTimeout.current = setTimeout(
-                                  () => {
-                                    disableScrollEvent.current = true;
-                                    if (autoScroll) {
-                                      const targetAnalysisId =
-                                        analysis?.analysisId || rootAnalysisId;
-                                      scrollToAnalysis(
-                                        targetAnalysisId,
-                                        analysisDomRefs
-                                      );
-                                    }
-                                    disableScrollEvent.current = false;
-                                  },
-                                  200
-                                );
-                              }}
-                              extraClasses={twMerge("ml-4")}
-                            />
-                          </div>
-                        );
-                      })}
-                    </div>
-                  );
-                })}
-              </div>
-            </Sidebar>
-          </div>
-          <div
-            className={twMerge(
-              "absolute left-0 top-0 h-full w-full overlay lg:hidden bg-gray-800 dark:bg-gray-900 z-[11] transition-all",
-              sidebarOpen ? "opacity-50 block" : "opacity-0 pointer-events-none"
-            )}
-            onClick={() => {
-              setSidebarOpen(false);
+      <div className="flex flex-row w-full h-full max-w-full text-gray-600 bg-white dark:bg-gray-900 analysis-tree-viewer">
+        <div className="absolute left-0 top-0 z-[20] lg:sticky h-full">
+          <Sidebar
+            location="left"
+            open={sidebarOpen}
+            onChange={(open: boolean) => {
+              setSidebarOpen(open);
             }}
-          />
-          <div
-            className={twMerge(
-              "relative w-full h-full min-w-0 p-2 pt-10 overflow-y-auto overflow-x-clip rounded-tr-lg sm:pt-0 grow lg:p-4",
-              activeAnalysisId ? "" : "flex flex-col"
+            beforeTitle={beforeTitle}
+            title={
+              <span className="font-bold">
+                History
+                <span
+                  title="Clear history"
+                  className="inline pl-2 text-xs font-light text-gray-400 underline cursor-pointer dark:text-gray-500 hover:text-blue-500 dark:hover:text-blue-500"
+                  onClick={() => {
+                    analysisTreeManager.reset();
+                    analysisTreeManager.setActiveAnalysisId(null);
+                    analysisTreeManager.setActiveRootAnalysisId(null);
+                  }}
+                >
+                  Clear
+                </span>
+              </span>
+            }
+            rootClassNames={twMerge(
+              "transition-all z-20 h-[calc(100%-1rem)] absolute left-0 min-h-full shadow-2xl lg:shadow-none lg:sticky top-0 bg-gray-50 z-20",
+              sideBarClasses
             )}
-            onScroll={debounce((e: SyntheticEvent) => {
-              if (disableScrollEvent.current) return;
-              e.stopPropagation();
-              setMostVisibleAnalysisAsActive();
-            }, 100)}
+            // iconClassNames={`${sidebarOpen ? "" : "text-gray-600 dark:text-gray-500 bg-gray-100"}`}
+            // openClassNames={"border-gray-300 dark:border-gray-700 shadow-md"}
+            // closedClassNames={"border-transparent bg-transparent shadow-none"}
+            contentClassNames={
+              "w-72 p-4 rounded-tl-lg relative sm:block min-h-96 h-full"
+            }
           >
-            {activeAnalysisId &&
-              activeRootAnalysisId &&
-              nestedTree[activeRootAnalysisId] && (
-                <AnalysisTreeContent
-                  dbName={dbName}
-                  activeRootAnalysisId={activeRootAnalysisId}
-                  nestedTree={nestedTree}
-                  metadata={metadata}
-                  analysisDomRefs={analysisDomRefs}
-                  analysisTreeManager={analysisTreeManager}
-                  autoScroll={autoScroll}
-                  setLoading={setLoading}
-                  submitFollowOn={submitFollowOn}
+            <div className="flex flex-col w-full h-full overflow-y-auto">
+              {/* New Analysis */}
+              <div className="sticky top-0 mb-4">
+                <AnalysisTreeItem
+                  isDummy={true}
+                  onClick={() => {
+                    submitFollowOn("");
+                    disableScrollEvent.current = true;
+                    analysisTreeManager.setActiveRootAnalysisId(null);
+                    analysisTreeManager.setActiveAnalysisId(null);
+                  }}
                 />
-              )}
+              </div>
 
-            {!activeAnalysisId &&
-              (loading ? (
-                <div className="flex items-center justify-center h-full">
-                  <SkeletalLoader />
-                </div>
-              ) : (
-                <QuickstartSection
-                  predefinedQuestions={predefinedQuestions}
-                  handleSubmit={handleSubmit}
-                  activeRootAnalysisId={activeRootAnalysisId}
-                  activeAnalysisId={activeAnalysisId}
-                />
-              ))}
-            <div
-              className={
-                searchBarDraggable
-                  ? ""
-                  : "fixed bottom-1 z-40 lg:w-4/6 w-11/12 mx-auto left-0 right-0"
-              }
-            >
-              <DraggableInput
-                ref={searchRef}
-                searchBarClasses={searchBarClasses}
-                searchBarDraggable={searchBarDraggable}
+              {/* Groups */}
+              {Object.entries(analysisIdsGrouped).map(([group, analyses]) => {
+                if (analyses.length === 0) return null;
+                return (
+                  <div key={group} className="mb-6">
+                    <div className="px-2 mb-2 text-xs font-medium tracking-wide text-blue-400 uppercase">
+                      {group}
+                    </div>
+                    {analyses.map((rootAnalysisId: string) => {
+                      const root = nestedTree[rootAnalysisId];
+
+                      return (
+                        <div key={root?.analysisId}>
+                          <AnalysisTreeItem
+                            key={root?.analysisId}
+                            analysis={root}
+                            activeAnalysisId={activeAnalysisId}
+                            onClick={(analysis) => {
+                              analysisTreeManager.setActiveRootAnalysisId(
+                                rootAnalysisId
+                              );
+                              analysisTreeManager.setActiveAnalysisId(
+                                analysis?.analysisId || rootAnalysisId
+                              );
+
+                              if (window.innerWidth < breakpoints.lg) {
+                                setSidebarOpen(false);
+                              }
+                              // if there's a current timeout, clear it
+                              // and also make sure we reset scroll events till our new one fires
+                              if (currentScrollTimeout.current) {
+                                clearTimeout(currentScrollTimeout.current);
+                                currentScrollTimeout.current = null;
+                                disableScrollEvent.current = false;
+                              }
+
+                              currentScrollTimeout.current = setTimeout(() => {
+                                disableScrollEvent.current = true;
+                                if (autoScroll) {
+                                  const targetAnalysisId =
+                                    analysis?.analysisId || rootAnalysisId;
+                                  scrollToAnalysis(
+                                    targetAnalysisId,
+                                    analysisDomRefs
+                                  );
+                                }
+                                disableScrollEvent.current = false;
+                              }, 200);
+                            }}
+                            extraClasses={twMerge("ml-4")}
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })}
+            </div>
+          </Sidebar>
+        </div>
+        <div
+          className={twMerge(
+            "absolute left-0 top-0 h-full w-full overlay lg:hidden bg-gray-800 dark:bg-gray-900 z-[11] transition-all",
+            sidebarOpen ? "opacity-50 block" : "opacity-0 pointer-events-none"
+          )}
+          onClick={() => {
+            setSidebarOpen(false);
+          }}
+        />
+        <div
+          className={twMerge(
+            "relative w-full h-full min-w-0 p-2 pt-10 overflow-y-auto overflow-x-clip rounded-tr-lg sm:pt-0 grow lg:p-4",
+            activeAnalysisId ? "" : "flex flex-col"
+          )}
+          onScroll={debounce((e: SyntheticEvent) => {
+            if (disableScrollEvent.current) return;
+            e.stopPropagation();
+            setMostVisibleAnalysisAsActive();
+          }, 100)}
+        >
+          {activeAnalysisId &&
+            activeRootAnalysisId &&
+            nestedTree[activeRootAnalysisId] && (
+              <AnalysisTreeContent
+                dbName={dbName}
+                activeRootAnalysisId={activeRootAnalysisId}
+                nestedTree={nestedTree}
+                metadata={metadata}
+                analysisDomRefs={analysisDomRefs}
+                analysisTreeManager={analysisTreeManager}
+                autoScroll={autoScroll}
+                setLoading={setLoading}
+                submitFollowOn={submitFollowOn}
+              />
+            )}
+
+          {!activeAnalysisId &&
+            (loading ? (
+              <div className="flex items-center justify-center h-full">
+                <SkeletalLoader />
+              </div>
+            ) : (
+              <QuickstartSection
+                predefinedQuestions={predefinedQuestions}
                 handleSubmit={handleSubmit}
-                loading={loading}
                 activeRootAnalysisId={activeRootAnalysisId}
                 activeAnalysisId={activeAnalysisId}
-                forceSqlOnly={forceSqlOnly}
-                setSqlOnly={setSqlOnly}
-                sqlOnly={sqlOnly}
-                question={followOnQuestion}
-                onNewConversationTextClick={() => {
-                  disableScrollEvent.current = true;
-                  analysisTreeManager.setActiveRootAnalysisId(null);
-                  analysisTreeManager.setActiveAnalysisId(null);
-                  if (window.innerWidth < breakpoints.lg) {
-                    setSidebarOpen(false);
-                  }
-                }}
               />
-            </div>
+            ))}
+          <div
+            className={
+              searchBarDraggable
+                ? ""
+                : "fixed bottom-1 z-40 lg:w-4/6 w-11/12 mx-auto left-0 right-0"
+            }
+          >
+            <DraggableInput
+              ref={searchRef}
+              searchBarClasses={searchBarClasses}
+              searchBarDraggable={searchBarDraggable}
+              handleSubmit={handleSubmit}
+              loading={loading}
+              activeRootAnalysisId={activeRootAnalysisId}
+              activeAnalysisId={activeAnalysisId}
+              forceSqlOnly={forceSqlOnly}
+              setSqlOnly={setSqlOnly}
+              sqlOnly={sqlOnly}
+              question={followOnQuestion}
+              onNewConversationTextClick={() => {
+                disableScrollEvent.current = true;
+                analysisTreeManager.setActiveRootAnalysisId(null);
+                analysisTreeManager.setActiveAnalysisId(null);
+                if (window.innerWidth < breakpoints.lg) {
+                  setSidebarOpen(false);
+                }
+              }}
+            />
           </div>
         </div>
       </div>

@@ -664,7 +664,7 @@ export async function getMetadata(apiEndpoint, token, dbName) {
     throw new Error("Failed to get metadata");
   }
 
-  const fetchedMetadata = await res.json();
+  const data = await res.json();
 
-  return fetchedMetadata;
+  return data.metadata;
 }
