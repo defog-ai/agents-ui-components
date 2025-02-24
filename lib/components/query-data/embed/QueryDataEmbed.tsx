@@ -254,24 +254,76 @@ export function QueryDataEmbed({
     ];
   }, [treeContent, dataStructureContent]);
 
+  const newDbCreator = useMemo(() => {
+    return (
+      <QueryDataNewDb
+        apiEndpoint={apiEndpoint}
+        token={token}
+        onDbCreated={async (dbName) => {
+          try {
+            trees.current = {
+              ...trees.current,
+              [dbName]: {
+                dbName: dbName,
+                treeManager: AnalysisTreeManager(),
+              },
+            };
+
+            const metadata = await getMetadata(apiEndpoint, token, dbName);
+
+            setDbList((prev) => [
+              ...prev,
+              {
+                name: dbName,
+                predefinedQuestions: [
+                  "What are the tables available?",
+                  "Show me 5 rows",
+                ],
+                metadata,
+              },
+            ]);
+
+            message.success(
+              "Database uploaded successfully, access it by the name: " + dbName
+            );
+
+            wasUploaded.current = dbName;
+          } catch (error) {
+            message.error(error);
+          } finally {
+            setModalOpen(false);
+          }
+        }}
+      />
+    );
+  }, [dbList]);
+
   return (
     <MessageManagerContext.Provider value={message}>
       <MessageMonitor rootClassNames={"absolute left-0 right-0"} />
       <QueryDataEmbedContext.Provider value={embedConfig}>
         <div className="relative w-full h-full p-2">
           {initialised ? (
-            <Tabs
-              size="small"
-              tabs={tabs}
-              vertical={true}
-              contentClassNames="p-0 mt-2 sm:mt-0 bg-white"
-              defaultTabClassNames="p-0 sm:mt-0 h-full"
-              selectedTabHeaderClasses={(nm) =>
-                nm === "Tree" ? "bg-transparent" : ""
-              }
-            />
+            dbList?.length ? (
+              <Tabs
+                size="small"
+                tabs={tabs}
+                vertical={true}
+                contentClassNames="p-0 mt-2 sm:mt-0 bg-white"
+                defaultTabClassNames="p-0 sm:mt-0 h-full"
+                selectedTabHeaderClasses={(nm) =>
+                  nm === "Tree" ? "bg-transparent" : ""
+                }
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                {newDbCreator}
+              </div>
+            )
           ) : (
-            <SpinningLoader />
+            <div className="w-full h-full flex items-center justify-center">
+              <SpinningLoader />
+            </div>
           )}
           <Modal
             title="Upload new database"
@@ -279,50 +331,7 @@ export function QueryDataEmbed({
             footer={false}
             onCancel={() => setModalOpen(false)}
           >
-            <QueryDataNewDb
-              apiEndpoint={apiEndpoint}
-              token={token}
-              onDbCreated={async (dbName) => {
-                try {
-                  trees.current = {
-                    ...trees.current,
-                    [dbName]: {
-                      dbName: dbName,
-                      treeManager: AnalysisTreeManager(),
-                    },
-                  };
-
-                  const metadata = await getMetadata(
-                    apiEndpoint,
-                    token,
-                    dbName
-                  );
-
-                  setDbList((prev) => [
-                    ...prev,
-                    {
-                      name: dbName,
-                      predefinedQuestions: [
-                        "What are the tables available?",
-                        "Show me 5 rows",
-                      ],
-                      metadata,
-                    },
-                  ]);
-
-                  message.success(
-                    "Database uploaded successfully, access it by the name: " +
-                      dbName
-                  );
-
-                  wasUploaded.current = dbName;
-                } catch (error) {
-                  message.error(error);
-                } finally {
-                  setModalOpen(false);
-                }
-              }}
-            />
+            {newDbCreator}
           </Modal>
         </div>
       </QueryDataEmbedContext.Provider>
