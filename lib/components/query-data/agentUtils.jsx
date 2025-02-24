@@ -369,17 +369,6 @@ export function transformToCSV(rows, columnNames) {
   return header + body;
 }
 
-// https://stackoverflow.com/questions/24898044/is-possible-to-save-javascript-variable-as-file
-export function download_csv(csvString) {
-  var hiddenElement = document.createElement("a");
-
-  hiddenElement.href = "data:attachment/text," + encodeURI(csvString);
-  hiddenElement.target = "_blank";
-  hiddenElement.download = `data-${new Date().toISOString().slice(0, -5)}.csv`;
-  hiddenElement.click();
-  hiddenElement.remove();
-}
-
 export const tools = [
   {
     // name: "SQL Aggregator",

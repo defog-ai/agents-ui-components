@@ -82,12 +82,6 @@ export function AnalysisOutputsTable({
   analysisTreeManager?: AnalysisTreeManager;
 }) {
   const { apiEndpoint, token } = useContext(QueryDataEmbedContext);
-  const downloadCsvEndpoint = setupBaseUrl({
-    protocol: "http",
-    path: "query-data/download_csv",
-    apiEndpoint: apiEndpoint,
-  });
-  const messageManager = useContext(MessageManagerContext);
   const tableChartRef = useRef(null);
   const [sqlQuery, setSqlQuery] = useState(analysis?.data?.sql);
   const [csvLoading, setCsvLoading] = useState(false);
@@ -108,43 +102,18 @@ export function AnalysisOutputsTable({
       if (!tableData) return;
       const { columns, data } = tableData;
 
-      // if data has >= 1000 rows, it might have been truncated
-      // in this case, send a request to the server to get the full data
-      // we will send the tool run id and also the output_storage_key we need to download
-      if (data.length >= 1000) {
-        setCsvLoading(true);
-
-        const res = await fetch(downloadCsvEndpoint, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            analysis_id: analysisId,
-            db_name: dbName,
-          }),
-        }).then((r) => r.json());
-
-        if (!res?.success) {
-          messageManager.error(res?.error_message || "Error saving CSV.");
-          return;
-        } else if (res?.success && res?.csv) {
-          csv = res.csv;
+      const filteredColumns = columns.filter((d) => d.title !== "index");
+      // Use columns to append to a string
+      csv = filteredColumns.map((d) => d.title).join(",") + "\n";
+      // Use data to append to a string
+      // go through each row and each column and append to csv
+      for (let i = 0; i < data.length; i++) {
+        let row = data[i];
+        for (let j = 0; j < filteredColumns.length; j++) {
+          csv += row[filteredColumns[j].title];
+          if (j < filteredColumns.length - 1) csv += ",";
         }
-      } else {
-        const filteredColumns = columns.filter((d) => d.title !== "index");
-        // Use columns to append to a string
-        csv = filteredColumns.map((d) => d.title).join(",") + "\n";
-        // Use data to append to a string
-        // go through each row and each column and append to csv
-        for (let i = 0; i < data.length; i++) {
-          let row = data[i];
-          for (let j = 0; j < filteredColumns.length; j++) {
-            csv += row[filteredColumns[j].title];
-            if (j < filteredColumns.length - 1) csv += ",";
-          }
-          csv += "\n";
-        }
+        csv += "\n";
       }
 
       // Create a blob and download it
