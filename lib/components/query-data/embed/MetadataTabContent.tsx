@@ -1,9 +1,8 @@
 import { useMemo, useState } from "react";
 import { MultiSelect, Table } from "@ui-components";
-import ErrorBoundary from "../../common/ErrorBoundary";
+import ErrorBoundary from "../../../../lib/components/common/ErrorBoundary";
 
 export function MetadataTabContent({ metadata = null }) {
-  console.log(metadata);
   // get unique table names
   const tables = useMemo(() => {
     if (!metadata) return [];
