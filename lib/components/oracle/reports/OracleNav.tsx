@@ -265,7 +265,7 @@ export const OracleNav = ({
         onOk={() => {
           try {
             // Clear existing polling before submission
-            stopPolling();
+            // stopPolling();
 
             submitForRevision(
               apiEndpoint,
@@ -280,10 +280,10 @@ export const OracleNav = ({
             )
               .then((res) => {
                 // set status to being revised
-                updateStatus("Revision in progress");
+                // updateStatus("Revision in progress");
                 setReviseModalOpen(false);
                 // Start polling again after getting server response
-                startPolling();
+                // startPolling();
               })
               .catch((e) => {
                 console.error(e);
