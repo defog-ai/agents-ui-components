@@ -43,7 +43,6 @@ export default ({ mode }) => {
       },
       minify: true,
       sourcemap: false,
-      cssCodeSplit: true,
       reportCompressedSize: true,
     },
   });
