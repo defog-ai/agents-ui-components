@@ -137,14 +137,7 @@ export function MultiSelect(props: MultiSelectProps) {
 
   // Keep internalOptions in sync if the original `options` prop changes:
   useEffect(() => {
-    setInternalOptions((prev) => {
-      // If the parent changes the base options, we can re-initialize,
-      // but preserve any custom-created ones that still match selected items.
-      const existingCustoms = prev.filter(
-        (opt) => !options.find((o) => o.value === opt.value)
-      );
-      return [...options, ...existingCustoms];
-    });
+    setInternalOptions([...options]);
   }, [options]);
 
   // Because selectedValues might reference items not in the default options,
