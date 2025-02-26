@@ -1,5 +1,5 @@
 import { Check, CircleX, X } from "lucide-react";
-import { useEffect, useRef, useState, useMemo } from "react";
+import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import { twMerge } from "tailwind-merge";
 import { isNumber } from "@utils/utils";
 
@@ -13,16 +13,17 @@ const popupOptionSizeClasses = {
   small: "py-1 pl-3 pr-9",
 };
 
-const createNewOption = (val) => {
+function createNewOption(val: string) {
   return {
     label: val,
+    // if numeric, convert, else keep as string
     value: isNumber(val) ? +val : val,
   };
-};
+}
 
 interface Option {
   label: string;
-  value: string;
+  value: string | number; // adjusted so numeric is possible if you like
 }
 
 interface MultiSelectProps {
@@ -42,11 +43,11 @@ interface MultiSelectProps {
     selectedOptions: Option[]
   ) => void;
   /**
-   * The default value of the multi select.
+   * The default value of the multi select (uncontrolled).
    */
   defaultValue?: Option["value"][];
   /**
-   * The value of the multi select.
+   * The value of the multi select (controlled).
    */
   value?: Option["value"][];
   /**
@@ -56,7 +57,7 @@ interface MultiSelectProps {
   /**
    * The options to be displayed.
    */
-  options?: Array<{ label: string; value: string }>;
+  options?: Option[];
   /**
    * The label of the multi select.
    */
@@ -76,7 +77,7 @@ interface MultiSelectProps {
   /**
    * The size of the multi select. Can be "default" or "small".
    */
-  size?: string;
+  size?: "default" | "small";
   /**
    * If true, the multi select will have a clear button.
    */
@@ -87,140 +88,225 @@ interface MultiSelectProps {
   allowCreateNewOption?: boolean;
 }
 
-/**
- * MultiSelect component
- * @param {MultiSelectProps} props
- * */
 export function MultiSelect(props: MultiSelectProps) {
   const {
     rootClassNames = "",
     popupClassName = "",
-    onChange = null,
+    onChange,
     defaultValue = [],
-    value = [],
+    value,
     disabled = false,
     options = [],
-    label = null,
-    optionRenderer = null,
-    tagRenderer = null,
+    label,
+    optionRenderer,
+    tagRenderer,
     placeholder = "Select an option",
     size = "default",
     allowClear = true,
     allowCreateNewOption = true,
   } = props;
+
+  // Determine if we are in controlled mode:
+  // - if `value` is provided, use that as the single source of truth
+  // - otherwise, use internal state.
+  const isControlled = typeof value !== "undefined";
+
+  // State for the user’s typed query in the input
   const [query, setQuery] = useState("");
-  const ref = useRef(null);
-  const [internalOptions, setInternalOptions] = useState(options);
+
+  // State for whether dropdown is open
   const [open, setOpen] = useState(false);
+
+  // For arrow-key highlighting in the dropdown
   const [highlightIndex, setHighlightIndex] = useState(-1);
-  const [dropdownStyle, setDropdownStyle] = useState({});
 
-  const updatePosition = () => {
-    if (ref.current) {
-      const rect = ref.current.getBoundingClientRect();
-      // if this out of the window when rendering below the dropdown, render it on top
-      if (rect.bottom + 4 + rect.height > window.innerHeight) {
-        setDropdownStyle({
-          position: "fixed",
-          width: rect.width + "px",
-          top: rect.top - rect.height - 60 + "px",
-          left: rect.left + "px",
-        });
-      } else {
-        setDropdownStyle({
-          position: "fixed",
-          width: rect.width + "px",
-          top: rect.bottom + 4 + "px",
-          left: rect.left + "px",
-        });
-      }
-    }
-  };
+  // Local selection state (uncontrolled mode). Just store values, not entire options.
+  const [internalSelectedValues, setInternalSelectedValues] =
+    useState<Option["value"][]>(defaultValue);
 
+  // The "final" selected values are either from props.value (controlled)
+  // or from internal state if uncontrolled.
+  const selectedValues = isControlled
+    ? (value as Option["value"][])
+    : internalSelectedValues;
+
+  // We'll store a local copy of options so we can add newly created ones:
+  const [internalOptions, setInternalOptions] = useState<Option[]>(() => [
+    ...options,
+  ]);
+
+  // Keep internalOptions in sync if the original `options` prop changes:
   useEffect(() => {
-    if (open) {
-      updatePosition();
-      window.addEventListener("scroll", updatePosition, true);
-      return () => window.removeEventListener("scroll", updatePosition, true);
-    }
-  }, [open]);
+    setInternalOptions((prev) => {
+      // If the parent changes the base options, we can re-initialize,
+      // but preserve any custom-created ones that still match selected items.
+      const existingCustoms = prev.filter(
+        (opt) => !options.find((o) => o.value === opt.value)
+      );
+      return [...options, ...existingCustoms];
+    });
+  }, [options]);
 
+  // Because selectedValues might reference items not in the default options,
+  // add them to internalOptions if allowCreateNewOption = true.
+  useEffect(() => {
+    if (!allowCreateNewOption) return;
+    setInternalOptions((prev) => {
+      let changed = false;
+      const newList = [...prev];
+      for (const val of selectedValues) {
+        if (!newList.find((o) => o.value === val)) {
+          changed = true;
+          newList.push(createNewOption(String(val)));
+        }
+      }
+      return changed ? newList : prev;
+    });
+  }, [selectedValues, allowCreateNewOption]);
+
+  // The actual Option[] objects for the current selection
+  const selectedOptions = useMemo(() => {
+    return selectedValues
+      .map((val) => internalOptions.find((o) => o.value === val))
+      .filter(Boolean) as Option[];
+  }, [selectedValues, internalOptions]);
+
+  // Filtered options for the dropdown, based on the query
   const filteredOptions = useMemo(() => {
-    const f = internalOptions.filter((option) =>
-      option.label.toString().toLowerCase().includes(query.toLowerCase())
+    const lowerQuery = query.toLowerCase();
+    const baseFiltered = internalOptions.filter((option) =>
+      option.label.toString().toLowerCase().includes(lowerQuery)
     );
+    // If we allow creating new, and the query doesn't match any existing label
     if (
       allowCreateNewOption &&
-      query !== "" &&
-      (!f.length ||
-        !f.some(
-          (option) => option.label === (isNumber(query) ? +query : query)
-        ))
+      query.trim() !== "" &&
+      !baseFiltered.some((opt) => String(opt.label) === query)
     ) {
-      return [...f, createNewOption(query)];
+      const newOpt = createNewOption(query);
+      return [...baseFiltered, newOpt];
     }
-    return f;
+    return baseFiltered;
   }, [query, internalOptions, allowCreateNewOption]);
 
+  // When dropdown opens, highlight the first item if it exists
   useEffect(() => {
     if (open && filteredOptions.length > 0) {
       setHighlightIndex(0);
+    } else {
+      setHighlightIndex(-1);
     }
-  }, [open, query, filteredOptions.length]);
+  }, [open, filteredOptions]);
 
-  const [selectedOptions, setSelectedOptions] = useState(
-    defaultValue
-      .map((val) => internalOptions.find((option) => option.value === val))
-      .filter(Boolean)
-  );
+  // position the dropdown
+  const ref = useRef<HTMLDivElement | null>(null);
+  const [dropdownStyle, setDropdownStyle] = useState({});
+  const updatePosition = useCallback(() => {
+    if (ref.current) {
+      const rect = ref.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const dropdownHeightEstimate = 200; // adjust if you want
+      const wantToOpenUpwards = spaceBelow < dropdownHeightEstimate;
+
+      setDropdownStyle({
+        position: "fixed",
+        width: rect.width + "px",
+        top: wantToOpenUpwards
+          ? rect.top - 4 - dropdownHeightEstimate + "px"
+          : rect.bottom + 4 + "px",
+        left: rect.left + "px",
+      });
+    }
+  }, []);
 
   useEffect(() => {
-    let hasMissing = false;
-    const newInternalOptions = [...internalOptions];
-    const newSelected = value
-      .map((val) => {
-        let option = internalOptions.find((opt) => opt.value === val);
-        if (!option && allowCreateNewOption && val != null) {
-          option = createNewOption(val);
-          newInternalOptions.push(option);
-          hasMissing = true;
-        }
-        return option;
-      })
-      .filter(Boolean);
-    if (hasMissing) {
-      setInternalOptions(newInternalOptions);
+    if (!open) return;
+    updatePosition();
+    window.addEventListener("scroll", updatePosition, true);
+    window.addEventListener("resize", updatePosition, true);
+    return () => {
+      window.removeEventListener("scroll", updatePosition, true);
+      window.removeEventListener("resize", updatePosition, true);
+    };
+  }, [open, updatePosition]);
+
+  const handleSelectOption = (option: Option) => {
+    // If it's already selected, remove it; otherwise add it
+    const isAlreadySelected = selectedValues.includes(option.value);
+    let newSelectedValues: Array<Option["value"]>;
+    if (isAlreadySelected) {
+      newSelectedValues = selectedValues.filter((v) => v !== option.value);
+    } else {
+      newSelectedValues = [...selectedValues, option.value];
     }
-    setSelectedOptions(newSelected);
+    // Fire onChange
+    if (onChange) {
+      // Build the new selected options array
+      const newSelectedOptions = newSelectedValues
+        .map((val) => internalOptions.find((o) => o.value === val))
+        .filter(Boolean) as Option[];
+      onChange(newSelectedValues, newSelectedOptions);
+    }
+    // In uncontrolled mode, update local state
+    if (!isControlled) {
+      setInternalSelectedValues(newSelectedValues);
+    }
+    setQuery("");
+    setOpen(false);
+  };
 
-    // note on this dep array:
-    // we need to do a stringify here because value is an array
-    // and because of the default prop
-  }, [JSON.stringify(value), allowCreateNewOption]);
+  const handleRemoveOption = (valueToRemove: Option["value"]) => {
+    const newSelectedValues = selectedValues.filter((v) => v !== valueToRemove);
+    if (onChange) {
+      const newSelectedOptions = newSelectedValues
+        .map((val) => internalOptions.find((o) => o.value === val))
+        .filter(Boolean) as Option[];
+      onChange(newSelectedValues, newSelectedOptions);
+    }
+    if (!isControlled) {
+      setInternalSelectedValues(newSelectedValues);
+    }
+  };
 
-  useEffect(() => {
-    const newInternalOptions = [...internalOptions];
-    let updated = false;
-    selectedOptions.forEach((selected) => {
-      if (
-        selected &&
-        allowCreateNewOption &&
-        !newInternalOptions.some((option) => option.value === selected.value)
-      ) {
-        newInternalOptions.push(createNewOption(selected.value));
-        updated = true;
+  const handleClearAll = () => {
+    if (onChange) onChange([], []);
+    if (!isControlled) {
+      setInternalSelectedValues([]);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      if (!open) {
+        setOpen(true);
+        return;
       }
-    });
-    if (updated) {
-      setInternalOptions(newInternalOptions);
+      setHighlightIndex((prev) => (prev + 1) % filteredOptions.length);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      if (!open) {
+        setOpen(true);
+        return;
+      }
+      setHighlightIndex(
+        (prev) => (prev - 1 + filteredOptions.length) % filteredOptions.length
+      );
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      if (open && filteredOptions.length > 0 && highlightIndex >= 0) {
+        const option = filteredOptions[highlightIndex];
+        handleSelectOption(option);
+      }
+    } else if (e.key === "Escape") {
+      setOpen(false);
     }
-    ref?.current?.blur?.();
-  }, [selectedOptions, internalOptions, allowCreateNewOption]);
+  };
 
   return (
     <div
       className={twMerge(
-        "max-w-96 agui-item agui-select agui-multiselect",
+        "agui-item agui-select agui-multiselect max-w-96",
         rootClassNames
       )}
     >
@@ -230,125 +316,85 @@ export function MultiSelect(props: MultiSelectProps) {
         </label>
       )}
       <div className="relative">
-        <div
-          className={twMerge(
-            "flex flex-row flex-wrap gap-2 items-start w-full rounded-md border-0 pr-12 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 focus:ring-2 focus:ring-inset focus:ring-blue-400 dark:focus:ring-blue-500 sm:text-sm sm:leading-6",
-            inputSizeClasses[size] || inputSizeClasses["default"],
-            disabled
-              ? "bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500"
-              : "bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
-          )}
-          onClick={() => {
-            ref.current.focus();
-          }}
-        >
-          <input
+        <div className="flex flex-col">
+          <div
             ref={ref}
-            className="py-1 grow h-full rounded-md border-0 pr-12 ring-0 focus:ring-0 sm:text-sm sm:leading-6 bg-transparent hover:ring-2 hover:ring-inset hover:ring-blue-400 dark:hover:ring-blue-500 hover:cursor-pointer"
-            placeholder={placeholder}
-            value={query}
-            onChange={(event) => {
-              setQuery(event.target.value);
+            className={twMerge(
+              "flex flex-col items-start w-full rounded-md border-0 pr-12 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 focus-within:ring-2 focus-within:ring-inset focus-within:ring-blue-400 dark:focus-within:ring-blue-500 sm:text-sm sm:leading-6",
+              inputSizeClasses[size],
+              disabled
+                ? "bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500 cursor-not-allowed"
+                : "bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+            )}
+            onMouseUp={() => {
+              if (disabled) return;
               setOpen(true);
             }}
-            onFocus={() => setOpen(true)}
-            onBlur={() => setTimeout(() => setOpen(false), 100)}
-            onKeyDown={(e) => {
-              if (e.key === "ArrowDown") {
-                e.preventDefault();
-                if (!open) {
+          >
+            {/* Input for typing query */}
+            <input
+              disabled={disabled}
+              className="flex-grow py-1 min-w-[4rem] w-full rounded-md border-0 pr-12 ring-0 focus:ring-0 sm:text-sm sm:leading-6 bg-transparent cursor-text outline-none"
+              placeholder={selectedOptions.length === 0 ? placeholder : ""}
+              value={query}
+              onChange={(event) => {
+                if (!disabled) {
+                  setQuery(event.target.value);
                   setOpen(true);
-                  return;
                 }
-                setHighlightIndex(
-                  (prev) => (prev + 1) % filteredOptions.length
-                );
-              } else if (e.key === "ArrowUp") {
-                e.preventDefault();
-                if (!open) {
-                  setOpen(true);
-                  return;
-                }
-                setHighlightIndex(
-                  (prev) =>
-                    (prev - 1 + filteredOptions.length) % filteredOptions.length
-                );
-              } else if (e.key === "Enter") {
-                e.preventDefault();
-                if (open && filteredOptions.length > 0 && highlightIndex >= 0) {
-                  const option = filteredOptions[highlightIndex];
-                  if (selectedOptions.find((o) => o.value === option.value)) {
-                    // If already selected, remove it
-                    const newSelected = selectedOptions.filter(
-                      (o) => o.value !== option.value
-                    );
-                    setSelectedOptions(newSelected);
-                    if (onChange)
-                      onChange(
-                        newSelected.map((o) => o.value),
-                        newSelected
-                      );
-                  } else {
-                    // Add the option
-                    const newSelected = [...selectedOptions, option];
-                    setSelectedOptions(newSelected);
-                    if (onChange)
-                      onChange(
-                        newSelected.map((o) => o.value),
-                        newSelected
-                      );
-                  }
-                }
-              } else if (e.key === "Escape") {
-                setOpen(false);
-              }
-            }}
-          />
-          {selectedOptions.map((opt, i) => {
-            return tagRenderer ? (
-              tagRenderer(opt)
-            ) : (
-              <div
-                key={opt.value + "-" + i}
-                className="border border-gray-300 dark:border-gray-600 shadow-sm flex flex-row bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 items-center rounded-md cursor-default px-3 py-1 text-xs"
-              >
-                {opt.label}
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    const newSelected = selectedOptions.filter(
-                      (o) => o.value !== opt.value
-                    );
-                    setSelectedOptions(newSelected);
-                    if (onChange)
-                      onChange(
-                        newSelected.map((d) => d.value),
-                        newSelected
-                      );
-                  }}
-                  className="ml-1"
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              </div>
-            );
-          })}
-          {allowClear && selectedOptions.length > 0 && (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                setSelectedOptions([]);
-                if (onChange) onChange([], []);
               }}
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1"
-            >
-              <CircleX className="w-4 h-4" />
-            </button>
-          )}
+              onFocus={() => {
+                if (!disabled) {
+                  setOpen(true);
+                }
+              }}
+              onKeyDown={handleKeyDown}
+            />
+            {/* Clear button */}
+            {allowClear && selectedOptions.length > 0 && !disabled && (
+              <button
+                type="button"
+                onMouseUp={(e) => {
+                  e.stopPropagation();
+                  handleClearAll();
+                }}
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1"
+              >
+                <CircleX className="w-4 h-4" />
+              </button>
+            )}
+            <div className="flex flex-row flex-wrap gap-2">
+              {/* Render selected tags */}
+              {selectedOptions.map((opt, i) =>
+                tagRenderer ? (
+                  <div key={opt.value + "-" + i}>{tagRenderer(opt)}</div>
+                ) : (
+                  <div
+                    key={opt.value + "-" + i}
+                    className="border border-gray-300 dark:border-gray-600 shadow-sm flex flex-row bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 items-center rounded-md px-2 py-1 text-xs"
+                  >
+                    {opt.label}
+                    {!disabled && (
+                      <button
+                        type="button"
+                        onMouseUp={(e) => {
+                          e.stopPropagation();
+                          handleRemoveOption(opt.value);
+                        }}
+                        className="ml-1"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    )}
+                  </div>
+                )
+              )}
+            </div>
+          </div>
         </div>
-        {open && (
+
+        {/* Dropdown */}
+        {open && !disabled && (
           <ul
             style={dropdownStyle}
             className={twMerge(
@@ -356,48 +402,39 @@ export function MultiSelect(props: MultiSelectProps) {
               popupClassName
             )}
           >
-            {filteredOptions.map((option, idx) => (
-              <li
-                key={option.value + "-" + idx}
-                className={twMerge(
-                  "cursor-pointer select-none relative px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-800",
-                  popupOptionSizeClasses[size] ||
-                    popupOptionSizeClasses["default"],
-                  highlightIndex === idx
-                    ? "bg-blue-100 dark:bg-blue-900/50"
-                    : ""
-                )}
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => {
-                  let newSelected: Option[] = [];
-                  if (selectedOptions.find((o) => o.value === option.value)) {
-                    newSelected = selectedOptions.filter(
-                      (o) => o.value !== option.value
-                    );
-                  } else {
-                    newSelected = [...selectedOptions, option];
-                  }
-                  setSelectedOptions(newSelected);
-                  if (onChange)
-                    onChange(
-                      newSelected.map((d) => d.value),
-                      newSelected
-                    );
-                  setQuery("");
-                  setOpen(false);
-                }}
-                // change highlight index on hover
-                onMouseEnter={() => setHighlightIndex(idx)}
-                onMouseLeave={() => setHighlightIndex(-1)}
-              >
-                {optionRenderer ? optionRenderer(option) : option.label}
-                {selectedOptions.find((o) => o.value === option.value) && (
-                  <span className="absolute inset-y-0 right-0 flex items-center pr-4">
-                    <Check className="w-5 h-5" aria-hidden="true" />
-                  </span>
-                )}
+            {filteredOptions.map((option, idx) => {
+              const isSelected = selectedValues.includes(option.value);
+              return (
+                <li
+                  key={String(option.value) + "-" + idx}
+                  className={twMerge(
+                    "cursor-pointer select-none relative hover:bg-gray-100 dark:hover:bg-gray-800",
+                    popupOptionSizeClasses[size] ||
+                      popupOptionSizeClasses["default"],
+                    highlightIndex === idx
+                      ? "bg-blue-100 dark:bg-blue-900/50"
+                      : ""
+                  )}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onMouseUp={() => handleSelectOption(option)}
+                  onMouseEnter={() => setHighlightIndex(idx)}
+                  onMouseLeave={() => setHighlightIndex(-1)}
+                >
+                  {optionRenderer ? optionRenderer(option) : option.label}
+                  {/* Check icon if selected */}
+                  {isSelected && (
+                    <span className="absolute inset-y-0 right-0 flex items-center pr-4">
+                      <Check className="w-5 h-5" aria-hidden="true" />
+                    </span>
+                  )}
+                </li>
+              );
+            })}
+            {filteredOptions.length === 0 && (
+              <li className="px-3 py-2 text-gray-500 dark:text-gray-400 text-sm">
+                No options
               </li>
-            ))}
+            )}
           </ul>
         )}
       </div>
