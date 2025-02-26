@@ -134,15 +134,16 @@ export function Tabs({
         >
           <nav
             className={twMerge(
-              "isolate flex divide-gray-200 dark:divide-gray-700 shadow max-w-full overflow-auto",
-              size === "small"
-                ? showVerticalTabs
-                  ? ""
-                  : "rounded-t-2xl"
-                : "rounded-2xl",
+              "border isolate flex divide-gray-200 dark:divide-gray-700 shadow max-w-full overflow-auto",
+              // size === "small"
+              //   ? showVerticalTabs
+              //     ? ""
+              //     : "rounded-t-2xl"
+              //   : "rounded-t-2xl",
+
               showVerticalTabs
                 ? "divide-y flex flex-col rounded-r-none rounded-l-2xl"
-                : "divide-x"
+                : "divide-x rounded-t-xl"
             )}
             aria-label="Tabs"
           >
@@ -168,12 +169,12 @@ export function Tabs({
                   tabIdx === 0
                     ? showVerticalTabs
                       ? "rounded-tl-2xl"
-                      : "rounded-l-2xl"
+                      : "rounded-tl-2xl"
                     : "",
                   tabIdx === tabs.length - 1
                     ? showVerticalTabs
                       ? "rounded-bl-2xl"
-                      : "rounded-r-2xl"
+                      : "rounded-tr-2xl"
                     : "",
                   typeof tab?.headerClassNames === "function"
                     ? tab?.headerClassNames?.(
@@ -220,28 +221,22 @@ export function Tabs({
           </nav>
         </div>
       </div>
-      <div
-        className={twMerge(
-          "rounded-b-2xl bg-white dark:bg-gray-800 p-4 grow min-w-0 min-h-0",
-          contentClassNames,
-          selectedTab?.classNames
-        )}
-      >
-        {tabs.map((tab) => (
-          <div
-            key={tab.name}
-            className={twMerge(
-              defaultTabClassNames,
-              selectedTab?.classNames,
-              selectedTab.name === tab.name
-                ? "relative h-full overflow-y-auto"
-                : "fixed left-[-1000px] top-[-1000px] z-[-1] pointer-events-none *:pointer-events-none opacity-0"
-            )}
-          >
-            {tab.content}
-          </div>
-        ))}
-      </div>
+      {tabs.map((tab) => (
+        <div
+          key={tab.name}
+          className={twMerge(
+            "rounded-b-2xl bg-white dark:bg-gray-800 p-4 grow min-w-0 min-h-0",
+            defaultTabClassNames,
+            contentClassNames,
+            selectedTab?.classNames,
+            selectedTab.name === tab.name
+              ? "relative h-full"
+              : "fixed left-[-1000px] top-[-1000px] z-[-1] pointer-events-none *:pointer-events-none opacity-0"
+          )}
+        >
+          {tab.content}
+        </div>
+      ))}
     </div>
   );
 }
