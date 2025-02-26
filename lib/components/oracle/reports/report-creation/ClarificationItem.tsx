@@ -34,6 +34,7 @@ export const ClarificationItem = ({
           <MultiSelect
             label={clarification}
             options={options.map((d) => ({ label: d, value: d }))}
+            // @ts-ignore
             onChange={onAnswerChange}
           />
         );
