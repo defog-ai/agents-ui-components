@@ -50,6 +50,7 @@ export function OracleDraftReport({
   const [draft, setDraft] = useState<ReportDraft>({});
   const [loading, setLoading] = useState<boolean>(false);
   const [isMac, setIsMac] = useState<boolean>(false);
+  const [reportId, setReportId] = useState<string>("");
   const loadingStatus = useRef<string>("");
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -67,6 +68,7 @@ export function OracleDraftReport({
         apiEndpoint,
         token,
         apiKeyName,
+        reportId,
         textAreaRef.current?.value || draft.userQuestion,
         draft.sources.filter((s) => s.selected).map((s) => s.link),
         draft.clarifications.filter((c) => c.answer && c.is_answered)
@@ -132,20 +134,30 @@ export function OracleDraftReport({
                   userQuestion: question,
                 }));
 
-                const [clarifications, sources] = await Promise.all([
-                  getClarifications(apiEndpoint, token, apiKeyName, question),
-                  getSources(apiEndpoint, token, apiKeyName, question),
-                ]).catch((e) => {
-                  throw new Error("Error getting sources and clarifications");
-                });
+                // const [clarifications, sources] = await Promise.all([
+                //   getClarifications(apiEndpoint, token, apiKeyName, question),
+                //   getSources(apiEndpoint, token, apiKeyName, question),
+                // ]).catch((e) => {
+                //   throw new Error("Error getting sources and clarifications");
+                // });
+
+                const { clarifications, report_id } = await getClarifications(
+                  apiEndpoint,
+                  token,
+                  apiKeyName,
+                  question
+                );
+
+                setReportId(report_id);
 
                 setDraft((prev) => ({
                   ...prev,
                   clarifications,
-                  sources: (sources || []).map((s) => ({
-                    ...s,
-                    selected: false,
-                  })),
+                  // sources: (sources || []).map((s) => ({
+                  //   ...s,
+                  //   selected: false,
+                  // })),
+                  sources: [],
                 }));
               } catch (e) {
                 message.error("Error getting clarifications");

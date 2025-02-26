@@ -999,6 +999,7 @@ export const generateReport = async (
   apiEndpoint: string,
   token: string,
   apiKeyName: string,
+  reportId: string,
   userQuestion: string,
   sources: string[] = [],
   clarifications = []
@@ -1025,6 +1026,7 @@ export const generateReport = async (
         sources: sources,
         task_type: "exploration",
         clarifications,
+        report_id: reportId,
       }),
     }
   );
@@ -1061,7 +1063,7 @@ export const getClarifications = async (
   );
   if (!res.ok) throw new Error("Failed to get clarifications");
   const data = await res.json();
-  return data.clarifications;
+  return data;
 };
 
 export interface SourceItem {
