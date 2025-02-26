@@ -94,14 +94,12 @@ export function ChartContainer({
   stepData,
   initialQuestion = null,
   initialOptionsExpanded = false,
-  arbitApiEndpoint = null,
 }: {
   rows?: any[];
   columns?: any[];
   stepData?: ParsedOutput;
   initialQuestion: string | null;
   initialOptionsExpanded?: boolean;
-  arbitApiEndpoint?: string;
 }) {
   const [isOptionsExpanded, setIsOptionsExpanded] = useState(
     initialOptionsExpanded
@@ -135,7 +133,7 @@ export function ChartContainer({
   const chartEditUrl = setupBaseUrl({
     protocol: "http",
     path: "edit_chart",
-    apiEndpoint: apiEndpoint || arbitApiEndpoint,
+    apiEndpoint: apiEndpoint,
   });
 
   const messageManager = useContext(MessageManagerContext);
