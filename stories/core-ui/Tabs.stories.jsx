@@ -88,3 +88,54 @@ export const WithCustomHeader = {
     ],
   },
 };
+
+export const Vertical = {
+  name: "Vertical tabs",
+  args: {
+    tabs: [
+      {
+        name: "Tab 1",
+        content: (
+          <div className="h-40 flex items-center justify-center">
+            Content for tab 1
+          </div>
+        ),
+      },
+      {
+        name: "Tab 2",
+        content: (
+          <div className="h-40 flex items-center justify-center">
+            Content for tab 2
+          </div>
+        ),
+      },
+      {
+        name: "Tab 3",
+        content: (
+          <div className="h-40 flex items-center justify-center">
+            Content for tab 3
+          </div>
+        ),
+      },
+    ],
+    vertical: true,
+  },
+};
+export const Small = {
+  name: "Small tabs",
+  args: {
+    tabs: [
+      {
+        name: "Tab 1",
+        content: (
+          <div className="h-40 flex items-center justify-center">
+            Content for tab 1
+          </div>
+        ),
+      },
+      blueHeaderTab,
+      redBackgroundTab,
+    ],
+    size: "small",
+  },
+};

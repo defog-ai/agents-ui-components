@@ -1,5 +1,5 @@
-import { CircleAlert } from "lucide-react";
-import React, { forwardRef, Ref } from "react";
+import { CircleAlert, TriangleAlert } from "lucide-react";
+import React, { forwardRef, Ref, useId } from "react";
 import { twMerge } from "tailwind-merge";
 
 const inputSizeClasses = {
@@ -17,7 +17,7 @@ interface InputProps {
   /** The type of the input. Can be "text", "password", "email", "number", "tel", "url". */
   type?: string;
   /** The status of the input. Can be "error". If "error" is set, the input will have a red border. */
-  status?: "error";
+  status?: "error" | "warning" | null;
   /** If true, the input will be disabled. */
   disabled?: boolean;
   /** Additional classes to be added to the root div. */
@@ -40,6 +40,30 @@ interface InputProps {
   size?: "default" | "small";
 }
 
+const statusClasses = {
+  error:
+    "focus:ring-rose-400 ring-rose-400 dark:focus:ring-rose-500 dark:ring-rose-500 pr-7",
+  warning:
+    "focus:ring-yellow-400 ring-yellow-400 dark:focus:ring-yellow-500 dark:ring-yellow-500 pr-7",
+  default: "focus:ring-blue-400 dark:focus:ring-blue-500",
+};
+
+const statusIcons = {
+  error: (
+    <CircleAlert
+      className="w-5 h-5 text-transparent stroke-rose-400"
+      aria-hidden="true"
+    />
+  ),
+  warning: (
+    <TriangleAlert
+      className="w-5 h-5 text-transparent stroke-yellow-400"
+      aria-hidden="true"
+    />
+  ),
+  default: <></>,
+};
+
 let Input = forwardRef(function Input(
   {
     value = undefined,
@@ -60,6 +84,8 @@ let Input = forwardRef(function Input(
   }: InputProps,
   ref: Ref<HTMLInputElement>
 ) {
+  const idInternal = useId();
+
   return (
     <div
       className={twMerge(
@@ -69,7 +95,7 @@ let Input = forwardRef(function Input(
     >
       {label && (
         <label
-          htmlFor={name}
+          htmlFor={id || idInternal}
           className="block mb-2 text-xs font-light text-gray-600 dark:text-gray-400"
         >
           {label}
@@ -80,17 +106,15 @@ let Input = forwardRef(function Input(
           ref={ref}
           type={type}
           name={name}
-          id={id}
+          id={id || idInternal}
           className={twMerge(
             "focus:outline-none block w-full shadow-sm px-2 rounded-md border-0 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-1 focus:ring-inset",
-            status !== "error"
-              ? "focus:ring-blue-400 dark:focus:ring-blue-500"
-              : "focus:ring-rose-400 ring-rose-400 dark:focus:ring-rose-500 dark:ring-rose-500",
             "text-[16px] lg:text-sm sm:leading-6",
+            inputSizeClasses[size] || inputSizeClasses["default"],
+            statusClasses[status] || statusClasses["default"],
             disabled
               ? "bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500 focus:ring-gray-100 dark:focus:ring-gray-800 cursor-not-allowed"
               : "bg-white dark:bg-gray-900 dark:text-gray-100",
-            inputSizeClasses[size] || inputSizeClasses["default"],
             inputClassNames
           )}
           placeholder={placeholder}
@@ -110,12 +134,9 @@ let Input = forwardRef(function Input(
           {...inputHtmlProps}
           {...{ defaultValue, value }}
         />
-        {status === "error" && (
-          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-            <CircleAlert
-              className="w-5 h-5 text-transparent stroke-rose-400"
-              aria-hidden="true"
-            />
+        {status && statusIcons[status] && (
+          <div className="absolute inset-y-0 right-0 flex items-center pr-1.5 pointer-events-none">
+            {statusIcons[status]}
           </div>
         )}
       </div>

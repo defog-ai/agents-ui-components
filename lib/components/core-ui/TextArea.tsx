@@ -1,4 +1,4 @@
-import { CircleAlert } from "lucide-react";
+import { CircleAlert, TriangleAlert } from "lucide-react";
 import React, { forwardRef, Ref, useEffect, useRef } from "react";
 import { twMerge } from "tailwind-merge";
 
@@ -11,6 +11,30 @@ const textAreaSizeClasses = {
   default: "min-h-[36px]",
   small: "min-h-[32px] max-h-[32px]",
   medium: "min-h-[60px]",
+};
+
+const statusClasses = {
+  error:
+    "focus:ring-rose-400 ring-rose-400 dark:focus:ring-rose-500 dark:ring-rose-500 pr-7",
+  warning:
+    "focus:ring-yellow-400 ring-yellow-400 dark:focus:ring-yellow-500 dark:ring-yellow-500 pr-7",
+  default: "focus:ring-blue-400 dark:focus:ring-blue-500",
+};
+
+const statusIcons = {
+  error: (
+    <CircleAlert
+      className="w-5 h-5 text-transparent stroke-rose-400"
+      aria-hidden="true"
+    />
+  ),
+  warning: (
+    <TriangleAlert
+      className="w-5 h-5 text-transparent stroke-yellow-400"
+      aria-hidden="true"
+    />
+  ),
+  default: <></>,
 };
 
 interface TextAreaProps {
@@ -98,14 +122,12 @@ let TextArea = forwardRef(function TextArea(
               "text-[16px] lg:text-sm leading-6",
               "placeholder:text-gray-400 dark:placeholder:text-gray-500",
               textAreaSizeClasses[size] || textAreaSizeClasses["default"],
-              status !== "error"
-                ? "focus:ring-blue-400 dark:focus:ring-blue-500"
-                : "ring-rose-400 focus:ring-rose-400 dark:ring-rose-500 dark:focus:ring-rose-500",
               disabled
                 ? "bg-gray-100 dark:bg-gray-800 text-gray-400 focus:ring-gray-100 dark:focus:ring-gray-700 cursor-not-allowed"
                 : "bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100",
               textAreaClassNames,
-              suffix ? "pb-6" : ""
+              suffix ? "pb-6" : "",
+              statusClasses[status] || statusClasses["default"]
             )}
             onFocus={(ev) => {
               if (autoResize) {
@@ -127,12 +149,9 @@ let TextArea = forwardRef(function TextArea(
             </div>
           )}
         </div>
-        {status === "error" && (
-          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-            <CircleAlert
-              className="w-5 h-5 text-transparent stroke-rose-400"
-              aria-hidden="true"
-            />
+        {statusIcons[status] && (
+          <div className="absolute inset-y-0 right-0 flex items-center pr-1.5 pointer-events-none">
+            {statusIcons[status]}
           </div>
         )}
       </div>

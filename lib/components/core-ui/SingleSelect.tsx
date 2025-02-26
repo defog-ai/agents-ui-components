@@ -1,5 +1,5 @@
 import { isNumber } from "@utils/utils";
-import { Check, ChevronsUpDownIcon, CircleX } from "lucide-react";
+import { Check, ChevronDown, CircleX } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { twMerge } from "tailwind-merge";
 
@@ -261,7 +261,7 @@ export function SingleSelect({
       {label && (
         <label
           className={twMerge(
-            "block text-xs mb-2 font-light text-gray-600",
+            "block text-xs mb-2 font-light text-gray-600 dark:text-gray-400",
             labelClassNames
           )}
         >
@@ -333,7 +333,7 @@ export function SingleSelect({
           <button
             type="button"
             className="absolute inset-y-0 flex items-center px-1 right-7 focus:outline-none"
-            onMouseDown={(ev) => {
+            onMouseUp={(ev) => {
               ev.preventDefault();
               ev.stopPropagation();
               setSelectedOption(null);
@@ -347,13 +347,13 @@ export function SingleSelect({
         <button
           type="button"
           className="absolute inset-y-0 right-0 flex items-center px-1.5 focus:outline-none"
-          onMouseDown={(ev) => {
+          onMouseUp={(ev) => {
             ev.preventDefault();
             ev.stopPropagation();
             setOpen(!open);
           }}
         >
-          <ChevronsUpDownIcon
+          <ChevronDown
             className="w-4 h-4 text-gray-400 dark:text-gray-500"
             aria-hidden="true"
           />
@@ -381,7 +381,7 @@ export function SingleSelect({
                 onMouseEnter={() => setHighlightIndex(idx)}
                 onMouseLeave={() => setHighlightIndex(-1)}
                 // change selected option on click
-                onMouseDown={(e) => {
+                onMouseUp={(e) => {
                   e.preventDefault();
                   setSelectedOption(option);
                   setQuery(null);
