@@ -68,12 +68,12 @@ export function Sidebar({
     }
   }, [sidebarOpen]);
 
-  const defaultIconClasses = `toggle-button absolute top-1 rounded-tr-md rounded-br-md bg-inherit p-2 pl-1  self-start z-10 transition-all cursor-pointer ${sidebarOpen ? "right-1" : "-right-7 border border-inherit border-l-0"}`;
+  const defaultIconClasses = `toggle-button absolute top-1 rounded-tr-md rounded-br-md bg-inherit p-2 pl-1 self-start z-10 transition-all cursor-pointer text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 ${sidebarOpen ? "right-1" : "-right-7 border border-gray-200 dark:border-gray-700 border-l-0"}`;
 
   return (
     <div
       className={twMerge(
-        "sidebar relative flex flex-row border-r",
+        "sidebar relative flex flex-row border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800",
         rootClassNames,
         sidebarOpen ? openClassNames : closedClassNames
       )}
@@ -83,11 +83,11 @@ export function Sidebar({
         className="transition-all grow overflow-y-hidden"
       >
         <div
-          className={twMerge("w-80 block", contentClassNames)}
+          className={twMerge("w-80 block text-gray-900 dark:text-gray-100", contentClassNames)}
           ref={contentRef}
         >
           {beforeTitle || <></>}
-          {title ? <h2 className="mb-3 font-sans">{title}</h2> : <></>}
+          {title ? <h2 className="mb-3 font-sans text-gray-900 dark:text-gray-100">{title}</h2> : <></>}
           {children}
         </div>
       </div>
