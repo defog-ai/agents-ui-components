@@ -3,6 +3,7 @@ import type {
   Analysis,
   OracleReportComment,
   Summary,
+  SQLAnalysis,
 } from "./OracleReportContext";
 
 import { OracleReportMultiTableExtension } from "./reports/tiptap-extensions/OracleReportMultiTable";
@@ -647,8 +648,7 @@ export const getReportMDX = async (
   }
 
   const data = await res.json();
-
-  return data.tiptap_mdx || data.mdx;
+  return data;
 };
 
 export const updateReportMDX = async (
@@ -879,7 +879,7 @@ export const submitForRevision = async (
 export interface ReportData {
   parsed: ReturnType<MDX["getParsed"]> | null;
   summary: Summary;
-  analysisIds: string[];
+  analyses: SQLAnalysis[];
   comments: OracleReportComment[];
 }
 
@@ -889,21 +889,18 @@ export async function fetchAndParseReportData(
   keyName: string,
   token: string
 ): Promise<ReportData> {
-  const mdx = await getReportMDX(apiEndpoint, reportId, keyName, token);
-
-  let parsed: ReturnType<MDX["getParsed"]> = null;
-  let sum: Summary = null;
-  let analysisIds: string[] = [];
-  let fetchedComments: OracleReportComment[] = [];
-
-  parsed = parseMDX(mdx);
-
-  analysisIds = await getReportAnalysisIds(
+  const { mdx, analyses } = await getReportMDX(
     apiEndpoint,
     reportId,
     keyName,
     token
   );
+
+  let parsed: ReturnType<MDX["getParsed"]> = null;
+  let sum: Summary = null;
+  let fetchedComments: OracleReportComment[] = [];
+
+  parsed = parseMDX(mdx);
 
   fetchedComments = await getReportComments(
     apiEndpoint,
@@ -915,7 +912,7 @@ export async function fetchAndParseReportData(
   return {
     parsed,
     summary: sum,
-    analysisIds: analysisIds,
+    analyses: analyses,
     comments: fetchedComments,
   };
 }
