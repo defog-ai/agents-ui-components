@@ -348,6 +348,10 @@ export function MultiSelect(props: MultiSelectProps) {
                   setOpen(true);
                 }
               }}
+              onBlur={() => {
+                setTimeout(() => setOpen(false), 200);
+                setQuery("");
+              }}
               onKeyDown={handleKeyDown}
             />
             {/* Clear button */}
