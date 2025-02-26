@@ -8,7 +8,10 @@ import { SpinningLoader } from "@ui-components";
 function OracleEmbedTest() {
   const [apiKeyNames, setApiKeyNames] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [darkMode, setDarkMode] = useState<boolean>(false);
+  const [useSystemTheme, setUseSystemTheme] = useState<boolean>(true);
+  const [darkMode, setDarkMode] = useState<boolean>(() => 
+    window.matchMedia('(prefers-color-scheme: dark)').matches
+  );
 
   useEffect(() => {
     async function setup() {
@@ -23,13 +26,29 @@ function OracleEmbedTest() {
     setup();
   }, []);
 
+  useEffect(() => {
+    if (!useSystemTheme) return;
+    
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = (e: MediaQueryListEvent) => setDarkMode(e.matches);
+    
+    // Set initial value
+    setDarkMode(mediaQuery.matches);
+    
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, [useSystemTheme]);
+
   return (
     <div className={`h-screen ${darkMode ? "dark" : ""}`}>
       <button
-        onClick={() => setDarkMode(!darkMode)}
+        onClick={() => {
+          setUseSystemTheme(false);
+          setDarkMode(!darkMode);
+        }}
         className="fixed top-4 right-4 px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-md shadow-sm hover:shadow-md transition-all"
       >
-        {darkMode ? "☀️ Light" : "🌙 Dark"}
+        {darkMode ? "☀️ Light" : "🌙 Dark"} {useSystemTheme && "(System)"}
       </button>
       {loading ? (
         <SpinningLoader />
