@@ -328,7 +328,7 @@ export function MultiSelect(props: MultiSelectProps) {
             <input
               disabled={disabled}
               className="flex-grow py-1 min-w-[4rem] w-full rounded-md border-0 pr-12 ring-0 focus:ring-0 sm:text-sm sm:leading-6 bg-transparent cursor-text outline-none"
-              placeholder={selectedOptions.length === 0 ? placeholder : ""}
+              placeholder={placeholder}
               value={query}
               onChange={(event) => {
                 if (!disabled) {
