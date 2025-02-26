@@ -261,7 +261,7 @@ export function SingleSelect({
       {label && (
         <label
           className={twMerge(
-            "block text-xs mb-2 font-light text-gray-600",
+            "block text-xs mb-2 font-light text-gray-600 dark:text-gray-400",
             labelClassNames
           )}
         >
