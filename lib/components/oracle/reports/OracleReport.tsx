@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useState } from "react";
 import { SpinningLoader } from "@ui-components";
 import {
   extensions,
@@ -6,12 +6,14 @@ import {
   OracleNav,
   OracleReportComment,
   OracleReportContext,
-  Summary,
   fetchAndParseReportData,
+  SQLAnalysis,
   ReportData,
 } from "@oracle";
-import { QueryDataEmbedContext } from "@agent";
 import { EditorProvider } from "@tiptap/react";
+import { Tabs, Table } from "@ui-components";
+import ErrorBoundary from "../../common/ErrorBoundary";
+import { ChartContainer } from "../../observable-charts/ChartContainer";
 
 export function OracleReport({
   apiEndpoint,
@@ -29,15 +31,10 @@ export function OracleReport({
   onReportParsed?: (data: ReportData | null) => void;
 }) {
   const [tables, setTables] = useState<any>({});
-  const [multiTables, setMultiTables] = useState<any>({});
-  const [images, setImages] = useState<any>({});
-  const [analysisIds, setAnalysisIds] = useState<string[]>([]);
+  const [analyses, setAnalyses] = useState<SQLAnalysis[]>([]);
   const [comments, setComments] = useState<OracleReportComment[]>([]);
 
   const [mdx, setMDX] = useState<string | null>(null);
-  const [executiveSummary, setExecutiveSummary] = useState<Summary | null>(
-    null
-  );
 
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -60,10 +57,7 @@ export function OracleReport({
 
         data.parsed.mdx && setMDX(data.parsed.mdx);
         data.parsed.tables && setTables(data.parsed.tables);
-        data.parsed.multiTables && setMultiTables(data.parsed.multiTables);
-        data.parsed.images && setImages(data.parsed.images);
-        data.analysisIds && setAnalysisIds(data.analysisIds);
-        data.summary && setExecutiveSummary(data.summary);
+        data.analyses && setAnalyses(data.analyses);
         data.comments && setComments(data.comments);
 
         onReportParsed && onReportParsed(data);
@@ -125,37 +119,28 @@ export function OracleReport({
   // }
 
   return (
-    // sad reality for getting the chart container to work
-    // it makes a request to this api endpoint to edit the chart's config
-    // which defaults to demo.defog.ai if not provided
-    // (╯°□°)╯︵ ┻━┻
-    <QueryDataEmbedContext.Provider
+    <OracleReportContext.Provider
       value={{
-        // @ts-ignore
-        val: { apiEndpoint: apiEndpoint || "" },
-      }}
-    >
-      <OracleReportContext.Provider
-        value={{
+        apiEndpoint: apiEndpoint,
+        tables: tables,
+        multiTables: {},
+        images: {},
+        analyses: analyses,
+        executiveSummary: null,
+        reportId: reportId,
+        keyName: keyName,
+        token: token,
+        commentManager: commentManager({
           apiEndpoint: apiEndpoint,
-          tables: tables,
-          multiTables: multiTables,
-          images: images,
-          analysisIds: analysisIds,
-          executiveSummary: executiveSummary,
           reportId: reportId,
           keyName: keyName,
           token: token,
-          commentManager: commentManager({
-            apiEndpoint: apiEndpoint,
-            reportId: reportId,
-            keyName: keyName,
-            token: token,
-            initialComments: comments,
-          }),
-        }}
-      >
-        <div className="relative oracle-report-ctr">
+          initialComments: comments,
+        }),
+      }}
+    >
+      <div className="flex gap-4">
+        <div className="flex-1 relative oracle-report-ctr">
           <EditorProvider
             extensions={extensions}
             content={mdx}
@@ -170,7 +155,48 @@ export function OracleReport({
             }}
           ></EditorProvider>
         </div>
-      </OracleReportContext.Provider>
-    </QueryDataEmbedContext.Provider>
+        {/* include analyses at the side */}
+        <div className="w-[400px]">
+          <Tabs
+            tabs={analyses
+              .filter((analysis) => analysis.error === "")
+              .map((analysis) => ({
+                name: analysis.question,
+                content: (
+                  <Tabs
+                    tabs={[
+                      {
+                        name: "Table",
+                        content: (
+                          <Table
+                            columns={analysis.columns}
+                            rows={analysis.rows}
+                            columnHeaderClassNames="py-2"
+                            skipColumns={["index"]}
+                          />
+                        ),
+                      },
+                      {
+                        name: "Chart",
+                        content: (
+                          <ErrorBoundary>
+                            <ChartContainer
+                              arbitApiEndpoint={apiEndpoint}
+                              rows={analysis.rows}
+                              columns={analysis.columns}
+                              initialQuestion={analysis.question}
+                              initialOptionsExpanded={false}
+                            />
+                          </ErrorBoundary>
+                        ),
+                      },
+                    ]}
+                  />
+                ),
+              }))}
+          />
+        </div>
+      </div>
+    </OracleReportContext.Provider>
   );
 }
