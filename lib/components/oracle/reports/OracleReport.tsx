@@ -156,7 +156,7 @@ export function OracleReport({
           ></EditorProvider>
         </div>
         {/* include analyses at the side */}
-        <div className="w-[400px]">
+        <div className="w-[600px]">
           <Tabs
             tabs={analyses
               .filter((analysis) => analysis.error === "")
@@ -181,7 +181,6 @@ export function OracleReport({
                         content: (
                           <ErrorBoundary>
                             <ChartContainer
-                              arbitApiEndpoint={apiEndpoint}
                               rows={analysis.rows}
                               columns={analysis.columns}
                               initialQuestion={analysis.question}
