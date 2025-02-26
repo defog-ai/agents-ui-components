@@ -105,7 +105,7 @@ export const OracleAnalysis = ({ analysisId }: OracleAnalysisProps) => {
             token: token,
             keyName,
             reportId,
-            analysisIds: [],
+            analyses: [],
             executiveSummary: {
               title: "",
               introduction: "",

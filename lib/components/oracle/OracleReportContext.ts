@@ -44,6 +44,15 @@ export interface Analysis {
   round?: number;
 }
 
+export interface SQLAnalysis {
+  analysis_id: string;
+  question: string;
+  columns?: any[];
+  rows?: any[];
+  df_truncated?: boolean;
+  error?: string;
+}
+
 interface MultiTable {
   [key: string]: {
     tableIds: string[];
@@ -108,7 +117,7 @@ export interface OracleReportContext {
   /**
    * Holds the analysis ids for an oracle report
    */
-  analysisIds: string[];
+  analyses: SQLAnalysis[];
 
   /**
    * Holds the executive summary for an oracle report
@@ -155,7 +164,7 @@ export const OracleReportContext = createContext<OracleReportContext>({
   multiTables: {},
   tables: {},
   images: {},
-  analysisIds: [],
+  analyses: [],
   executiveSummary: {
     title: "",
     introduction: "",
