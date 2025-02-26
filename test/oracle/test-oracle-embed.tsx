@@ -8,6 +8,7 @@ import { SpinningLoader } from "@ui-components";
 function OracleEmbedTest() {
   const [apiKeyNames, setApiKeyNames] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [darkMode, setDarkMode] = useState<boolean>(false);
 
   useEffect(() => {
     async function setup() {
@@ -23,7 +24,13 @@ function OracleEmbedTest() {
   }, []);
 
   return (
-    <div className="h-screen">
+    <div className={`h-screen ${darkMode ? "dark" : ""}`}>
+      <button
+        onClick={() => setDarkMode(!darkMode)}
+        className="fixed top-4 right-4 px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-md shadow-sm hover:shadow-md transition-all"
+      >
+        {darkMode ? "☀️ Light" : "🌙 Dark"}
+      </button>
       {loading ? (
         <SpinningLoader />
       ) : (
