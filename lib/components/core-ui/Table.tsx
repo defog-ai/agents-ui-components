@@ -22,7 +22,6 @@ interface Column {
   key?: string;
   width?: number | string;
   sorter?: boolean | ((a: any, b: any) => number);
-  render?: (value: any, record: any, index: number) => React.ReactNode;
   columnHeaderCellRender?: (value: Object) => false | React.ReactNode;
 }
 
