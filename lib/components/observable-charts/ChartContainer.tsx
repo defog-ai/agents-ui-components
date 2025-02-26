@@ -15,6 +15,7 @@ import {
 import { MessageManagerContext, SkeletalLoader } from "@ui-components";
 import setupBaseUrl from "../utils/setupBaseUrl";
 import { QueryDataEmbedContext } from "../context/QueryDataEmbedContext";
+import { OracleReportContext } from "@oracle";
 import { ParsedOutput } from "../query-data/analysis/analysisManager";
 import { KeyboardShortcutIndicator } from "../core-ui/KeyboardShortcutIndicator";
 import { KEYMAP } from "../../constants/keymap";
@@ -93,12 +94,14 @@ export function ChartContainer({
   stepData,
   initialQuestion = null,
   initialOptionsExpanded = false,
+  arbitApiEndpoint = null,
 }: {
   rows?: any[];
   columns?: any[];
   stepData?: ParsedOutput;
   initialQuestion: string | null;
   initialOptionsExpanded?: boolean;
+  arbitApiEndpoint?: string;
 }) {
   const [isOptionsExpanded, setIsOptionsExpanded] = useState(
     initialOptionsExpanded
@@ -120,12 +123,19 @@ export function ChartContainer({
     chartManager.setConfigCallback = setChartConfig;
   }, []);
 
-  const { apiEndpoint, token } = useContext(QueryDataEmbedContext);
+  const queryDataEmbedContext = useContext(QueryDataEmbedContext);
+  const oracleReportContext = useContext(OracleReportContext);
+
+  let { apiEndpoint, token } = queryDataEmbedContext;
+  if (!token) {
+    apiEndpoint = oracleReportContext.apiEndpoint;
+    token = oracleReportContext.token;
+  }
 
   const chartEditUrl = setupBaseUrl({
     protocol: "http",
     path: "edit_chart",
-    apiEndpoint: apiEndpoint,
+    apiEndpoint: apiEndpoint || arbitApiEndpoint,
   });
 
   const messageManager = useContext(MessageManagerContext);
