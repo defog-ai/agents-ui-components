@@ -150,7 +150,7 @@ export function OracleReport({
             editorProps={{
               attributes: {
                 class:
-                  "max-w-2xl oracle-report-tiptap relative prose prose-base dark:prose-invert mx-auto p-2 mb-12 md:mb-0 focus:outline-none *:cursor-default",
+                  "max-w-4xl oracle-report-tiptap relative prose prose-base dark:prose-invert mx-auto p-2 mb-12 md:mb-0 focus:outline-none *:cursor-default",
               },
             }}
           ></EditorProvider>
