@@ -153,7 +153,7 @@ export function OracleReport({
 
         {/* New UI for analyses */}
         {validAnalyses.length > 0 && (
-          <div className="w-[800px] sticky top-4 self-start max-h-[calc(100vh-2rem)] flex flex-col border dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-gray-800">
+          <div className="w-[00px] 2xl:w-[800px] sticky top-4 self-start max-h-[calc(100vh-2rem)] flex flex-col border dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-gray-800">
             {/* Header with view mode toggle */}
             <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 border-b dark:border-gray-700">
               <h3 className="text-sm font-medium text-gray-700 dark:text-gray-200">
@@ -199,7 +199,9 @@ export function OracleReport({
                   >
                     {/* Use max-height transition for smooth expansion */}
                     <div className="overflow-hidden transition-all duration-300 max-h-[4.5rem] hover:max-h-[500px]">
-                      <p className="line-clamp-3 hover:line-clamp-none">{analysis.question}</p>
+                      <p className="line-clamp-3 hover:line-clamp-none">
+                        {analysis.question}
+                      </p>
                     </div>
                   </button>
                 ))}
