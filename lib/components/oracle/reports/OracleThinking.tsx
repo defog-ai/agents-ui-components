@@ -1,13 +1,19 @@
 import React, { useEffect, useState, useRef, useContext } from "react";
 import { MessageManagerContext, SpinningLoader } from "@ui-components";
 
-import OracleThinkingStepCard, { ThinkingStep } from "./OracleThinkingStepCard";
+import OracleThinkingSQLCard, {
+  ThinkingStepSQL,
+} from "./OracleThinkingSQLCard";
+import OracleThinkingCard, { ThinkingStep } from "./OracleThinkingCard";
 
 type OracleThinkingProps = {
   apiEndpoint: string;
   token: string;
   reportId: string;
-  onStreamClosed?: (thinkingSteps: ThinkingStep[], hadError: boolean) => void;
+  onStreamClosed?: (
+    thinkingSteps: (ThinkingStep | ThinkingStepSQL)[],
+    hadError: boolean
+  ) => void;
 };
 
 const sep = "\n\n------\n\n";
@@ -18,7 +24,9 @@ export function OracleThinking({
   reportId,
   onStreamClosed = () => {},
 }: OracleThinkingProps) {
-  const [thinkingSteps, setThinkingSteps] = useState<ThinkingStep[]>([]);
+  const [thinkingSteps, setThinkingSteps] = useState<
+    (ThinkingStep | ThinkingStepSQL)[]
+  >([]);
   const [streamClosed, setStreamClosed] = useState(false);
 
   const thinkingStepsRef = useRef(thinkingSteps);
@@ -148,17 +156,29 @@ export function OracleThinking({
       {!streamClosed && (
         <div className="w-full h-40 bg-white dark:bg-gray-800 rounded-md border flex items-center justify-center gap-2">
           <SpinningLoader classNames="w-5 h-5 text-blue-500 animate-spin" />
-          <span className="text-sm">Thinking...</span>
+          <span className="text-sm">
+            Figuring out how to answer your question. I will show my thinking
+            below. The report will automatically load when I am done thinking.
+          </span>
         </div>
       )}
 
       {/* For each step, render our OracleStepCard */}
       <div className="w-full">
-        {thinkingSteps.map((step, idx) => (
-          <div key={idx} className="w-full md:w-1/2 p-2 inline-block align-top">
-            <OracleThinkingStepCard step={step} />
-          </div>
-        ))}
+        {thinkingSteps
+          .filter((step) => !step.result?.error)
+          .map((step, idx) => (
+            <div
+              key={idx}
+              className="w-full md:w-1/2 p-2 inline-block align-top"
+            >
+              {step.function_name === "text_to_sql_tool" ? (
+                <OracleThinkingSQLCard step={step} />
+              ) : (
+                <OracleThinkingCard step={step} />
+              )}
+            </div>
+          ))}
       </div>
     </div>
   );
