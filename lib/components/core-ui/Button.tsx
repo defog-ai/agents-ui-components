@@ -54,7 +54,8 @@ export function Button({
       className={twMerge(
         variantStyle,
         "agui-item agui-btn py-1 px-2 rounded-md text-sm flex flex-row items-center gap-1 active:brightness-[90%]",
-        disabled ? disabledStyles : className
+        className,
+        disabled ? disabledStyles : ""
       )}
     >
       {icon && <span className="ant-btn-icon">{icon}</span>}

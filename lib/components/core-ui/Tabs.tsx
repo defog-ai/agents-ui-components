@@ -120,7 +120,7 @@ export function Tabs({
       <nav
         role="tablist"
         className={twMerge(
-          "tab-group border isolate flex min-w-fit flex-row divide-gray-200 dark:divide-gray-700 shadow max-w-full overflow-auto",
+          "tab-group border dark:border-gray-700 isolate flex min-w-fit flex-row divide-gray-200 dark:divide-gray-700 shadow max-w-full overflow-auto",
           showVerticalTabs
             ? "sm:relative sm:left-0 origin-right flex flex-col rounded-r-none rounded-l-2xl"
             : "flex flex-row rounded-t-xl",
@@ -192,7 +192,7 @@ export function Tabs({
         <div
           key={tab.name}
           className={twMerge(
-            "rounded-b-2xl bg-white dark:bg-gray-800 p-4 grow min-w-0 min-h-0",
+            "rounded-b-2xl bg-white dark:bg-gray-800 p-4 grow min-w-0 min-h-0 border border-t-none dark:border-gray-700",
             defaultTabClassNames,
             contentClassNames,
             selectedTab?.classNames,
