@@ -153,7 +153,7 @@ export function OracleReport({
 
         {/* New UI for analyses */}
         {validAnalyses.length > 0 && (
-          <div className="w-[600px] sticky top-4 self-start max-h-[calc(100vh-2rem)] flex flex-col border dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-gray-800 shadow-lg">
+          <div className="w-[800px] sticky top-4 self-start max-h-[calc(100vh-2rem)] flex flex-col border dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-gray-800 shadow-lg">
             {/* Header with view mode toggle */}
             <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 border-b dark:border-gray-700">
               <h3 className="text-sm font-medium text-gray-700 dark:text-gray-200">
@@ -186,12 +186,12 @@ export function OracleReport({
             {/* Main content area */}
             <div className="flex flex-1 min-h-0 overflow-hidden">
               {/* Questions sidebar */}
-              <div className="w-1/3 border-r dark:border-gray-700 overflow-y-auto bg-white dark:bg-gray-800">
+              <div className="w-[250px] border-r dark:border-gray-700 overflow-y-auto bg-white dark:bg-gray-800">
                 {validAnalyses.map((analysis, index) => (
                   <button
                     key={index}
                     onClick={() => setSelectedAnalysisIndex(index)}
-                    className={`w-full text-left p-3 border-b dark:border-gray-700 text-sm transition-colors ${
+                    className={`w-full text-left p-3 border-b dark:border-gray-700 text-sm transition-colors h-[80px] ${
                       selectedAnalysisIndex === index
                         ? "bg-gray-100 dark:bg-gray-700 font-medium text-gray-900 dark:text-gray-100"
                         : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
@@ -203,7 +203,7 @@ export function OracleReport({
               </div>
 
               {/* Content area */}
-              <div className="w-2/3 overflow-auto p-3 bg-white dark:bg-gray-800">
+              <div className="w-full overflow-auto p-3 bg-white dark:bg-gray-800">
                 {selectedAnalysis && (
                   <>
                     {viewMode === "table" ? (
