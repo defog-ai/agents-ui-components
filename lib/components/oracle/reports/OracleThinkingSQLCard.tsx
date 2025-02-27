@@ -61,14 +61,17 @@ export default function OracleThinkingSQLCard({
 
   // If there's an error, we'll show an error UI. Otherwise, we show the tabs.
   return (
-    <div className="border p-4 rounded-md shadow-sm bg-white dark:bg-dark-bg-secondary dark:border-dark-border">
+    <div className="border p-4 rounded-md shadow-sm bg-white dark:bg-dark-bg-secondary dark:border-dark-border max-h-[600px] overflow-y-auto">
       <h2 className="text-lg font-semibold mb-2 text-gray-800 dark:text-dark-text-primary">
         Function: <span className="font-normal">{function_name}</span>
       </h2>
       {/* Show the question from the step */}
       {question && (
         <p className="mb-2 text-gray-700 dark:text-dark-text-secondary">
-          <strong className="text-gray-800 dark:text-dark-text-primary">Question:</strong> {question}
+          <strong className="text-gray-800 dark:text-dark-text-primary">
+            Question:
+          </strong>{" "}
+          {question}
         </p>
       )}
 
