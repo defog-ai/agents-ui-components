@@ -22,12 +22,16 @@ export interface ThinkingStep {
   result: SqlResult;
 }
 
-export default function OracleThinkingStepCard({
+export default function OracleThinkingSQLCard({
   step,
 }: {
   step: ThinkingStep;
 }) {
-  const { function_name, result = {} } = step;
+  let { function_name, result } = step;
+
+  if (!result) {
+    result = {} as SqlResult;
+  }
 
   const {
     question,
