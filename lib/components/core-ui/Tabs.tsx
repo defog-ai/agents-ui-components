@@ -8,7 +8,7 @@ export type Tab = {
   /**
    * The name of the tab.
    */
-  name: string | Element | React.ReactNode;
+  name: string | React.ReactNode;
 
   /**
    * The content of the tab.
@@ -188,9 +188,9 @@ export function Tabs({
           </div>
         ))}
       </nav>
-      {tabs.map((tab) => (
+      {tabs.map((tab, i) => (
         <div
-          key={tab.name}
+          key={i}
           className={twMerge(
             "rounded-b-2xl bg-white dark:bg-gray-800 p-4 grow min-w-0 min-h-0 border dark:border-gray-700",
             defaultTabClassNames,
