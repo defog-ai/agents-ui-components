@@ -42,6 +42,7 @@ export default {
 export const Primary = {
   name: "Basic tabs",
   args: {
+    rootClassNames: "p-8",
     tabs: [
       {
         name: "Tab 1",
@@ -74,6 +75,7 @@ export const Primary = {
 export const WithCustomHeader = {
   name: "Tabs with custom header + tab with red bg in content",
   args: {
+    rootClassNames: "p-8",
     tabs: [
       {
         name: "Tab 1",
@@ -92,6 +94,7 @@ export const WithCustomHeader = {
 export const Vertical = {
   name: "Vertical tabs",
   args: {
+    rootClassNames: "p-8",
     tabs: [
       {
         name: "Tab 1",
@@ -124,6 +127,7 @@ export const Vertical = {
 export const Small = {
   name: "Small tabs",
   args: {
+    rootClassNames: "p-8",
     tabs: [
       {
         name: "Tab 1",
