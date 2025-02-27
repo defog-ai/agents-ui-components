@@ -12,7 +12,7 @@ export interface SqlResult {
   error: string;
 }
 
-export interface ThinkingStep {
+export interface ThinkingStepSQL {
   function_name: string;
   inputs: {
     db_name: string;
@@ -25,7 +25,7 @@ export interface ThinkingStep {
 export default function OracleThinkingSQLCard({
   step,
 }: {
-  step: ThinkingStep;
+  step: ThinkingStepSQL;
 }) {
   let { function_name, result } = step;
 
@@ -61,20 +61,20 @@ export default function OracleThinkingSQLCard({
 
   // If there's an error, we'll show an error UI. Otherwise, we show the tabs.
   return (
-    <div className="border p-4 rounded-md shadow-sm">
-      <h2 className="text-lg font-semibold mb-2">
+    <div className="border p-4 rounded-md shadow-sm bg-white dark:bg-dark-bg-secondary dark:border-dark-border">
+      <h2 className="text-lg font-semibold mb-2 text-gray-800 dark:text-dark-text-primary">
         Function: <span className="font-normal">{function_name}</span>
       </h2>
       {/* Show the question from the step */}
       {question && (
-        <p className="mb-2">
-          <strong>Question:</strong> {question}
+        <p className="mb-2 text-gray-700 dark:text-dark-text-secondary">
+          <strong className="text-gray-800 dark:text-dark-text-primary">Question:</strong> {question}
         </p>
       )}
 
       {/* If the step had an error, show it prominently */}
       {error ? (
-        <div className="text-red-600 bg-red-100 p-3 rounded-md">
+        <div className="text-red-600 bg-red-100 p-3 rounded-md dark:bg-red-900/20 dark:text-red-400 dark:border dark:border-red-800">
           <strong>Error:</strong> {error}
         </div>
       ) : (
@@ -86,7 +86,7 @@ export default function OracleThinkingSQLCard({
                 <div className="relative">
                   {/* If `df_truncated` is true, you could show a small banner, for example: */}
                   {df_truncated && (
-                    <div className="text-sm bg-yellow-50 p-2 rounded mb-2 border border-yellow-200 text-yellow-700">
+                    <div className="text-sm bg-yellow-50 p-2 rounded mb-2 border border-yellow-200 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800">
                       Note: Results have been truncated
                     </div>
                   )}
