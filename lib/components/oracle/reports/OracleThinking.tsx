@@ -151,14 +151,17 @@ export function OracleThinking({
 
   return (
     <div className="relative p-2">
-      <h1 className="text-xl font-bold mb-4">Details</h1>
+      <h1 className="text-xl font-bold mb-4 dark:text-dark-text-primary">
+        Details
+      </h1>
 
       {!streamClosed && (
         <div className="w-full h-40 bg-white dark:bg-gray-800 rounded-md border flex items-center justify-center gap-2">
           <SpinningLoader classNames="w-5 h-5 text-blue-500 animate-spin" />
-          <span className="text-sm">
-            Figuring out how to answer your question. I will show my thinking
-            below. The report will automatically load when I am done thinking.
+          <span className="text-sm text-gray-700 dark:text-gray-300">
+            Creating SQL queries and searching the web to answer your question.
+            I will show my thinking below. The report will automatically load
+            when I am done thinking.
           </span>
         </div>
       )}

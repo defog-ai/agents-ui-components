@@ -52,9 +52,9 @@ export const SourceCard = ({
         }}
       >
         {source.selected ? (
-          <Check className="w-3" style={{ color: "green" }} />
+          <Check className="w-3 text-green-500 dark:text-green-400" />
         ) : (
-          <Plus className="w-3 hover:text-gray-600 stroke-2" />
+          <Plus className="w-3 text-gray-500 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300 stroke-2" />
         )}
       </div>
     </div>

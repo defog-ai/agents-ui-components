@@ -104,9 +104,9 @@ export function OracleDraftReport({
         <TextArea
           ref={textAreaRef}
           rootClassNames="w-full"
-          textAreaClassNames="rounded-xl"
+          textAreaClassNames="rounded-xl dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700"
           suffix={
-            <span className="flex items-center">
+            <span className="flex items-center dark:text-gray-400">
               Press{" "}
               {isMac ? (
                 <>
@@ -120,7 +120,7 @@ export function OracleDraftReport({
           }
           disabled={loading}
           label={
-            <div className="text-lg">What would you like a report on?</div>
+            <div className="text-lg dark:text-gray-200">What would you like a report on?</div>
           }
           placeholder="Type here"
           autoResize={true}
@@ -176,12 +176,12 @@ export function OracleDraftReport({
 
         {!loading && draft.clarifications && (
           <div className="my-4 max-w-2xl">
-            <div className="font-light mb-2">Add Details & Sources</div>
+            <div className="font-light mb-2 dark:text-gray-300">Add Details & Sources</div>
             <div className="space-y-6">
               {draft.sources?.length > 0 && (
                 <div className="space-y-2">
-                  <div className="font-light text-sm">Sources</div>
-                  <div className="bg-white dark:bg-gray-800 flex w-full flex-col pl-1">
+                  <div className="font-light text-sm dark:text-gray-400">Sources</div>
+                  <div className="bg-white dark:bg-gray-800 flex w-full flex-col pl-1 rounded-lg">
                     <div className="flex w-full items-center overflow-x-scroll gap-6 pb-3">
                       {draft.sources.map((source, i) => (
                         <SourceCard
@@ -202,7 +202,7 @@ export function OracleDraftReport({
                 </div>
               )}
               <div className="space-y-2">
-                <div className="font-light text-sm">Details</div>
+                <div className="font-light text-sm dark:text-gray-400">Details</div>
                 {draft.clarifications.map((obj, idx) => (
                   <ClarificationItem
                     {...obj}
@@ -238,7 +238,7 @@ export function OracleDraftReport({
                 ))}
               </div>
               <Button
-                className="bg-gray-600 text-white border-0"
+                className="bg-gray-600 text-white border-0 hover:bg-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600"
                 onClick={handleGenerateReport}
               >
                 {loading ? loadingStatus.current : "Generate"}
@@ -248,7 +248,7 @@ export function OracleDraftReport({
         )}
 
         {loading && (
-          <div className="w-full text-sm text-gray-400 relative flex items-start rounded-xl">
+          <div className="w-full text-sm text-gray-400 dark:text-gray-500 relative flex items-start rounded-xl">
             <SpinningLoader></SpinningLoader>
             {loadingStatus.current}
           </div>
