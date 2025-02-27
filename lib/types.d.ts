@@ -25,3 +25,67 @@ declare interface EditedInputs {
   sql: string;
   hard_filters: string[];
 }
+
+declare type DbType =
+  | "postgres"
+  | "redshift"
+  | "snowflake"
+  | "databricks"
+  | "bigquery"
+  | "sqlserver";
+
+declare interface DbCreds {
+  postgres: {
+    host: string;
+    port: string;
+    user: string;
+    password: string;
+    database: string;
+  };
+  redshift: {
+    host: string;
+    port: string;
+    user: string;
+    password: string;
+    database: string;
+    schema: string;
+  };
+  snowflake: {
+    account: string;
+    warehouse: string;
+    user: string;
+    password: string;
+  };
+  databricks: {
+    server_hostname: string;
+    access_token: string;
+    http_path: string;
+    schema: string;
+  };
+  bigquery: {
+    credentials_file_content: string;
+  };
+  sqlserver: {
+    server: string;
+    database: string;
+    user: string;
+    password: string;
+  };
+}
+
+declare type DbMetadata = Array<{
+  table_name: string;
+  column_name: string;
+  data_type: string;
+  column_description: string;
+}>;
+
+declare interface DbInfo {
+  db_name?: string;
+  db_type?: DbType;
+  db_creds?: DbCreds[DbType];
+  can_connect?: boolean;
+  metadata?: DbMetadata;
+  selected_tables?: string[];
+  tables?: string[];
+}

@@ -613,7 +613,7 @@ export const uploadFile = async (
   token: string,
   fileName: string,
   tables: { [key: string]: UserFile }
-): Promise<string> => {
+): Promise<{ dbName: string; dbInfo: DbInfo }> => {
   const urlToConnect = setupBaseUrl({
     protocol: "http",
     path: "upload_file_as_db",
@@ -638,7 +638,7 @@ export const uploadFile = async (
     );
   }
   const data = await res.json();
-  return data.db_name;
+  return { dbName: data.db_name, dbInfo: data.db_info };
 };
 
 export async function getMetadata(apiEndpoint, token, dbName) {
