@@ -38,7 +38,7 @@ export function OracleReport({
 
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  
+
   // New state for selected analysis and view mode
   const [selectedAnalysisIndex, setSelectedAnalysisIndex] = useState<number>(0);
   const [viewMode, setViewMode] = useState<"table" | "chart">("table");
@@ -109,7 +109,7 @@ export function OracleReport({
 
   // Filter analyses to only include those without errors
   const validAnalyses = analyses.filter((analysis) => analysis.error === "");
-  
+
   // Get the currently selected analysis
   const selectedAnalysis = validAnalyses[selectedAnalysisIndex] || null;
 
@@ -134,7 +134,7 @@ export function OracleReport({
         }),
       }}
     >
-      <div className="flex gap-4">
+      <div className="flex gap-4 relative">
         <div className="flex-1 relative oracle-report-ctr">
           <EditorProvider
             extensions={extensions}
@@ -150,13 +150,15 @@ export function OracleReport({
             }}
           ></EditorProvider>
         </div>
-        
+
         {/* New UI for analyses */}
         {validAnalyses.length > 0 && (
-          <div className="w-[600px] flex flex-col border dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-gray-800">
+          <div className="w-[600px] sticky top-4 self-start max-h-[calc(100vh-2rem)] flex flex-col border dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-gray-800 shadow-lg">
             {/* Header with view mode toggle */}
             <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 border-b dark:border-gray-700">
-              <h3 className="text-sm font-medium text-gray-700 dark:text-gray-200">Analysis Results</h3>
+              <h3 className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                Analysis Results
+              </h3>
               <div className="flex items-center space-x-2">
                 <button
                   onClick={() => setViewMode("table")}
@@ -180,9 +182,9 @@ export function OracleReport({
                 </button>
               </div>
             </div>
-            
+
             {/* Main content area */}
-            <div className="flex flex-1 min-h-0">
+            <div className="flex flex-1 min-h-0 overflow-hidden">
               {/* Questions sidebar */}
               <div className="w-1/3 border-r dark:border-gray-700 overflow-y-auto bg-white dark:bg-gray-800">
                 {validAnalyses.map((analysis, index) => (
@@ -199,7 +201,7 @@ export function OracleReport({
                   </button>
                 ))}
               </div>
-              
+
               {/* Content area */}
               <div className="w-2/3 overflow-auto p-3 bg-white dark:bg-gray-800">
                 {selectedAnalysis && (
