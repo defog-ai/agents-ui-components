@@ -38,6 +38,10 @@ export function OracleReport({
 
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  
+  // New state for selected analysis and view mode
+  const [selectedAnalysisIndex, setSelectedAnalysisIndex] = useState<number>(0);
+  const [viewMode, setViewMode] = useState<"table" | "chart">("table");
 
   useEffect(() => {
     const setup = async (reportId: string, keyName: string) => {
@@ -72,7 +76,7 @@ export function OracleReport({
     if (reportId && keyName) {
       setup(reportId, keyName);
     }
-  }, [reportId, keyName, status]);
+  }, [reportId, keyName]);
 
   if (loading) {
     return (
@@ -103,20 +107,11 @@ export function OracleReport({
     );
   }
 
-  // if (!mdx && (status === "loading")) {
-  //   return (
-  //     <div
-  //       className={
-  //         "w-full h-full min-h-60 flex flex-col justify-center items-center"
-  //       }
-  //     >
-  //       <div className="mb-2 text-sm text-gray-400 dark:text-gray-500">
-  //         Fetching
-  //       </div>
-  //       <SpinningLoader classNames="w-5 h-5 text-gray-500 dark:text-gray-400" />
-  //     </div>
-  //   );
-  // }
+  // Filter analyses to only include those without errors
+  const validAnalyses = analyses.filter((analysis) => analysis.error === "");
+  
+  // Get the currently selected analysis
+  const selectedAnalysis = validAnalyses[selectedAnalysisIndex] || null;
 
   return (
     <OracleReportContext.Provider
@@ -150,51 +145,88 @@ export function OracleReport({
             editorProps={{
               attributes: {
                 class:
-                  "max-w-4xl oracle-report-tiptap relative prose prose-base dark:prose-invert mx-auto p-2 mb-12 md:mb-0 focus:outline-none *:cursor-default",
+                  "max-w-4xl oracle-report-tiptap relative prose prose-base dark:prose-invert mx-auto py-2 px-10 mb-12 md:mb-0 focus:outline-none *:cursor-default",
               },
             }}
           ></EditorProvider>
         </div>
-        {/* include analyses at the side */}
-        <div className="w-[600px]">
-          <Tabs
-            tabs={analyses
-              .filter((analysis) => analysis.error === "")
-              .map((analysis) => ({
-                name: analysis.question,
-                content: (
-                  <Tabs
-                    tabs={[
-                      {
-                        name: "Table",
-                        content: (
-                          <Table
-                            columns={analysis.columns}
-                            rows={analysis.rows}
-                            columnHeaderClassNames="py-2"
-                            skipColumns={["index"]}
-                          />
-                        ),
-                      },
-                      {
-                        name: "Chart",
-                        content: (
-                          <ErrorBoundary>
-                            <ChartContainer
-                              rows={analysis.rows}
-                              columns={analysis.columns}
-                              initialQuestion={analysis.question}
-                              initialOptionsExpanded={false}
-                            />
-                          </ErrorBoundary>
-                        ),
-                      },
-                    ]}
-                  />
-                ),
-              }))}
-          />
-        </div>
+        
+        {/* New UI for analyses */}
+        {validAnalyses.length > 0 && (
+          <div className="w-[600px] flex flex-col border dark:border-gray-700 rounded-lg overflow-hidden">
+            {/* Header with view mode toggle */}
+            <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 border-b dark:border-gray-700">
+              <h3 className="text-sm font-medium text-gray-700 dark:text-gray-200">Analysis Results</h3>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => setViewMode("table")}
+                  className={`px-3 py-1 text-xs font-medium rounded-md ${
+                    viewMode === "table"
+                      ? "bg-primary-highlight text-blue-800 dark:bg-blue-600 dark:text-white"
+                      : "bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border dark:border-gray-600"
+                  }`}
+                >
+                  Table
+                </button>
+                <button
+                  onClick={() => setViewMode("chart")}
+                  className={`px-3 py-1 text-xs font-medium rounded-md ${
+                    viewMode === "chart"
+                      ? "bg-primary-highlight text-blue-800 dark:bg-blue-600 dark:text-white"
+                      : "bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border dark:border-gray-600"
+                  }`}
+                >
+                  Chart
+                </button>
+              </div>
+            </div>
+            
+            {/* Main content area */}
+            <div className="flex flex-1 min-h-0">
+              {/* Questions sidebar */}
+              <div className="w-1/3 border-r dark:border-gray-700 overflow-y-auto">
+                {validAnalyses.map((analysis, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setSelectedAnalysisIndex(index)}
+                    className={`w-full text-left p-3 border-b dark:border-gray-700 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
+                      selectedAnalysisIndex === index
+                        ? "bg-gray-100 dark:bg-gray-700 font-medium"
+                        : "bg-white dark:bg-gray-800"
+                    }`}
+                  >
+                    <div className="line-clamp-3">{analysis.question}</div>
+                  </button>
+                ))}
+              </div>
+              
+              {/* Content area */}
+              <div className="w-2/3 overflow-auto p-3 bg-white dark:bg-gray-800">
+                {selectedAnalysis && (
+                  <>
+                    {viewMode === "table" ? (
+                      <Table
+                        columns={selectedAnalysis.columns}
+                        rows={selectedAnalysis.rows}
+                        columnHeaderClassNames="py-2"
+                        skipColumns={["index"]}
+                      />
+                    ) : (
+                      <ErrorBoundary>
+                        <ChartContainer
+                          rows={selectedAnalysis.rows}
+                          columns={selectedAnalysis.columns}
+                          initialQuestion={selectedAnalysis.question}
+                          initialOptionsExpanded={false}
+                        />
+                      </ErrorBoundary>
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </OracleReportContext.Provider>
   );
