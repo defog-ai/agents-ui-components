@@ -5,20 +5,24 @@ export interface ThinkingStep {
   function_name: string;
   inputs: {
     question: string;
+    [key: string]: any;
   };
-  result: string;
+  result: string | { error?: string; [key: string]: any };
 }
 
 export default function OracleThinkingCard({ step }: { step: ThinkingStep }) {
   let { function_name, result } = step;
+  let resultString: string;
 
-  // if result is not a string, convert it to a string
-  if (typeof result !== "string") {
-    result = JSON.stringify(result);
+  // Convert result to string based on its type
+  if (typeof result === 'string') {
+    resultString = result;
+  } else {
+    resultString = JSON.stringify(result);
   }
 
   // Convert markdown to HTML and sanitize it
-  const sanitizedHtml = sanitizeHtml(marked.parse(result), {
+  const sanitizedHtml = sanitizeHtml(marked.parse(resultString), {
     allowedTags: sanitizeHtml.defaults.allowedTags.concat(["img"]),
     allowedAttributes: {
       ...sanitizeHtml.defaults.allowedAttributes,

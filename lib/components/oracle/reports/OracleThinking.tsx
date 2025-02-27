@@ -6,6 +6,14 @@ import OracleThinkingSQLCard, {
 } from "./OracleThinkingSQLCard";
 import OracleThinkingCard, { ThinkingStep } from "./OracleThinkingCard";
 
+// Type guard function to check if a step is of type ThinkingStepSQL
+function isThinkingStepSQL(step: ThinkingStep | ThinkingStepSQL): step is ThinkingStepSQL {
+  return (
+    step.function_name === "text_to_sql_tool" && 
+    'db_name' in step.inputs
+  );
+}
+
 type OracleThinkingProps = {
   apiEndpoint: string;
   token: string;
@@ -169,13 +177,19 @@ export function OracleThinking({
       {/* For each step, render our OracleStepCard */}
       <div className="w-full">
         {thinkingSteps
-          .filter((step) => !step.result?.error)
+          .filter((step) => {
+            // Skip steps with error in the result
+            if (typeof step.result === 'object' && step.result?.error) {
+              return false;
+            }
+            return true;
+          })
           .map((step, idx) => (
             <div
               key={idx}
               className="w-full md:w-1/2 p-2 inline-block align-top"
             >
-              {step.function_name === "text_to_sql_tool" ? (
+              {isThinkingStepSQL(step) ? (
                 <OracleThinkingSQLCard step={step} />
               ) : (
                 <OracleThinkingCard step={step} />
