@@ -13,6 +13,13 @@ export function CodeEditor({
   className = "",
   handleEdit,
   editable = true,
+}: {
+  code?: string;
+  language?: string;
+  updateProp?: string;
+  className?: string;
+  handleEdit?: (prop: string, val: string | Array<any>) => void;
+  editable?: boolean;
 }) {
   const [toolCode, setToolCode] = useState(code || "");
   const editorRef = useRef(null);

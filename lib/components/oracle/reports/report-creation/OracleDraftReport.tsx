@@ -86,8 +86,6 @@ export function OracleDraftReport({
         ORACLE_REPORT_STATUS.THINKING
       );
 
-      message.success("Submitted. Your report is generating");
-
       // clear everything
       setDraft({});
       loadingStatus.current = "";
@@ -154,6 +152,8 @@ export function OracleDraftReport({
                   question
                 );
 
+                console.log("clarifications", clarifications);
+
                 setReportId(report_id);
 
                 setDraft((prev) => ({
@@ -174,7 +174,7 @@ export function OracleDraftReport({
           }}
         />
 
-        {!loading && draft.clarifications && draft.clarifications.length && (
+        {!loading && draft.clarifications && (
           <div className="my-4 max-w-2xl">
             <div className="font-light mb-2">Add Details & Sources</div>
             <div className="space-y-6">

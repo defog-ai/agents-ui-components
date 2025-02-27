@@ -1113,6 +1113,12 @@ export const getSources = async (
   }
 };
 
+export type ORACLE_REPORT_STATUS_TYPE =
+  | "DONE"
+  | "ERRORED"
+  | "THINKING"
+  | "INITIALIZED";
+
 export const ORACLE_REPORT_STATUS = {
   DONE: "DONE",
   ERRORED: "ERRORED",
