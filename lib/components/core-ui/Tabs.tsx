@@ -8,7 +8,7 @@ export type Tab = {
   /**
    * The name of the tab.
    */
-  name: string;
+  name: string | Element | React.ReactNode;
 
   /**
    * The content of the tab.
@@ -76,7 +76,7 @@ export function Tabs({
   );
 
   useEffect(() => {
-    if (selected !== selectedTab.name) {
+    if (selectedTab && selectedTab?.name && selected !== selectedTab?.name) {
       const t = tabs.find((tab) => tab.name === selected);
       if (t) {
         setSelectedTab(t);
@@ -106,7 +106,7 @@ export function Tabs({
             }))}
             placeholder="Select a tab"
             rootClassNames="block w-full rounded-md border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-200"
-            value={selectedTab.name}
+            value={selectedTab?.name}
             allowCreateNewOption={false}
             onChange={(val) => {
               const t = tabs.find((tab) => tab.name === val);
@@ -140,7 +140,7 @@ export function Tabs({
             key={tab.name + "-" + tabIdx}
             className={twMerge(
               "flex items-center justify-center cursor-pointer",
-              selectedTab.name === tab.name
+              selectedTab?.name === tab.name
                 ? "text-gray-900 dark:text-white"
                 : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300",
               "group relative overflow-hidden flex-1 bg-white dark:bg-gray-800 text-center text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700",
@@ -151,13 +151,13 @@ export function Tabs({
                   : "whitespace-nowrap !rounded-bl-none !rounded-br-none py-2"
                 : "",
               typeof tab?.headerClassNames === "function"
-                ? tab?.headerClassNames?.(selectedTab.name === tab.name, tab)
+                ? tab?.headerClassNames?.(selectedTab?.name === tab.name, tab)
                 : tab?.headerClassNames
             )}
             onClick={() => {
               setSelectedTab(tab);
             }}
-            aria-current={selectedTab.name === tab.name ? "page" : undefined}
+            aria-current={selectedTab?.name === tab.name ? "page" : undefined}
           >
             <div
               style={{
@@ -171,11 +171,11 @@ export function Tabs({
             <span
               aria-hidden="true"
               className={twMerge(
-                selectedTab.name === tab.name
+                selectedTab?.name === tab.name
                   ? twMerge(
                       "bg-primary-highlight dark:bg-blue-500",
                       typeof selectedTabHeaderClasses === "function"
-                        ? selectedTabHeaderClasses?.(selectedTab.name)
+                        ? selectedTabHeaderClasses?.(selectedTab?.name)
                         : selectedTabHeaderClasses
                     )
                   : "bg-black/10 dark:bg-white/10",
@@ -199,7 +199,7 @@ export function Tabs({
               ? "rounded-r-2xl rounded-l-none border-t border-l-0"
               : "border-t-0",
             selectedTab?.classNames,
-            selectedTab.name === tab.name
+            selectedTab?.name === tab.name
               ? "relative"
               : "fixed left-[-1000px] top-[-1000px] z-[-1] pointer-events-none *:pointer-events-none opacity-0"
           )}

@@ -72,6 +72,14 @@ export const Primary = {
   },
 };
 
+export const Empty = {
+  name: "Empty tabs",
+  args: {
+    rootClassNames: "p-8",
+    tabs: [],
+  },
+};
+
 export const WithCustomHeader = {
   name: "Tabs with custom header + tab with red bg in content",
   args: {
