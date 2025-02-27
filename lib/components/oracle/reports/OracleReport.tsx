@@ -193,13 +193,21 @@ export function OracleReport({
                     onClick={() => setSelectedAnalysisIndex(index)}
                     className={`w-full text-left p-3 border-b dark:border-gray-700 text-sm ${
                       selectedAnalysisIndex === index
-                        ? "bg-gray-100 dark:bg-gray-700 font-medium text-gray-900 dark:text-gray-100"
+                        ? "bg-gray-100 dark:bg-gray-700 font-medium text-gray-900 dark:text-gray-100 h-auto"
                         : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                     }`}
                   >
                     {/* Use max-height transition for smooth expansion */}
-                    <div className="overflow-hidden transition-all duration-300 max-h-[4.5rem] hover:max-h-[500px]">
-                      <p className="line-clamp-3 hover:line-clamp-none">
+                    <div className={`overflow-hidden transition-all duration-300 ${
+                      selectedAnalysisIndex === index
+                        ? "max-h-[500px]"
+                        : "max-h-[4.5rem] hover:max-h-[500px]"
+                    }`}>
+                      <p className={`${
+                        selectedAnalysisIndex === index
+                          ? "line-clamp-none"
+                          : "line-clamp-3 hover:line-clamp-none"
+                      }`}>
                         {analysis.question}
                       </p>
                     </div>
