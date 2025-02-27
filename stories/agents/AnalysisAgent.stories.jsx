@@ -42,5 +42,5 @@ export default {
 
 const id = crypto.randomUUID();
 export const Primary = {
-  args: { analysisId: id, keyName: "Restaurants" },
+  args: { analysisId: id, dbName: "Restaurants" },
 };

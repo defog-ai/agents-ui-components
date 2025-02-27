@@ -22,7 +22,7 @@ interface OracleAnalysisProps {
 export const OracleAnalysis = ({ analysisId }: OracleAnalysisProps) => {
   const [analysisStatus, setAnalysisStatus] = useState<string>("Loading");
   const [error, setError] = useState<string | null>(null);
-  const { apiEndpoint, reportId, keyName, token } =
+  const { apiEndpoint, reportId, dbName, token } =
     useContext(OracleReportContext);
 
   const [analysisData, setAnalysisData] = useState<AnalysisParsed | null>(null);
@@ -35,7 +35,7 @@ export const OracleAnalysis = ({ analysisId }: OracleAnalysisProps) => {
         const data = await getReportAnalysis(
           apiEndpoint,
           reportId,
-          keyName,
+          dbName,
           token,
           analysisId
         );
@@ -103,7 +103,7 @@ export const OracleAnalysis = ({ analysisId }: OracleAnalysisProps) => {
             multiTables: analysisData?.multiTables || {},
             images: analysisData?.images || {},
             token: token,
-            keyName,
+            dbName,
             reportId,
             analyses: [],
             executiveSummary: {

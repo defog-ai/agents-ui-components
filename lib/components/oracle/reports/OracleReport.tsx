@@ -18,16 +18,16 @@ import { ChartContainer } from "../../observable-charts/ChartContainer";
 export function OracleReport({
   apiEndpoint,
   reportId,
-  keyName,
+  dbName,
   token,
   onReportParsed = () => {},
   onDelete = () => {},
 }: {
   apiEndpoint: string;
   reportId: string;
-  keyName: string;
+  dbName: string;
   token: string;
-  onDelete?: (reportId: string, apiKeyName: string) => void;
+  onDelete?: (reportId: string, dbName: string) => void;
   onReportParsed?: (data: ReportData | null) => void;
 }) {
   const [tables, setTables] = useState<any>({});
@@ -44,7 +44,7 @@ export function OracleReport({
   const [viewMode, setViewMode] = useState<"table" | "chart">("table");
 
   useEffect(() => {
-    const setup = async (reportId: string, keyName: string) => {
+    const setup = async (reportId: string, dbName: string) => {
       try {
         // don't fetch if either the report is not done
         // or if it's being revised and we already have the MDX
@@ -55,7 +55,7 @@ export function OracleReport({
         data = await fetchAndParseReportData(
           apiEndpoint,
           reportId,
-          keyName,
+          dbName,
           token
         );
 
@@ -73,10 +73,10 @@ export function OracleReport({
       }
     };
 
-    if (reportId && keyName) {
-      setup(reportId, keyName);
+    if (reportId && dbName) {
+      setup(reportId, dbName);
     }
-  }, [reportId, keyName]);
+  }, [reportId, dbName]);
 
   if (loading) {
     return (
@@ -123,12 +123,12 @@ export function OracleReport({
         analyses: analyses,
         executiveSummary: null,
         reportId: reportId,
-        keyName: keyName,
+        dbName: dbName,
         token: token,
         commentManager: commentManager({
           apiEndpoint: apiEndpoint,
           reportId: reportId,
-          keyName: keyName,
+          dbName: dbName,
           token: token,
           initialComments: comments,
         }),
@@ -198,16 +198,20 @@ export function OracleReport({
                     }`}
                   >
                     {/* Use max-height transition for smooth expansion */}
-                    <div className={`overflow-hidden transition-all duration-300 ${
-                      selectedAnalysisIndex === index
-                        ? "max-h-[500px]"
-                        : "max-h-[4.5rem] hover:max-h-[500px]"
-                    }`}>
-                      <p className={`${
+                    <div
+                      className={`overflow-hidden transition-all duration-300 ${
                         selectedAnalysisIndex === index
-                          ? "line-clamp-none"
-                          : "line-clamp-3 hover:line-clamp-none"
-                      }`}>
+                          ? "max-h-[500px]"
+                          : "max-h-[4.5rem] hover:max-h-[500px]"
+                      }`}
+                    >
+                      <p
+                        className={`${
+                          selectedAnalysisIndex === index
+                            ? "line-clamp-none"
+                            : "line-clamp-3 hover:line-clamp-none"
+                        }`}
+                      >
                         {analysis.question}
                       </p>
                     </div>

@@ -10,38 +10,39 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   deleteReport,
   fetchReports,
+  ORACLE_REPORT_STATUS,
   OracleReport,
   oracleReportTimestamp,
   ReportData,
-  ReportListItem,
+  ListReportResponseItem,
 } from "@oracle";
 import { SquarePen } from "lucide-react";
 import { twMerge } from "tailwind-merge";
 import { OracleDraftReport } from "../reports/report-creation/OracleDraftReport";
 import { OracleNewDb } from "./OracleNewDb";
 
-interface OracleReportType extends ReportListItem {
+interface OracleReportType extends ListReportResponseItem {
   reportData?: ReportData;
 }
 
 type groups = "Today" | "Yesterday" | "Past week" | "Past month" | "Earlier";
 
 interface ReportHistory {
-  [apiKeyName: string]: Record<groups, OracleReportType[]>;
+  [dbName: string]: Record<groups, OracleReportType[]>;
 }
 
 const findReportGroupInHistory = (
-  apiKeyName: string,
+  dbName: string,
   reportId: string,
   history: ReportHistory
 ) => {
   // default to Today
-  if (!history[apiKeyName]) return "Today";
+  if (!history[dbName]) return "Today";
 
-  const groups = Object.keys(history[apiKeyName]) as groups[];
+  const groups = Object.keys(history[dbName]) as groups[];
 
   for (const group of groups) {
-    if (history[apiKeyName][group].some((r) => r.report_id === reportId)) {
+    if (history[dbName][group].some((r) => r.report_id === reportId)) {
       return group;
     }
   }
@@ -52,37 +53,43 @@ const findReportGroupInHistory = (
 
 /**
  * Renders an Oracle report in an embedded mode.
- * This has a sidebar to select api key names, and a report selector which shows a list of already generated reports.
+ * This has a sidebar to select db names, and a report selector which shows a list of already generated reports.
  * Has a button to start a new report.
  */
 export function OracleEmbed({
   apiEndpoint,
   token,
-  initialKeyNames = [],
+  initialDbNames = [],
 }: {
   apiEndpoint: string;
   token: string;
-  initialKeyNames: string[];
+  initialDbNames: string[];
 }) {
-  const [keyNames, setKeyNames] = useState<string[]>(initialKeyNames);
-  const [selectedKeyName, setSelectedKeyName] = useState("Default DB");
+  const [dbNames, setDbNames] = useState<string[]>(initialDbNames);
+  const [selectedDbName, setSelectedDbName] = useState("Default DB");
   const [reportHistory, setReportHistory] = useState<ReportHistory>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
+  const selectedReport = useMemo(() => {
+    if (!selectedReportId) return null;
+    return reportHistory[selectedDbName][
+      findReportGroupInHistory(selectedDbName, selectedReportId, reportHistory)
+    ].find((r) => r.report_id === selectedReportId);
+  }, [selectedReportId, reportHistory, selectedDbName]);
 
   const messageManager = useRef(MessageManager());
   /**
    * We set this to a random string every time.
    * Just to prevent conflicts with uploaded files.
    */
-  const { current: newApiKey } = useRef<string>(crypto.randomUUID().toString());
+  const { current: newDbName } = useRef<string>(crypto.randomUUID().toString());
 
   useEffect(() => {
     async function setup() {
       try {
         const histories: ReportHistory = {};
-        setSelectedKeyName(keyNames.length ? keyNames[0] : newApiKey);
+        setSelectedDbName(dbNames.length ? dbNames[0] : newDbName);
 
         const today = new Date();
         const yesterday = new Date(today);
@@ -92,8 +99,8 @@ export function OracleEmbed({
         const month = new Date(today);
         month.setMonth(month.getMonth() - 1);
 
-        for (const keyName of keyNames) {
-          histories[keyName] = {
+        for (const dbName of dbNames) {
+          histories[dbName] = {
             Today: [],
             Yesterday: [],
             "Past week": [],
@@ -102,30 +109,32 @@ export function OracleEmbed({
           };
 
           try {
-            const reports = await fetchReports(apiEndpoint, token, keyName);
+            const reports = await fetchReports(apiEndpoint, token, dbName);
             if (!reports) throw new Error("Failed to get reports");
 
             reports
               // Filter out reports that had errors
-              .filter((report) => report.status !== "error")
+              .filter(
+                (report) => report.status !== ORACLE_REPORT_STATUS.ERRORED
+              )
               // add to histories based on date created
               .forEach((report) => {
                 const date = new Date(report.date_created);
                 if (date.toDateString() === today.toDateString()) {
-                  histories[keyName]["Today"].push(report);
+                  histories[dbName]["Today"].push(report);
                 } else if (date.toDateString() === yesterday.toDateString()) {
-                  histories[keyName]["Yesterday"].push(report);
+                  histories[dbName]["Yesterday"].push(report);
                 } else if (date >= week) {
-                  histories[keyName]["Past week"].push(report);
+                  histories[dbName]["Past week"].push(report);
                 } else if (date >= month) {
-                  histories[keyName]["Past month"].push(report);
+                  histories[dbName]["Past month"].push(report);
                 } else {
-                  histories[keyName]["Earlier"].push(report);
+                  histories[dbName]["Earlier"].push(report);
                 }
               });
 
             // sort the reports within each group in the history by date created
-            Object.entries(histories[keyName]).forEach(([group, reports]) => {
+            Object.entries(histories[dbName]).forEach(([group, reports]) => {
               reports.sort(
                 (a, b) =>
                   new Date(a.date_created).getTime() -
@@ -133,7 +142,7 @@ export function OracleEmbed({
               );
             });
           } catch (error) {
-            setError("Failed to fetch reports for key name " + keyName);
+            setError("Failed to fetch reports for db name " + dbName);
             break;
           }
         }
@@ -154,27 +163,27 @@ export function OracleEmbed({
       <SingleSelect
         label="Select Database"
         rootClassNames="mb-2"
-        value={selectedKeyName}
+        value={selectedDbName}
         allowClear={false}
         allowCreateNewOption={false}
         options={[
           {
-            value: newApiKey,
+            value: newDbName,
             label: "Upload new",
           },
         ].concat(
-          keyNames.map((keyName) => ({
-            value: keyName,
-            label: keyName,
+          dbNames.map((dbName) => ({
+            value: dbName,
+            label: dbName,
           }))
         )}
         onChange={(v: string) => {
-          setSelectedKeyName(v);
+          setSelectedDbName(v);
           setSelectedReportId(null);
         }}
       />
     ),
-    [selectedKeyName, keyNames]
+    [selectedDbName, dbNames]
   );
 
   if (error) {
@@ -207,7 +216,7 @@ export function OracleEmbed({
           }
         >
           <div className="space-y-4">
-            {selectedKeyName !== newApiKey ? (
+            {selectedDbName !== newDbName ? (
               <div
                 className={twMerge(
                   "title hover:cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 history-item p-2 text-sm",
@@ -226,8 +235,8 @@ export function OracleEmbed({
                 Upload a new CSV/Excel file on the right
               </p>
             )}
-            {selectedKeyName !== newApiKey &&
-              Object.entries(reportHistory[selectedKeyName]).map(
+            {selectedDbName !== newDbName &&
+              Object.entries(reportHistory[selectedDbName]).map(
                 ([group, reports]) => {
                   if (Object.keys(reports).length === 0) return null; // Skip empty groups
                   return (
@@ -260,7 +269,7 @@ export function OracleEmbed({
           </div>
         </Sidebar>
         <div className="flex flex-col grow p-2 overflow-auto">
-          {selectedReportId === null && selectedKeyName === newApiKey && (
+          {selectedReportId === null && selectedDbName === newDbName && (
             <OracleNewDb
               apiEndpoint={apiEndpoint}
               token={token}
@@ -275,8 +284,8 @@ export function OracleEmbed({
                     Earlier: [],
                   },
                 }));
-                setKeyNames((prev) => [...prev, dbName]);
-                setSelectedKeyName(dbName);
+                setDbNames((prev) => [...prev, dbName]);
+                setSelectedDbName(dbName);
               }}
             />
           )}
@@ -285,11 +294,11 @@ export function OracleEmbed({
               key={selectedReportId}
               reportId={selectedReportId}
               apiEndpoint={apiEndpoint}
-              keyName={selectedKeyName}
+              dbName={selectedDbName}
               token={token}
               onDelete={async () => {
                 const reportGroup = findReportGroupInHistory(
-                  selectedKeyName,
+                  selectedDbName,
                   selectedReportId,
                   reportHistory
                 );
@@ -297,7 +306,7 @@ export function OracleEmbed({
                   apiEndpoint,
                   selectedReportId,
                   token,
-                  selectedKeyName
+                  selectedDbName
                 );
 
                 if (!deleteSucess) {
@@ -308,20 +317,20 @@ export function OracleEmbed({
 
                   // remove the report from the history
                   setReportHistory((prev) => {
-                    const newReportList = prev[selectedKeyName][
+                    const newReportList = prev[selectedDbName][
                       reportGroup
                     ].filter((report) => report.report_id !== selectedReportId);
 
                     const newHistory = {
                       ...prev,
-                      [selectedKeyName]: {
-                        ...prev[selectedKeyName],
+                      [selectedDbName]: {
+                        ...prev[selectedDbName],
                         [reportGroup]: newReportList,
                       },
                     };
                     // if no reports left in group, remove group
                     if (newReportList.length === 0) {
-                      delete newHistory[selectedKeyName][reportGroup];
+                      delete newHistory[selectedDbName][reportGroup];
                     }
                     return newHistory;
                   });
@@ -331,18 +340,18 @@ export function OracleEmbed({
               onReportParsed={(data: ReportData) => {
                 // find the group of this report in histories
                 const group = findReportGroupInHistory(
-                  selectedKeyName,
+                  selectedDbName,
                   selectedReportId,
                   reportHistory
                 );
 
                 setReportHistory((prev) => {
-                  const prevReports = prev[selectedKeyName][group];
+                  const prevReports = prev[selectedDbName][group];
                   // if report is found, update it
                   return {
                     ...prev,
-                    [selectedKeyName]: {
-                      ...prev[selectedKeyName],
+                    [selectedDbName]: {
+                      ...prev[selectedDbName],
                       [group]: prevReports.map((r) => {
                         if (r.report_id === selectedReportId) {
                           return {
@@ -358,26 +367,24 @@ export function OracleEmbed({
               }}
             />
           )}
-          {keyNames.map((keyName) => {
+          {dbNames.map((dbName) => {
             return (
               <div
-                key={keyName}
+                key={dbName}
                 className={twMerge(
                   "w-full h-full m-auto",
-                  selectedReportId || selectedKeyName !== keyName
-                    ? "hidden"
-                    : ""
+                  selectedReportId || selectedDbName !== dbName ? "hidden" : ""
                 )}
               >
                 <OracleDraftReport
                   token={token}
-                  apiKeyName={keyName}
+                  dbName={dbName}
                   apiEndpoint={apiEndpoint}
                   onReportGenerated={(userQuestion, reportId, status) => {
                     setReportHistory((prev) => ({
                       ...prev,
-                      [keyName]: {
-                        ...prev[keyName],
+                      [dbName]: {
+                        ...prev[dbName],
                         Today: [
                           {
                             report_id: reportId,
@@ -385,7 +392,7 @@ export function OracleEmbed({
                             status,
                             date_created: oracleReportTimestamp(),
                           },
-                          ...prev[keyName]["Today"],
+                          ...prev[dbName]["Today"],
                         ],
                       },
                     }));

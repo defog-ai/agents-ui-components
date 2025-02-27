@@ -106,7 +106,7 @@ export function QueryDataEmbed({
    * We set this to a random string every time.
    * Just to prevent conflicts with uploaded files.
    */
-  const { current: newApiKey } = useRef<string>(crypto.randomUUID().toString());
+  const { current: newDbName } = useRef<string>(crypto.randomUUID().toString());
 
   const [dbList, setDbList] = useState<
     {
@@ -138,7 +138,7 @@ export function QueryDataEmbed({
     async function setupMetadata() {
       const fetchedMetadata = {};
       for await (const db of dbList) {
-        if (db.name === newApiKey) continue;
+        if (db.name === newDbName) continue;
         try {
           const metadata = await getMetadata(apiEndpoint, token, db.name);
           fetchedMetadata[db.name] = metadata;
@@ -178,7 +178,7 @@ export function QueryDataEmbed({
         allowCreateNewOption={false}
         options={[
           {
-            value: newApiKey,
+            value: newDbName,
             label: "Upload new",
           },
         ].concat(
@@ -189,7 +189,7 @@ export function QueryDataEmbed({
         )}
         onChange={(v: string) => {
           const matchingDb = dbList.find((db) => db.name === v);
-          if (v === newApiKey) {
+          if (v === newDbName) {
             setModalOpen(true);
           } else {
             setSelectedDb(matchingDb || dbList[0]);

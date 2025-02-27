@@ -11,6 +11,7 @@ import {
   generateReport,
   getClarifications,
   getSources,
+  ORACLE_REPORT_STATUS,
   SourceItem,
 } from "@oracle";
 import { SourceCard } from "./SourceItem";
@@ -34,12 +35,12 @@ interface ReportDraft {
  */
 export function OracleDraftReport({
   apiEndpoint,
-  apiKeyName,
+  dbName,
   token,
   onReportGenerated,
 }: {
   apiEndpoint: string;
-  apiKeyName: string;
+  dbName: string;
   token: string;
   onReportGenerated?: (
     userQuestion: string,
@@ -61,23 +62,28 @@ export function OracleDraftReport({
   const message = useContext(MessageManagerContext);
 
   const handleGenerateReport = useCallback(async () => {
-    setLoading(true);
-    loadingStatus.current = "Submitting report for generation...";
     try {
-      const { report_id, status } = await generateReport(
-        apiEndpoint,
-        token,
-        apiKeyName,
-        reportId,
-        textAreaRef.current?.value || draft.userQuestion,
-        draft.sources.filter((s) => s.selected).map((s) => s.link),
-        draft.clarifications.filter((c) => c.answer && c.is_answered)
-      );
+      setLoading(true);
+      loadingStatus.current = "Submitting report for generation...";
+      try {
+        // This will always error because of a 10ms timeout
+        await generateReport(
+          apiEndpoint,
+          token,
+          dbName,
+          reportId,
+          textAreaRef.current?.value || draft.userQuestion,
+          draft.sources.filter((s) => s.selected).map((s) => s.link),
+          draft.clarifications.filter((c) => c.answer && c.is_answered)
+        );
+      } catch (error) {
+        message.success("Report submitted for generation");
+      }
 
       onReportGenerated(
         textAreaRef.current?.value || draft.userQuestion,
-        report_id,
-        status
+        reportId,
+        ORACLE_REPORT_STATUS.THINKING
       );
 
       message.success("Submitted. Your report is generating");
@@ -135,8 +141,8 @@ export function OracleDraftReport({
                 }));
 
                 // const [clarifications, sources] = await Promise.all([
-                //   getClarifications(apiEndpoint, token, apiKeyName, question),
-                //   getSources(apiEndpoint, token, apiKeyName, question),
+                //   getClarifications(apiEndpoint, token, dbName, question),
+                //   getSources(apiEndpoint, token, dbName, question),
                 // ]).catch((e) => {
                 //   throw new Error("Error getting sources and clarifications");
                 // });
@@ -144,7 +150,7 @@ export function OracleDraftReport({
                 const { clarifications, report_id } = await getClarifications(
                   apiEndpoint,
                   token,
-                  apiKeyName,
+                  dbName,
                   question
                 );
 

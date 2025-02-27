@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import {
-  selectApiKeyName,
+  selectDbName,
   setSqlOnly,
   askQuestionUsingSearchBar,
   fullyTestSQLOnlyQuestionForNonTempDb,
@@ -10,13 +10,13 @@ import {
 
 const testEmail = process.env.VITE_TEST_EMAIL_ID;
 
-test("can select api key name", async ({ page }) => {
+test("can select db name", async ({ page }) => {
   await visitPage(page, {
     url: "http://localhost:5173/test/agent-embed/",
     waitForRequest: "/get_db_names",
   });
 
-  await selectApiKeyName(page);
+  await selectDbName(page);
 });
 
 test("can ask one sql-only question, then follow-on question", async ({
@@ -27,7 +27,7 @@ test("can ask one sql-only question, then follow-on question", async ({
     waitForRequest: "/get_db_names",
   });
 
-  await selectApiKeyName(page);
+  await selectDbName(page);
 
   await setSqlOnly(page, true);
 
@@ -51,7 +51,7 @@ test("check history management. can store history in local storage, and can clea
     waitForRequest: "/get_db_names",
   });
 
-  await selectApiKeyName(page);
+  await selectDbName(page);
 
   await setSqlOnly(page, true);
 
@@ -67,7 +67,7 @@ test("check history management. can store history in local storage, and can clea
   });
 
   // now refresh the page
-  // and re select api key
+  // and re select the db
   // and look for side bar
 
   await page.reload();
@@ -77,7 +77,7 @@ test("check history management. can store history in local storage, and can clea
     { timeout: 10000 }
   );
 
-  await selectApiKeyName(page);
+  await selectDbName(page);
 
   // find items inside .sidebar which match the question and selectedFollowOnQuestion
   // and expect them to be visible
@@ -102,7 +102,7 @@ test("check history management. can store history in local storage, and can clea
   // page refresh to ensure that local storage was also deleted
   await page.reload();
 
-  await selectApiKeyName(page);
+  await selectDbName(page);
 
   // expect history to have disappeared
   // count of .history-items to be 0
@@ -120,7 +120,7 @@ test("can ask one advanced question with send email usage", async ({
     waitForRequest: "/get_db_names",
   });
 
-  await selectApiKeyName(page);
+  await selectDbName(page);
 
   await setSqlOnly(page, false);
 

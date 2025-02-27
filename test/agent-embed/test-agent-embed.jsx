@@ -23,7 +23,7 @@ function QueryDataPage() {
     );
     if (!res.ok) {
       throw new Error(
-        "Failed to get api key names - are you sure your network is working?"
+        "Failed to get db names - are you sure your network is working?"
       );
     }
     const data = await res.json();

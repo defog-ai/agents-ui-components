@@ -8,12 +8,12 @@ export const FILE_TYPES = {
 };
 
 /**
- * Selects the first api key name in the dropdown. Errors if no api key names are found.
+ * Selects the first db name in the dropdown. Errors if no db names are found.
  *
  * @example
- * await selectApiKeyName(page);
+ * await selectDbName(page);
  */
-export async function selectApiKeyName(page: Page) {
+export async function selectDbName(page: Page) {
   // either we see the dropdown, or we have a selector with data-db-selected-db=true
   const selectedDb = page.locator("[data-selected-db=true]");
   const dropdown = page.getByPlaceholder("Select an option");

@@ -6,7 +6,7 @@ import { Setup } from "../../lib/components/context/Setup";
 
 const dbs = [
   {
-    keyName: "Manufacturing",
+    dbName: "Manufacturing",
     name: "Manufacturing",
     predefinedQuestions: [
       "Show me any 5 rows from the dataset and create a boxplot",
@@ -14,7 +14,7 @@ const dbs = [
     ],
   },
   {
-    keyName: "Sales",
+    dbName: "Sales",
     name: "Sales",
     predefinedQuestions: ["Show me any 5 rows from the dataset"],
   },
@@ -26,7 +26,7 @@ const dbs = [
   metadataFetchingError: false,
   analysisTreeManager: AnalysisTreeManager(
     {},
-    d.keyName + "_" + Math.floor(Math.random() * 1000)
+    d.dbName + "_" + Math.floor(Math.random() * 1000)
   ),
   // do this after so that sqlOnly, and isTemp can be overwritten if defined by the user
   ...d,
@@ -45,7 +45,7 @@ export default {
   argTypes: {},
   render: (args) => {
     const {
-      keyName,
+      dbName,
       metadata,
       isTemp,
       analysisTreeManager,
@@ -62,7 +62,7 @@ export default {
         disableMessages={false}
       >
         <AnalysisTreeViewer
-          keyName={keyName}
+          dbName={dbName}
           metadata={metadata}
           isTemp={isTemp}
           forceSqlOnly={false}

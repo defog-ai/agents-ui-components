@@ -6,7 +6,7 @@ import { AnalysisAgent } from "../../lib/agent.ts";
 
 const dbs = [
   {
-    keyName: "Sales",
+    dbName: "Sales",
     name: "Sales",
     predefinedQuestions: [
       "Show me any 5 rows from the dataset",
@@ -16,7 +16,7 @@ const dbs = [
     sqlOnly: false,
   },
   {
-    keyName: "Manufacturing",
+    dbName: "Manufacturing",
     name: "Manufacturing",
     predefinedQuestions: ["Show me any 5 rows from the dataset"],
     isTemp: false,
@@ -26,7 +26,7 @@ const dbs = [
 
 // a single analysis can only work with one db at a time
 function QueryDataPage() {
-  const { keyName, metadata, isTemp } = dbs[0];
+  const { dbName, metadata, isTemp } = dbs[0];
   const id = crypto.randomUUID();
   return (
     <Setup
@@ -39,7 +39,7 @@ function QueryDataPage() {
     >
       <AnalysisAgent
         analysisId={id}
-        keyName={keyName}
+        dbName={dbName}
         metadata={metadata}
         isTemp={isTemp}
         forceSqlOnly={false}
@@ -48,6 +48,4 @@ function QueryDataPage() {
   );
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(
-  <QueryDataPage />
-);
+ReactDOM.createRoot(document.getElementById("root")).render(<QueryDataPage />);
