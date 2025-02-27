@@ -9,8 +9,8 @@ function OracleEmbedTest() {
   const [apiKeyNames, setApiKeyNames] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [useSystemTheme, setUseSystemTheme] = useState<boolean>(true);
-  const [darkMode, setDarkMode] = useState<boolean>(() => 
-    window.matchMedia('(prefers-color-scheme: dark)').matches
+  const [darkMode, setDarkMode] = useState<boolean>(
+    () => window.matchMedia("(prefers-color-scheme: dark)").matches
   );
 
   useEffect(() => {
@@ -28,15 +28,15 @@ function OracleEmbedTest() {
 
   useEffect(() => {
     if (!useSystemTheme) return;
-    
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
     const handleChange = (e: MediaQueryListEvent) => setDarkMode(e.matches);
-    
+
     // Set initial value
     setDarkMode(mediaQuery.matches);
-    
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
+
+    mediaQuery.addEventListener("change", handleChange);
+    return () => mediaQuery.removeEventListener("change", handleChange);
   }, [useSystemTheme]);
 
   return (
@@ -46,7 +46,7 @@ function OracleEmbedTest() {
           setUseSystemTheme(false);
           setDarkMode(!darkMode);
         }}
-        className="fixed top-4 right-4 px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-md shadow-sm hover:shadow-md transition-all"
+        className="fixed bottom-4 right-4 px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-md shadow-sm hover:shadow-md transition-all"
       >
         {darkMode ? "☀️ Light" : "🌙 Dark"} {useSystemTheme && "(System)"}
       </button>
