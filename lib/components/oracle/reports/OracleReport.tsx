@@ -164,7 +164,7 @@ export function OracleReport({
                   onClick={() => setViewMode("table")}
                   className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
                     viewMode === "table"
-                      ? "bg-primary-highlight text-blue-800 dark:bg-blue-600 dark:text-white"
+                      ? "bg-primary-highlight text-gray-200 dark:bg-blue-600 dark:text-white"
                       : "bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
                   }`}
                 >
@@ -174,7 +174,7 @@ export function OracleReport({
                   onClick={() => setViewMode("chart")}
                   className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
                     viewMode === "chart"
-                      ? "bg-primary-highlight text-blue-800 dark:bg-blue-600 dark:text-white"
+                      ? "bg-primary-highlight text-gray-200 dark:bg-blue-600 dark:text-white"
                       : "bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
                   }`}
                 >

@@ -20,6 +20,7 @@ import { SquarePen } from "lucide-react";
 import { twMerge } from "tailwind-merge";
 import { OracleDraftReport } from "../reports/report-creation/OracleDraftReport";
 import { OracleNewDb } from "./OracleNewDb";
+import { OracleThinking } from "../reports/OracleThinking";
 
 interface OracleReportType extends ListReportResponseItem {
   reportData?: ReportData;
@@ -89,7 +90,7 @@ export function OracleEmbed({
     async function setup() {
       try {
         const histories: ReportHistory = {};
-        setSelectedDbName(dbNames.length ? dbNames[0] : newDbName);
+        setSelectedDbName(dbNames.length ? "Cricket" : newDbName);
 
         const today = new Date();
         const yesterday = new Date(today);
@@ -115,7 +116,9 @@ export function OracleEmbed({
             reports
               // Filter out reports that had errors
               .filter(
-                (report) => report.status !== ORACLE_REPORT_STATUS.ERRORED
+                (report) =>
+                  report.status !== ORACLE_REPORT_STATUS.ERRORED &&
+                  report.status !== ORACLE_REPORT_STATUS.INITIALIZED
               )
               // add to histories based on date created
               .forEach((report) => {
@@ -289,7 +292,10 @@ export function OracleEmbed({
               }}
             />
           )}
-          {selectedReportId && (
+
+          {selectedReportId &&
+          selectedReport &&
+          selectedReport.status === ORACLE_REPORT_STATUS.DONE ? (
             <OracleReport
               key={selectedReportId}
               reportId={selectedReportId}
@@ -366,6 +372,53 @@ export function OracleEmbed({
                 });
               }}
             />
+          ) : (
+            selectedReportId && (
+              <OracleThinking
+                apiEndpoint={apiEndpoint}
+                token={token}
+                reportId={selectedReportId}
+                onStreamClosed={(thinkingSteps, hadError) => {
+                  const reportGroup = findReportGroupInHistory(
+                    selectedDbName,
+                    selectedReportId,
+                    reportHistory
+                  );
+
+                  if (hadError) {
+                    // remove this report from the history
+                    setReportHistory((prev) => {
+                      const newHistory = { ...prev };
+                      newHistory[selectedDbName][reportGroup] = newHistory[
+                        selectedDbName
+                      ][reportGroup].filter((r) => {
+                        return r.report_id !== selectedReportId;
+                      });
+                      return newHistory;
+                    });
+
+                    setSelectedReportId(null);
+                  } else {
+                    // set the status to done which will trigger the report rendering
+                    setReportHistory((prev) => {
+                      const newHistory = { ...prev };
+                      newHistory[selectedDbName][reportGroup] = newHistory[
+                        selectedDbName
+                      ][reportGroup].map((r) => {
+                        if (r.report_id === selectedReportId) {
+                          return {
+                            ...r,
+                            status: ORACLE_REPORT_STATUS.DONE,
+                          };
+                        }
+                        return r;
+                      });
+                      return newHistory;
+                    });
+                  }
+                }}
+              />
+            )
           )}
           {dbNames.map((dbName) => {
             return (
@@ -381,21 +434,24 @@ export function OracleEmbed({
                   dbName={dbName}
                   apiEndpoint={apiEndpoint}
                   onReportGenerated={(userQuestion, reportId, status) => {
-                    setReportHistory((prev) => ({
-                      ...prev,
-                      [dbName]: {
-                        ...prev[dbName],
-                        Today: [
-                          {
-                            report_id: reportId,
-                            report_name: userQuestion,
-                            status,
-                            date_created: oracleReportTimestamp(),
-                          },
-                          ...prev[dbName]["Today"],
-                        ],
-                      },
-                    }));
+                    setReportHistory((prev) => {
+                      console.log(prev[dbName]["Today"]);
+                      return {
+                        ...prev,
+                        [dbName]: {
+                          ...prev[dbName],
+                          Today: [
+                            {
+                              report_id: reportId,
+                              report_name: userQuestion,
+                              status,
+                              date_created: oracleReportTimestamp(),
+                            },
+                            ...(prev[dbName]["Today"] || []),
+                          ],
+                        },
+                      };
+                    });
                     setSelectedReportId(reportId);
                   }}
                 />
