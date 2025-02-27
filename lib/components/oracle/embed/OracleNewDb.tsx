@@ -43,7 +43,7 @@ export const OracleNewDb = ({
               if (file.type === "text/csv") {
                 parseCsvFile(file, async ({ file, rows, columns }) => {
                   try {
-                    const dbName = await uploadFile(
+                    const { dbName } = await uploadFile(
                       apiEndpoint,
                       token,
                       file.name,
@@ -63,7 +63,7 @@ export const OracleNewDb = ({
               } else {
                 parseExcelFile(file, async ({ file, sheets }) => {
                   try {
-                    const dbName = await uploadFile(
+                    const { dbName } = await uploadFile(
                       apiEndpoint,
                       token,
                       file.name,
@@ -108,7 +108,7 @@ export const OracleNewDb = ({
               if (file.type === "text/csv") {
                 parseCsvFile(file, async ({ file, rows, columns }) => {
                   try {
-                    const dbName = await uploadFile(
+                    const { dbName } = await uploadFile(
                       apiEndpoint,
                       token,
                       file.name,
@@ -128,7 +128,7 @@ export const OracleNewDb = ({
               } else {
                 parseExcelFile(file, async ({ file, sheets }) => {
                   try {
-                    const dbName = await uploadFile(
+                    const { dbName } = await uploadFile(
                       apiEndpoint,
                       token,
                       file.name,
