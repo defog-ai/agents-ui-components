@@ -36,7 +36,7 @@ export const Primary = {
 };
 
 export const Disabled = {
-  args: { disabled: true, text: "Can't click me" },
+  args: { disabled: true, text: "Can't click me", className: "w-96" },
 };
 
 export const Variants = {
