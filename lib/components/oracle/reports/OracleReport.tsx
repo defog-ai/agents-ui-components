@@ -153,7 +153,7 @@ export function OracleReport({
 
         {/* New UI for analyses */}
         {validAnalyses.length > 0 && (
-          <div className="w-[800px] sticky top-4 self-start max-h-[calc(100vh-2rem)] flex flex-col border dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-gray-800 shadow-lg">
+          <div className="w-[800px] sticky top-4 self-start max-h-[calc(100vh-2rem)] flex flex-col border dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-gray-800">
             {/* Header with view mode toggle */}
             <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 border-b dark:border-gray-700">
               <h3 className="text-sm font-medium text-gray-700 dark:text-gray-200">
@@ -165,7 +165,7 @@ export function OracleReport({
                   className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
                     viewMode === "table"
                       ? "bg-primary-highlight text-blue-800 dark:bg-blue-600 dark:text-white"
-                      : "bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600"
+                      : "bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
                   }`}
                 >
                   Table
@@ -175,7 +175,7 @@ export function OracleReport({
                   className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
                     viewMode === "chart"
                       ? "bg-primary-highlight text-blue-800 dark:bg-blue-600 dark:text-white"
-                      : "bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600"
+                      : "bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
                   }`}
                 >
                   Chart
@@ -191,13 +191,16 @@ export function OracleReport({
                   <button
                     key={index}
                     onClick={() => setSelectedAnalysisIndex(index)}
-                    className={`w-full text-left p-3 border-b dark:border-gray-700 text-sm transition-colors h-[80px] ${
+                    className={`w-full text-left p-3 border-b dark:border-gray-700 text-sm ${
                       selectedAnalysisIndex === index
                         ? "bg-gray-100 dark:bg-gray-700 font-medium text-gray-900 dark:text-gray-100"
                         : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                     }`}
                   >
-                    <div className="line-clamp-3">{analysis.question}</div>
+                    {/* Use max-height transition for smooth expansion */}
+                    <div className="overflow-hidden transition-all duration-300 max-h-[4.5rem] hover:max-h-[500px]">
+                      <p className="line-clamp-3 hover:line-clamp-none">{analysis.question}</p>
+                    </div>
                   </button>
                 ))}
               </div>
