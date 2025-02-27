@@ -7,7 +7,7 @@ import { AnalysisTreeManager } from "../../lib/components/query-data/analysis-tr
 
 const dbs = [
   {
-    keyName: "Sales",
+    dbName: "Sales",
     name: "Sales",
     predefinedQuestions: [
       "Show me any 5 rows from the dataset",
@@ -15,7 +15,7 @@ const dbs = [
     ],
   },
   {
-    keyName: "Manufacturing",
+    dbName: "Manufacturing",
     name: "Manufacturing",
     predefinedQuestions: ["Show me any 5 rows from the dataset"],
   },
@@ -27,7 +27,7 @@ const dbs = [
   metadataFetchingError: false,
   analysisTreeManager: AnalysisTreeManager(
     {},
-    d.keyName + "_" + Math.floor(Math.random() * 1000)
+    d.dbName + "_" + Math.floor(Math.random() * 1000)
   ),
   // do this after so that sqlOnly, and isTemp can be overwritten if defined by the user
   ...d,
@@ -36,13 +36,8 @@ const dbs = [
 // tree viewer can only work with one db at a time
 
 function QueryDataPage() {
-  const {
-    keyName,
-    metadata,
-    isTemp,
-    analysisTreeManager,
-    predefinedQuestions,
-  } = dbs[0];
+  const { dbName, metadata, isTemp, analysisTreeManager, predefinedQuestions } =
+    dbs[0];
   return (
     <Setup
       token={import.meta.env.VITE_TOKEN}
@@ -54,7 +49,7 @@ function QueryDataPage() {
     >
       <div className="h-screen">
         <AnalysisTreeViewer
-          keyName={keyName}
+          dbName={dbName}
           metadata={metadata}
           isTemp={isTemp}
           forceSqlOnly={false}

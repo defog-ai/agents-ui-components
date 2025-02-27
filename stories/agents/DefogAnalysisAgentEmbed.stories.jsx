@@ -3,7 +3,7 @@ import "../../lib/styles/index.scss";
 
 const dbs = [
   {
-    keyName: "Restaurants",
+    dbName: "Restaurants",
     name: "Restaurants",
     predefinedQuestions: [
       "Show me 5 rows",
@@ -11,7 +11,7 @@ const dbs = [
     ],
   },
   {
-    keyName: "Yelp",
+    dbName: "Yelp",
     name: "Yelp",
     predefinedQuestions: [
       "Who are our top 5 customers by revenue?",

@@ -596,7 +596,7 @@ export const getApidbNames = async (apiEndpoint: string, token: string) => {
   });
   if (!res.ok) {
     throw new Error(
-      "Failed to get api key names - are you sure your network is working?"
+      "Failed to get db names - are you sure your network is working?"
     );
   }
   const data = await res.json();
@@ -634,7 +634,7 @@ export const uploadFile = async (
 
   if (!res.ok) {
     throw new Error(
-      "Failed to create new api key name - are you sure your network is working?"
+      "Failed to create new db name - are you sure your network is working?"
     );
   }
   const data = await res.json();

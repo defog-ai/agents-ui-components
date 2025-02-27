@@ -24,25 +24,25 @@ const debouncedSendUpdates = debounce(
     apiEndpoint: string,
     editor: Editor,
     reportId: string,
-    keyName: string,
+    dbName: string,
     token: string,
     updatedComments: OracleReportComment[]
   ) => {
-    if (!reportId || !keyName) return;
+    if (!reportId || !dbName) return;
 
     try {
       await Promise.all([
         updateReportComments(
           apiEndpoint,
           reportId,
-          keyName,
+          dbName,
           token,
           updatedComments
         ),
         updateReportMDX(
           apiEndpoint,
           reportId,
-          keyName,
+          dbName,
           token,
           editor?.storage.markdown.getMarkdown()
         ),
@@ -58,7 +58,7 @@ export const sendCommentUpdates = (
   apiEndpoint: string,
   editor: Editor,
   reportId: string,
-  keyName: string,
+  dbName: string,
   token: string,
   newComments: OracleReportComment[]
 ) => {
@@ -67,7 +67,7 @@ export const sendCommentUpdates = (
     apiEndpoint,
     editor,
     reportId,
-    keyName,
+    dbName,
     token,
     newComments
   );
@@ -85,13 +85,13 @@ export interface CommentManager {
 export const commentManager = ({
   apiEndpoint,
   reportId,
-  keyName,
+  dbName,
   token,
   initialComments,
 }: {
   apiEndpoint: string;
   reportId: string;
-  keyName: string;
+  dbName: string;
   token: string;
   initialComments: OracleReportComment[];
 }) => {
@@ -116,7 +116,7 @@ export const commentManager = ({
     updatedComments: OracleReportComment[]
   ) => {
     comments = updatedComments;
-    sendCommentUpdates(apiEndpoint, editor, reportId, keyName, token, comments);
+    sendCommentUpdates(apiEndpoint, editor, reportId, dbName, token, comments);
 
     commentListeners.forEach((listener) => listener());
   };
@@ -448,7 +448,7 @@ export const generateNewAnalysis = async (
   reportId: string,
   analysisId: string,
   recommendationIdx: number,
-  keyName: string,
+  dbName: string,
   token: string,
   question: string,
   previousAnalysisIds: string[]
@@ -467,7 +467,7 @@ export const generateNewAnalysis = async (
         mode: "no-cors",
       },
       body: JSON.stringify({
-        key_name: keyName,
+        db_name: dbName,
         token: token,
         report_id: reportId,
         analysis_id: analysisId,
@@ -496,7 +496,7 @@ export const deleteAnalysis = async (
   reportId: string,
   analysisId: string,
   recommendationIdx: number | null,
-  keyName: string,
+  dbName: string,
   token: string
 ) => {
   const res = await fetch(
@@ -513,7 +513,7 @@ export const deleteAnalysis = async (
         mode: "no-cors",
       },
       body: JSON.stringify({
-        key_name: keyName,
+        db_name: dbName,
         token: token,
         report_id: reportId,
         analysis_id: analysisId,
@@ -536,7 +536,7 @@ export const deleteAnalysis = async (
 export const getReportAnalysisIds = async (
   apiEndpoint: string,
   reportId: string,
-  keyName: string,
+  dbName: string,
   token: string
 ): Promise<string[]> => {
   const res = await fetch(
@@ -553,7 +553,7 @@ export const getReportAnalysisIds = async (
         mode: "no-cors",
       },
       body: JSON.stringify({
-        key_name: keyName,
+        db_name: dbName,
         token: token,
         report_id: reportId,
       }),
@@ -576,7 +576,7 @@ export const getReportAnalysisIds = async (
 export const getReportAnalysis = async (
   apiEndpoint: string,
   reportId: string,
-  keyName: string,
+  dbName: string,
   token: string,
   analysisId: string
 ): Promise<{
@@ -599,7 +599,7 @@ export const getReportAnalysis = async (
         mode: "no-cors",
       },
       body: JSON.stringify({
-        key_name: keyName,
+        db_name: dbName,
         token: token,
         report_id: reportId,
         analysis_id: analysisId,
@@ -619,7 +619,7 @@ export const getReportAnalysis = async (
 export const getReportMDX = async (
   apiEndpoint: string,
   reportId: string,
-  keyName: string,
+  dbName: string,
   token: string
 ) => {
   const res = await fetch(
@@ -636,7 +636,7 @@ export const getReportMDX = async (
         mode: "no-cors",
       },
       body: JSON.stringify({
-        key_name: keyName,
+        db_name: dbName,
         token: token,
         report_id: reportId,
       }),
@@ -654,7 +654,7 @@ export const getReportMDX = async (
 export const updateReportMDX = async (
   apiEndpoint: string,
   reportId: string,
-  keyName: string,
+  dbName: string,
   token: string,
   tiptapMdx: string
 ) => {
@@ -672,7 +672,7 @@ export const updateReportMDX = async (
         mode: "no-cors",
       },
       body: JSON.stringify({
-        key_name: keyName,
+        db_name: dbName,
         token: token,
         report_id: reportId,
         tiptap_mdx: tiptapMdx,
@@ -688,7 +688,7 @@ export const updateReportMDX = async (
 export const getReportImage = async (
   apiEndpoint: string,
   reportId: string,
-  keyName: string,
+  dbName: string,
   token: string,
   imageFileName: string
 ) => {
@@ -707,7 +707,7 @@ export const getReportImage = async (
       },
       body: JSON.stringify({
         image_file_name: imageFileName,
-        key_name: keyName,
+        db_name: dbName,
         report_id: reportId,
         token: token,
       }),
@@ -730,7 +730,7 @@ export const getReportImage = async (
 export const getReportAnalysesMdx = async (
   apiEndpoint: string,
   reportId: string,
-  keyName: string,
+  dbName: string,
   token: string
 ) => {
   const res = await fetch(
@@ -747,7 +747,7 @@ export const getReportAnalysesMdx = async (
         mode: "no-cors",
       },
       body: JSON.stringify({
-        key_name: keyName,
+        db_name: dbName,
         token: token,
         report_id: reportId,
       }),
@@ -766,7 +766,7 @@ export const getReportAnalysesMdx = async (
 export const getReportComments = async (
   apiEndpoint: string,
   reportId: string,
-  keyName: string,
+  dbName: string,
   token: string
 ): Promise<OracleReportComment[]> => {
   const res = await fetch(
@@ -783,7 +783,7 @@ export const getReportComments = async (
         mode: "no-cors",
       },
       body: JSON.stringify({
-        key_name: keyName,
+        db_name: dbName,
         token: token,
         report_id: reportId,
       }),
@@ -802,7 +802,7 @@ export const getReportComments = async (
 export const updateReportComments = async (
   apiEndpoint: string,
   reportId: string,
-  keyName: string,
+  dbName: string,
   token: string,
   comments: OracleReportComment[]
 ) => {
@@ -820,7 +820,7 @@ export const updateReportComments = async (
         mode: "no-cors",
       },
       body: JSON.stringify({
-        key_name: keyName,
+        db_name: dbName,
         token: token,
         report_id: reportId,
         comments: comments,
@@ -836,7 +836,7 @@ export const updateReportComments = async (
 export const submitForRevision = async (
   apiEndpoint: string,
   reportId: string,
-  keyName: string,
+  dbName: string,
   token: string,
   generalComments: string,
   commentsWithRelevantText: {
@@ -858,7 +858,7 @@ export const submitForRevision = async (
         mode: "no-cors",
       },
       body: JSON.stringify({
-        key_name: keyName,
+        db_name: dbName,
         token: token,
         report_id: reportId,
         general_comments: generalComments,
@@ -886,13 +886,13 @@ export interface ReportData {
 export async function fetchAndParseReportData(
   apiEndpoint: string,
   reportId: string,
-  keyName: string,
+  dbName: string,
   token: string
 ): Promise<ReportData> {
   const { mdx, analyses } = await getReportMDX(
     apiEndpoint,
     reportId,
-    keyName,
+    dbName,
     token
   );
 
@@ -905,7 +905,7 @@ export async function fetchAndParseReportData(
   fetchedComments = await getReportComments(
     apiEndpoint,
     reportId,
-    keyName,
+    dbName,
     token
   );
 
@@ -917,7 +917,7 @@ export async function fetchAndParseReportData(
   };
 }
 
-export interface ReportListItem {
+export interface ListReportResponseItem {
   report_id: string;
   report_name: string;
   data?: ReportData;
@@ -928,13 +928,13 @@ export interface ReportListItem {
   status?: string;
 }
 
-export type ReportList = ReportListItem[];
+export type ListReportResponse = ListReportResponseItem[];
 
 export const fetchReports = async (
   apiEndpoint: string,
   token: string,
-  apiKeyName: string
-): Promise<ReportList | null> => {
+  dbName: string
+): Promise<ListReportResponse | null> => {
   try {
     const res = await fetch(
       setupBaseUrl({
@@ -945,7 +945,7 @@ export const fetchReports = async (
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token, key_name: apiKeyName }),
+        body: JSON.stringify({ token, db_name: dbName }),
       }
     );
 
@@ -963,7 +963,7 @@ export const deleteReport = async (
   apiEndpoint: string,
   reportId: string,
   token: string,
-  apiKeyName: string
+  dbName: string
 ) => {
   try {
     const res = await fetch(
@@ -976,7 +976,7 @@ export const deleteReport = async (
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          key_name: apiKeyName,
+          db_name: dbName,
           report_id: reportId,
           token,
         }),
@@ -998,15 +998,15 @@ interface GenerateReportResponse {
 export const generateReport = async (
   apiEndpoint: string,
   token: string,
-  apiKeyName: string,
+  dbName: string,
   reportId: string,
   userQuestion: string,
   sources: string[] = [],
   clarifications = []
-): Promise<GenerateReportResponse> => {
+): Promise<void> => {
   if (!token) throw new Error("No token");
   if (!userQuestion) throw new Error("No user question");
-  if (!apiKeyName) throw new Error("No api key name");
+  if (!dbName) throw new Error("No db name");
 
   const res = await fetch(
     setupBaseUrl({
@@ -1017,8 +1017,10 @@ export const generateReport = async (
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      // timeout which instantly errors
+      signal: AbortSignal.timeout(10),
       body: JSON.stringify({
-        db_name: apiKeyName,
+        db_name: dbName,
         token,
         // jic text area has changed.
         // if it's been emptied, use the original question
@@ -1032,8 +1034,6 @@ export const generateReport = async (
   );
 
   if (!res.ok) throw new Error("Failed to generate report");
-
-  return await res.json();
 };
 
 export const getClarifications = async (
@@ -1080,7 +1080,7 @@ export interface SourceItem {
 export const getSources = async (
   apiEndpoint: string,
   token: string,
-  apiKeyName: string,
+  dbName: string,
   userQuestion: string
 ): Promise<SourceItem[]> => {
   try {
@@ -1096,7 +1096,7 @@ export const getSources = async (
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          key_name: apiKeyName,
+          db_name: dbName,
           token,
           user_question: userQuestion,
         }),
@@ -1111,6 +1111,13 @@ export const getSources = async (
     console.error(e);
     return [];
   }
+};
+
+export const ORACLE_REPORT_STATUS = {
+  DONE: "DONE",
+  ERRORED: "ERRORED",
+  THINKING: "THINKING",
+  INITIALIZED: "INITIALIZED",
 };
 
 /**

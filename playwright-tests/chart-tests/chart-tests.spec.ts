@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import {
-  selectApiKeyName,
+  selectDbName,
   setSqlOnly,
   askQuestionUsingSearchBar,
   fullyTestSQLOnlyQuestionForNonTempDb,
@@ -20,7 +20,7 @@ test.describe("Observable Charts", () => {
       url: "http://localhost:5173/test/agent-embed/",
       waitForRequest: "/get_db_names",
     });
-    await selectApiKeyName(page);
+    await selectDbName(page);
     await askQuestionUsingSearchBar(
       page,
       "show me 10 rows with first 3 columns from the data"
