@@ -4,8 +4,6 @@ import { Annotation, EditorState, Transaction } from "@codemirror/state";
 import { csvParse } from "d3";
 import { useEffect, useState } from "react";
 import { reFormatData } from "../query-data/agentUtils";
-import Papa from "papaparse";
-import { read, utils } from "xlsx";
 
 export const fetchAnalysis = async (
   analysisId: string,
@@ -322,77 +320,6 @@ export const FILE_TYPES = {
  */
 export function isValidFileType(fileType) {
   return Object.values(FILE_TYPES).includes(fileType);
-}
-
-export function parseCsvFile(
-  file: File,
-  cb: ({
-    file,
-    rows,
-    columns,
-  }: {
-    file: File;
-    rows: any[];
-    columns: any[];
-  }) => void = (...args) => {}
-) {
-  // if file type is not csv, error
-  if (file.type !== "text/csv") {
-    throw new Error("File type must be CSV");
-  }
-
-  Papa.parse(file, {
-    dynamicTyping: true,
-    skipEmptyLines: true,
-    header: true,
-    worker: true,
-    complete: (results) => {
-      const columns = results.meta.fields.map((f) => {
-        return {
-          title: f,
-          dataIndex: f,
-          key: f,
-        };
-      });
-
-      let rows: any = results.data;
-
-      rows.forEach((row, i) => {
-        row.key = i;
-      });
-
-      cb({ file, rows, columns });
-    },
-  });
-}
-
-export async function parseExcelFile(
-  file: File,
-  cb: ({
-    file,
-    sheets,
-  }: {
-    file: File;
-    sheets: { [sheetName: string]: { rows: any[]; columns: any[] } };
-  }) => void = (...args) => {}
-) {
-  const arrayBuf = await file.arrayBuffer();
-  const d = read(arrayBuf);
-  // go through all sheets, and stream to csvs
-  const sheets = {};
-
-  d.SheetNames.forEach((sheetName) => {
-    const rows = utils.sheet_to_json(d.Sheets[sheetName], { defval: null });
-    const columns = Object.keys(rows[0]).map((d) => ({
-      title: d,
-      dataIndex: d,
-      key: d,
-    }));
-
-    sheets[sheetName] = { rows, columns };
-  });
-
-  cb({ file, sheets });
 }
 
 // sigh. sometimes model returns numbers as strings for some reason.

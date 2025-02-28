@@ -8,8 +8,6 @@ import {
   arrayBufferToBase64,
   FILE_TYPES,
   isValidFileType,
-  parseCsvFile,
-  parseExcelFile,
   uploadFile,
 } from "@utils/utils";
 import { useContext, useState } from "react";
