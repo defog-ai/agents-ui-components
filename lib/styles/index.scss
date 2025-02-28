@@ -8,6 +8,7 @@
 @import "./view-notebooks.scss";
 @import "./writer.scss";
 @import "./oracle.scss";
+@import "./prose-dark.scss";
 
 .analysis-markdown {
   ol {
@@ -44,4 +45,10 @@
     margin: 0 !important;
     // display: inline-block;
   }
+  
+  code {
+    @apply px-1 py-0.5 rounded;
+  }
 }
+
+/* Dark mode styles already added in prose-dark.scss */
