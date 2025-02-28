@@ -13,6 +13,7 @@ export interface SqlResult {
 }
 
 export interface ThinkingStepSQL {
+  id: string;
   function_name: string;
   inputs: {
     db_name: string;

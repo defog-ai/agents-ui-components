@@ -6,7 +6,7 @@ import {
   SpinningLoader,
   SingleSelect,
 } from "@ui-components";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   deleteReport,
   fetchReports,
@@ -90,7 +90,7 @@ export function OracleEmbed({
     async function setup() {
       try {
         const histories: ReportHistory = {};
-        setSelectedDbName(dbNames.length ? dbNames[0] : newDbName);
+        setSelectedDbName(dbNames.length ? "Cricket" : newDbName);
 
         const today = new Date();
         const yesterday = new Date(today);
@@ -160,6 +160,49 @@ export function OracleEmbed({
 
     setup();
   }, []);
+
+  const onReportDelete = useCallback(async () => {
+    const reportGroup = findReportGroupInHistory(
+      selectedDbName,
+      selectedReportId,
+      reportHistory
+    );
+
+    const deleteSucess = await deleteReport(
+      apiEndpoint,
+      selectedReportId,
+      token,
+      selectedDbName
+    );
+
+    if (!deleteSucess) {
+      messageManager.current.error("Failed to delete report");
+      return;
+    } else {
+      messageManager.current.success("Report deleted");
+
+      // remove the report from the history
+      setReportHistory((prev) => {
+        const newReportList = prev[selectedDbName][reportGroup].filter(
+          (report) => report.report_id !== selectedReportId
+        );
+
+        const newHistory = {
+          ...prev,
+          [selectedDbName]: {
+            ...prev[selectedDbName],
+            [reportGroup]: newReportList,
+          },
+        };
+        // if no reports left in group, remove group
+        if (newReportList.length === 0) {
+          delete newHistory[selectedDbName][reportGroup];
+        }
+        return newHistory;
+      });
+      setSelectedReportId(null);
+    }
+  }, [apiEndpoint, token, selectedReportId, selectedDbName]);
 
   const dbSelector = useMemo(
     () => (
@@ -293,56 +336,17 @@ export function OracleEmbed({
             />
           )}
 
-          {selectedReportId &&
+          {/* {selectedReportId &&
           selectedReport &&
-          selectedReport.status === ORACLE_REPORT_STATUS.DONE ? (
+          selectedReport.status === ORACLE_REPORT_STATUS.DONE ? ( */}
+          {false ? (
             <OracleReport
               key={selectedReportId}
               reportId={selectedReportId}
               apiEndpoint={apiEndpoint}
               dbName={selectedDbName}
               token={token}
-              onDelete={async () => {
-                const reportGroup = findReportGroupInHistory(
-                  selectedDbName,
-                  selectedReportId,
-                  reportHistory
-                );
-                const deleteSucess = await deleteReport(
-                  apiEndpoint,
-                  selectedReportId,
-                  token,
-                  selectedDbName
-                );
-
-                if (!deleteSucess) {
-                  messageManager.current.error("Failed to delete report");
-                  return;
-                } else {
-                  messageManager.current.success("Report deleted");
-
-                  // remove the report from the history
-                  setReportHistory((prev) => {
-                    const newReportList = prev[selectedDbName][
-                      reportGroup
-                    ].filter((report) => report.report_id !== selectedReportId);
-
-                    const newHistory = {
-                      ...prev,
-                      [selectedDbName]: {
-                        ...prev[selectedDbName],
-                        [reportGroup]: newReportList,
-                      },
-                    };
-                    // if no reports left in group, remove group
-                    if (newReportList.length === 0) {
-                      delete newHistory[selectedDbName][reportGroup];
-                    }
-                    return newHistory;
-                  });
-                  setSelectedReportId(null);
-                }
-              }}
+              onDelete={onReportDelete}
               onReportParsed={(data: ReportData) => {
                 // find the group of this report in histories
                 const group = findReportGroupInHistory(
@@ -378,6 +382,7 @@ export function OracleEmbed({
                 apiEndpoint={apiEndpoint}
                 token={token}
                 reportId={selectedReportId}
+                onDelete={onReportDelete}
                 onStreamClosed={(thinkingSteps, hadError) => {
                   const reportGroup = findReportGroupInHistory(
                     selectedDbName,
