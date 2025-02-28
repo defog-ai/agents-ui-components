@@ -120,7 +120,9 @@ export function OracleDraftReport({
           }
           disabled={loading}
           label={
-            <div className="text-lg dark:text-gray-200">What would you like a report on?</div>
+            <div className="text-lg dark:text-gray-200">
+              What would you like a report on?
+            </div>
           }
           placeholder="Type here"
           autoResize={true}
@@ -132,7 +134,7 @@ export function OracleDraftReport({
               try {
                 setLoading(true);
                 loadingStatus.current =
-                  "Analyzing database and thinking if I need to ask clarifying questions...";
+                  "Analyzing database and thinking if I need to ask clarifying questions. This can take 15-20 seconds...";
                 setDraft((prev) => ({
                   ...prev,
                   userQuestion: question,
@@ -176,11 +178,15 @@ export function OracleDraftReport({
 
         {!loading && draft.clarifications && (
           <div className="my-4 max-w-2xl">
-            <div className="font-light mb-2 dark:text-gray-300">Add Details & Sources</div>
+            <div className="font-light mb-2 dark:text-gray-300">
+              Add Details & Sources
+            </div>
             <div className="space-y-6">
               {draft.sources?.length > 0 && (
                 <div className="space-y-2">
-                  <div className="font-light text-sm dark:text-gray-400">Sources</div>
+                  <div className="font-light text-sm dark:text-gray-400">
+                    Sources
+                  </div>
                   <div className="bg-white dark:bg-gray-800 flex w-full flex-col pl-1 rounded-lg">
                     <div className="flex w-full items-center overflow-x-scroll gap-6 pb-3">
                       {draft.sources.map((source, i) => (
@@ -202,7 +208,9 @@ export function OracleDraftReport({
                 </div>
               )}
               <div className="space-y-2">
-                <div className="font-light text-sm dark:text-gray-400">Details</div>
+                <div className="font-light text-sm dark:text-gray-400">
+                  Details
+                </div>
                 {draft.clarifications.map((obj, idx) => (
                   <ClarificationItem
                     {...obj}
