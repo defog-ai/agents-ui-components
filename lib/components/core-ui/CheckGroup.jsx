@@ -28,11 +28,11 @@ export function CheckGroup({
 
   return (
     <fieldset className="">
-      <legend className="text-sm font-semibold leading-6 text-gray-900">
+      <legend className="text-sm font-semibold leading-6 text-gray-900 dark:text-gray-100">
         {title}
       </legend>
       {subhead && (
-        <p className="mt-1 text-sm leading-6 text-gray-600">{subhead}</p>
+        <p className="mt-1 text-sm leading-6 text-gray-600 dark:text-gray-400">{subhead}</p>
       )}
 
       <div className="mt-2 space-y-6 sm:flex sm:items-center sm:space-x-10 sm:space-y-0">
@@ -56,11 +56,11 @@ export function CheckGroup({
                 setSelectedOption(opt.id);
                 onChange(opt);
               }}
-              className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-600"
+              className="h-4 w-4 border-gray-300 dark:border-gray-600 text-indigo-600 dark:text-indigo-500 focus:ring-indigo-600 dark:focus:ring-indigo-500"
             />
             <label
               htmlFor={opt.id}
-              className="ml-3 block text-sm font-medium leading-6 text-gray-900"
+              className="ml-3 block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200"
             >
               {opt.title}
             </label>

@@ -21,7 +21,7 @@ export const ColorPicker = ({ value, onChange, allowClear, ...rest }) => {
           {...rest}
         />
         <div
-          className="border border-gray-200 rounded shadow-sm size-8"
+          className="border border-gray-200 dark:border-gray-600 rounded shadow-sm size-8"
           style={{ backgroundColor: value || "#ffffff" }}
         />
       </div>
@@ -33,13 +33,13 @@ export const ColorPicker = ({ value, onChange, allowClear, ...rest }) => {
             onChange && onChange({ toHexString: () => e.target.value })
           }
           placeholder="#000000"
-          className="w-[100px] h-8 px-1.5 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+          className="w-[100px] h-8 px-1.5 text-xs border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-600 dark:focus:border-blue-600"
         />
       </div>
       {allowClear && value && (
         <button
           onClick={() => onChange && onChange({ toHexString: () => "" })}
-          className="px-1.5 text-xs text-gray-500 hover:text-gray-700 focus:outline-none"
+          className="px-1.5 text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none"
         >
           Clear
         </button>

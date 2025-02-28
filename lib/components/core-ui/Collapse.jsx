@@ -103,7 +103,7 @@ export function Collapse({
         >
           <ChevronRightIcon
             className={twMerge(
-              "w-4 h-4 inline fill-gray-500 dark:fill-gray-400",
+              "w-4 h-4 inline fill-gray-500 dark:fill-gray-400 stroke-gray-500 dark:stroke-gray-400",
               iconClassNames
             )}
             style={{

@@ -14,7 +14,7 @@ export function Popover({ content, children }) {
 
       <PopoverPanel
         modal
-        className={twMerge("absolute z-40 p-2 border rounded-md bg-white")}
+        className={twMerge("absolute z-40 p-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200")}
       >
         {content}
       </PopoverPanel>
