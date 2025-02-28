@@ -7,7 +7,6 @@ import type {
 } from "./OracleReportContext";
 
 import { OracleReportMultiTableExtension } from "./reports/tiptap-extensions/OracleReportMultiTable";
-import { RecommendationTitle } from "./reports/tiptap-extensions/OracleReportRecommendationTitle";
 import StarterKit from "@tiptap/starter-kit";
 import { OracleReportImageExtension } from "./reports/tiptap-extensions/OracleReportImage";
 import { Markdown } from "tiptap-markdown";
@@ -130,23 +129,28 @@ export const commentManager = ({
 
 export const extensions = [
   StarterKit,
-  RecommendationTitle,
-  OracleReportMultiTableExtension,
-  OracleReportImageExtension,
   OracleCommentHandlerExtension,
   CommentExtension.configure({
     HTMLAttributes: {
       class: "oracle-report-comment",
     },
   }),
-  Markdown,
+  Markdown.configure({
+    html: true,
+    transformPastedText: true,
+    transformCopiedText: true,
+  }),
 ];
 
 export const analysisExtensions = [
   StarterKit,
   OracleReportMultiTableExtension,
   OracleReportImageExtension,
-  Markdown,
+  Markdown.configure({
+    html: true,
+    transformPastedText: true,
+    transformCopiedText: true,
+  }),
 ];
 export const revisionExtensions = [
   StarterKit,
@@ -157,7 +161,11 @@ export const revisionExtensions = [
       class: "oracle-report-comment",
     },
   }),
-  Markdown,
+  Markdown.configure({
+    html: true,
+    transformPastedText: true,
+    transformCopiedText: true,
+  }),
 ];
 
 /**
