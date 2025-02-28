@@ -90,7 +90,7 @@ export function OracleEmbed({
     async function setup() {
       try {
         const histories: ReportHistory = {};
-        setSelectedDbName(dbNames.length ? "Cricket" : newDbName);
+        setSelectedDbName(dbNames.length ? dbNames[0] : newDbName);
 
         const today = new Date();
         const yesterday = new Date(today);
