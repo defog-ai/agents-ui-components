@@ -61,7 +61,7 @@ export function DropFiles({
     <div
       data-testid="file-drop"
       className={twMerge(
-        "min-w-full min-h-full relative flex flex-col grow items-center justify-center border dark:border-gray-600 p-4 rounded-md text-gray-400 dark:text-gray-200",
+        "min-w-full min-h-full relative flex flex-col grow items-center justify-center border dark:border-gray-600 p-4 rounded-md text-gray-400 dark:text-gray-200 cursor-pointer group",
         isDropping ? "bg-dotted-blue" : "bg-dotted-gray",
         rootClassNames
       )}
@@ -104,40 +104,38 @@ export function DropFiles({
       {label && (
         <label
           className={twMerge(
-            "block text-xs mb-2 font-light text-gray-600 dark:text-gray-300 drop-shadow-[0_0_3px_rgba(255,255,255,0.75)] ",
+            "block text-xs mb-2 font-light text-gray-600 dark:text-gray-200 drop-shadow-[0_0_3px_rgba(255,255,255,0.75)] pointer-events-none text-center",
             labelClassNames
           )}
         >
           {label}
         </label>
       )}
-      <div className={contentClassNames}>
-        {children}
-        {showIcon && (
-          <Download className={twMerge("h-6 w-6 mx-auto", iconClassNames)} />
-        )}
-        <div className="mt-2 relative group cursor-pointer">
-          <p className="cursor-pointer text-xs text-gray-400 dark:text-gray-500 group-hover:underline z-[2] relative pointer-events-none">
-            Select from your computer
-          </p>
-          <input
-            multiple={allowMultiple}
-            aria-label=""
-            accept={acceptedFileTypes.join(",")}
-            className="cursor-pointer w-full h-full z-[1] opacity-0 absolute left-0 top-0"
-            type="file"
-            disabled={disabled}
-            onInput={(e) => {
-              e.preventDefault();
-              if (disabled) return;
-              onFileSelect(e as React.ChangeEvent<HTMLInputElement>);
+      {children}
+      {showIcon && (
+        <Download className={twMerge("h-6 w-6 mx-auto", iconClassNames)} />
+      )}
 
-              // set value to null jic user wants to upload the same file again
-              e.currentTarget.value = null;
-            }}
-          ></input>
-        </div>
-      </div>
+      <p className="text-xs text-gray-400 group-hover:underline z-[2] mt-4 relative pointer-events-none">
+        Or click anywhere to select from your computer
+      </p>
+      <input
+        multiple={allowMultiple}
+        aria-label=""
+        accept={acceptedFileTypes.join(",")}
+        className="w-full h-full z-[1] opacity-0 absolute left-0 top-0 cursor-pointer"
+        type="file"
+        title="Click to select file"
+        disabled={disabled}
+        onInput={(e) => {
+          e.preventDefault();
+          if (disabled) return;
+          onFileSelect(e as React.ChangeEvent<HTMLInputElement>);
+
+          // set value to null jic user wants to upload the same file again
+          e.currentTarget.value = null;
+        }}
+      ></input>
     </div>
   );
 }

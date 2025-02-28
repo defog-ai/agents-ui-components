@@ -16,7 +16,7 @@
 }
 
 .bg-dotted-gray {
-  @apply bg-[radial-gradient(theme(colors.gray.200)_1px,transparent_1px)] [background-size:16px_16px] dark:bg-[radial-gradient(theme(colors.gray.400)_1px,transparent_1px)];
+  @apply bg-[radial-gradient(theme(colors.gray.300)_1px,transparent_1px)] [background-size:16px_16px] dark:bg-[radial-gradient(theme(colors.gray.400)_1px,transparent_1px)];
 }
 
 .bg-dotted-blue {
