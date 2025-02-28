@@ -1,0 +1,226 @@
+/* Dark mode enhancements for prose classes */
+
+/* Ensure all prose text has proper contrast in dark mode */
+.dark .prose,
+.dark .analysis-markdown {
+  color: #e0e0e0;
+
+  /* Headings with improved contrast */
+  h1, h2, h3, h4, h5, h6 {
+    color: #ffffff;
+    font-weight: 600;
+  }
+
+  h1 {
+    font-size: 1.875rem;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+  }
+
+  h3 {
+    font-size: 1.25rem;
+  }
+
+  /* Links with better visibility */
+  a {
+    color: #7891EE;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+
+    &:hover {
+      color: #9EADEE;
+    }
+  }
+
+  /* Strong text with increased visibility */
+  strong {
+    color: #ffffff;
+    font-weight: 600;
+  }
+
+  /* Lists with proper styling */
+  ul, ol {
+    li {
+      color: #e0e0e0;
+      
+      &::marker {
+        color: #7891EE;
+      }
+    }
+  }
+
+  /* Block quotes with better styling */
+  blockquote {
+    border-left-color: #404040;
+    color: #cccccc;
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+
+  /* Code blocks */
+  pre {
+    background-color: #2d2d2d;
+    code {
+      color: #e0e0e0;
+    }
+  }
+
+  /* Inline code */
+  code {
+    color: #ffffff;
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+
+  /* Horizontal rule */
+  hr {
+    border-color: #404040;
+  }
+
+  /* Tables */
+  table {
+    thead {
+      tr {
+        th {
+          color: #ffffff;
+          background-color: #2d2d2d;
+          border-bottom-color: #404040;
+        }
+      }
+    }
+    tbody {
+      tr {
+        border-bottom-color: #404040;
+        
+        td {
+          color: #e0e0e0;
+        }
+      }
+      
+      tr:last-child {
+        border-bottom-color: #404040;
+      }
+    }
+  }
+
+  /* Figure captions */
+  figcaption {
+    color: #cccccc;
+  }
+}
+
+/* Specific fixes for nested elements */
+.dark .prose-invert,
+.dark .analysis-markdown {
+  h1, h2, h3, h4, h5, h6 {
+    color: #ffffff;
+  }
+}
+
+/* Specific styles for analysis-markdown class */
+.dark .analysis-markdown {
+  color: #e0e0e0;
+  
+  /* Override specific styles for analysis-markdown */
+  h1, h2, h3 {
+    color: #ffffff !important;
+    font-weight: 600 !important;
+  }
+  
+  /* Ensure list markers are visible */
+  ol {
+    li::marker {
+      color: #7891EE !important;
+    }
+  }
+  
+  ul {
+    li::marker {
+      color: #7891EE !important;
+    }
+  }
+  
+  /* Ensure proper paragraph color */
+  p {
+    color: #e0e0e0 !important;
+  }
+  
+  /* Make code blocks visible */
+  code {
+    color: #ffffff !important;
+    background-color: rgba(255, 255, 255, 0.1) !important;
+  }
+  
+  /* Comprehensive fix for all text elements in dark mode */
+  h1.dark\:text-gray-100,
+  .dark\:text-gray-100,
+  h1 {
+    color: #f9fafb !important; /* gray-100 */
+  }
+  
+  h2.dark\:text-gray-200,
+  .dark\:text-gray-200,
+  h2 {
+    color: #e5e7eb !important; /* gray-200 */
+  }
+  
+  p.dark\:text-gray-300,
+  .dark\:text-gray-300,
+  p {
+    color: #d1d5db !important; /* gray-300 */
+  }
+  
+  ul.dark\:text-gray-300 li,
+  ol.dark\:text-gray-300 li,
+  li {
+    color: #d1d5db !important; /* gray-300 */
+  }
+  
+  blockquote.dark\:text-gray-300,
+  blockquote {
+    color: #d1d5db !important; /* gray-300 */
+  }
+  
+  blockquote.dark\:border-gray-700 {
+    border-color: #374151 !important; /* gray-700 */
+  }
+  
+  /* Direct class selectors for Tailwind's arbitrary variants */
+  *:where(.dark\:text-gray-100) {
+    color: #f9fafb !important;
+  }
+  
+  *:where(.dark\:text-gray-200) {
+    color: #e5e7eb !important;
+  }
+  
+  *:where(.dark\:text-gray-300) {
+    color: #d1d5db !important;
+  }
+  
+  *:where(.dark\:border-gray-700) {
+    border-color: #374151 !important;
+  }
+  
+  /* Arbitrary class variant handling for deeply nested elements */
+  .dark {
+    .\[\&\>h1\]\:dark\:text-gray-100 > h1,
+    .\[\&\>h2\]\:dark\:text-gray-200 > h2,
+    .\[\&\>h3\]\:dark\:text-gray-200 > h3,
+    .\[\&\>p\]\:dark\:text-gray-300 > p,
+    .\[\&\>ul\]\:dark\:text-gray-300 > ul,
+    .\[\&\>ol\]\:dark\:text-gray-300 > ol,
+    .\[\&\>blockquote\]\:dark\:text-gray-300 > blockquote {
+      color: #e0e0e0 !important;
+    }
+    
+    .\[\&\>blockquote\]\:dark\:border-gray-700 > blockquote {
+      border-color: #374151 !important;
+    }
+    
+    .\[\&\>ul\]\:dark\:text-gray-300 > ul li,
+    .\[\&\>ol\]\:dark\:text-gray-300 > ol li {
+      color: #d1d5db !important;
+    }
+  }
+}
