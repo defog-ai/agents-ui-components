@@ -10,3 +10,27 @@
 .observable-plot text {
   @apply text-gray-600 dark:text-gray-400;
 }
+
+.bg-grid {
+  @apply bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px];
+}
+
+.bg-dotted-gray {
+  @apply bg-[radial-gradient(theme(colors.gray.200)_1px,transparent_1px)] [background-size:16px_16px] dark:bg-[radial-gradient(theme(colors.gray.400)_1px,transparent_1px)];
+}
+
+.bg-dotted-blue {
+  @apply bg-[radial-gradient(theme(colors.blue.500)_1px,transparent_1px)] [background-size:16px_16px] dark:bg-[radial-gradient(theme(colors.blue.400)_1px,transparent_1px)];
+}
+
+.bg-dotted-red {
+  @apply bg-[radial-gradient(theme(colors.red.200)_1px,transparent_1px)] [background-size:16px_16px] dark:bg-[radial-gradient(theme(colors.red.400)_1px,transparent_1px)];
+}
+
+.bg-dotted-green {
+  @apply bg-[radial-gradient(theme(colors.green.200)_1px,transparent_1px)] [background-size:16px_16px] dark:bg-[radial-gradient(theme(colors.green.400)_1px,transparent_1px)];
+}
+
+.bg-dotted-yellow {
+  @apply bg-[radial-gradient(theme(colors.yellow.200)_1px,transparent_1px)] [background-size:16px_16px] dark:bg-[radial-gradient(theme(colors.yellow.400)_1px,transparent_1px)];
+}

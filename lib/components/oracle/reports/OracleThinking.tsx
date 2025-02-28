@@ -129,9 +129,9 @@ export function OracleThinking({
               }
 
               if (Array.isArray(parsed)) {
-                newThinkingSteps.unshift(...parsed);
+                newThinkingSteps.push(...parsed);
               } else {
-                newThinkingSteps.unshift(parsed);
+                newThinkingSteps.push(parsed);
               }
             } catch (err) {
               console.warn("Failed to parse SSE data:", err);
@@ -192,10 +192,8 @@ export function OracleThinking({
           })
           .map((step) => (
             <div
-              key={
-                step.id || step.result?.analysis_id || step.result.toString()
-              }
-              className="w-full md:w-1/2 p-2 inline-block align-top"
+              key={step.id}
+              className="w-full md:w-1/2 p-2 inline-block align-top transition-all duration-500 ease-in-out"
             >
               {isThinkingStepSQL(step) ? (
                 <OracleThinkingSQLCard step={step} />
