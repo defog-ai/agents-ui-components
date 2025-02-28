@@ -102,7 +102,7 @@ let TextArea = forwardRef(function TextArea(
       ref={rootRef}
     >
       {label && (
-        <label htmlFor={name} className="block mb-2 text-xs font-light">
+        <label htmlFor={name} className="block mb-2 text-xs font-light text-gray-600 dark:text-gray-300">
           {label}
         </label>
       )}
@@ -118,12 +118,12 @@ let TextArea = forwardRef(function TextArea(
             placeholder={placeholder}
             onKeyDown={onKeyDown}
             className={twMerge(
-              "focus:outline-none pl-2 block w-full rounded-md border-0 py-1.5 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600",
+              "focus:outline-none pl-2 block w-full rounded-md border-0 py-1.5 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-400",
               "text-[16px] lg:text-sm leading-6",
-              "placeholder:text-gray-400 dark:placeholder:text-gray-500",
+              "placeholder:text-gray-400 dark:placeholder:text-gray-200",
               textAreaSizeClasses[size] || textAreaSizeClasses["default"],
               disabled
-                ? "bg-gray-100 dark:bg-gray-800 text-gray-400 focus:ring-gray-100 dark:focus:ring-gray-700 cursor-not-allowed"
+                ? "bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-200 focus:ring-gray-100 dark:focus:ring-gray-700 cursor-not-allowed"
                 : "bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100",
               textAreaClassNames,
               suffix ? "pb-6" : "",

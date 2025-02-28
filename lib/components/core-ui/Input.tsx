@@ -96,7 +96,7 @@ let Input = forwardRef(function Input(
       {label && (
         <label
           htmlFor={id || idInternal}
-          className="block mb-2 text-xs font-light text-gray-600 dark:text-gray-400"
+          className="block mb-2 text-xs font-light text-gray-600 dark:text-gray-300"
         >
           {label}
         </label>
@@ -108,12 +108,12 @@ let Input = forwardRef(function Input(
           name={name}
           id={id || idInternal}
           className={twMerge(
-            "focus:outline-none block w-full shadow-sm px-2 rounded-md border-0 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-1 focus:ring-inset",
+            "focus:outline-none block w-full shadow-sm px-2 rounded-md border-0 ring-1 ring-inset ring-gray-300 dark:ring-gray-400 placeholder:text-gray-400 dark:placeholder:text-gray-200 focus:ring-1 focus:ring-inset",
             "text-[16px] lg:text-sm sm:leading-6",
             inputSizeClasses[size] || inputSizeClasses["default"],
             statusClasses[status] || statusClasses["default"],
             disabled
-              ? "bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500 focus:ring-gray-100 dark:focus:ring-gray-800 cursor-not-allowed"
+              ? "bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-200 focus:ring-gray-100 dark:focus:ring-gray-800 cursor-not-allowed"
               : "bg-white dark:bg-gray-900 dark:text-gray-100",
             inputClassNames
           )}
