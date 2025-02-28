@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Download } from "lucide-react";
 import { twMerge } from "tailwind-merge";
 
@@ -15,6 +15,8 @@ interface DropFilesProps {
   onDragOver?: (e: React.DragEvent<HTMLDivElement>) => void;
   /** Function to be called when a file is dragged over the dropzone. **/
   onDragEnter?: (e: React.DragEvent<HTMLDivElement>) => void;
+  /** Function to be called when drag is over. **/
+  onDragLeave?: (e: React.DragEvent<HTMLDivElement>) => void;
   /** Additional classes to be added to the root div. **/
   rootClassNames?: string;
   /** Additional classes to be added to the icon. **/
@@ -43,6 +45,7 @@ export function DropFiles({
   onFileSelect = (...args) => {},
   onDragOver = (...args) => {},
   onDragEnter = (...args) => {},
+  onDragLeave = (...args) => {},
   rootClassNames = "",
   iconClassNames = "",
   contentClassNames = "",
@@ -52,14 +55,22 @@ export function DropFiles({
   disabled = false,
   allowMultiple = false,
 }: DropFilesProps) {
+  const [isDropping, setIsDropping] = useState<boolean>(false);
+
   return (
     <div
       data-testid="file-drop"
-      className={twMerge("relative text-gray-600 dark:text-gray-300", rootClassNames)}
+      className={twMerge(
+        "min-w-full min-h-full relative flex flex-col grow items-center justify-center border dark:border-gray-600 p-4 rounded-md text-gray-400 dark:text-gray-200",
+        isDropping ? "bg-dotted-blue" : "bg-dotted-gray",
+        rootClassNames
+      )}
       onDrop={(e) => {
         e.preventDefault();
         e.stopPropagation();
         if (disabled) return;
+
+        setIsDropping(false);
 
         onDrop(e);
       }}
@@ -68,7 +79,18 @@ export function DropFiles({
         e.stopPropagation();
         if (disabled) return;
 
+        setIsDropping(true);
+
         onDragEnter(e);
+      }}
+      onDragLeave={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (disabled) return;
+
+        setIsDropping(false);
+
+        onDragLeave(e);
       }}
       onDragOver={(e) => {
         // Prevent default behavior (Prevent file from being opened)
@@ -82,7 +104,7 @@ export function DropFiles({
       {label && (
         <label
           className={twMerge(
-            "block text-xs mb-2 font-light text-gray-600 dark:text-gray-300",
+            "block text-xs mb-2 font-light text-gray-600 dark:text-gray-300 drop-shadow-[0_0_3px_rgba(255,255,255,0.75)] ",
             labelClassNames
           )}
         >
@@ -92,7 +114,7 @@ export function DropFiles({
       <div className={contentClassNames}>
         {children}
         {showIcon && (
-          <Download className={twMerge("h-6 w-6", iconClassNames)} />
+          <Download className={twMerge("h-6 w-6 mx-auto", iconClassNames)} />
         )}
         <div className="mt-2 relative group cursor-pointer">
           <p className="cursor-pointer text-xs text-gray-400 dark:text-gray-500 group-hover:underline z-[2] relative pointer-events-none">

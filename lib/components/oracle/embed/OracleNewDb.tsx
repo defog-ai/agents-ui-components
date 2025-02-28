@@ -1,6 +1,11 @@
 import { OracleReportContext } from "@oracle";
-import { DropFiles, MessageManagerContext } from "@ui-components";
 import {
+  DropFiles,
+  MessageManagerContext,
+  SpinningLoader,
+} from "@ui-components";
+import {
+  arrayBufferToBase64,
   FILE_TYPES,
   isValidFileType,
   parseCsvFile,
@@ -8,6 +13,7 @@ import {
   uploadFile,
 } from "@utils/utils";
 import { useContext, useState } from "react";
+import { twMerge } from "tailwind-merge";
 
 export const OracleNewDb = ({
   apiEndpoint,
@@ -21,138 +27,141 @@ export const OracleNewDb = ({
   const message = useContext(MessageManagerContext);
   const [loading, setLoading] = useState<boolean>(false);
 
+  console.log(loading);
+
   return (
-    <div className="h-full overflow-auto py-4 px-1 lg:px-10">
-      <div className="flex items-center justify-center h-full">
-        <DropFiles
-          disabled={loading}
-          rootClassNames="border p-4 rounded-md text-gray-400"
-          acceptedFileTypes={Object.values(FILE_TYPES)}
-          showIcon={true}
-          onFileSelect={async (ev) => {
-            ev.preventDefault();
-            ev.stopPropagation();
-
+    <div className="min-w-full min-h-full">
+      <DropFiles
+        disabled={loading}
+        rootClassNames={twMerge(loading ? "hidden" : "")}
+        acceptedFileTypes={Object.values(FILE_TYPES)}
+        showIcon={true}
+        onFileSelect={async (ev) => {
+          setLoading(true);
+          ev.preventDefault();
+          ev.stopPropagation();
+          try {
             // this is when the user selects a file from the file dialog
-            try {
-              let file = ev.target.files[0];
-              if (!file || !isValidFileType(file.type)) {
-                throw new Error("Only CSV or Excel files are accepted");
-              }
-
-              if (file.type === "text/csv") {
-                parseCsvFile(file, async ({ file, rows, columns }) => {
-                  try {
-                    const { dbName } = await uploadFile(
-                      apiEndpoint,
-                      token,
-                      file.name,
-                      {
-                        [file.name]: { rows, columns },
-                      }
-                    ).catch((e) => {
-                      throw e;
-                    });
-                    message.success(`DB ${dbName} created successfully`);
-                    console.log(dbName);
-                    onDbCreated(dbName);
-                  } catch (e) {
-                    throw e;
-                  }
-                });
-              } else {
-                parseExcelFile(file, async ({ file, sheets }) => {
-                  try {
-                    const { dbName } = await uploadFile(
-                      apiEndpoint,
-                      token,
-                      file.name,
-                      sheets
-                    ).catch((e) => {
-                      throw e;
-                    });
-                    message.success(`DB ${dbName} created successfully`);
-                    console.log(dbName);
-                    onDbCreated(dbName);
-                  } catch (e) {
-                    throw e;
-                  }
-                });
-              }
-            } catch (e) {
-              console.error(e);
-              message.error("Failed to parse the file");
+            let file = ev.target.files[0];
+            if (!file || !isValidFileType(file.type)) {
+              throw new Error("Only CSV or Excel files are accepted");
             }
-          }}
-          onDrop={async (ev) => {
-            setLoading(true);
-            ev.preventDefault();
-            ev.stopPropagation();
-            try {
-              let dataTransferObject: DataTransferItem =
-                ev?.dataTransfer?.items?.[0];
-              if (
-                !dataTransferObject ||
-                !dataTransferObject.kind ||
-                dataTransferObject.kind !== "file"
-              ) {
-                throw new Error("Invalid file");
-              }
 
-              if (!isValidFileType(dataTransferObject.type)) {
-                throw new Error("Only CSV or Excel files are accepted");
-              }
+            const buf = await file.arrayBuffer();
 
-              let file = dataTransferObject.getAsFile();
-
-              if (file.type === "text/csv") {
-                parseCsvFile(file, async ({ file, rows, columns }) => {
-                  try {
-                    const { dbName } = await uploadFile(
-                      apiEndpoint,
-                      token,
-                      file.name,
-                      {
-                        [file.name]: { rows, columns },
-                      }
-                    ).catch((e) => {
-                      throw e;
-                    });
-                    message.success(`DB ${dbName} created successfully`);
-                    console.log(dbName);
-                    onDbCreated(dbName);
-                  } catch (e) {
-                    throw e;
-                  }
+            if (file.type === "text/csv") {
+              try {
+                const { dbName } = await uploadFile(
+                  apiEndpoint,
+                  token,
+                  file.name,
+                  arrayBufferToBase64(buf)
+                ).catch((e) => {
+                  throw e;
                 });
-              } else {
-                parseExcelFile(file, async ({ file, sheets }) => {
-                  try {
-                    const { dbName } = await uploadFile(
-                      apiEndpoint,
-                      token,
-                      file.name,
-                      sheets
-                    ).catch((e) => {
-                      throw e;
-                    });
-                    message.success(`DB ${dbName} created successfully`);
-                    console.log(dbName);
-                    onDbCreated(dbName);
-                  } catch (e) {
-                    throw e;
-                  }
-                });
+                message.success(`DB ${dbName} created successfully`);
+
+                onDbCreated(dbName);
+              } catch (e) {
+                setLoading(false);
+                throw e;
               }
-            } catch (e) {
-              message.error(e.message || "Failed to parse the file");
-              console.log(e.stack);
-            } finally {
-              setLoading(false);
+            } else {
+              try {
+                const { dbName } = await uploadFile(
+                  apiEndpoint,
+                  token,
+                  file.name,
+                  arrayBufferToBase64(buf)
+                ).catch((e) => {
+                  throw e;
+                });
+                message.success(`DB ${dbName} created successfully`);
+
+                onDbCreated(dbName);
+              } catch (e) {
+                setLoading(false);
+                throw e;
+              }
             }
-          }}
-        />
-      </div>
+          } catch (e) {
+            console.error(e);
+            message.error("Failed to parse the file");
+          }
+        }}
+        onDrop={async (ev) => {
+          setLoading(true);
+          ev.preventDefault();
+          ev.stopPropagation();
+
+          try {
+            let dataTransferObject: DataTransferItem =
+              ev?.dataTransfer?.items?.[0];
+            if (
+              !dataTransferObject ||
+              !dataTransferObject.kind ||
+              dataTransferObject.kind !== "file"
+            ) {
+              throw new Error("Invalid file");
+            }
+
+            if (!isValidFileType(dataTransferObject.type)) {
+              throw new Error("Only CSV or Excel files are accepted");
+            }
+
+            let file = dataTransferObject.getAsFile();
+
+            const start = performance.now();
+
+            const buf = await file.arrayBuffer();
+            if (file.type === "text/csv") {
+              try {
+                const { dbName } = await uploadFile(
+                  apiEndpoint,
+                  token,
+                  file.name,
+                  arrayBufferToBase64(buf)
+                ).catch((e) => {
+                  throw e;
+                });
+
+                const end = performance.now();
+                console.log(`CSV upload took ${end - start}ms`);
+                message.success(`DB ${dbName} created successfully`);
+
+                onDbCreated(dbName);
+              } catch (e) {
+                setLoading(false);
+                throw e;
+              }
+            } else {
+              // parseExcelFile(file, async ({ file, sheets }) => {
+              try {
+                const { dbName } = await uploadFile(
+                  apiEndpoint,
+                  token,
+                  file.name,
+                  arrayBufferToBase64(buf)
+                );
+                message.success(`DB ${dbName} created successfully`);
+
+                onDbCreated(dbName);
+              } catch (e) {
+                setLoading(false);
+                throw e;
+              }
+            }
+          } catch (e) {
+            message.error(e.message || "Failed to parse the file");
+            console.log(e.stack);
+          }
+        }}
+      />
+      {loading && (
+        <div className="text-xs flex w-full h-full items-center justify-center gap-1">
+          <SpinningLoader /> Uploading your file
+        </div>
+      )}
     </div>
   );
 };

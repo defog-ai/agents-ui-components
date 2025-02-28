@@ -336,10 +336,9 @@ export function OracleEmbed({
             />
           )}
 
-          {/* {selectedReportId &&
+          {selectedReportId &&
           selectedReport &&
-          selectedReport.status === ORACLE_REPORT_STATUS.DONE ? ( */}
-          {false ? (
+          selectedReport.status === ORACLE_REPORT_STATUS.DONE ? (
             <OracleReport
               key={selectedReportId}
               reportId={selectedReportId}

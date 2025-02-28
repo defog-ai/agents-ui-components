@@ -345,6 +345,7 @@ export function parseCsvFile(
     dynamicTyping: true,
     skipEmptyLines: true,
     header: true,
+    worker: true,
     complete: (results) => {
       const columns = results.meta.fields.map((f) => {
         return {
@@ -608,11 +609,21 @@ interface UserFile {
   columns: { title: string }[];
 }
 
+export function arrayBufferToBase64(buffer: ArrayBuffer): string {
+  var binary = "";
+  var bytes = new Uint8Array(buffer);
+  var len = bytes.byteLength;
+  for (var i = 0; i < len; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return window.btoa(binary);
+}
+
 export const uploadFile = async (
   apiEndpoint: string,
   token: string,
   fileName: string,
-  tables: { [key: string]: UserFile }
+  fileBase64: string
 ): Promise<{ dbName: string; dbInfo: DbInfo }> => {
   const urlToConnect = setupBaseUrl({
     protocol: "http",
@@ -628,8 +639,10 @@ export const uploadFile = async (
     body: JSON.stringify({
       token: token,
       file_name: fileName,
-      tables,
+      base_64_file: fileBase64,
     }),
+  }).catch((error) => {
+    throw error;
   });
 
   if (!res.ok) {
