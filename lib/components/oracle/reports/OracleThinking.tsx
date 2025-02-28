@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useContext } from "react";
-import { MessageManagerContext, SpinningLoader } from "@ui-components";
+import { Button, MessageManagerContext, SpinningLoader } from "@ui-components";
 
 import OracleThinkingSQLCard, {
   ThinkingStepSQL,
@@ -7,17 +7,17 @@ import OracleThinkingSQLCard, {
 import OracleThinkingCard, { ThinkingStep } from "./OracleThinkingCard";
 
 // Type guard function to check if a step is of type ThinkingStepSQL
-function isThinkingStepSQL(step: ThinkingStep | ThinkingStepSQL): step is ThinkingStepSQL {
-  return (
-    step.function_name === "text_to_sql_tool" && 
-    'db_name' in step.inputs
-  );
+function isThinkingStepSQL(
+  step: ThinkingStep | ThinkingStepSQL
+): step is ThinkingStepSQL {
+  return step.function_name === "text_to_sql_tool" && "db_name" in step.inputs;
 }
 
 type OracleThinkingProps = {
   apiEndpoint: string;
   token: string;
   reportId: string;
+  onDelete: () => void;
   onStreamClosed?: (
     thinkingSteps: (ThinkingStep | ThinkingStepSQL)[],
     hadError: boolean
@@ -31,6 +31,7 @@ export function OracleThinking({
   token,
   reportId,
   onStreamClosed = () => {},
+  onDelete = () => {},
 }: OracleThinkingProps) {
   const [thinkingSteps, setThinkingSteps] = useState<
     (ThinkingStep | ThinkingStepSQL)[]
@@ -159,9 +160,14 @@ export function OracleThinking({
 
   return (
     <div className="relative p-2">
-      <h1 className="text-xl font-bold mb-4 dark:text-dark-text-primary">
-        Details
-      </h1>
+      <div className="flex flex-row w-full items-center mb-4 mt-4">
+        <h1 className="text-xl font-bold grow dark:text-dark-text-primary">
+          Details
+        </h1>
+        <Button variant="danger" className="self-end" onClick={onDelete}>
+          Delete
+        </Button>
+      </div>
 
       {!streamClosed && (
         <div className="w-full h-40 bg-white dark:bg-gray-800 rounded-md border flex items-center justify-center gap-2">
@@ -179,14 +185,16 @@ export function OracleThinking({
         {thinkingSteps
           .filter((step) => {
             // Skip steps with error in the result
-            if (typeof step.result === 'object' && step.result?.error) {
+            if (typeof step.result === "object" && step.result?.error) {
               return false;
             }
             return true;
           })
-          .map((step, idx) => (
+          .map((step) => (
             <div
-              key={idx}
+              key={
+                step.id || step.result?.analysis_id || step.result.toString()
+              }
               className="w-full md:w-1/2 p-2 inline-block align-top"
             >
               {isThinkingStepSQL(step) ? (

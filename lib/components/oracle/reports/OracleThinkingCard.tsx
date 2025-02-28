@@ -2,6 +2,7 @@ import { marked } from "marked";
 import sanitizeHtml from "sanitize-html";
 
 export interface ThinkingStep {
+  id: string;
   function_name: string;
   inputs: {
     question: string;
@@ -15,7 +16,7 @@ export default function OracleThinkingCard({ step }: { step: ThinkingStep }) {
   let resultString: string;
 
   // Convert result to string based on its type
-  if (typeof result === 'string') {
+  if (typeof result === "string") {
     resultString = result;
   } else {
     resultString = JSON.stringify(result);
