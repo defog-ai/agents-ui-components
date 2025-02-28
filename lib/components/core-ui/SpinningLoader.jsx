@@ -14,7 +14,7 @@ export function SpinningLoader({ classNames = "" }) {
   return (
     <svg
       className={twMerge(
-        "animate-spin inline mr-3 h-5 w-5 text-gray-400",
+        "animate-spin inline mr-3 h-5 w-5 text-gray-400 dark:text-gray-500",
         classNames
       )}
       xmlns="http://www.w3.org/2000/svg"

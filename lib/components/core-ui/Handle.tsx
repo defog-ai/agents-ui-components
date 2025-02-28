@@ -26,8 +26,8 @@ export const Handle: React.FC<HandleProps> = ({
   );
 
   const handleClasses = twMerge(
-    "p-1 bg-white border border-gray-200 cursor-pointer text-sm font-medium text-gray-600",
-    "transition-all duration-200 ease-in-out shadow-sm hover:bg-gray-50 hover:shadow-md hover:text-gray-700",
+    "p-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 cursor-pointer text-sm font-medium text-gray-600 dark:text-gray-300",
+    "transition-all duration-200 ease-in-out shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 hover:shadow-md hover:text-gray-700 dark:hover:text-gray-200",
     "active:scale-98",
     location === "left" && "rounded-l-lg [writing-mode:vertical-rl] rotate-180",
     location === "right" && "rounded-l-lg [writing-mode:vertical-rl]",
@@ -36,7 +36,7 @@ export const Handle: React.FC<HandleProps> = ({
   );
 
   const contentClasses = twMerge(
-    "bg-white border border-gray-200 p-4 max-w-[300px] max-h-[500px] overflow-auto shadow-md",
+    "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-4 max-w-[300px] max-h-[500px] overflow-auto shadow-md",
     "transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]",
     isOpen
       ? "opacity-100 pointer-events-auto"
@@ -50,7 +50,7 @@ export const Handle: React.FC<HandleProps> = ({
   );
 
   const emptyStateClasses =
-    "p-6 bg-gray-50 rounded-md text-gray-500 text-sm text-center min-w-[200px] flex items-center justify-center border border-dashed border-gray-300";
+    "p-6 bg-gray-50 dark:bg-gray-700 rounded-md text-gray-500 dark:text-gray-400 text-sm text-center min-w-[200px] flex items-center justify-center border border-dashed border-gray-300 dark:border-gray-600";
 
   return (
     <div className={containerClasses}>

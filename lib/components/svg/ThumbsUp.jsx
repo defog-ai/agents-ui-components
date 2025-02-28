@@ -2,8 +2,12 @@ import React from "react";
 
 const ThumbsUp = ({ fill = "#888888" }) => {
   return (
-    // add to classname for tailwind to work
-    <svg viewBox="0 0 14 14" fill={fill} xmlns="http://www.w3.org/2000/svg" className={fill}>
+    <svg 
+      viewBox="0 0 14 14" 
+      fill={fill} 
+      xmlns="http://www.w3.org/2000/svg" 
+      className="dark:fill-gray-400"
+    >
       <g clipPath="url(#clip0_986_6058)">
         <path
           d="M1.02083 13.417H2.47917C3.04208 13.417 3.5 12.9591 3.5 12.3962V5.68783C3.5 5.12491 3.04208 4.66699 2.47917 4.66699H1.02083C0.457917 4.66699 0 5.12491 0 5.68783V12.3962C0 12.9591 0.457917 13.417 1.02083 13.417Z"

@@ -92,7 +92,7 @@ export function RangeSlider({
     <div className="px-3">
       <div
         className={twMerge(
-          "relative bg-white flex justify-center items-center overflow-visible",
+          "relative bg-white dark:bg-gray-800 flex justify-center items-center overflow-visible",
           vertical ? "w-8" : "h-8",
           rootClassNames
         )}
@@ -100,13 +100,13 @@ export function RangeSlider({
       >
         <div
           className={twMerge(
-            "absolute rounded-full bg-gray-100",
+            "absolute rounded-full bg-gray-100 dark:bg-gray-700",
             vertical ? "top-0 w-5 h-full" : "left-0 h-5 w-full"
           )}
         ></div>
         <div
           className={twMerge(
-            "track bg-indigo-600 border rounded-full absolute hover:opacity-50 transition-all cursor-pointer",
+            "track bg-indigo-600 dark:bg-indigo-500 border dark:border-gray-600 rounded-full absolute hover:opacity-50 transition-all cursor-pointer",
             vertical ? "w-5" : "h-5"
           )}
           style={trackStyles}
@@ -232,7 +232,7 @@ export function RangeSlider({
           >
             <div
               className={twMerge(
-                "w-3 h-3 absolute cursor-pointer border-2 border-indigo-600 bg-white rounded-full",
+                "w-3 h-3 absolute cursor-pointer border-2 border-indigo-600 dark:border-indigo-500 bg-white dark:bg-gray-200 rounded-full",
                 vertical ? "top-0" : "left-0"
               )}
             ></div>
@@ -308,7 +308,7 @@ export function RangeSlider({
           >
             <div
               className={twMerge(
-                "w-3 h-3 absolute cursor-pointer border-2 border-indigo-600 bg-white rounded-full",
+                "w-3 h-3 absolute cursor-pointer border-2 border-indigo-600 dark:border-indigo-500 bg-white dark:bg-gray-200 rounded-full",
                 vertical ? "bottom-0" : "right-0"
               )}
             ></div>
