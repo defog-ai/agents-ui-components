@@ -142,7 +142,7 @@ const defaultRowCellRender = ({
       key={(row.key || colIdx) + "-" + dataIndex}
       className={twMerge(
         colIdx === 0 ? "pl-4" : "px-3",
-        "py-2 text-sm text-gray-500 dark:text-gray-400",
+        "py-2 text-sm text-gray-500 dark:text-gray-200",
         colIdx === dataIndexes.length - 1 ? "pr-4 sm:pr-6 lg:pr-8" : ""
       )}
     >
@@ -455,7 +455,7 @@ export function Table({
                 className={twMerge(
                   "cursor-not-allowed",
                   currentPage === 1
-                    ? "text-gray-300 dark:text-gray-600"
+                    ? "text-gray-300 dark:text-gray-300"
                     : "hover:text-blue-500 dark:hover:text-blue-400 cursor-pointer"
                 )}
               >
@@ -483,7 +483,7 @@ export function Table({
                   className="border rounded px-2 py-2 text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 min-w-[2rem] text-center empty:before:content-[attr(data-placeholder)] empty:before:text-gray-400"
                   data-placeholder={currentPage.toString()}
                 />
-                <span className="ml-2 text-xs text-gray-300 pointer-events-none whitespace-nowrap">
+                <span className="ml-2 text-xs text-gray-400 dark:text-gray-200 pointer-events-none whitespace-nowrap">
                   / {maxPage}
                 </span>
               </div>
@@ -491,7 +491,7 @@ export function Table({
                 className={twMerge(
                   "cursor-pointer",
                   currentPage === maxPage
-                    ? "text-gray-300 dark:text-gray-600 cursor-not-allowed"
+                    ? "text-gray-300 dark:text-gray-300 cursor-not-allowed"
                     : "hover:text-blue-500 dark:hover:text-blue-400 cursor-pointer"
                 )}
               >
