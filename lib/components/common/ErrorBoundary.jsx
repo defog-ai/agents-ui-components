@@ -28,14 +28,14 @@ class ErrorBoundary extends React.Component {
     if (this.state.hasError) {
       // You can render any custom fallback UI
       return (
-        <div className="error-boundary-ctr">
+        <div className="error-boundary-ctr dark:bg-gray-800 dark:text-gray-300">
           {this.props.maybeOldAnalysis ? (
-            <p className="text-rose-500">
+            <p className="text-rose-500 dark:text-rose-400">
               You might need to re run this analysis for the latest version of
               the UI.
             </p>
           ) : (
-            <p>{this.props.customErrorMessage || "Something went wrong."}</p>
+            <p className="dark:text-gray-300">{this.props.customErrorMessage || "Something went wrong."}</p>
           )}
         </div>
       );

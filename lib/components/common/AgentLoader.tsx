@@ -18,9 +18,9 @@ const AgentLoader = ({
   return (
     <div className={twMerge("agent-loader", classNames)}>
       {svg && svg}
-      <div className="w-full h-40 flex text-sm flex-col items-center justify-center">
+      <div className="w-full h-40 flex text-sm flex-col items-center justify-center dark:text-gray-300">
         {message}
-        <SpinningLoader classNames="text-gray-400 mt-3 mx-0" />
+        <SpinningLoader classNames="text-gray-400 dark:text-gray-500 mt-3 mx-0" />
       </div>
       {type === "error" && <h2>ERROR</h2>}
       {children && <div className="searchState-child">{children}</div>}

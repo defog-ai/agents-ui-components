@@ -168,7 +168,8 @@ export function ChartExportModal({ isOpen, onClose, className = "" }) {
                   className="px-3 py-1.5 rounded-md text-sm transition-all duration-200 
                     bg-white hover:bg-gray-50 border border-gray-200 hover:border-gray-300
                     shadow-sm hover:shadow backdrop-blur-sm
-                    hover:-translate-y-0.5"
+                    hover:-translate-y-0.5
+                    dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-600"
                 >
                   {preset.label}
                 </button>
@@ -185,7 +186,8 @@ export function ChartExportModal({ isOpen, onClose, className = "" }) {
                 rounded-md hover:bg-blue-700 transition-all duration-200 
                 shadow-sm hover:shadow-md hover:-translate-y-0.5
                 disabled:bg-blue-400 disabled:cursor-not-allowed disabled:hover:translate-y-0
-                overflow-hidden"
+                overflow-hidden
+                dark:bg-blue-700 dark:hover:bg-blue-800"
           >
             {buttonContent[downloadState]}
           </button>
@@ -194,7 +196,7 @@ export function ChartExportModal({ isOpen, onClose, className = "" }) {
 
       {/* Chart Preview */}
       <div
-        className="relative bg-white overflow-auto max-w-full"
+        className="relative bg-white dark:bg-gray-900 overflow-auto max-w-full"
         ref={chartWithTitleRef}
         style={{
           width: dimensions.width,

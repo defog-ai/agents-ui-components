@@ -8,7 +8,7 @@ export default function TrashIcon({ className, onClick = () => {} }) {
       viewBox="0 0 24 24"
       strokeWidth={1.5}
       stroke="currentColor"
-      className={twMerge("size-6", className)}
+      className={twMerge("size-6 text-gray-700 dark:text-gray-300", className)}
       onClick={onClick}
     >
       <path

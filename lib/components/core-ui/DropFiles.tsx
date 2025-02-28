@@ -55,7 +55,7 @@ export function DropFiles({
   return (
     <div
       data-testid="file-drop"
-      className={twMerge("relative text-gray-600", rootClassNames)}
+      className={twMerge("relative text-gray-600 dark:text-gray-300", rootClassNames)}
       onDrop={(e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -82,7 +82,7 @@ export function DropFiles({
       {label && (
         <label
           className={twMerge(
-            "block text-xs mb-2 font-light text-gray-600",
+            "block text-xs mb-2 font-light text-gray-600 dark:text-gray-300",
             labelClassNames
           )}
         >
@@ -95,7 +95,7 @@ export function DropFiles({
           <Download className={twMerge("h-6 w-6", iconClassNames)} />
         )}
         <div className="mt-2 relative group cursor-pointer">
-          <p className="cursor-pointer text-xs text-gray-400 group-hover:underline z-[2] relative pointer-events-none">
+          <p className="cursor-pointer text-xs text-gray-400 dark:text-gray-500 group-hover:underline z-[2] relative pointer-events-none">
             Select from your computer
           </p>
           <input

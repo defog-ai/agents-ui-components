@@ -31,7 +31,7 @@ export function DropFilesHeadless({
   return (
     <div className={rootClassNames}>
       <div
-        className="relative cursor-pointer"
+        className="relative cursor-pointer dark:bg-gray-800"
         onDrop={(e) => {
           e.preventDefault();
           e.stopPropagation();
