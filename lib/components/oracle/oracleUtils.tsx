@@ -10,12 +10,15 @@ import { OracleReportMultiTableExtension } from "./reports/tiptap-extensions/Ora
 import StarterKit from "@tiptap/starter-kit";
 import { OracleReportImageExtension } from "./reports/tiptap-extensions/OracleReportImage";
 import { Markdown } from "tiptap-markdown";
+import Table from '@tiptap/extension-table'
+import TableRow from '@tiptap/extension-table-row'
+import TableHeader from '@tiptap/extension-table-header'
+import TableCell from '@tiptap/extension-table-cell'
 import { OracleCommentHandlerExtension } from "./reports/tiptap-extensions/comments/OracleCommentHandler";
 import CommentExtension from "@sereneinserenade/tiptap-comment-extension";
 import debounce from "lodash.debounce";
 import { Editor } from "@tiptap/core";
 import setupBaseUrl from "../utils/setupBaseUrl";
-import { useEffect, useRef, useState } from "react";
 
 // Custom hook for comment management
 const debouncedSendUpdates = debounce(
@@ -129,31 +132,34 @@ export const commentManager = ({
 
 export const extensions = [
   StarterKit,
+  Table.configure({
+    resizable: true,
+  }),
+  TableRow,
+  TableHeader,
+  TableCell,
   OracleCommentHandlerExtension,
   CommentExtension.configure({
     HTMLAttributes: {
       class: "oracle-report-comment",
     },
   }),
-  Markdown.configure({
-    html: true,
-    transformPastedText: true,
-    transformCopiedText: true,
-  }),
+  Markdown,
 ];
 
 export const analysisExtensions = [
   StarterKit,
   OracleReportMultiTableExtension,
   OracleReportImageExtension,
-  Markdown.configure({
-    html: true,
-    transformPastedText: true,
-    transformCopiedText: true,
-  }),
 ];
 export const revisionExtensions = [
   StarterKit,
+  Table.configure({
+    resizable: true,
+  }),
+  TableRow,
+  TableHeader,
+  TableCell,
   OracleReportMultiTableExtension,
   OracleReportImageExtension,
   CommentExtension.configure({
@@ -161,11 +167,7 @@ export const revisionExtensions = [
       class: "oracle-report-comment",
     },
   }),
-  Markdown.configure({
-    html: true,
-    transformPastedText: true,
-    transformCopiedText: true,
-  }),
+  Markdown,
 ];
 
 /**
