@@ -161,7 +161,7 @@ export function PrimarySelection({ columns, showChartTypeOnly = false }) {
           {/* X-Axis */}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <label className="flex items-center gap-2 text-xs font-medium text-gray-700">
+              <label className="flex items-center gap-2 text-xs font-medium text-gray-700 dark:text-gray-300">
                 <KeyboardShortcutIndicator
                   shortcut={KEYMAP.SET_X_AXIS}
                   className="px-1 py-0.5 text-xs font-bold text-gray-500"
@@ -187,7 +187,7 @@ export function PrimarySelection({ columns, showChartTypeOnly = false }) {
 
           {/* Y-Axis */}
           <div className="space-y-1.5">
-            <label className="flex items-center gap-2 text-xs font-medium text-gray-700">
+            <label className="flex items-center gap-2 text-xs font-medium text-gray-700 dark:text-gray-300">
               <KeyboardShortcutIndicator
                 shortcut={KEYMAP.SET_Y_AXIS}
                 className="px-1 py-0.5 text-xs font-bold text-gray-500"
@@ -205,10 +205,10 @@ export function PrimarySelection({ columns, showChartTypeOnly = false }) {
 
         {/* Groups Section */}
         {selectedChart !== "bar" && (
-          <div className="pt-4 space-y-2 border-t border-gray-100">
+          <div className="pt-4 space-y-2 border-t border-gray-100 dark:border-gray-700">
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1.5">
-                <h3 className="mb-2 font-medium input-label">Facet by</h3>
+                <h3 className="mb-2 font-medium input-label dark:text-gray-300">Facet by</h3>
                 <Select
                   style={{ width: "100%" }}
                   placeholder="Select Facet Column"
@@ -219,7 +219,7 @@ export function PrimarySelection({ columns, showChartTypeOnly = false }) {
                 />
               </div>
               <div className="space-y-1.5">
-                <h3 className="mb-2 font-medium input-label">Color By</h3>
+                <h3 className="mb-2 font-medium input-label dark:text-gray-300">Color By</h3>
                 <Select
                   placeholder="Color Column"
                   value={selectedColumns.fill}
@@ -253,14 +253,14 @@ export function PrimarySelection({ columns, showChartTypeOnly = false }) {
         block
         type="default"
         onClick={() => setShowFilters(!showFilters)}
-        className="flex items-center justify-center gap-2 mt-4 text-sm font-medium text-gray-700 border-gray-200 h-9 bg-gray-50 hover:bg-gray-100"
+        className="flex items-center justify-center gap-2 mt-4 text-sm font-medium text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700 h-9 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700"
       >
         <Settings2 className="w-4 h-4" />
         Advanced Options
       </Button>
 
       {showFilters && (
-        <div className="pt-4 mt-4 border-t border-gray-100">
+        <div className="pt-4 mt-4 border-t border-gray-100 dark:border-gray-700">
           <FilterBuilder columns={columns} />
         </div>
       )}

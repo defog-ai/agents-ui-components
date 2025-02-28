@@ -11,8 +11,8 @@ const UnitPositionToggle = ({ position, onChange, value, onValueChange }) => {
         onClick={togglePosition}
         className={`p-1 rounded-l-md transition-colors duration-200 ${
           position === "prefix"
-            ? "bg-blue-500 text-white"
-            : "bg-gray-200 text-gray-600 hover:bg-gray-300"
+            ? "bg-blue-500 text-white dark:bg-blue-600"
+            : "bg-gray-200 text-gray-600 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
         }`}
         aria-label={
           position === "prefix" ? "Unit as prefix" : "Change to prefix"
@@ -25,15 +25,15 @@ const UnitPositionToggle = ({ position, onChange, value, onValueChange }) => {
         value={value}
         onChange={(e) => onValueChange(e.target.value)}
         placeholder="Enter unit"
-        className="w-12 h-6 px-2 py-1 text-sm text-center border-t border-b border-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-500"
+        className="w-12 h-6 px-2 py-1 text-sm text-center border-t border-b border-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600"
         aria-label="Unit label"
       />
       <button
         onClick={togglePosition}
         className={`p-1 rounded-r-md transition-colors duration-200 ${
           position === "suffix"
-            ? "bg-blue-500 text-white"
-            : "bg-gray-200 text-gray-600 hover:bg-gray-300"
+            ? "bg-blue-500 text-white dark:bg-blue-600"
+            : "bg-gray-200 text-gray-600 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
         }`}
         aria-label={
           position === "suffix" ? "Unit as suffix" : "Change to suffix"

@@ -21,7 +21,7 @@ const AxisControl = () => {
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-4">
         <div className="flex-grow">
-          <h3 className="mb-2 input-label"># of horizontal ticks</h3>
+          <h3 className="mb-2 input-label dark:text-gray-200"># of horizontal ticks</h3>
           <Slider
             min={2}
             max={20}
@@ -38,7 +38,7 @@ const AxisControl = () => {
       </div>
       <div className="flex items-center gap-4">
         <div className="flex-grow">
-          <h3 className="mb-2 input-label"># of vertical ticks</h3>
+          <h3 className="mb-2 input-label dark:text-gray-200"># of vertical ticks</h3>
           <Slider
             min={2}
             max={20}

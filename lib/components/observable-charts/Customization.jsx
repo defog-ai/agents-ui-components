@@ -31,7 +31,7 @@ export function Customization() {
     <div className="grid grid-rows-[auto_1fr] max-h-[550px] overflow-x-clip overflow-y-auto h-full">
       <div className="space-y-6">
         <div className="space-y-1.5">
-          <h3 className="input-label">Background Color</h3>
+          <h3 className="input-label dark:text-gray-300">Background Color</h3>
           <ColorPicker
             allowClear={true}
             value={chartStyle.backgroundColor || "#ffffff"}

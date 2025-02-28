@@ -37,7 +37,7 @@ const BarChartControls = () => {
     selectedColumns.y.map((column) => {
       return (
         <div key={column} className="">
-          <h4 className="mb-2 font-bold">{`${column}`}</h4>
+          <h4 className="mb-2 font-bold dark:text-gray-300">{`${column}`}</h4>
           <div className="mb-2">
             <ColorPicker
               allowClear={true}
@@ -61,7 +61,7 @@ const BarChartControls = () => {
   return (
     <div className="flex flex-col gap-4 text-xs">
       <div className="flex flex-col gap-2">
-        <span className="block mb-1">Bar color</span>
+        <span className="block mb-1 dark:text-gray-300">Bar color</span>
         <div className="flex flex-row flex-wrap gap-4">
           {renderIndividualBarControls()}
         </div>

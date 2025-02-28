@@ -32,7 +32,7 @@ const LineChartControls = () => {
         <div>
           <div className="mt-2 space-y-4">
             <div>
-              <h3 className="mb-2 input-label">Line Width</h3>
+              <h3 className="mb-2 input-label dark:text-gray-300">Line Width</h3>
               <Slider
                 min={1}
                 max={10}
@@ -57,9 +57,9 @@ const LineChartControls = () => {
             {selectedColumns.y.map((column) => (
               <div
                 key={column}
-                className="flex items-center justify-between w-full gap-3 border-gray-100 rounded-sm bg-gray-50/20"
+                className="flex items-center justify-between w-full gap-3 border-gray-100 dark:border-gray-700 rounded-sm bg-gray-50/20 dark:bg-gray-700/20"
               >
-                <h4 className="mb-2 font-mono text-xs font-bold text-gray-600">
+                <h4 className="mb-2 font-mono text-xs font-bold text-gray-600 dark:text-gray-300">
                   {column}
                 </h4>
                 <div className="w-full space-y-3">

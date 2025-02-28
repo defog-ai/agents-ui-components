@@ -31,7 +31,7 @@ export default function Clarify({
   return (
     <div className="p-6 bg-transparent">
       <div
-        className="mb-4 text-sm text-gray-500"
+        className="mb-4 text-sm text-gray-500 dark:text-gray-400"
         onKeyDown={(e) => {
           if (e.key === "Enter") {
             handleSubmit(
@@ -45,7 +45,7 @@ export default function Clarify({
           ? questions.map((q, i) => (
               <div key={q.question} className="w-full">
                 <div>
-                  <p className="q-desc m-0 mb-2 text-primary-text">
+                  <p className="q-desc m-0 mb-2 text-primary-text dark:text-gray-200">
                     {q.question}
                   </p>
                   <div className="w-full mb-4 min-w-64">
@@ -55,7 +55,7 @@ export default function Clarify({
                       }}
                       defaultValue={q.response}
                       placeholder="Your response. Leave blank if the question above is not relevant"
-                      inputClassNames="ring-0 bg-transparent rounded-none border-b border-dotted border-gray-300 focus:border-blue-500 focus:border-solid focus:ring-0 focus:border-b-primary-highlight shadow-none pl-0 w-full"
+                      inputClassNames="ring-0 bg-transparent rounded-none border-b border-dotted border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:border-solid focus:ring-0 focus:border-b-primary-highlight shadow-none pl-0 w-full dark:text-gray-200"
                     ></Input>
                   </div>
                 </div>
@@ -63,7 +63,7 @@ export default function Clarify({
             ))
           : null}
         <button
-          className="underline text-gray-400 text-sm mt-4 cursor-pointer"
+          className="underline text-gray-400 dark:text-gray-500 text-sm mt-4 cursor-pointer hover:text-gray-600 dark:hover:text-gray-300"
           onClick={() =>
             handleSubmit(
               { clarification_questions: answers.current },

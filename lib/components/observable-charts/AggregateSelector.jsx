@@ -28,7 +28,7 @@ export default function AggregateSelector({
 
   return (
     <>
-      <div>
+      <div className="dark:text-gray-200">
         <Select
           allowClear={false}
           rootClassNames={twMerge("w-24", rootClassNames)}

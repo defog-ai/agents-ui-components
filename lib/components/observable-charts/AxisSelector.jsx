@@ -40,7 +40,7 @@ export default function AxisSelector({
   }, [axis]);
 
   return (
-    <div data-axis={axis}>
+    <div data-axis={axis} className="dark:text-gray-200">
       <MultiSelect
         style={{ width: "100%", minWidth: "100px" }}
         value={

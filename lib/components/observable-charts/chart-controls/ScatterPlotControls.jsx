@@ -14,7 +14,7 @@ const ScatterPlotControls = () => {
     <div className="flex flex-col gap-4 text-xs">
       {!chartManager.config.selectedColumns.fill && (
         <div>
-          <h3 className="mb-2">Override dot color</h3>
+          <h3 className="mb-2 dark:text-gray-300">Override dot color</h3>
           <ColorPicker
             value={chartSpecificOptions.scatter?.pointColor || "#4e79a7"}
             onChange={(color) =>
@@ -27,7 +27,7 @@ const ScatterPlotControls = () => {
         </div>
       )}
       <div>
-        <h3 className="mb-2">Point Size</h3>
+        <h3 className="mb-2 dark:text-gray-300">Point Size</h3>
         <Slider
           min={1}
           max={20}

@@ -118,7 +118,7 @@ export const AnalysisTreeViewerLinks = ({ analyses, activeAnalysisId }) => {
           <path
             key={index}
             d={path}
-            className="fill-transparent stroke-blue-300 text-blue-500"
+            className="fill-transparent stroke-blue-300 dark:stroke-blue-700 text-blue-500 dark:text-blue-400"
             strokeWidth="1"
           />
         ))}
