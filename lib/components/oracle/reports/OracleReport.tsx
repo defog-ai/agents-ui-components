@@ -255,6 +255,24 @@ export function OracleReport({
                       </p>
                     )}
 
+                    {/* display sources */}
+                    {selectedAnalysis.result?.reference_sources && (
+                      <div>
+                        <h3>Reference Sources</h3>
+                        <ul>
+                          {selectedAnalysis.result.reference_sources.map(
+                            (source, i) => (
+                              <li key={i}>
+                                <a href={source.url} target="_blank">
+                                  {source.source}
+                                </a>
+                              </li>
+                            )
+                          )}
+                        </ul>
+                      </div>
+                    )}
+
                     {/* display the answer */}
                     {selectedAnalysis.result.answer && (
                       <div>{selectedAnalysis.result.answer}</div>
