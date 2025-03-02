@@ -1011,7 +1011,6 @@ export const generateReport = async (
   dbName: string,
   reportId: string,
   userQuestion: string,
-  sources: string[] = [],
   clarifications = [],
   useWebsearch: boolean = true
 ): Promise<void> => {
@@ -1036,7 +1035,6 @@ export const generateReport = async (
         // jic text area has changed.
         // if it's been emptied, use the original question
         user_question: userQuestion,
-        sources: sources,
         task_type: "exploration",
         clarifications,
         report_id: reportId,
