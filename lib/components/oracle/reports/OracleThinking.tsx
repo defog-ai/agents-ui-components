@@ -185,6 +185,7 @@ export function OracleThinking({
             }
             return true;
           })
+          .reverse()
           .map((step) => (
             <div
               key={step.id}
