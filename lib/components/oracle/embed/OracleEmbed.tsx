@@ -146,12 +146,12 @@ export function OracleEmbed({
                 }
               });
 
-            // sort the reports within each group in the history by date created
+            // sort the reports within each group in the history by date created in reverse chronological order
             Object.entries(histories[dbName]).forEach(([group, reports]) => {
               reports.sort(
                 (a, b) =>
-                  new Date(a.date_created + 'Z').getTime() -
-                  new Date(b.date_created + 'Z').getTime()
+                  new Date(b.date_created + 'Z').getTime() -
+                  new Date(a.date_created + 'Z').getTime()
               );
             });
           } catch (error) {
