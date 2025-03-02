@@ -8,22 +8,21 @@ export interface ThinkingStep {
     question: string;
     [key: string]: any;
   };
-  result: string | { error?: string; [key: string]: any };
+  result: {
+    error?: string;
+    answer: string;
+    reference_sources: {
+      source: string;
+      url: string;
+    }[];
+  };
 }
 
 export default function OracleThinkingCard({ step }: { step: ThinkingStep }) {
   let { function_name, result } = step;
-  let resultString: string;
-
-  // Convert result to string based on its type
-  if (typeof result === "string") {
-    resultString = result;
-  } else {
-    resultString = JSON.stringify(result);
-  }
 
   // Convert markdown to HTML and sanitize it
-  const sanitizedHtml = sanitizeHtml(marked.parse(resultString), {
+  const sanitizedHtml = sanitizeHtml(marked.parse(result.answer), {
     allowedTags: sanitizeHtml.defaults.allowedTags.concat(["img"]),
     allowedAttributes: {
       ...sanitizeHtml.defaults.allowedAttributes,
@@ -41,6 +40,21 @@ export default function OracleThinkingCard({ step }: { step: ThinkingStep }) {
         className="text-gray-700 dark:text-dark-text-secondary prose dark:prose-invert prose-sm max-w-none"
         dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
       />
+      {/* show sources */}
+      {result.reference_sources && (
+        <div>
+          <h3>Reference Sources</h3>
+          <ul>
+            {result.reference_sources.map((source, i) => (
+              <li key={i}>
+                <a href={source.url} target="_blank">
+                  {source.source}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }

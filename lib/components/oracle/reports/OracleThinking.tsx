@@ -4,14 +4,9 @@ import { Button, MessageManagerContext, SpinningLoader } from "@ui-components";
 import OracleThinkingSQLCard, {
   ThinkingStepSQL,
 } from "./OracleThinkingSQLCard";
-import OracleThinkingCard, { ThinkingStep } from "./OracleThinkingCard";
-
-// Type guard function to check if a step is of type ThinkingStepSQL
-function isThinkingStepSQL(
-  step: ThinkingStep | ThinkingStepSQL
-): step is ThinkingStepSQL {
-  return step.function_name === "text_to_sql_tool" && "db_name" in step.inputs;
-}
+import OracleThinkingCardSearch, {
+  ThinkingStep,
+} from "./OracleThinkingCardSearch";
 
 type OracleThinkingProps = {
   apiEndpoint: string;
@@ -195,11 +190,13 @@ export function OracleThinking({
               key={step.id}
               className="w-full md:w-1/2 p-2 inline-block align-top transition-all duration-500 ease-in-out"
             >
-              {isThinkingStepSQL(step) ? (
+              {step.function_name === "text_to_sql_tool" ? (
+                // @ts-ignore
                 <OracleThinkingSQLCard step={step} />
-              ) : (
-                <OracleThinkingCard step={step} />
-              )}
+              ) : step.function_name === "web_search_tool" ? (
+                // @ts-ignore
+                <OracleThinkingCardSearch step={step} />
+              ) : null}
             </div>
           ))}
       </div>
