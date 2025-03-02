@@ -405,7 +405,7 @@ export function MultiSelect(props: MultiSelectProps) {
                 <li
                   key={String(option.value) + "-" + idx}
                   className={twMerge(
-                    "cursor-pointer select-none relative hover:bg-gray-100 dark:hover:bg-gray-800",
+                    "cursor-pointer select-none relative text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800",
                     popupOptionSizeClasses[size] ||
                       popupOptionSizeClasses["default"],
                     highlightIndex === idx
@@ -421,7 +421,7 @@ export function MultiSelect(props: MultiSelectProps) {
                   {/* Check icon if selected */}
                   {isSelected && (
                     <span className="absolute inset-y-0 right-0 flex items-center pr-4">
-                      <Check className="w-5 h-5" aria-hidden="true" />
+                      <Check className="w-5 h-5 text-blue-500 dark:text-blue-400" aria-hidden="true" />
                     </span>
                   )}
                 </li>
