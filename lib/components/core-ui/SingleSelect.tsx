@@ -370,12 +370,12 @@ export function SingleSelect({
               <li
                 key={idx}
                 className={twMerge(
-                  "cursor-pointer select-none relative py-2 pl-3 pr-9 truncate",
+                  "cursor-pointer select-none relative py-2 pl-3 pr-9 truncate text-gray-900 dark:text-gray-100",
                   popupOptionSizeClasses[size] ||
                     popupOptionSizeClasses["default"],
                   highlightIndex === idx
                     ? "bg-blue-100 dark:bg-blue-900/50"
-                    : ""
+                    : "hover:bg-gray-100 dark:hover:bg-gray-800"
                 )}
                 // change highlight index on hover
                 onMouseEnter={() => setHighlightIndex(idx)}
@@ -397,7 +397,7 @@ export function SingleSelect({
                 {selectedOption &&
                   matchingValue(option, selectedOption.value) && (
                     <span className="absolute inset-y-0 right-0 flex items-center pr-4">
-                      <Check className="w-5 h-5" aria-hidden="true" />
+                      <Check className="w-5 h-5 text-blue-500 dark:text-blue-400" aria-hidden="true" />
                     </span>
                   )}
               </li>
