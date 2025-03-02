@@ -7,6 +7,9 @@ import OracleThinkingSQLCard, {
 import OracleThinkingCardSearch, {
   ThinkingStep,
 } from "./OracleThinkingCardSearch";
+import OracleThinkingCardPDF, {
+  ThinkingStepPDF,
+} from "./OracleThinkingCardPDF";
 
 type OracleThinkingProps = {
   apiEndpoint: string;
@@ -197,6 +200,9 @@ export function OracleThinking({
               ) : step.function_name === "web_search_tool" ? (
                 // @ts-ignore
                 <OracleThinkingCardSearch step={step} />
+              ) : step.function_name === "pdf_citations_tool" ? (
+                // @ts-ignore
+                <OracleThinkingCardPDF step={step} />
               ) : null}
             </div>
           ))}
