@@ -122,14 +122,24 @@ export function OracleEmbed({
               )
               // add to histories based on date created
               .forEach((report) => {
-                const date = new Date(report.date_created);
-                if (date.toDateString() === today.toDateString()) {
+                // Parse date_created as UTC and convert to local timezone
+                const date = new Date(report.date_created + 'Z');
+                const localToday = new Date();
+                const localYesterday = new Date(localToday);
+                localYesterday.setDate(localYesterday.getDate() - 1);
+                const localWeek = new Date(localToday);
+                localWeek.setDate(localWeek.getDate() - 7);
+                const localMonth = new Date(localToday);
+                localMonth.setMonth(localMonth.getMonth() - 1);
+                
+                // Compare dates using local timezone
+                if (date.toDateString() === localToday.toDateString()) {
                   histories[dbName]["Today"].push(report);
-                } else if (date.toDateString() === yesterday.toDateString()) {
+                } else if (date.toDateString() === localYesterday.toDateString()) {
                   histories[dbName]["Yesterday"].push(report);
-                } else if (date >= week) {
+                } else if (date >= localWeek) {
                   histories[dbName]["Past week"].push(report);
-                } else if (date >= month) {
+                } else if (date >= localMonth) {
                   histories[dbName]["Past month"].push(report);
                 } else {
                   histories[dbName]["Earlier"].push(report);
@@ -140,8 +150,8 @@ export function OracleEmbed({
             Object.entries(histories[dbName]).forEach(([group, reports]) => {
               reports.sort(
                 (a, b) =>
-                  new Date(a.date_created).getTime() -
-                  new Date(b.date_created).getTime()
+                  new Date(a.date_created + 'Z').getTime() -
+                  new Date(b.date_created + 'Z').getTime()
               );
             });
           } catch (error) {
