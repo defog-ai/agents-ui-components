@@ -12,22 +12,15 @@ import { ClarificationItem, ClarificationObject } from "./ClarificationItem";
 import {
   generateReport,
   getClarifications,
-  getSources,
   ORACLE_REPORT_STATUS,
-  SourceItem,
 } from "@oracle";
-import { SourceCard } from "./SourceItem";
 
 type QueryTaskType = "exploration" | "";
 
-interface SourceItemWithSelection extends SourceItem {
-  selected: boolean;
-}
 interface ReportDraft {
   userQuestion?: string;
   task_type?: QueryTaskType;
   clarifications?: ClarificationObject[];
-  sources?: SourceItemWithSelection[];
   useWebsearch?: boolean;
   uploadedPDFs?: File[];
 }
@@ -59,7 +52,8 @@ export function OracleDraftReport({
   const [loading, setLoading] = useState<boolean>(false);
   const [isMac, setIsMac] = useState<boolean>(false);
   const [reportId, setReportId] = useState<string>("");
-  const [clarificationStarted, setClarificationStarted] = useState<boolean>(false);
+  const [clarificationStarted, setClarificationStarted] =
+    useState<boolean>(false);
   const loadingStatus = useRef<string>("");
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -111,7 +105,6 @@ export function OracleDraftReport({
           dbName,
           reportId,
           textAreaRef.current?.value || draft.userQuestion,
-          draft.sources?.filter((s) => s.selected).map((s) => s.link) || [],
           draft.clarifications?.filter((c) => c.answer && c.is_answered) || [],
           // Add websearch parameter
           draft.useWebsearch
@@ -207,13 +200,6 @@ export function OracleDraftReport({
                   userQuestion: question,
                 }));
 
-                // const [clarifications, sources] = await Promise.all([
-                //   getClarifications(apiEndpoint, token, dbName, question),
-                //   getSources(apiEndpoint, token, dbName, question),
-                // ]).catch((e) => {
-                //   throw new Error("Error getting sources and clarifications");
-                // });
-
                 const { clarifications, report_id } = await getClarifications(
                   apiEndpoint,
                   token,
@@ -228,11 +214,6 @@ export function OracleDraftReport({
                 setDraft((prev) => ({
                   ...prev,
                   clarifications,
-                  // sources: (sources || []).map((s) => ({
-                  //   ...s,
-                  //   selected: false,
-                  // })),
-                  sources: [],
                 }));
               } catch (e) {
                 message.error("Error getting clarifications");
@@ -262,7 +243,7 @@ export function OracleDraftReport({
           />
 
           {/* Show PDF section only if not in clarification process OR if PDFs were already uploaded */}
-          {(!(clarificationStarted || Boolean(draft.clarifications)) || 
+          {(!(clarificationStarted || Boolean(draft.clarifications)) ||
             (draft.uploadedPDFs && draft.uploadedPDFs.length > 0)) && (
             <div className="mt-4 mb-4">
               {/* Only show the upload area if not in clarification process */}
@@ -316,38 +297,10 @@ export function OracleDraftReport({
         {!loading && draft.clarifications && (
           <div className="my-4 max-w-2xl">
             <div className="font-light mb-2 dark:text-gray-300">
-              Add Details & Sources
+              Add Details
             </div>
             <div className="space-y-6">
-              {draft.sources?.length > 0 && (
-                <div className="space-y-2">
-                  <div className="font-light text-sm dark:text-gray-400">
-                    Sources
-                  </div>
-                  <div className="bg-white dark:bg-gray-800 flex w-full flex-col pl-1 rounded-lg">
-                    <div className="flex w-full items-center overflow-x-scroll gap-6 pb-3">
-                      {draft.sources.map((source, i) => (
-                        <SourceCard
-                          source={source}
-                          key={i}
-                          onSelected={() => {
-                            const newSources = draft.sources.slice();
-                            newSources[i].selected = !newSources[i].selected;
-                            setDraft((prev) => ({
-                              ...prev,
-                              sources: newSources,
-                            }));
-                          }}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
               <div className="space-y-2">
-                <div className="font-light text-sm dark:text-gray-400">
-                  Details
-                </div>
                 {draft.clarifications.map((obj, idx) => (
                   <ClarificationItem
                     {...obj}
