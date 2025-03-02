@@ -345,6 +345,17 @@ export function OracleReport({
                         </div>
                       )}
                   </div>
+                ) : selectedAnalysis.function_name === "pdf_citations_tool" ? (
+                  <div
+                    className="prose dark:prose-invert prose-sm max-w-none"
+                    dangerouslySetInnerHTML={{
+                      __html: marked.parse(
+                        selectedAnalysis.result
+                          .map((item) => item.text)
+                          .join("")
+                      ),
+                    }}
+                  />
                 ) : null}
               </div>
             </div>
