@@ -44,13 +44,16 @@ export interface Analysis {
   round?: number;
 }
 
-export interface SQLAnalysis {
-  analysis_id: string;
+export interface OracleAnalysis {
   question: string;
+  analysis_id?: string;
+  function_name?: string;
   columns?: any[];
   rows?: any[];
   df_truncated?: boolean;
   error?: string;
+  inputs?: Record<string, any>;
+  result?: Record<string, any>;
 }
 
 interface MultiTable {
@@ -117,7 +120,7 @@ export interface OracleReportContext {
   /**
    * Holds the analysis ids for an oracle report
    */
-  analyses: SQLAnalysis[];
+  analyses: OracleAnalysis[];
 
   /**
    * Holds the executive summary for an oracle report

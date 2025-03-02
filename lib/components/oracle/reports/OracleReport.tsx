@@ -7,7 +7,7 @@ import {
   OracleReportComment,
   OracleReportContext,
   fetchAndParseReportData,
-  SQLAnalysis,
+  OracleAnalysis,
   ReportData,
 } from "@oracle";
 import { EditorProvider } from "@tiptap/react";
@@ -31,7 +31,7 @@ export function OracleReport({
   onReportParsed?: (data: ReportData | null) => void;
 }) {
   const [tables, setTables] = useState<any>({});
-  const [analyses, setAnalyses] = useState<SQLAnalysis[]>([]);
+  const [analyses, setAnalyses] = useState<OracleAnalysis[]>([]);
   const [comments, setComments] = useState<OracleReportComment[]>([]);
 
   const [mdx, setMDX] = useState<string | null>(null);
@@ -108,7 +108,11 @@ export function OracleReport({
   }
 
   // Filter analyses to only include those without errors
-  const validAnalyses = analyses.filter((analysis) => analysis.error === "");
+  const validAnalyses = analyses.filter(
+    (analysis) => !analysis?.error || analysis.error === ""
+  );
+
+  console.log("validAnalyses", validAnalyses);
 
   // Get the currently selected analysis
   const selectedAnalysis = validAnalyses[selectedAnalysisIndex] || null;
@@ -212,7 +216,7 @@ export function OracleReport({
                             : "line-clamp-3 hover:line-clamp-none"
                         }`}
                       >
-                        {analysis.question}
+                        {analysis?.question || analysis?.inputs?.question}
                       </p>
                     </div>
                   </button>
@@ -221,7 +225,7 @@ export function OracleReport({
 
               {/* Content area */}
               <div className="w-full overflow-auto p-3 bg-white dark:bg-gray-800">
-                {selectedAnalysis && (
+                {selectedAnalysis.analysis_id ? (
                   <>
                     {viewMode === "table" ? (
                       <Table
@@ -242,7 +246,21 @@ export function OracleReport({
                       </ErrorBoundary>
                     )}
                   </>
-                )}
+                ) : selectedAnalysis.function_name === "web_search_tool" ? (
+                  <>
+                    {/* display question if it exists */}
+                    {selectedAnalysis.inputs?.question && (
+                      <p className="text-sm text-gray-500 dark:text-gray-100">
+                        {selectedAnalysis.inputs?.question}
+                      </p>
+                    )}
+
+                    {/* display the answer */}
+                    {selectedAnalysis.result.answer && (
+                      <div>{selectedAnalysis.result.answer}</div>
+                    )}
+                  </>
+                ) : null}
               </div>
             </div>
           </div>
