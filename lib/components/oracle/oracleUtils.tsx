@@ -3,17 +3,17 @@ import type {
   Analysis,
   OracleReportComment,
   Summary,
-  SQLAnalysis,
+  OracleAnalysis,
 } from "./OracleReportContext";
 
 import { OracleReportMultiTableExtension } from "./reports/tiptap-extensions/OracleReportMultiTable";
 import StarterKit from "@tiptap/starter-kit";
 import { OracleReportImageExtension } from "./reports/tiptap-extensions/OracleReportImage";
 import { Markdown } from "tiptap-markdown";
-import Table from '@tiptap/extension-table'
-import TableRow from '@tiptap/extension-table-row'
-import TableHeader from '@tiptap/extension-table-header'
-import TableCell from '@tiptap/extension-table-cell'
+import Table from "@tiptap/extension-table";
+import TableRow from "@tiptap/extension-table-row";
+import TableHeader from "@tiptap/extension-table-header";
+import TableCell from "@tiptap/extension-table-cell";
 import { OracleCommentHandlerExtension } from "./reports/tiptap-extensions/comments/OracleCommentHandler";
 import CommentExtension from "@sereneinserenade/tiptap-comment-extension";
 import debounce from "lodash.debounce";
@@ -889,7 +889,7 @@ export const submitForRevision = async (
 export interface ReportData {
   parsed: ReturnType<MDX["getParsed"]> | null;
   summary: Summary;
-  analyses: SQLAnalysis[];
+  analyses: OracleAnalysis[];
   comments: OracleReportComment[];
 }
 
