@@ -14,6 +14,7 @@ import { EditorProvider } from "@tiptap/react";
 import { Tabs, Table } from "@ui-components";
 import ErrorBoundary from "../../common/ErrorBoundary";
 import { ChartContainer } from "../../observable-charts/ChartContainer";
+import { marked } from "marked";
 
 export function OracleReport({
   apiEndpoint,
@@ -273,9 +274,9 @@ export function OracleReport({
                       </div>
                     )}
 
-                    {/* display the answer */}
+                    {/* display the answer as markdown */}
                     {selectedAnalysis.result.answer && (
-                      <div>{selectedAnalysis.result.answer}</div>
+                      <div className="prose dark:prose-invert" dangerouslySetInnerHTML={{ __html: marked.parse(selectedAnalysis.result.answer) }} />
                     )}
                   </>
                 ) : null}
