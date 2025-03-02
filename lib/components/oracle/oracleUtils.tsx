@@ -1050,7 +1050,8 @@ export const getClarifications = async (
   apiEndpoint: string,
   token: string,
   dbName: string,
-  userQuestion: string
+  userQuestion: string,
+  pdfFiles: { file_name: string; base64_content: string }[]
 ) => {
   if (!token) throw new Error("No token");
   const res = await fetch(
@@ -1066,8 +1067,7 @@ export const getClarifications = async (
         db_name: dbName,
         token,
         user_question: userQuestion,
-        task_type: "exploration",
-        answered_clarifications: [],
+        pdf_files: pdfFiles,
       }),
     }
   );

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Download } from "lucide-react";
+import { Download, File, XCircle } from "lucide-react";
 import { twMerge } from "tailwind-merge";
 
 interface DropFilesProps {
@@ -33,6 +33,10 @@ interface DropFilesProps {
   disabled?: boolean;
   /** If true, allows multiple files to be dropped/selected. **/
   allowMultiple?: boolean;
+  /** Currently selected files (optional) **/
+  selectedFiles?: File[];
+  /** Function to remove a file (optional) **/
+  onRemoveFile?: (index: number) => void;
 }
 
 /**
@@ -54,14 +58,25 @@ export function DropFiles({
   showIcon = null,
   disabled = false,
   allowMultiple = false,
+  selectedFiles = [],
+  onRemoveFile,
 }: DropFilesProps) {
   const [isDropping, setIsDropping] = useState<boolean>(false);
+  
+  // Format file size for display
+  const formatFileSize = (bytes: number): string => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
 
   return (
     <div
       data-testid="file-drop"
       className={twMerge(
-        "min-w-full min-h-full relative flex flex-col grow items-center justify-center border dark:border-gray-600 p-4 rounded-md text-gray-400 dark:text-gray-200 cursor-pointer group",
+        "min-w-full relative flex flex-col grow items-center justify-center border dark:border-gray-600 p-4 rounded-md text-gray-400 dark:text-gray-200 cursor-pointer group",
         isDropping ? "bg-dotted-blue" : "bg-dotted-gray",
         rootClassNames
       )}
@@ -112,7 +127,45 @@ export function DropFiles({
         </label>
       )}
       {children}
-      {showIcon && (
+      
+      {/* Display currently selected files */}
+      {selectedFiles && selectedFiles.length > 0 && (
+        <div className="w-full">
+          <div className="flex flex-wrap gap-2 my-2">
+            {selectedFiles.map((file, index) => (
+              <div
+                key={`${file.name}-${index}`}
+                className="flex items-center justify-between bg-gray-100 dark:bg-gray-700 rounded-lg px-3 py-2 text-sm"
+              >
+                <div className="flex items-center max-w-[85%]">
+                  <File className="w-4 h-4 mr-2 flex-shrink-0" />
+                  <span className="truncate">{file.name}</span>
+                </div>
+                <div className="flex items-center">
+                  <span className="text-xs text-gray-500 dark:text-gray-400 mx-2">
+                    {formatFileSize(file.size)}
+                  </span>
+                  {onRemoveFile && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onRemoveFile(index);
+                      }}
+                      className="ml-1 text-gray-500 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400"
+                    >
+                      <XCircle className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      
+      {/* Show upload icon if there are no files or showIcon is true */}
+      {(showIcon || selectedFiles.length === 0) && (
         <Download className={twMerge("h-6 w-6 mx-auto", iconClassNames)} />
       )}
 
@@ -130,7 +183,15 @@ export function DropFiles({
         onInput={(e) => {
           e.preventDefault();
           if (disabled) return;
-          onFileSelect(e as React.ChangeEvent<HTMLInputElement>);
+          
+          console.log("DropFiles: File input triggered", e.currentTarget.files);
+          
+          if (e.currentTarget.files && e.currentTarget.files.length > 0) {
+            console.log("DropFiles: Files selected", Array.from(e.currentTarget.files).map(f => f.name));
+            onFileSelect(e as React.ChangeEvent<HTMLInputElement>);
+          } else {
+            console.warn("DropFiles: No files in input event");
+          }
 
           // set value to null jic user wants to upload the same file again
           e.currentTarget.value = null;

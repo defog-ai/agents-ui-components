@@ -63,39 +63,22 @@ export function OracleDraftReport({
 
   const message = useContext(MessageManagerContext);
 
+  const arrayBufferToBase64 = (buffer: ArrayBuffer) => {
+    let binary = "";
+    const bytes = new Uint8Array(buffer);
+    const len = bytes.byteLength;
+
+    for (let i = 0; i < len; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+
+    return btoa(binary);
+  };
+
   const handleGenerateReport = useCallback(async () => {
     try {
       setLoading(true);
       loadingStatus.current = "Submitting report for generation...";
-
-      // Handle PDF uploads if there are any
-      const formData = new FormData();
-      if (draft.uploadedPDFs && draft.uploadedPDFs.length > 0) {
-        draft.uploadedPDFs.forEach((pdfFile, index) => {
-          formData.append("pdf_files", pdfFile);
-        });
-
-        try {
-          // Upload PDFs first
-          const uploadResponse = await fetch(
-            `${apiEndpoint}/oracle/upload_pdfs`,
-            {
-              method: "POST",
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-              body: formData,
-            }
-          );
-
-          if (!uploadResponse.ok) {
-            throw new Error("Failed to upload PDF files");
-          }
-        } catch (uploadError) {
-          message.error("Error uploading PDF files");
-          throw uploadError;
-        }
-      }
 
       try {
         // This will always error because of a 10ms timeout
@@ -136,24 +119,50 @@ export function OracleDraftReport({
 
   // Handler for PDF file uploads
   const handlePDFUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
+    console.log("handlePDFUpload called, files:", e.target?.files);
+    
+    if (e.target.files && e.target.files.length > 0) {
       const filesArray = Array.from(e.target.files).filter(
         (file) => file.type === "application/pdf"
       );
+      
+      console.log("Filtered PDF files:", filesArray);
+      
+      if (filesArray.length === 0) {
+        console.warn("No valid PDF files found in selection");
+        message.error("Please select only PDF files");
+        return;
+      }
 
-      setDraft((prev) => ({
-        ...prev,
-        uploadedPDFs: [...(prev.uploadedPDFs || []), ...filesArray],
-      }));
+      setDraft((prev) => {
+        const newUploadedPDFs = [...(prev.uploadedPDFs || []), ...filesArray];
+        console.log("Updated state, new PDF count:", newUploadedPDFs.length);
+        console.log("PDF file names:", newUploadedPDFs.map(f => f.name));
+        
+        return {
+          ...prev,
+          uploadedPDFs: newUploadedPDFs,
+        };
+      });
+    } else {
+      console.warn("No files selected or e.target.files is null");
     }
   };
 
   // Handler for removing an uploaded PDF
   const handleRemovePDF = (index: number) => {
-    setDraft((prev) => ({
-      ...prev,
-      uploadedPDFs: prev.uploadedPDFs?.filter((_, i) => i !== index) || [],
-    }));
+    console.log("Removing PDF at index:", index);
+    
+    setDraft((prev) => {
+      const filteredPDFs = prev.uploadedPDFs?.filter((_, i) => i !== index) || [];
+      console.log("After removal, PDF count:", filteredPDFs.length);
+      console.log("Remaining PDF file names:", filteredPDFs.map(f => f.name));
+      
+      return {
+        ...prev,
+        uploadedPDFs: filteredPDFs,
+      };
+    });
   };
 
   return (
@@ -200,11 +209,47 @@ export function OracleDraftReport({
                   userQuestion: question,
                 }));
 
+                // Handle PDF uploads if there are any by creating an array of the PDF's filename and its base64 encoded content
+                const pdfFiles = [];
+                console.log("Processing uploaded PDFs:", draft.uploadedPDFs?.length || 0);
+                
+                if (draft.uploadedPDFs && draft.uploadedPDFs.length > 0) {
+                  console.log("Found PDFs to process:", draft.uploadedPDFs.map(f => f.name));
+                  
+                  for (const pdfFile of draft.uploadedPDFs) {
+                    try {
+                      const fileName = pdfFile.name;
+                      console.log("Processing PDF:", fileName, "Size:", pdfFile.size);
+
+                      const arrayBuffer = await pdfFile.arrayBuffer();
+                      console.log("PDF buffer created, size:", arrayBuffer.byteLength);
+                      
+                      // Convert ArrayBuffer to base64
+                      const base64String = arrayBufferToBase64(arrayBuffer);
+                      console.log("PDF converted to base64, length:", base64String.length);
+                      
+                      pdfFiles.push({
+                        file_name: fileName,
+                        base64_content: base64String,
+                      });
+                      console.log("PDF added to processing list");
+                    } catch (err) {
+                      console.error("Error processing PDF:", err);
+                      message.error(`Error processing PDF: ${pdfFile.name}`);
+                    }
+                  }
+                  
+                  console.log("Finished processing PDFs, total processed:", pdfFiles.length);
+                } else {
+                  console.log("No PDFs to process");
+                }
+
                 const { clarifications, report_id } = await getClarifications(
                   apiEndpoint,
                   token,
                   dbName,
-                  question
+                  question,
+                  pdfFiles
                 );
 
                 console.log("clarifications", clarifications);
@@ -256,40 +301,26 @@ export function OracleDraftReport({
                     label="Drop PDF files here"
                     acceptedFileTypes={["application/pdf"]}
                     onFileSelect={handlePDFUpload}
+                    onDrop={(e) => {
+                      console.log("Drop event detected", e.dataTransfer?.files);
+                      if (e.dataTransfer?.files) {
+                        const fileList = e.dataTransfer.files;
+                        const event = {
+                          target: { files: fileList }
+                        } as React.ChangeEvent<HTMLInputElement>;
+                        handlePDFUpload(event);
+                      }
+                    }}
                     allowMultiple={true}
                     showIcon={true}
-                    rootClassNames="border-dashed border-2 h-32 mb-2"
+                    rootClassNames="border-dashed border-2 h-auto min-h-32 mb-2"
+                    selectedFiles={draft.uploadedPDFs}
+                    onRemoveFile={handleRemovePDF}
                   />
                 </>
               )}
 
-              {draft.uploadedPDFs && draft.uploadedPDFs.length > 0 && (
-                <div className="mt-2 space-y-2">
-                  <div className="text-sm font-medium dark:text-gray-300">
-                    Uploaded PDFs:
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {draft.uploadedPDFs.map((file, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-md"
-                      >
-                        <span className="text-sm truncate max-w-[200px]">
-                          {file.name}
-                        </span>
-                        {!clarificationStarted && !draft.clarifications && (
-                          <button
-                            className="ml-2 text-gray-500 hover:text-red-500"
-                            onClick={() => handleRemovePDF(index)}
-                          >
-                            ×
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+              {/* Files are now displayed in the DropFiles component */}
             </div>
           )}
         </div>
