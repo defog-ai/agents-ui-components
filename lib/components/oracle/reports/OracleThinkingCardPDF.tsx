@@ -21,7 +21,11 @@ export interface ThinkingStepPDF {
   }[];
 }
 
-export default function OracleThinkingCard({ step }: { step: ThinkingStep }) {
+export default function OracleThinkingCard({
+  step,
+}: {
+  step: ThinkingStepPDF;
+}) {
   const { function_name, result } = step;
   const text = result.map((item) => item.text).join("");
 
