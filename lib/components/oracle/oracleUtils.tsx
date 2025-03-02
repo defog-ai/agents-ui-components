@@ -1012,7 +1012,8 @@ export const generateReport = async (
   reportId: string,
   userQuestion: string,
   sources: string[] = [],
-  clarifications = []
+  clarifications = [],
+  useWebsearch: boolean = true
 ): Promise<void> => {
   if (!token) throw new Error("No token");
   if (!userQuestion) throw new Error("No user question");
@@ -1039,6 +1040,7 @@ export const generateReport = async (
         task_type: "exploration",
         clarifications,
         report_id: reportId,
+        use_websearch: useWebsearch,
       }),
     }
   );
