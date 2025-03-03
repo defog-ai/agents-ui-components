@@ -207,10 +207,10 @@ const TableBody = React.memo(
 );
 
 const TableLoader = () => (
-  <div className="absolute inset-0 bg-white/50 dark:bg-gray-900/50 backdrop-blur-[1px] flex items-center justify-center">
-    <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-lg shadow-lg dark:bg-gray-800">
-      <Loader2 className="w-5 h-5 text-blue-500 animate-spin" />
-      <span className="text-sm text-gray-600 dark:text-gray-300">
+  <div className="absolute inset-0 bg-white/70 dark:bg-gray-900/70 backdrop-blur-[6px] flex items-center justify-center z-50">
+    <div className="flex items-center gap-2.5 px-5 py-3 bg-white rounded-lg shadow-xl dark:bg-gray-800 border border-gray-200 dark:border-gray-700 transform scale-105">
+      <Loader2 className="w-5 h-5 text-primary-highlight animate-spin" />
+      <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
         Loading...
       </span>
     </div>

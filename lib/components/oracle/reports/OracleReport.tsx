@@ -146,7 +146,7 @@ export function OracleReport({
         }),
       }}
     >
-      <div className="flex gap-4 relative">
+      <div className="flex flex-col lg:flex-row gap-4 relative">
         <div className="flex-1 relative oracle-report-ctr">
           <EditorProvider
             extensions={extensions}
@@ -157,7 +157,7 @@ export function OracleReport({
             editorProps={{
               attributes: {
                 class:
-                  "max-w-4xl oracle-report-tiptap relative prose prose-base dark:prose-invert mx-auto py-2 px-10 mb-12 md:mb-0 focus:outline-none *:cursor-default",
+                  "max-w-none sm:max-w-2xl lg:max-w-3xl xl:max-w-4xl 2xl:max-w-5xl oracle-report-tiptap relative prose prose-base dark:prose-invert mx-auto py-2 px-4 sm:px-6 md:px-10 mb-12 md:mb-0 focus:outline-none *:cursor-default",
               },
             }}
           ></EditorProvider>
@@ -165,7 +165,7 @@ export function OracleReport({
 
         {/* New UI for analyses */}
         {validAnalyses.length > 0 && (
-          <div className="w-[600px] 2xl:w-[800px] sticky top-4 self-start max-h-[calc(100vh-2rem)] flex flex-col border dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-gray-800">
+          <div className="w-full lg:w-[600px] xl:w-[650px] 2xl:w-[800px] lg:sticky lg:top-4 self-start max-h-[calc(100vh-1rem)] flex flex-col border dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-gray-800 mt-4 lg:mt-0">
             {/* Header with view mode toggle */}
             <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 border-b dark:border-gray-700">
               <h3 className="text-sm font-medium text-gray-700 dark:text-gray-200">
@@ -195,59 +195,63 @@ export function OracleReport({
               </div>
             </div>
 
-            {/* Main content area */}
-            <div className="flex flex-1 min-h-0 overflow-hidden">
-              {/* Questions sidebar */}
-              <div className="w-[250px] border-r dark:border-gray-700 overflow-y-auto bg-white dark:bg-gray-800">
-                {validAnalyses.map((analysis, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setSelectedAnalysisIndex(index)}
-                    className={`w-full text-left p-3 border-b dark:border-gray-700 text-sm ${
-                      selectedAnalysisIndex === index
-                        ? "bg-gray-100 dark:bg-gray-700 font-medium text-gray-900 dark:text-gray-100 h-auto"
-                        : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
-                    }`}
-                  >
-                    {/* Analysis type badge */}
-                    <div className="flex items-center mb-1.5">
-                      {analysis.analysis_id && (
-                        <span className="px-1.5 py-0.5 text-xs font-medium rounded bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 mr-1.5">
-                          SQL
-                        </span>
-                      )}
-                      {analysis.function_name === "web_search_tool" && (
-                        <span className="px-1.5 py-0.5 text-xs font-medium rounded bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 mr-1.5">
-                          Web
-                        </span>
-                      )}
-                      {analysis.function_name === "pdf_citations_tool" && (
-                        <span className="px-1.5 py-0.5 text-xs font-medium rounded bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 mr-1.5">
-                          PDF
-                        </span>
-                      )}
-                    </div>
-                    
-                    {/* Use max-height transition for smooth expansion */}
-                    <div
-                      className={`overflow-hidden transition-all duration-300 ${
+            {/* Main content area - flex column on small screens, flex row on medium+ */}
+            <div className="flex flex-col md:flex-row flex-1 min-h-0 overflow-hidden">
+              {/* Questions sidebar - horizontal scrolling tabs on mobile, vertical sidebar on md+ */}
+              <div className="w-full md:w-[250px] md:border-r dark:border-gray-700 overflow-x-auto md:overflow-x-visible md:overflow-y-auto bg-white dark:bg-gray-800">
+                <div className="flex md:flex-col min-w-max md:min-w-0">
+                  {validAnalyses.map((analysis, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setSelectedAnalysisIndex(index)}
+                      className={`flex-shrink-0 md:flex-shrink text-left p-3 md:w-full border-b dark:border-gray-700 text-sm ${
+                        index === 0 ? "" : "md:border-t-0"
+                      } ${
                         selectedAnalysisIndex === index
-                          ? "max-h-[500px]"
-                          : "max-h-[4.5rem] hover:max-h-[500px]"
+                          ? "bg-gray-100 dark:bg-gray-700 font-medium text-gray-900 dark:text-gray-100 h-auto"
+                          : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                       }`}
                     >
-                      <p
-                        className={`${
+                      {/* Analysis type badge */}
+                      <div className="flex items-center mb-1.5">
+                        {analysis.analysis_id && (
+                          <span className="px-1.5 py-0.5 text-xs font-medium rounded bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 mr-1.5">
+                            SQL
+                          </span>
+                        )}
+                        {analysis.function_name === "web_search_tool" && (
+                          <span className="px-1.5 py-0.5 text-xs font-medium rounded bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 mr-1.5">
+                            Web
+                          </span>
+                        )}
+                        {analysis.function_name === "pdf_citations_tool" && (
+                          <span className="px-1.5 py-0.5 text-xs font-medium rounded bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 mr-1.5">
+                            PDF
+                          </span>
+                        )}
+                      </div>
+                      
+                      {/* Use max-height transition for smooth expansion */}
+                      <div
+                        className={`overflow-hidden transition-all duration-300 ${
                           selectedAnalysisIndex === index
-                            ? "line-clamp-none"
-                            : "line-clamp-3 hover:line-clamp-none"
+                            ? "max-h-[500px] min-w-[240px] md:min-w-0"
+                            : "max-h-[4.5rem] min-w-[180px] md:min-w-0 hover:max-h-[500px]"
                         }`}
                       >
-                        {analysis?.question || analysis?.inputs?.question}
-                      </p>
-                    </div>
-                  </button>
-                ))}
+                        <p
+                          className={`${
+                            selectedAnalysisIndex === index
+                              ? "line-clamp-none"
+                              : "line-clamp-3 hover:line-clamp-none"
+                          }`}
+                        >
+                          {analysis?.question || analysis?.inputs?.question}
+                        </p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {/* Content area */}
@@ -283,7 +287,7 @@ export function OracleReport({
                     )}
 
                     {/* Database badge */}
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <span className="inline-flex items-center gap-1 bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 text-xs font-medium px-2.5 py-1 rounded">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -307,8 +311,8 @@ export function OracleReport({
 
                     {/* SQL Results with Query Toggle */}
                     <div className="bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-600 overflow-hidden">
-                      <div className="flex items-center justify-between p-3 border-b dark:border-gray-600 bg-gray-50 dark:bg-gray-700">
-                        <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center justify-between p-3 border-b dark:border-gray-600 bg-gray-50 dark:bg-gray-700">
+                        <div className="flex items-center gap-2 mb-2 sm:mb-0">
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
                             className="h-5 w-5 text-indigo-500 dark:text-indigo-400"
@@ -351,8 +355,8 @@ export function OracleReport({
                       {/* SQL Query section that shows/hides based on toggle */}
                       {showSqlQuery && (selectedAnalysis as any)?.sql && (
                         <div className="border-b dark:border-gray-700">
-                          <div className="flex items-center justify-between px-3 py-2 bg-gray-100 dark:bg-gray-700">
-                            <div className="flex items-center gap-1.5">
+                          <div className="flex flex-wrap items-center justify-between px-3 py-2 bg-gray-100 dark:bg-gray-700">
+                            <div className="flex items-center gap-1.5 mb-2 sm:mb-0">
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 className="h-4 w-4 text-purple-500 dark:text-purple-400"
@@ -399,7 +403,7 @@ export function OracleReport({
                             </button>
                           </div>
 
-                          <div className="max-h-[200px] overflow-auto">
+                          <div className="max-h-[150px] sm:max-h-[200px] overflow-auto">
                             <CodeEditor
                               code={(selectedAnalysis as any).sql || ""}
                               language="sql"
@@ -410,24 +414,28 @@ export function OracleReport({
                         </div>
                       )}
 
-                      <div className="p-3">
+                      <div className="p-2 sm:p-3">
                         {viewMode === "table" ? (
-                          <Table
-                            columns={selectedAnalysis.columns}
-                            rows={selectedAnalysis.rows}
-                            columnHeaderClassNames="py-2"
-                            skipColumns={["index"]}
-                            rootClassNames="shadow-sm"
-                          />
+                          <div className="w-full overflow-x-auto">
+                            <Table
+                              columns={selectedAnalysis.columns}
+                              rows={selectedAnalysis.rows}
+                              columnHeaderClassNames="py-2"
+                              skipColumns={["index"]}
+                              rootClassNames="shadow-sm min-w-[400px]"
+                            />
+                          </div>
                         ) : (
                           <ErrorBoundary>
-                            <ChartContainer
-                              key={`chart-${selectedAnalysisIndex}`}
-                              rows={selectedAnalysis.rows}
-                              columns={selectedAnalysis.columns}
-                              initialQuestion={selectedAnalysis.question}
-                              initialOptionsExpanded={false}
-                            />
+                            <div className="min-h-[250px] sm:min-h-[300px]">
+                              <ChartContainer
+                                key={`chart-${selectedAnalysisIndex}`}
+                                rows={selectedAnalysis.rows}
+                                columns={selectedAnalysis.columns}
+                                initialQuestion={selectedAnalysis.question}
+                                initialOptionsExpanded={false}
+                              />
+                            </div>
                           </ErrorBoundary>
                         )}
                       </div>
@@ -499,11 +507,11 @@ export function OracleReport({
                         selectedAnalysis.result.reference_sources
                       ) &&
                       selectedAnalysis.result.reference_sources.length > 0 && (
-                        <div className="bg-gray-50 dark:bg-gray-700 rounded-lg border dark:border-gray-600 p-4">
+                        <div className="bg-gray-50 dark:bg-gray-700 rounded-lg border dark:border-gray-600 p-3 sm:p-4">
                           <div className="flex items-center gap-2 mb-3 pb-2 border-b dark:border-gray-600">
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
-                              className="h-5 w-5 text-indigo-500 dark:text-indigo-400"
+                              className="h-5 w-5 text-indigo-500 dark:text-indigo-400 flex-shrink-0"
                               viewBox="0 0 24 24"
                               fill="none"
                               stroke="currentColor"
@@ -569,11 +577,11 @@ export function OracleReport({
                     )}
 
                     {/* PDF Citations Header */}
-                    <div className="bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-600 p-4">
+                    <div className="bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-600 p-3 sm:p-4">
                       <div className="flex items-center gap-2 mb-2 pb-2 border-b dark:border-gray-600">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
-                          className="h-5 w-5 text-red-500 dark:text-red-400"
+                          className="h-5 w-5 text-red-500 dark:text-red-400 flex-shrink-0"
                           viewBox="0 0 24 24"
                           fill="none"
                           stroke="currentColor"
@@ -604,10 +612,10 @@ export function OracleReport({
                               Array.isArray(item.citations) &&
                               item.citations.length > 0 && (
                                 <>
-                                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 flex items-center">
+                                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 flex flex-wrap items-center">
                                     <svg
                                       xmlns="http://www.w3.org/2000/svg"
-                                      className="h-3 w-3 mr-1"
+                                      className="h-3 w-3 mr-1 flex-shrink-0"
                                       viewBox="0 0 24 24"
                                       fill="none"
                                       stroke="currentColor"
@@ -617,7 +625,7 @@ export function OracleReport({
                                       <polyline points="14 2 14 8 20 8"></polyline>
                                     </svg>
                                     <span className="italic mr-1">Source:</span>
-                                    <span>
+                                    <span className="break-all">
                                       {item.citations[0].document_title}
                                     </span>
                                     {item.citations[0].start_page_number && (
@@ -629,9 +637,35 @@ export function OracleReport({
                                     )}
                                   </div>
 
-                                  {/* Citation hover panel */}
-                                  <div className="absolute left-0 right-0 -bottom-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform translate-y-full z-10">
+                                  {/* Citation hover/touch panel - adaptive for mobile */}
+                                  <div className="absolute left-0 right-0 -bottom-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible md:transition-all md:duration-200 transform translate-y-full z-10">
                                     <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg border dark:border-gray-600 mt-2 shadow-lg">
+                                      <h5 className="text-xs font-medium text-gray-700 dark:text-gray-200 mb-2">
+                                        Cited Text:
+                                      </h5>
+                                      <p className="text-xs text-gray-600 dark:text-gray-300 italic bg-gray-100 dark:bg-gray-800 p-2 rounded">
+                                        "{item.citations[0].cited_text}"
+                                      </p>
+                                    </div>
+                                  </div>
+
+                                  {/* Mobile-friendly citation toggle button */}
+                                  <button 
+                                    className="text-xs text-blue-600 dark:text-blue-400 mt-1 block md:hidden"
+                                    onClick={(e) => {
+                                      // Find the next sibling (the citation panel) and toggle its visibility
+                                      const panel = e.currentTarget.parentElement?.querySelector('.mobile-citation-panel');
+                                      if (panel) {
+                                        panel.classList.toggle('hidden');
+                                      }
+                                    }}
+                                  >
+                                    View citation
+                                  </button>
+
+                                  {/* Mobile citation panel (initially hidden) */}
+                                  <div className="mobile-citation-panel hidden mt-2 md:hidden">
+                                    <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg border dark:border-gray-600 shadow-sm">
                                       <h5 className="text-xs font-medium text-gray-700 dark:text-gray-200 mb-2">
                                         Cited Text:
                                       </h5>
