@@ -274,11 +274,11 @@ export function SingleSelect({
           type="text"
           placeholder={placeholder}
           className={twMerge(
-            "w-full rounded-md border-0 pr-12 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-400 dark:focus:ring-blue-500 sm:text-sm sm:leading-6 hover:ring-2 hover:ring-inset hover:ring-blue-400 dark:hover:ring-blue-500 hover:cursor-pointer",
+            "w-full rounded-md border-0 pr-12 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-400 sm:text-sm sm:leading-6 ",
             inputSizeClasses[size] || inputSizeClasses["default"],
             disabled
               ? "bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500 dark:ring-gray-700 cursor-not-allowed hover:cursor-not-allowed"
-              : "bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+              : "bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-inset focus:ring-blue-400 dark:focus:ring-blue-500 hover:ring-2 hover:ring-inset hover:ring-blue-400 dark:hover:ring-blue-500 hover:cursor-pointer"
           )}
           value={
             query !== null
