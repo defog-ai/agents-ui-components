@@ -16,7 +16,7 @@ import {
   ReportData,
   ListReportResponseItem,
 } from "@oracle";
-import { SquarePen } from "lucide-react";
+import { Info, SquarePen, TriangleAlert } from "lucide-react";
 import { twMerge } from "tailwind-merge";
 import { OracleDraftReport } from "../reports/report-creation/OracleDraftReport";
 import { OracleNewDb } from "./OracleNewDb";
@@ -86,6 +86,8 @@ export function OracleEmbed({
    */
   const { current: newDbName } = useRef<string>(crypto.randomUUID().toString());
 
+  const [hasUploadedDataFiles, setHasUploadedDataFiles] = useState(false);
+
   useEffect(() => {
     async function setup() {
       try {
@@ -123,7 +125,7 @@ export function OracleEmbed({
               // add to histories based on date created
               .forEach((report) => {
                 // Parse date_created as UTC and convert to local timezone
-                const date = new Date(report.date_created + 'Z');
+                const date = new Date(report.date_created + "Z");
                 const localToday = new Date();
                 const localYesterday = new Date(localToday);
                 localYesterday.setDate(localYesterday.getDate() - 1);
@@ -131,11 +133,13 @@ export function OracleEmbed({
                 localWeek.setDate(localWeek.getDate() - 7);
                 const localMonth = new Date(localToday);
                 localMonth.setMonth(localMonth.getMonth() - 1);
-                
+
                 // Compare dates using local timezone
                 if (date.toDateString() === localToday.toDateString()) {
                   histories[dbName]["Today"].push(report);
-                } else if (date.toDateString() === localYesterday.toDateString()) {
+                } else if (
+                  date.toDateString() === localYesterday.toDateString()
+                ) {
                   histories[dbName]["Yesterday"].push(report);
                 } else if (date >= localWeek) {
                   histories[dbName]["Past week"].push(report);
@@ -150,8 +154,8 @@ export function OracleEmbed({
             Object.entries(histories[dbName]).forEach(([group, reports]) => {
               reports.sort(
                 (a, b) =>
-                  new Date(b.date_created + 'Z').getTime() -
-                  new Date(a.date_created + 'Z').getTime()
+                  new Date(b.date_created + "Z").getTime() -
+                  new Date(a.date_created + "Z").getTime()
               );
             });
           } catch (error) {
@@ -216,31 +220,110 @@ export function OracleEmbed({
 
   const dbSelector = useMemo(
     () => (
-      <SingleSelect
-        label="Select Database"
-        rootClassNames="mb-2"
-        value={selectedDbName}
-        allowClear={false}
-        allowCreateNewOption={false}
-        options={[
-          {
-            value: newDbName,
-            label: "Upload new",
-          },
-        ].concat(
-          dbNames.map((dbName) => ({
-            value: dbName,
-            label: dbName,
-          }))
-        )}
-        onChange={(v: string) => {
-          setSelectedDbName(v);
-          setSelectedReportId(null);
+      <>
+        {hasUploadedDataFiles ? (
+          <div className="flex flex-row items-start gap-2 w-full text-xs bg-blue-50 border-blue-500 border rounded-md p-2 mb-4 text-blue-600 dark:bg-blue-800/40 dark:border-blue-300 dark:text-blue-300 py-4">
+            <Info className="w-4 min-w-4" />
+            <span>
+              A new database will be created using your uploaded csv/excel files
+            </span>
+          </div>
+        ) : null}
+        <SingleSelect
+          label="Select Database"
+          rootClassNames="mb-2"
+          value={selectedDbName}
+          disabled={hasUploadedDataFiles}
+          allowClear={false}
+          allowCreateNewOption={false}
+          options={[
+            {
+              value: newDbName,
+              label: "Upload new",
+            },
+          ].concat(
+            dbNames.map((dbName) => ({
+              value: dbName,
+              label: dbName,
+            }))
+          )}
+          onChange={(v: string) => {
+            setSelectedDbName(v);
+            setSelectedReportId(null);
+          }}
+        />
+      </>
+    ),
+    [selectedDbName, dbNames, hasUploadedDataFiles]
+  );
+
+  const draftReport = useMemo(() => {
+    return (
+      <OracleDraftReport
+        token={token}
+        dbName={selectedDbName}
+        apiEndpoint={apiEndpoint}
+        onUploadDataFiles={(dataFiles) => {
+          setHasUploadedDataFiles(
+            dataFiles && dataFiles?.length ? true : false
+          );
+        }}
+        onReportGenerated={(userQuestion, reportId, status, newDbName) => {
+          setReportHistory((prev) => {
+            let newHistory: ReportHistory = { ...prev };
+
+            if (newDbName) {
+              newHistory = {
+                ...prev,
+                [newDbName]: {
+                  Today: [
+                    {
+                      report_id: reportId,
+                      report_name: userQuestion,
+                      status,
+                      date_created: oracleReportTimestamp(),
+                    },
+                  ],
+                  Yesterday: [],
+                  "Past week": [],
+                  "Past month": [],
+                  Earlier: [],
+                },
+              };
+            } else {
+              newHistory = {
+                ...prev,
+                [selectedDbName]: {
+                  ...prev[selectedDbName],
+                  Today: [
+                    {
+                      report_id: reportId,
+                      report_name: userQuestion,
+                      status,
+                      date_created: oracleReportTimestamp(),
+                    },
+                    ...(prev?.[selectedDbName]?.["Today"] || []),
+                  ],
+                },
+              };
+            }
+
+            return newHistory;
+          });
+
+          if (newDbName) {
+            messageManager.current.success(
+              `A new database was created using your uploaded csv/excel files: ${newDbName}`
+            );
+            setSelectedDbName(newDbName);
+            setDbNames((prev) => [...prev, newDbName]);
+          }
+
+          setSelectedReportId(reportId);
         }}
       />
-    ),
-    [selectedDbName, dbNames]
-  );
+    );
+  }, [messageManager, selectedDbName]);
 
   if (error) {
     return (
@@ -448,44 +531,7 @@ export function OracleEmbed({
               />
             )
           )}
-          {dbNames.map((dbName) => {
-            return (
-              <div
-                key={dbName}
-                className={twMerge(
-                  "w-full h-full m-auto",
-                  selectedReportId || selectedDbName !== dbName ? "hidden" : ""
-                )}
-              >
-                <OracleDraftReport
-                  token={token}
-                  dbName={dbName}
-                  apiEndpoint={apiEndpoint}
-                  onReportGenerated={(userQuestion, reportId, status) => {
-                    setReportHistory((prev) => {
-                      console.log(prev[dbName]["Today"]);
-                      return {
-                        ...prev,
-                        [dbName]: {
-                          ...prev[dbName],
-                          Today: [
-                            {
-                              report_id: reportId,
-                              report_name: userQuestion,
-                              status,
-                              date_created: oracleReportTimestamp(),
-                            },
-                            ...(prev[dbName]["Today"] || []),
-                          ],
-                        },
-                      };
-                    });
-                    setSelectedReportId(reportId);
-                  }}
-                />
-              </div>
-            );
-          })}
+          {draftReport}
         </div>
       </div>
     </MessageManagerContext.Provider>

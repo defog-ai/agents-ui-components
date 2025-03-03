@@ -31,7 +31,7 @@ export { Tabs } from "./components/core-ui/Tabs.jsx";
 export { TextArea } from "./components/core-ui/TextArea.tsx";
 export { Toggle } from "./components/core-ui/Toggle.jsx";
 export { DropFiles } from "./components/core-ui/DropFiles.jsx";
-export { DropFilesHeadless } from "./components/core-ui/DropFilesHeadless.jsx";
+export { DropFilesHeadless } from "./components/core-ui/DropFilesHeadless.tsx";
 export { NavBar } from "./components/core-ui/NavBar.tsx";
 export { ColorPicker } from "./components/core-ui/ColorPicker.jsx";
 export { Drawer } from "./components/core-ui/Drawer.jsx";

@@ -277,7 +277,7 @@ export function SingleSelect({
             "w-full rounded-md border-0 pr-12 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-400 dark:focus:ring-blue-500 sm:text-sm sm:leading-6 hover:ring-2 hover:ring-inset hover:ring-blue-400 dark:hover:ring-blue-500 hover:cursor-pointer",
             inputSizeClasses[size] || inputSizeClasses["default"],
             disabled
-              ? "bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-200"
+              ? "bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500 dark:ring-gray-700 cursor-not-allowed hover:cursor-not-allowed"
               : "bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
           )}
           value={
@@ -288,16 +288,21 @@ export function SingleSelect({
                 : selectedOption?.value || ""
           }
           onChange={(e) => {
+            if (disabled) return;
             setQuery(e.target.value);
             setOpen(true);
           }}
-          onFocus={() => setOpen(true)}
+          onFocus={() => {
+            if (disabled) return;
+            setOpen(true);
+          }}
           onBlur={() => {
             setTimeout(() => setOpen(false), 200);
             setQuery(null);
           }}
           readOnly={disabled}
           onKeyDown={(e) => {
+            if (disabled) return;
             if (e.key === "ArrowDown") {
               e.preventDefault();
               if (!open) {
@@ -347,15 +352,23 @@ export function SingleSelect({
         <button
           type="button"
           className="absolute inset-y-0 right-0 flex items-center px-1.5 focus:outline-none"
+          disabled={disabled}
           onMouseUp={(ev) => {
+            if (disabled) return;
             ev.preventDefault();
             ev.stopPropagation();
             setOpen(!open);
           }}
         >
           <ChevronDown
-            className="w-4 h-4 text-gray-400 dark:text-gray-300"
+            className={twMerge(
+              "w-4 h-4 text-gray-400 dark:text-gray-300",
+              disabled
+                ? "text-gray-800 dark:text-gray-600 cursor-not-allowed"
+                : ""
+            )}
             aria-hidden="true"
+            aria-disabled={disabled}
           />
         </button>
         {open && filteredOptions.length > 0 && (
@@ -397,7 +410,10 @@ export function SingleSelect({
                 {selectedOption &&
                   matchingValue(option, selectedOption.value) && (
                     <span className="absolute inset-y-0 right-0 flex items-center pr-4">
-                      <Check className="w-5 h-5 text-blue-500 dark:text-blue-400" aria-hidden="true" />
+                      <Check
+                        className="w-5 h-5 text-blue-500 dark:text-blue-400"
+                        aria-hidden="true"
+                      />
                     </span>
                   )}
               </li>

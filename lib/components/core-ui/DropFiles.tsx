@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Download, File, XCircle } from "lucide-react";
 import { twMerge } from "tailwind-merge";
+import { formatFileSize } from "@utils/utils";
 
 interface DropFilesProps {
   /** Label for the dropzone. **/
@@ -62,22 +63,15 @@ export function DropFiles({
   onRemoveFile,
 }: DropFilesProps) {
   const [isDropping, setIsDropping] = useState<boolean>(false);
-  
-  // Format file size for display
-  const formatFileSize = (bytes: number): string => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
 
   return (
     <div
       data-testid="file-drop"
       className={twMerge(
         "min-w-full relative flex flex-col grow items-center justify-center border dark:border-gray-500 p-4 rounded-md text-gray-400 dark:text-gray-200 cursor-pointer group bg-white dark:bg-gray-800",
-        isDropping ? "bg-dotted-blue dark:border-blue-500" : "bg-dotted-gray dark:border-gray-500",
+        isDropping
+          ? "bg-dotted-blue dark:border-blue-500"
+          : "bg-dotted-gray dark:border-gray-500",
         rootClassNames
       )}
       onDrop={(e) => {
@@ -127,10 +121,10 @@ export function DropFiles({
         </label>
       )}
       {children}
-      
+
       {/* Display currently selected files */}
       {selectedFiles && selectedFiles.length > 0 && (
-        <div className="w-full">
+        <div className="w-full z-20">
           <div className="flex flex-wrap gap-2 my-2">
             {selectedFiles.map((file, index) => (
               <div
@@ -163,10 +157,15 @@ export function DropFiles({
           </div>
         </div>
       )}
-      
+
       {/* Show upload icon if there are no files or showIcon is true */}
       {(showIcon || selectedFiles.length === 0) && (
-        <Download className={twMerge("h-6 w-6 mx-auto text-gray-500 dark:text-gray-300", iconClassNames)} />
+        <Download
+          className={twMerge(
+            "h-6 w-6 mx-auto text-gray-500 dark:text-gray-300",
+            iconClassNames
+          )}
+        />
       )}
 
       <p className="text-xs text-gray-500 dark:text-gray-300 group-hover:underline z-[2] mt-4 relative pointer-events-none">
@@ -183,11 +182,14 @@ export function DropFiles({
         onInput={(e) => {
           e.preventDefault();
           if (disabled) return;
-          
+
           console.log("DropFiles: File input triggered", e.currentTarget.files);
-          
+
           if (e.currentTarget.files && e.currentTarget.files.length > 0) {
-            console.log("DropFiles: Files selected", Array.from(e.currentTarget.files).map(f => f.name));
+            console.log(
+              "DropFiles: Files selected",
+              Array.from(e.currentTarget.files).map((f) => f.name)
+            );
             onFileSelect(e as React.ChangeEvent<HTMLInputElement>);
           } else {
             console.warn("DropFiles: No files in input event");

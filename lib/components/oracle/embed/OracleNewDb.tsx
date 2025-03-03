@@ -25,8 +25,6 @@ export const OracleNewDb = ({
   const message = useContext(MessageManagerContext);
   const [loading, setLoading] = useState<boolean>(false);
 
-  console.log(loading);
-
   return (
     <div className="min-w-full min-h-full">
       <DropFiles
