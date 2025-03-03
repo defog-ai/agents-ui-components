@@ -7,7 +7,14 @@ import {
   TextArea,
   Toggle,
 } from "@ui-components";
-import { Command, File, XCircle } from "lucide-react";
+import {
+  Command,
+  File,
+  FileSpreadsheet,
+  FileText,
+  Info,
+  XCircle,
+} from "lucide-react";
 import {
   useCallback,
   useContext,
@@ -30,23 +37,22 @@ import {
 
 type QueryTaskType = "exploration" | "";
 
-interface DataFile {
+interface UploadedFile {
   buf: ArrayBuffer;
   fileName: string;
   size: number;
   type: string;
 }
-
 interface ReportDraft {
   userQuestion?: string;
   task_type?: QueryTaskType;
   clarifications?: ClarificationObject[];
   useWebsearch?: boolean;
-  uploadedPDFs?: File[];
+  uploadedPDFs?: UploadedFile[];
   /**
    * CSVs or Excel files. Once these are uploaded, they will be used as a "new db".
    */
-  uploadedDataFiles?: DataFile[];
+  uploadedDataFiles?: UploadedFile[];
 }
 
 /**
@@ -70,8 +76,7 @@ export function OracleDraftReport({
     status: string,
     newDbName?: string
   ) => void;
-  onUploadDataFiles?: (dataFiles?: DataFile[]) => void;
-  onUploadPDFs?: (pdfFiles: File[]) => void;
+  onUploadDataFiles?: (dataFiles?: UploadedFile[]) => void;
 }) {
   const [draft, setDraft] = useState<ReportDraft>({
     useWebsearch: true,
@@ -181,40 +186,33 @@ export function OracleDraftReport({
     }
   };
 
-  // Handler for removing an uploaded PDF
-  const handleRemovePDF = (index: number) => {
-    console.log("Removing PDF at index:", index);
-
-    setDraft((prev) => {
-      const filteredPDFs =
-        prev.uploadedPDFs?.filter((_, i) => i !== index) || [];
-      console.log("After removal, PDF count:", filteredPDFs.length);
-      console.log(
-        "Remaining PDF file names:",
-        filteredPDFs.map((f) => f.name)
-      );
-
-      return {
-        ...prev,
-        uploadedPDFs: filteredPDFs,
-      };
-    });
-  };
-
   const [isDropping, setIsDropping] = useState<boolean>(false);
 
-  const CsvIcons = useMemo(() => {
-    return draft?.uploadedDataFiles?.length ? (
+  const UploadedFileIcons = useMemo(() => {
+    return draft?.uploadedDataFiles?.length || draft?.uploadedPDFs?.length ? (
       <div className="w-full">
         <div className="flex flex-wrap gap-2">
+          {draft?.uploadedDataFiles?.length ? (
+            <div className="flex flex-row items-center gap-2 w-full text-xs text-blue-600 dark:text-blue-400">
+              <Info className="w-4 min-w-4" />
+              <span>
+                A new database will be created using your uploaded csv/excel
+                files
+              </span>
+            </div>
+          ) : (
+            <></>
+          )}
           {draft.uploadedDataFiles.map((file, index) => (
             <div
               key={`${file.fileName}-${index}`}
-              className="flex items-center justify-between bg-gray-100 dark:bg-gray-700 rounded-lg px-3 py-2 text-sm"
+              className="flex items-center flex-wrap max-w-full overflow-hidden justify-between bg-gray-100 dark:bg-gray-700 rounded-lg px-3 py-2 text-sm"
             >
               <div className="flex items-center max-w-[85%]">
-                <File className="w-4 h-4 mr-2 flex-shrink-0" />
-                <span className="truncate">{file.fileName}</span>
+                <FileSpreadsheet className="w-4 h-4 mr-2 flex-shrink-0 stroke-blue-500 dark:stroke-blue-400" />
+                <span className="truncate max-w-40" title={file.fileName}>
+                  {file.fileName}
+                </span>
               </div>
               <div className="flex items-center">
                 <span className="text-xs text-gray-500 dark:text-gray-400 mx-2">
@@ -245,6 +243,43 @@ export function OracleDraftReport({
               </div>
             </div>
           ))}
+          {draft.uploadedPDFs.map((file, index) => (
+            <div
+              key={`${file.fileName}-${index}`}
+              className="flex items-center flex-wrap max-w-full overflow-hidden justify-between bg-gray-100 dark:bg-gray-700 rounded-lg px-3 py-2 text-sm"
+            >
+              <div className="flex items-center max-w-[85%]">
+                <FileText className="w-4 h-4 mr-2 flex-shrink-0 stroke-blue-500 dark:stroke-blue-400" />
+                <span className="truncate max-w-40" title={file.fileName}>
+                  {file.fileName}
+                </span>
+              </div>
+              <div className="flex items-center">
+                <span className="text-xs text-gray-500 dark:text-gray-400 mx-2">
+                  {formatFileSize(file.size)}
+                </span>
+                {
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const newPdfs = draft.uploadedPDFs?.filter(
+                        (_, i) => i !== index
+                      );
+
+                      setDraft((prev) => ({
+                        ...prev,
+                        uploadedPDFs: newPdfs,
+                      }));
+                    }}
+                    className="cursor-pointer ml-1 text-gray-500 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400"
+                  >
+                    <XCircle className="w-4 h-4" />
+                  </button>
+                }
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     ) : null;
@@ -254,7 +289,7 @@ export function OracleDraftReport({
     <div className="h-full overflow-auto py-4 px-1 lg:px-10">
       <div className="flex flex-col items-start justify-center min-h-full m-auto gap-10">
         <div className="w-full">
-          <div className="text-lg dark:text-gray-200 font-light">
+          <div className="text-lg dark:text-gray-200 font-light mb-4">
             What would you like a report on?
           </div>
           <DropFilesHeadless
@@ -284,41 +319,62 @@ export function OracleDraftReport({
                 throw new Error("Invalid file");
               }
 
-              if (!isValidFileType(dataTransferObject.type)) {
-                throw new Error("Only CSV or Excel files are accepted");
+              if (!isValidFileType(dataTransferObject.type, true)) {
+                throw new Error("Only CSV, Excel or PDF files are accepted");
               }
 
               let file = dataTransferObject.getAsFile();
 
               const buf = await file.arrayBuffer();
 
-              const newDataFiles = [
-                ...draft.uploadedDataFiles,
-                {
-                  buf,
-                  fileName: file.name,
-                  size: file.size,
-                  type: file.type,
-                },
-              ];
+              if (file.type.endsWith("pdf")) {
+                const newPDFs = [
+                  ...draft.uploadedPDFs,
+                  {
+                    buf,
+                    fileName: file.name,
+                    size: file.size,
+                    type: file.type,
+                    isCsv: false,
+                    isPdf: true,
+                  },
+                ];
 
-              setDraft((prev) => ({
-                ...prev,
-                uploadedDataFiles: newDataFiles,
-              }));
+                setDraft((prev) => ({
+                  ...prev,
+                  uploadedPDFs: newPDFs,
+                }));
+              } else {
+                const newDataFiles = [
+                  ...draft.uploadedDataFiles,
+                  {
+                    buf,
+                    fileName: file.name,
+                    size: file.size,
+                    type: file.type,
+                    isPdf: false,
+                    isCsv: true,
+                  },
+                ];
+
+                setDraft((prev) => ({
+                  ...prev,
+                  uploadedDataFiles: newDataFiles,
+                }));
+              }
 
               newDbName.current = null;
               newDbInfo.current = null;
             }}
           >
             <TextArea
-              prefix={CsvIcons}
+              prefix={UploadedFileIcons}
               ref={textAreaRef}
               rootClassNames="w-full h-full rounded-xl border dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 overflow-hidden"
-              textAreaClassNames="border-0 outline-0 ring-0 shadow-none focus:ring-0 bg-transparent "
+              textAreaClassNames="border-0 outline-0 ring-0 shadow-none focus:ring-0"
               suffix={
                 <div className="flex flex-col">
-                  <span className="dark:text-gray-400">
+                  <div className="dark:text-gray-400 border-b dark:border-gray-700 pb-2">
                     Press{" "}
                     {isMac ? (
                       <>
@@ -327,12 +383,33 @@ export function OracleDraftReport({
                     ) : (
                       "Ctrl + Enter"
                     )}{" "}
-                    to start. Drop CSV or Excel files to analyse them.
-                  </span>
+                    to start. Drop PDFs to add context to the report. Drop CSV
+                    or Excel files to analyse them.
+                  </div>
+                  <Toggle
+                    title="Use web search to enhance report"
+                    onLabel="Web search is enabled"
+                    offLabel="Web search is disabled"
+                    defaultOn={draft.useWebsearch}
+                    disabled={
+                      clarificationStarted || Boolean(draft.clarifications)
+                    }
+                    onToggle={(value) => {
+                      setDraft((prev) => ({
+                        ...prev,
+                        useWebsearch: value,
+                      }));
+                    }}
+                    rootClassNames="mt-2"
+                  />
                 </div>
               }
               disabled={loading}
-              placeholder={isDropping ? "Release to drop" : "Type here"}
+              placeholder={
+                isDropping
+                  ? "Release to drop"
+                  : "Type here or drop PDF, CSV or Excel file"
+              }
               autoResize={true}
               defaultRows={1}
               textAreaHtmlProps={{
@@ -362,12 +439,12 @@ export function OracleDraftReport({
                     if (draft.uploadedPDFs && draft.uploadedPDFs.length > 0) {
                       console.log(
                         "Found PDFs to process:",
-                        draft.uploadedPDFs.map((f) => f.name)
+                        draft.uploadedPDFs.map((f) => f.fileName)
                       );
 
                       for (const pdfFile of draft.uploadedPDFs) {
                         try {
-                          const fileName = pdfFile.name;
+                          const fileName = pdfFile.fileName;
                           console.log(
                             "Processing PDF:",
                             fileName,
@@ -375,14 +452,13 @@ export function OracleDraftReport({
                             pdfFile.size
                           );
 
-                          const arrayBuffer = await pdfFile.arrayBuffer();
                           console.log(
                             "PDF buffer created, size:",
-                            arrayBuffer.byteLength
+                            pdfFile.buf.byteLength
                           );
 
                           // Convert ArrayBuffer to base64
-                          const base64String = arrayBufferToBase64(arrayBuffer);
+                          const base64String = arrayBufferToBase64(pdfFile.buf);
                           console.log(
                             "PDF converted to base64, length:",
                             base64String.length
@@ -396,7 +472,7 @@ export function OracleDraftReport({
                         } catch (err) {
                           console.error("Error processing PDF:", err);
                           message.error(
-                            `Error processing PDF: ${pdfFile.name}`
+                            `Error processing PDF: ${pdfFile.fileName}`
                           );
                         }
                       }
@@ -502,60 +578,6 @@ export function OracleDraftReport({
               }}
             />
           </DropFilesHeadless>
-        </div>
-
-        <div className="w-full mb-4">
-          <Toggle
-            title="Use web search to enhance report"
-            onLabel="Web search is enabled"
-            offLabel="Web search is disabled"
-            defaultOn={draft.useWebsearch}
-            disabled={clarificationStarted || Boolean(draft.clarifications)}
-            onToggle={(value) => {
-              setDraft((prev) => ({
-                ...prev,
-                useWebsearch: value,
-              }));
-            }}
-            rootClassNames="mb-4"
-          />
-
-          {/* Show PDF section only if not in clarification process OR if PDFs were already uploaded */}
-          {(!(clarificationStarted || Boolean(draft.clarifications)) ||
-            (draft.uploadedPDFs && draft.uploadedPDFs.length > 0)) && (
-            <div className="mt-4 mb-4">
-              {/* Only show the upload area if not in clarification process */}
-              {!(clarificationStarted || Boolean(draft.clarifications)) && (
-                <>
-                  <div className="text-sm font-medium mb-2 dark:text-gray-200">
-                    Upload PDF files (optional)
-                  </div>
-                  <DropFiles
-                    label="Drop PDF files here"
-                    acceptedFileTypes={["application/pdf"]}
-                    onFileSelect={handlePDFUpload}
-                    onDrop={(e) => {
-                      console.log("Drop event detected", e.dataTransfer?.files);
-                      if (e.dataTransfer?.files) {
-                        const fileList = e.dataTransfer.files;
-                        const event = {
-                          target: { files: fileList },
-                        } as React.ChangeEvent<HTMLInputElement>;
-                        handlePDFUpload(event);
-                      }
-                    }}
-                    allowMultiple={true}
-                    showIcon={true}
-                    rootClassNames="border-dashed border-2 h-auto min-h-32 mb-2"
-                    selectedFiles={draft.uploadedPDFs}
-                    onRemoveFile={handleRemovePDF}
-                  />
-                </>
-              )}
-
-              {/* Files are now displayed in the DropFiles component */}
-            </div>
-          )}
         </div>
 
         {!loading && draft.clarifications && (
