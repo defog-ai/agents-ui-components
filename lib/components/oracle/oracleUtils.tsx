@@ -19,6 +19,7 @@ import CommentExtension from "@sereneinserenade/tiptap-comment-extension";
 import debounce from "lodash.debounce";
 import { Editor } from "@tiptap/core";
 import setupBaseUrl from "../utils/setupBaseUrl";
+import { ClarificationObject } from "./reports/report-creation/ClarificationItem";
 
 // Custom hook for comment management
 const debouncedSendUpdates = debounce(
@@ -1051,8 +1052,14 @@ export const getClarifications = async (
   token: string,
   dbName: string,
   userQuestion: string,
-  pdfFiles: { file_name: string; base64_content: string }[]
-) => {
+  pdfFiles: { file_name: string; base64_content: string }[],
+  dataFiles: { file_name: string; base64_content: string }[]
+): Promise<{
+  clarifications: ClarificationObject[];
+  report_id: string;
+  new_db_info?: DbInfo;
+  new_db_name?: string;
+}> => {
   if (!token) throw new Error("No token");
   const res = await fetch(
     setupBaseUrl({
@@ -1068,6 +1075,7 @@ export const getClarifications = async (
         token,
         user_question: userQuestion,
         pdf_files: pdfFiles,
+        data_files: dataFiles,
       }),
     }
   );

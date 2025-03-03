@@ -7,16 +7,35 @@ import {
   TextArea,
   Toggle,
 } from "@ui-components";
-import { Command } from "lucide-react";
-import { useCallback, useContext, useEffect, useRef, useState } from "react";
+import { Command, File, XCircle } from "lucide-react";
+import {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { ClarificationItem, ClarificationObject } from "./ClarificationItem";
 import {
   generateReport,
   getClarifications,
   ORACLE_REPORT_STATUS,
 } from "@oracle";
+import {
+  arrayBufferToBase64,
+  formatFileSize,
+  isValidFileType,
+} from "@utils/utils";
 
 type QueryTaskType = "exploration" | "";
+
+interface DataFile {
+  buf: ArrayBuffer;
+  fileName: string;
+  size: number;
+  type: string;
+}
 
 interface ReportDraft {
   userQuestion?: string;
@@ -24,6 +43,10 @@ interface ReportDraft {
   clarifications?: ClarificationObject[];
   useWebsearch?: boolean;
   uploadedPDFs?: File[];
+  /**
+   * CSVs or Excel files. Once these are uploaded, they will be used as a "new db".
+   */
+  uploadedDataFiles?: DataFile[];
 }
 
 /**
@@ -36,6 +59,7 @@ export function OracleDraftReport({
   dbName,
   token,
   onReportGenerated,
+  onUploadDataFiles = () => {},
 }: {
   apiEndpoint: string;
   dbName: string;
@@ -43,12 +67,16 @@ export function OracleDraftReport({
   onReportGenerated?: (
     userQuestion: string,
     reportId: string,
-    status: string
+    status: string,
+    newDbName?: string
   ) => void;
+  onUploadDataFiles?: (dataFiles?: DataFile[]) => void;
+  onUploadPDFs?: (pdfFiles: File[]) => void;
 }) {
   const [draft, setDraft] = useState<ReportDraft>({
     useWebsearch: true,
     uploadedPDFs: [],
+    uploadedDataFiles: [],
   });
   const [loading, setLoading] = useState<boolean>(false);
   const [isMac, setIsMac] = useState<boolean>(false);
@@ -57,24 +85,14 @@ export function OracleDraftReport({
     useState<boolean>(false);
   const loadingStatus = useRef<string>("");
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
+  const newDbName = useRef<string | null>(null);
+  const newDbInfo = useRef<DbInfo | null>(null);
 
   useEffect(() => {
     setIsMac(navigator.userAgent.toLowerCase().includes("mac"));
   }, []);
 
   const message = useContext(MessageManagerContext);
-
-  const arrayBufferToBase64 = (buffer: ArrayBuffer) => {
-    let binary = "";
-    const bytes = new Uint8Array(buffer);
-    const len = bytes.byteLength;
-
-    for (let i = 0; i < len; i++) {
-      binary += String.fromCharCode(bytes[i]);
-    }
-
-    return btoa(binary);
-  };
 
   const handleGenerateReport = useCallback(async () => {
     try {
@@ -86,7 +104,7 @@ export function OracleDraftReport({
         await generateReport(
           apiEndpoint,
           token,
-          dbName,
+          newDbName.current || dbName,
           reportId,
           textAreaRef.current?.value || draft.userQuestion,
           draft.clarifications?.filter((c) => c.answer && c.is_answered) || [],
@@ -100,7 +118,8 @@ export function OracleDraftReport({
       onReportGenerated(
         textAreaRef.current?.value || draft.userQuestion,
         reportId,
-        ORACLE_REPORT_STATUS.THINKING
+        ORACLE_REPORT_STATUS.THINKING,
+        newDbName.current
       );
 
       // clear everything
@@ -117,6 +136,15 @@ export function OracleDraftReport({
       setLoading(false);
     }
   }, [draft, apiEndpoint, token, dbName, reportId, onReportGenerated, message]);
+
+  useEffect(() => {
+    onUploadDataFiles(draft?.uploadedDataFiles);
+
+    if (!draft?.uploadedDataFiles || draft?.uploadedDataFiles?.length === 0) {
+      newDbName.current = null;
+      newDbInfo.current = null;
+    }
+  }, [draft?.uploadedDataFiles]);
 
   // Handler for PDF file uploads
   const handlePDFUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -173,6 +201,55 @@ export function OracleDraftReport({
     });
   };
 
+  const [isDropping, setIsDropping] = useState<boolean>(false);
+
+  const CsvIcons = useMemo(() => {
+    return draft?.uploadedDataFiles?.length ? (
+      <div className="w-full">
+        <div className="flex flex-wrap gap-2">
+          {draft.uploadedDataFiles.map((file, index) => (
+            <div
+              key={`${file.fileName}-${index}`}
+              className="flex items-center justify-between bg-gray-100 dark:bg-gray-700 rounded-lg px-3 py-2 text-sm"
+            >
+              <div className="flex items-center max-w-[85%]">
+                <File className="w-4 h-4 mr-2 flex-shrink-0" />
+                <span className="truncate">{file.fileName}</span>
+              </div>
+              <div className="flex items-center">
+                <span className="text-xs text-gray-500 dark:text-gray-400 mx-2">
+                  {formatFileSize(file.size)}
+                </span>
+                {
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const newDataFiles = draft.uploadedDataFiles?.filter(
+                        (_, i) => i !== index
+                      );
+
+                      setDraft((prev) => ({
+                        ...prev,
+                        uploadedDataFiles: newDataFiles,
+                      }));
+
+                      newDbInfo.current = null;
+                      newDbName.current = null;
+                    }}
+                    className="cursor-pointer ml-1 text-gray-500 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400"
+                  >
+                    <XCircle className="w-4 h-4" />
+                  </button>
+                }
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    ) : null;
+  }, [draft]);
+
   return (
     <div className="h-full overflow-auto py-4 px-1 lg:px-10">
       <div className="flex flex-col items-start justify-center min-h-full m-auto gap-10">
@@ -180,132 +257,251 @@ export function OracleDraftReport({
           <div className="text-lg dark:text-gray-200 font-light">
             What would you like a report on?
           </div>
-          <TextArea
-            ref={textAreaRef}
-            rootClassNames="w-full h-full rounded-xl border dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700"
-            textAreaClassNames="border-0 outline-0 ring-0 shadow-none focus:ring-0 bg-transparent"
-            suffix={
-              <>
-                <span className="dark:text-gray-400">
-                  Drop CSV or Excel files to analyse them. Press{" "}
-                  {isMac ? (
-                    <>
-                      <Command className="inline align-middle w-2.5" />+ Enter
-                    </>
-                  ) : (
-                    "Ctrl + Enter"
-                  )}{" "}
-                  to start.
-                </span>
-              </>
-            }
-            disabled={loading}
-            placeholder="Type here"
-            autoResize={true}
-            defaultRows={1}
-            textAreaHtmlProps={{
-              style: { resize: "none" },
-              onDrop: (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log("bleh", e.dataTransfer?.files);
-              },
+          <DropFilesHeadless
+            fileSelection={false}
+            onDragOver={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setIsDropping(true);
             }}
-            onKeyDown={async (e) => {
-              if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
-                const question = e.currentTarget.value;
-                try {
-                  // Set clarification started flag immediately
-                  setClarificationStarted(true);
-                  setLoading(true);
-                  loadingStatus.current =
-                    "Analyzing database and thinking if I need to ask clarifying questions. This can take 15-20 seconds...";
-                  setDraft((prev) => ({
-                    ...prev,
-                    userQuestion: question,
-                  }));
+            onDragLeave={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setIsDropping(false);
+            }}
+            onDrop={async (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setIsDropping(false);
 
-                  // Handle PDF uploads if there are any by creating an array of the PDF's filename and its base64 encoded content
-                  const pdfFiles = [];
-                  console.log(
-                    "Processing uploaded PDFs:",
-                    draft.uploadedPDFs?.length || 0
-                  );
+              let dataTransferObject: DataTransferItem =
+                e?.dataTransfer?.items?.[0];
+              if (
+                !dataTransferObject ||
+                !dataTransferObject.kind ||
+                dataTransferObject.kind !== "file"
+              ) {
+                throw new Error("Invalid file");
+              }
 
-                  if (draft.uploadedPDFs && draft.uploadedPDFs.length > 0) {
+              if (!isValidFileType(dataTransferObject.type)) {
+                throw new Error("Only CSV or Excel files are accepted");
+              }
+
+              let file = dataTransferObject.getAsFile();
+
+              const buf = await file.arrayBuffer();
+
+              const newDataFiles = [
+                ...draft.uploadedDataFiles,
+                {
+                  buf,
+                  fileName: file.name,
+                  size: file.size,
+                  type: file.type,
+                },
+              ];
+
+              setDraft((prev) => ({
+                ...prev,
+                uploadedDataFiles: newDataFiles,
+              }));
+
+              newDbName.current = null;
+              newDbInfo.current = null;
+            }}
+          >
+            <TextArea
+              prefix={CsvIcons}
+              ref={textAreaRef}
+              rootClassNames="w-full h-full rounded-xl border dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 overflow-hidden"
+              textAreaClassNames="border-0 outline-0 ring-0 shadow-none focus:ring-0 bg-transparent "
+              suffix={
+                <div className="flex flex-col">
+                  <span className="dark:text-gray-400">
+                    Press{" "}
+                    {isMac ? (
+                      <>
+                        <Command className="inline align-middle w-2.5" />+ Enter
+                      </>
+                    ) : (
+                      "Ctrl + Enter"
+                    )}{" "}
+                    to start. Drop CSV or Excel files to analyse them.
+                  </span>
+                </div>
+              }
+              disabled={loading}
+              placeholder={isDropping ? "Release to drop" : "Type here"}
+              autoResize={true}
+              defaultRows={1}
+              textAreaHtmlProps={{
+                style: { resize: "none" },
+              }}
+              onKeyDown={async (e) => {
+                if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+                  const question = e.currentTarget.value;
+                  try {
+                    // Set clarification started flag immediately
+                    setClarificationStarted(true);
+                    setLoading(true);
+                    loadingStatus.current =
+                      "Analyzing database and thinking if I need to ask clarifying questions. This can take 15-20 seconds...";
+                    setDraft((prev) => ({
+                      ...prev,
+                      userQuestion: question,
+                    }));
+
+                    // Handle PDF uploads if there are any by creating an array of the PDF's filename and its base64 encoded content
+                    const pdfFiles = [];
                     console.log(
-                      "Found PDFs to process:",
-                      draft.uploadedPDFs.map((f) => f.name)
+                      "Processing uploaded PDFs:",
+                      draft.uploadedPDFs?.length || 0
                     );
 
-                    for (const pdfFile of draft.uploadedPDFs) {
-                      try {
-                        const fileName = pdfFile.name;
-                        console.log(
-                          "Processing PDF:",
-                          fileName,
-                          "Size:",
-                          pdfFile.size
-                        );
+                    if (draft.uploadedPDFs && draft.uploadedPDFs.length > 0) {
+                      console.log(
+                        "Found PDFs to process:",
+                        draft.uploadedPDFs.map((f) => f.name)
+                      );
 
-                        const arrayBuffer = await pdfFile.arrayBuffer();
-                        console.log(
-                          "PDF buffer created, size:",
-                          arrayBuffer.byteLength
-                        );
+                      for (const pdfFile of draft.uploadedPDFs) {
+                        try {
+                          const fileName = pdfFile.name;
+                          console.log(
+                            "Processing PDF:",
+                            fileName,
+                            "Size:",
+                            pdfFile.size
+                          );
 
-                        // Convert ArrayBuffer to base64
-                        const base64String = arrayBufferToBase64(arrayBuffer);
-                        console.log(
-                          "PDF converted to base64, length:",
-                          base64String.length
-                        );
+                          const arrayBuffer = await pdfFile.arrayBuffer();
+                          console.log(
+                            "PDF buffer created, size:",
+                            arrayBuffer.byteLength
+                          );
 
-                        pdfFiles.push({
-                          file_name: fileName,
-                          base64_content: base64String,
-                        });
-                        console.log("PDF added to processing list");
-                      } catch (err) {
-                        console.error("Error processing PDF:", err);
-                        message.error(`Error processing PDF: ${pdfFile.name}`);
+                          // Convert ArrayBuffer to base64
+                          const base64String = arrayBufferToBase64(arrayBuffer);
+                          console.log(
+                            "PDF converted to base64, length:",
+                            base64String.length
+                          );
+
+                          pdfFiles.push({
+                            file_name: fileName,
+                            base64_content: base64String,
+                          });
+                          console.log("PDF added to processing list");
+                        } catch (err) {
+                          console.error("Error processing PDF:", err);
+                          message.error(
+                            `Error processing PDF: ${pdfFile.name}`
+                          );
+                        }
                       }
+
+                      console.log(
+                        "Finished processing PDFs, total processed:",
+                        pdfFiles.length
+                      );
+                    } else {
+                      console.log("No PDFs to process");
                     }
 
+                    // do the same for data files
+                    const dataFiles = [];
                     console.log(
-                      "Finished processing PDFs, total processed:",
-                      pdfFiles.length
+                      "Processing uploaded data files:",
+                      dataFiles.length
                     );
-                  } else {
-                    console.log("No PDFs to process");
+
+                    if (draft.uploadedDataFiles?.length === 0) {
+                      console.log("No data files to process");
+                    } else {
+                      console.log(
+                        "Found data files to process:",
+                        draft.uploadedDataFiles.map((f) => f.fileName)
+                      );
+
+                      for (const dataFile of draft.uploadedDataFiles) {
+                        try {
+                          const fileName = dataFile.fileName;
+                          console.log(
+                            "Processing data file:",
+                            fileName,
+                            "Size:",
+                            dataFile.size
+                          );
+
+                          console.log(
+                            "data file buffer created, size:",
+                            dataFile.buf.byteLength
+                          );
+
+                          // Convert ArrayBuffer to base64
+                          const base64String = arrayBufferToBase64(
+                            dataFile.buf
+                          );
+                          console.log(
+                            "data file converted to base64, length:",
+                            base64String.length
+                          );
+
+                          dataFiles.push({
+                            file_name: fileName,
+                            base64_content: base64String,
+                          });
+                          console.log("data file added to processing list");
+                        } catch (err) {
+                          console.error("Error processing data file:", err);
+                          message.error(
+                            `Error processing data file: ${dataFile.fileName}`
+                          );
+                        }
+                      }
+
+                      console.log(
+                        "Finished processing PDFs, total processed:",
+                        dataFiles.length
+                      );
+                    }
+
+                    const res = await getClarifications(
+                      apiEndpoint,
+                      token,
+                      dbName,
+                      question,
+                      pdfFiles,
+                      dataFiles
+                    );
+
+                    console.log("clarifications", res.clarifications);
+
+                    setReportId(res.report_id);
+
+                    setDraft((prev) => ({
+                      ...prev,
+                      clarifications: res.clarifications,
+                    }));
+
+                    // if the res has a db_name and db_info
+                    // means a new db was created for the data files
+                    if (res.new_db_name && res.new_db_info) {
+                      newDbName.current = res.new_db_name;
+                      newDbInfo.current = res.new_db_info;
+                    }
+                  } catch (e) {
+                    message.error("Error getting clarifications");
+                    // If there's an error, allow the user to try again
+                    setClarificationStarted(false);
+                  } finally {
+                    setLoading(false);
                   }
-
-                  const { clarifications, report_id } = await getClarifications(
-                    apiEndpoint,
-                    token,
-                    dbName,
-                    question,
-                    pdfFiles
-                  );
-
-                  console.log("clarifications", clarifications);
-
-                  setReportId(report_id);
-
-                  setDraft((prev) => ({
-                    ...prev,
-                    clarifications,
-                  }));
-                } catch (e) {
-                  message.error("Error getting clarifications");
-                  // If there's an error, allow the user to try again
-                  setClarificationStarted(false);
-                } finally {
-                  setLoading(false);
                 }
-              }
-            }}
-          />
+              }}
+            />
+          </DropFilesHeadless>
         </div>
 
         <div className="w-full mb-4">

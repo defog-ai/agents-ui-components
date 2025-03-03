@@ -61,6 +61,7 @@ interface TextAreaProps {
   autoResize?: boolean;
   ref?: React.Ref<HTMLTextAreaElement>;
   size?: string;
+  prefix?: string | React.ReactNode;
   suffix?: string | React.ReactNode;
 }
 
@@ -86,6 +87,7 @@ let TextArea = forwardRef(function TextArea(
     autoResize = true,
     size = "default",
     suffix = "",
+    prefix = "",
   }: TextAreaProps,
   ref: Ref<HTMLTextAreaElement>
 ) {
@@ -116,54 +118,57 @@ let TextArea = forwardRef(function TextArea(
         </label>
       )}
       <div className="relative">
-        <div className="">
-          <textarea
-            data-testid={id}
-            ref={ref}
-            disabled={disabled}
-            rows={defaultRows}
-            name={name}
-            id={id}
-            placeholder={placeholder}
-            onKeyDown={onKeyDown}
-            className={twMerge(
-              "focus:outline-none pl-2 block w-full rounded-md border-0 py-1.5 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-400",
-              "text-[16px] lg:text-sm leading-6",
-              "placeholder:text-gray-400 dark:placeholder:text-gray-200",
-              textAreaSizeClasses[size] || textAreaSizeClasses["default"],
-              disabled
-                ? "bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-200 focus:ring-gray-100 dark:focus:ring-gray-700 cursor-not-allowed"
-                : "bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100",
-              textAreaClassNames,
-              // suffix ? "pb-6" : "",
-              statusClasses[status] || statusClasses["default"]
-            )}
-            onFocus={(ev) => {
-              if (autoResize) {
-                setHeight(ev.target);
-              }
-            }}
-            onChange={(ev) => {
-              if (autoResize) {
-                setHeight(ev.target);
-              }
-              onChange(ev);
-            }}
-            {...textAreaHtmlProps}
-            {...{ defaultValue, value }}
-          />
-          {suffix && (
-            <div className="text-gray-400 text-[0.65rem] dark:text-gray-100 pointer-events-none pl-2">
-              {suffix}
-            </div>
+        {prefix && (
+          <div className="text-gray-400 text-[0.65rem] dark:text-gray-100 pl-2 py-2">
+            {prefix}
+          </div>
+        )}
+        <textarea
+          data-testid={id}
+          ref={ref}
+          disabled={disabled}
+          rows={defaultRows}
+          name={name}
+          id={id}
+          placeholder={placeholder}
+          onKeyDown={onKeyDown}
+          className={twMerge(
+            "focus:outline-none pl-2 block w-full rounded-md border-0 py-1.5 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-400",
+            "text-[16px] lg:text-sm leading-6",
+            "placeholder:text-gray-400 dark:placeholder:text-gray-200",
+            textAreaSizeClasses[size] || textAreaSizeClasses["default"],
+            disabled
+              ? "bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-200 focus:ring-gray-100 dark:focus:ring-gray-700 cursor-not-allowed"
+              : "bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100",
+            textAreaClassNames,
+            // suffix ? "pb-6" : "",
+            statusClasses[status] || statusClasses["default"]
           )}
-        </div>
-        {statusIcons[status] && (
-          <div className="absolute inset-y-0 right-0 flex items-center pr-1.5 pointer-events-none">
-            {statusIcons[status]}
+          onFocus={(ev) => {
+            if (autoResize) {
+              setHeight(ev.target);
+            }
+          }}
+          onChange={(ev) => {
+            if (autoResize) {
+              setHeight(ev.target);
+            }
+            onChange(ev);
+          }}
+          {...textAreaHtmlProps}
+          {...{ defaultValue, value }}
+        />
+        {suffix && (
+          <div className="text-gray-400 text-[0.65rem] dark:text-gray-100 pointer-events-none pl-2 py-2">
+            {suffix}
           </div>
         )}
       </div>
+      {statusIcons[status] && (
+        <div className="absolute inset-y-0 right-0 flex items-center pr-1.5 pointer-events-none">
+          {statusIcons[status]}
+        </div>
+      )}
     </div>
   );
 });
