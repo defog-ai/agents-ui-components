@@ -70,7 +70,7 @@ export default function OracleThinkingSQLCard({
         <span className="mr-2">SQL Query</span>
         {!error && (
           <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-blue-900/30 dark:text-blue-300">
-            {resultCount} {resultCount === 1 ? "result" : "results"}
+            {resultCount} {resultCount === 1 ? "row" : "rows"}
           </span>
         )}
       </h2>
