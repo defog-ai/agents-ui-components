@@ -8,7 +8,11 @@ export type Tab = {
   /**
    * The name of the tab.
    */
-  name: string | React.ReactNode;
+  name: string;
+  /**
+   * If not provided, the name will be used as the header content.
+   */
+  headerContent?: React.ReactNode;
 
   /**
    * The content of the tab.
@@ -166,7 +170,7 @@ export function Tabs({
                 transform: showVerticalTabs ? "rotate(-180deg)" : "",
               }}
             >
-              {tab.name}
+              {tab.content || tab.name}
             </div>
             <span
               aria-hidden="true"

@@ -1,5 +1,11 @@
 import { CircleAlert, TriangleAlert } from "lucide-react";
-import React, { forwardRef, Ref, useEffect, useRef } from "react";
+import React, {
+  forwardRef,
+  Ref,
+  TextareaHTMLAttributes,
+  useEffect,
+  useRef,
+} from "react";
 import { twMerge } from "tailwind-merge";
 
 function setHeight(el) {
@@ -51,7 +57,7 @@ interface TextAreaProps {
   name?: string;
   onChange?: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   onKeyDown?: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
-  textAreaHtmlProps?: object;
+  textAreaHtmlProps?: TextareaHTMLAttributes<HTMLTextAreaElement>;
   autoResize?: boolean;
   ref?: React.Ref<HTMLTextAreaElement>;
   size?: string;
@@ -102,7 +108,10 @@ let TextArea = forwardRef(function TextArea(
       ref={rootRef}
     >
       {label && (
-        <label htmlFor={name} className="block mb-2 text-xs font-light text-gray-600 dark:text-gray-300">
+        <label
+          htmlFor={name}
+          className="block mb-2 text-xs font-light text-gray-600 dark:text-gray-300"
+        >
           {label}
         </label>
       )}
@@ -126,7 +135,7 @@ let TextArea = forwardRef(function TextArea(
                 ? "bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-200 focus:ring-gray-100 dark:focus:ring-gray-700 cursor-not-allowed"
                 : "bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100",
               textAreaClassNames,
-              suffix ? "pb-6" : "",
+              // suffix ? "pb-6" : "",
               statusClasses[status] || statusClasses["default"]
             )}
             onFocus={(ev) => {
@@ -144,7 +153,7 @@ let TextArea = forwardRef(function TextArea(
             {...{ defaultValue, value }}
           />
           {suffix && (
-            <div className="text-gray-400 text-[0.65rem] dark:text-gray-100 pointer-events-none relative bottom-6 left-2">
+            <div className="text-gray-400 text-[0.65rem] dark:text-gray-100 pointer-events-none pl-2">
               {suffix}
             </div>
           )}

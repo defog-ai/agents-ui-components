@@ -1,6 +1,7 @@
 import {
   Button,
   DropFiles,
+  DropFilesHeadless,
   MessageManagerContext,
   SpinningLoader,
   TextArea,
@@ -120,14 +121,14 @@ export function OracleDraftReport({
   // Handler for PDF file uploads
   const handlePDFUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     console.log("handlePDFUpload called, files:", e.target?.files);
-    
+
     if (e.target.files && e.target.files.length > 0) {
       const filesArray = Array.from(e.target.files).filter(
         (file) => file.type === "application/pdf"
       );
-      
+
       console.log("Filtered PDF files:", filesArray);
-      
+
       if (filesArray.length === 0) {
         console.warn("No valid PDF files found in selection");
         message.error("Please select only PDF files");
@@ -137,8 +138,11 @@ export function OracleDraftReport({
       setDraft((prev) => {
         const newUploadedPDFs = [...(prev.uploadedPDFs || []), ...filesArray];
         console.log("Updated state, new PDF count:", newUploadedPDFs.length);
-        console.log("PDF file names:", newUploadedPDFs.map(f => f.name));
-        
+        console.log(
+          "PDF file names:",
+          newUploadedPDFs.map((f) => f.name)
+        );
+
         return {
           ...prev,
           uploadedPDFs: newUploadedPDFs,
@@ -152,12 +156,16 @@ export function OracleDraftReport({
   // Handler for removing an uploaded PDF
   const handleRemovePDF = (index: number) => {
     console.log("Removing PDF at index:", index);
-    
+
     setDraft((prev) => {
-      const filteredPDFs = prev.uploadedPDFs?.filter((_, i) => i !== index) || [];
+      const filteredPDFs =
+        prev.uploadedPDFs?.filter((_, i) => i !== index) || [];
       console.log("After removal, PDF count:", filteredPDFs.length);
-      console.log("Remaining PDF file names:", filteredPDFs.map(f => f.name));
-      
+      console.log(
+        "Remaining PDF file names:",
+        filteredPDFs.map((f) => f.name)
+      );
+
       return {
         ...prev,
         uploadedPDFs: filteredPDFs,
@@ -167,109 +175,139 @@ export function OracleDraftReport({
 
   return (
     <div className="h-full overflow-auto py-4 px-1 lg:px-10">
-      <div className="flex flex-col items-start justify-center min-h-full m-auto">
-        <TextArea
-          ref={textAreaRef}
-          rootClassNames="w-full"
-          textAreaClassNames="rounded-xl dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700"
-          suffix={
-            <span className="flex items-center dark:text-gray-400">
-              Press{" "}
-              {isMac ? (
-                <>
-                  <Command className="inline w-2.5 mx-1" /> + Enter
-                </>
-              ) : (
-                "Ctrl + Enter"
-              )}{" "}
-              to start
-            </span>
-          }
-          disabled={loading}
-          label={
-            <div className="text-lg dark:text-gray-200">
-              What would you like a report on?
-            </div>
-          }
-          placeholder="Type here"
-          autoResize={true}
-          defaultRows={1}
-          textAreaHtmlProps={{ style: { resize: "none" } }}
-          onKeyDown={async (e) => {
-            if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
-              const question = e.currentTarget.value;
-              try {
-                // Set clarification started flag immediately
-                setClarificationStarted(true);
-                setLoading(true);
-                loadingStatus.current =
-                  "Analyzing database and thinking if I need to ask clarifying questions. This can take 15-20 seconds...";
-                setDraft((prev) => ({
-                  ...prev,
-                  userQuestion: question,
-                }));
-
-                // Handle PDF uploads if there are any by creating an array of the PDF's filename and its base64 encoded content
-                const pdfFiles = [];
-                console.log("Processing uploaded PDFs:", draft.uploadedPDFs?.length || 0);
-                
-                if (draft.uploadedPDFs && draft.uploadedPDFs.length > 0) {
-                  console.log("Found PDFs to process:", draft.uploadedPDFs.map(f => f.name));
-                  
-                  for (const pdfFile of draft.uploadedPDFs) {
-                    try {
-                      const fileName = pdfFile.name;
-                      console.log("Processing PDF:", fileName, "Size:", pdfFile.size);
-
-                      const arrayBuffer = await pdfFile.arrayBuffer();
-                      console.log("PDF buffer created, size:", arrayBuffer.byteLength);
-                      
-                      // Convert ArrayBuffer to base64
-                      const base64String = arrayBufferToBase64(arrayBuffer);
-                      console.log("PDF converted to base64, length:", base64String.length);
-                      
-                      pdfFiles.push({
-                        file_name: fileName,
-                        base64_content: base64String,
-                      });
-                      console.log("PDF added to processing list");
-                    } catch (err) {
-                      console.error("Error processing PDF:", err);
-                      message.error(`Error processing PDF: ${pdfFile.name}`);
-                    }
-                  }
-                  
-                  console.log("Finished processing PDFs, total processed:", pdfFiles.length);
-                } else {
-                  console.log("No PDFs to process");
-                }
-
-                const { clarifications, report_id } = await getClarifications(
-                  apiEndpoint,
-                  token,
-                  dbName,
-                  question,
-                  pdfFiles
-                );
-
-                console.log("clarifications", clarifications);
-
-                setReportId(report_id);
-
-                setDraft((prev) => ({
-                  ...prev,
-                  clarifications,
-                }));
-              } catch (e) {
-                message.error("Error getting clarifications");
-                // If there's an error, allow the user to try again
-                setClarificationStarted(false);
-              } finally {
-                setLoading(false);
-              }
+      <div className="flex flex-col items-start justify-center min-h-full m-auto gap-10">
+        <div className="w-full">
+          <div className="text-lg dark:text-gray-200 font-light">
+            What would you like a report on?
+          </div>
+          <TextArea
+            ref={textAreaRef}
+            rootClassNames="w-full h-full rounded-xl border dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700"
+            textAreaClassNames="border-0 outline-0 ring-0 shadow-none focus:ring-0 bg-transparent"
+            suffix={
+              <>
+                <span className="dark:text-gray-400">
+                  Drop CSV or Excel fiasdf alsdnfl asdfkl asdlg asdlf asdlg
+                  asles to analyse them. Press{" "}
+                  {isMac ? (
+                    <>
+                      <Command className="inline align-middle w-2.5" />+ Enter
+                    </>
+                  ) : (
+                    "Ctrl + Enter"
+                  )}{" "}
+                  to start.
+                </span>
+              </>
             }
-          }}
-        />
+            disabled={loading}
+            placeholder="Type here"
+            autoResize={true}
+            defaultRows={1}
+            textAreaHtmlProps={{
+              style: { resize: "none" },
+              onDrop: (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log("bleh", e.dataTransfer?.files);
+              },
+            }}
+            onKeyDown={async (e) => {
+              if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+                const question = e.currentTarget.value;
+                try {
+                  // Set clarification started flag immediately
+                  setClarificationStarted(true);
+                  setLoading(true);
+                  loadingStatus.current =
+                    "Analyzing database and thinking if I need to ask clarifying questions. This can take 15-20 seconds...";
+                  setDraft((prev) => ({
+                    ...prev,
+                    userQuestion: question,
+                  }));
+
+                  // Handle PDF uploads if there are any by creating an array of the PDF's filename and its base64 encoded content
+                  const pdfFiles = [];
+                  console.log(
+                    "Processing uploaded PDFs:",
+                    draft.uploadedPDFs?.length || 0
+                  );
+
+                  if (draft.uploadedPDFs && draft.uploadedPDFs.length > 0) {
+                    console.log(
+                      "Found PDFs to process:",
+                      draft.uploadedPDFs.map((f) => f.name)
+                    );
+
+                    for (const pdfFile of draft.uploadedPDFs) {
+                      try {
+                        const fileName = pdfFile.name;
+                        console.log(
+                          "Processing PDF:",
+                          fileName,
+                          "Size:",
+                          pdfFile.size
+                        );
+
+                        const arrayBuffer = await pdfFile.arrayBuffer();
+                        console.log(
+                          "PDF buffer created, size:",
+                          arrayBuffer.byteLength
+                        );
+
+                        // Convert ArrayBuffer to base64
+                        const base64String = arrayBufferToBase64(arrayBuffer);
+                        console.log(
+                          "PDF converted to base64, length:",
+                          base64String.length
+                        );
+
+                        pdfFiles.push({
+                          file_name: fileName,
+                          base64_content: base64String,
+                        });
+                        console.log("PDF added to processing list");
+                      } catch (err) {
+                        console.error("Error processing PDF:", err);
+                        message.error(`Error processing PDF: ${pdfFile.name}`);
+                      }
+                    }
+
+                    console.log(
+                      "Finished processing PDFs, total processed:",
+                      pdfFiles.length
+                    );
+                  } else {
+                    console.log("No PDFs to process");
+                  }
+
+                  const { clarifications, report_id } = await getClarifications(
+                    apiEndpoint,
+                    token,
+                    dbName,
+                    question,
+                    pdfFiles
+                  );
+
+                  console.log("clarifications", clarifications);
+
+                  setReportId(report_id);
+
+                  setDraft((prev) => ({
+                    ...prev,
+                    clarifications,
+                  }));
+                } catch (e) {
+                  message.error("Error getting clarifications");
+                  // If there's an error, allow the user to try again
+                  setClarificationStarted(false);
+                } finally {
+                  setLoading(false);
+                }
+              }
+            }}
+          />
+        </div>
 
         <div className="w-full mb-4">
           <Toggle
@@ -306,7 +344,7 @@ export function OracleDraftReport({
                       if (e.dataTransfer?.files) {
                         const fileList = e.dataTransfer.files;
                         const event = {
-                          target: { files: fileList }
+                          target: { files: fileList },
                         } as React.ChangeEvent<HTMLInputElement>;
                         handlePDFUpload(event);
                       }
