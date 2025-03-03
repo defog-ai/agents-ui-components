@@ -109,7 +109,7 @@ export function DropFilesHeadless({
 
             onFileSelect(e);
             // set value to null jic user wants to upload the same file again
-            e.target.value = null;
+            e.currentTarget.value = null;
           }}
         ></input>
       )}
