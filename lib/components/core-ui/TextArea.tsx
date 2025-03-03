@@ -117,9 +117,9 @@ let TextArea = forwardRef(function TextArea(
           {label}
         </label>
       )}
-      <div className="relative">
+      <div className="relative p-2">
         {prefix && (
-          <div className="text-gray-400 text-[0.65rem] dark:text-gray-100 pl-2 py-2">
+          <div className="text-gray-400 text-[0.65rem] dark:text-gray-100 pb-3">
             {prefix}
           </div>
         )}
@@ -135,7 +135,7 @@ let TextArea = forwardRef(function TextArea(
           className={twMerge(
             "focus:outline-none pl-2 block w-full rounded-md border-0 py-1.5 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-400",
             "text-[16px] lg:text-sm leading-6",
-            "placeholder:text-gray-400 dark:placeholder:text-gray-200",
+            "placeholder:text-gray-400 dark:placeholder:text-gray-500",
             textAreaSizeClasses[size] || textAreaSizeClasses["default"],
             disabled
               ? "bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-200 focus:ring-gray-100 dark:focus:ring-gray-700 cursor-not-allowed"
@@ -159,7 +159,7 @@ let TextArea = forwardRef(function TextArea(
           {...{ defaultValue, value }}
         />
         {suffix && (
-          <div className="text-gray-400 text-[0.65rem] dark:text-gray-100 pointer-events-none pl-2 py-2">
+          <div className="text-gray-400 text-[0.65rem] dark:text-gray-100 pt-3">
             {suffix}
           </div>
         )}
