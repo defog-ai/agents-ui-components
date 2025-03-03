@@ -19,7 +19,7 @@ export interface ThinkingStep {
 }
 
 export default function OracleThinkingCard({ step }: { step: ThinkingStep }) {
-  let { function_name, result } = step;
+  let { function_name, result, inputs } = step;
 
   // Convert markdown to HTML and sanitize it
   const sanitizedHtml = sanitizeHtml(marked.parse(result.answer), {
@@ -35,6 +35,19 @@ export default function OracleThinkingCard({ step }: { step: ThinkingStep }) {
       <h2 className="text-lg font-semibold mb-2 text-gray-800 dark:text-dark-text-primary">
         Function: <span className="font-normal">{function_name}</span>
       </h2>
+      
+      {/* Show the question from the inputs */}
+      {inputs?.question && (
+        <div className="mb-3 text-gray-700 dark:text-dark-text-secondary">
+          <p className="mb-1 font-medium text-gray-800 dark:text-dark-text-primary">
+            Question
+          </p>
+          <p className="bg-gray-50 dark:bg-dark-bg-tertiary p-2 rounded-md border-l-2 border-blue-500 dark:border-blue-600 italic">
+            {inputs.question}
+          </p>
+        </div>
+      )}
+      
       {/* Render the sanitized HTML */}
       <div
         className="text-gray-700 dark:text-dark-text-secondary prose dark:prose-invert prose-sm max-w-none"
