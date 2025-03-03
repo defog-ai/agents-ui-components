@@ -690,11 +690,11 @@ export function AnalysisTreeViewer({
             }}
             beforeTitle={beforeTitle}
             title={
-              <span className="font-bold">
-                History
+              <h2 className="font-bold text-gray-800 dark:text-gray-200 mb-3 text-lg flex items-center justify-between">
+                <span className="flex items-center"><span className="mr-2">📚</span> History</span>
                 <span
                   title="Clear history"
-                  className="inline pl-2 text-xs font-light text-gray-400 underline cursor-pointer dark:text-gray-500 hover:text-blue-500 dark:hover:text-blue-500"
+                  className="inline-block text-xs font-medium text-gray-400 cursor-pointer dark:text-gray-500 hover:text-blue-500 dark:hover:text-blue-500 px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                   onClick={() => {
                     analysisTreeManager.reset();
                     analysisTreeManager.setActiveAnalysisId(null);
@@ -703,20 +703,20 @@ export function AnalysisTreeViewer({
                 >
                   Clear
                 </span>
-              </span>
+              </h2>
             }
             rootClassNames={twMerge(
-              "transition-all z-20 h-[calc(100%-1rem)] absolute left-0 min-h-full shadow-2xl lg:shadow-none lg:sticky top-0 bg-gray-50 z-20",
+              "transition-all z-20 h-[calc(100%-1rem)] absolute left-0 min-h-full shadow-lg lg:shadow-none lg:sticky top-0 bg-gray-50 dark:bg-gray-800 z-20 border-r border-gray-100 dark:border-gray-700",
               sideBarClasses
             )}
             // iconClassNames={`${sidebarOpen ? "" : "text-gray-600 dark:text-gray-500 bg-gray-100"}`}
             // openClassNames={"border-gray-300 dark:border-gray-700 shadow-md"}
             // closedClassNames={"border-transparent bg-transparent shadow-none"}
             contentClassNames={
-              "w-72 p-4 rounded-tl-lg relative sm:block min-h-96 h-full"
+              "w-72 p-5 rounded-tl-lg relative sm:block min-h-96 h-full overflow-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent"
             }
           >
-            <div className="flex flex-col w-full h-full overflow-y-auto">
+            <div className="flex flex-col w-full h-full space-y-4">
               {/* New Analysis */}
               <div className="sticky top-0 mb-4">
                 <AnalysisTreeItem
@@ -735,8 +735,10 @@ export function AnalysisTreeViewer({
                 if (analyses.length === 0) return null;
                 return (
                   <div key={group} className="mb-6">
-                    <div className="px-2 mb-2 text-xs font-medium tracking-wide text-blue-400 uppercase">
+                    <div className="px-2 mb-3 text-xs font-medium tracking-wide text-blue-600 dark:text-blue-400 uppercase flex items-center">
+                      <div className="h-px bg-blue-100 dark:bg-blue-800 flex-grow mr-2"></div>
                       {group}
+                      <div className="h-px bg-blue-100 dark:bg-blue-800 flex-grow ml-2"></div>
                     </div>
                     {analyses.map((rootAnalysisId: string) => {
                       const root = nestedTree[rootAnalysisId];
