@@ -74,9 +74,9 @@ export function OracleEmbed({
   const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
   const selectedReport = useMemo(() => {
     if (!selectedReportId) return null;
-    return reportHistory[selectedDbName][
+    return reportHistory[selectedDbName]?.[
       findReportGroupInHistory(selectedDbName, selectedReportId, reportHistory)
-    ].find((r) => r.report_id === selectedReportId);
+    ]?.find((r) => r.report_id === selectedReportId);
   }, [selectedReportId, reportHistory, selectedDbName]);
 
   const messageManager = useRef(MessageManager());
@@ -89,6 +89,37 @@ export function OracleEmbed({
   );
 
   const [hasUploadedDataFiles, setHasUploadedDataFiles] = useState(false);
+  
+  // Function to update URL with report_id
+  const updateUrlWithReportId = useCallback((reportId: string | null) => {
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      if (reportId) {
+        url.searchParams.set('report_id', reportId);
+      } else {
+        url.searchParams.delete('report_id');
+      }
+      window.history.pushState({}, '', url.toString());
+    }
+  }, []);
+  
+  // Function to get report_id from URL
+  const getReportIdFromUrl = useCallback(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get('report_id');
+    }
+    return null;
+  }, []);
+
+  // Effect to ensure URL is in sync with selected report
+  useEffect(() => {
+    if (selectedReportId) {
+      updateUrlWithReportId(selectedReportId);
+    } else {
+      updateUrlWithReportId(null);
+    }
+  }, [selectedReportId, updateUrlWithReportId]);
 
   useEffect(() => {
     async function setup() {
@@ -103,6 +134,11 @@ export function OracleEmbed({
         week.setDate(week.getDate() - 7);
         const month = new Date(today);
         month.setMonth(month.getMonth() - 1);
+        
+        // Check if there's a report_id in the URL
+        const urlReportId = getReportIdFromUrl();
+        let foundUrlReport = false;
+        let foundUrlReportDbName: string | null = null;
 
         for (const dbName of dbNames) {
           histories[dbName] = {
@@ -116,6 +152,15 @@ export function OracleEmbed({
           try {
             const reports = await fetchReports(apiEndpoint, token, dbName);
             if (!reports) throw new Error("Failed to get reports");
+            
+            // Check if the URL report_id exists in this db
+            if (urlReportId && !foundUrlReport) {
+              const reportMatch = reports.find(report => report.report_id === urlReportId);
+              if (reportMatch) {
+                foundUrlReport = true;
+                foundUrlReportDbName = dbName;
+              }
+            }
 
             reports
               // Filter out reports that had errors
@@ -167,6 +212,12 @@ export function OracleEmbed({
         }
 
         setReportHistory(histories);
+        
+        // If we found a report matching the URL param, select it
+        if (foundUrlReport && foundUrlReportDbName && urlReportId) {
+          setSelectedDbName(foundUrlReportDbName);
+          setSelectedReportId(urlReportId);
+        }
       } catch (err) {
         setError(err.message);
       } finally {
@@ -175,7 +226,7 @@ export function OracleEmbed({
     }
 
     setup();
-  }, []);
+  }, [getReportIdFromUrl]);
 
   const onReportDelete = useCallback(async () => {
     const reportGroup = findReportGroupInHistory(
@@ -216,9 +267,12 @@ export function OracleEmbed({
         }
         return newHistory;
       });
+      
+      // Update URL to remove report_id and update state
+      updateUrlWithReportId(null);
       setSelectedReportId(null);
     }
-  }, [apiEndpoint, token, selectedReportId, selectedDbName]);
+  }, [apiEndpoint, token, selectedReportId, selectedDbName, updateUrlWithReportId]);
 
   const dbSelector = useMemo(
     () => (
@@ -247,12 +301,13 @@ export function OracleEmbed({
           )}
           onChange={(v: string) => {
             setSelectedDbName(v);
+            updateUrlWithReportId(null);
             setSelectedReportId(null);
           }}
         />
       </div>
     ),
-    [selectedDbName, selectedReportId, dbNames, hasUploadedDataFiles]
+    [selectedDbName, selectedReportId, dbNames, hasUploadedDataFiles, updateUrlWithReportId]
   );
 
   const draftReport = useMemo(() => {
@@ -337,11 +392,12 @@ export function OracleEmbed({
             setDbNames((prev) => [...prev, newDbName]);
           }
 
+          updateUrlWithReportId(reportId);
           setSelectedReportId(reportId);
         }}
       />
     );
-  }, [messageManager, selectedDbName]);
+  }, [messageManager, selectedDbName, updateUrlWithReportId]);
 
   if (error) {
     return (
@@ -381,7 +437,10 @@ export function OracleEmbed({
                     ? "font-medium bg-gray-100 dark:bg-gray-800 border-l-2 border-l-blue-500"
                     : ""
                 )}
-                onClick={() => setSelectedReportId(null)}
+                onClick={() => {
+                  updateUrlWithReportId(null);
+                  setSelectedReportId(null);
+                }}
               >
                 <div className="flex flex-row items-center gap-2">
                   <SquarePen /> <span>New</span>
@@ -405,6 +464,7 @@ export function OracleEmbed({
                         <div
                           key={report.report_id}
                           onClick={() => {
+                            updateUrlWithReportId(report.report_id);
                             setSelectedReportId(report.report_id);
                           }}
                           className={twMerge(
@@ -513,6 +573,7 @@ export function OracleEmbed({
                       return newHistory;
                     });
 
+                    updateUrlWithReportId(null);
                     setSelectedReportId(null);
                   } else {
                     // set the status to done which will trigger the report rendering
