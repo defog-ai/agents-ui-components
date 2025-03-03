@@ -68,9 +68,9 @@ export function OracleReport({
         data.comments && setComments(data.comments);
 
         onReportParsed && onReportParsed(data);
-      } catch (e) {
+      } catch (e: any) {
         console.error(e);
-        setError(e.message);
+        setError(e.message || String(e));
       } finally {
         setLoading(false);
       }
@@ -116,7 +116,10 @@ export function OracleReport({
   );
 
   // Get the currently selected analysis
-  const selectedAnalysis = validAnalyses[selectedAnalysisIndex] || null;
+  const selectedAnalysis =
+    validAnalyses.length > 0
+      ? validAnalyses[selectedAnalysisIndex] || null
+      : null;
 
   return (
     <OracleReportContext.Provider
@@ -126,7 +129,11 @@ export function OracleReport({
         multiTables: {},
         images: {},
         analyses: analyses,
-        executiveSummary: null,
+        executiveSummary: {
+          title: "",
+          introduction: "",
+          recommendations: [],
+        },
         reportId: reportId,
         dbName: dbName,
         token: token,
@@ -226,7 +233,7 @@ export function OracleReport({
 
               {/* Content area */}
               <div className="w-full overflow-auto p-3 bg-white dark:bg-gray-800">
-                {selectedAnalysis.analysis_id ? (
+                {selectedAnalysis && selectedAnalysis.analysis_id ? (
                   <div className="flex flex-col space-y-4">
                     {/* Question header with icon */}
                     {selectedAnalysis.question && (
@@ -269,7 +276,7 @@ export function OracleReport({
                           <path d="M3 7v3c0 1.657 3.134 3 7 3s7-1.343 7-3V7c0 1.657-3.134 3-7 3S3 8.657 3 7z" />
                           <path d="M17 5c0 1.657-3.134 3-7 3S3 6.657 3 5s3.134-3 7-3 7 1.343 7 3z" />
                         </svg>
-                        {selectedAnalysis.db_name || "Database"}
+                        {(selectedAnalysis as any)?.db_name || "Database"}
                       </span>
                       {selectedAnalysis.rows && (
                         <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-blue-900/30 dark:text-blue-300">
@@ -299,7 +306,7 @@ export function OracleReport({
                           </h4>
                         </div>
 
-                        {selectedAnalysis.sql && (
+                        {(selectedAnalysis as any)?.sql && (
                           <button
                             onClick={() => setShowSqlQuery(!showSqlQuery)}
                             className="text-xs bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded px-2 py-1 transition-colors flex items-center gap-1"
@@ -323,7 +330,7 @@ export function OracleReport({
                       </div>
 
                       {/* SQL Query section that shows/hides based on toggle */}
-                      {showSqlQuery && selectedAnalysis.sql && (
+                      {showSqlQuery && (selectedAnalysis as any)?.sql && (
                         <div className="border-b dark:border-gray-700">
                           <div className="flex items-center justify-between px-3 py-2 bg-gray-100 dark:bg-gray-700">
                             <div className="flex items-center gap-1.5">
@@ -354,7 +361,7 @@ export function OracleReport({
                             <button
                               onClick={() => {
                                 navigator.clipboard.writeText(
-                                  selectedAnalysis.sql
+                                  (selectedAnalysis as any).sql || ""
                                 );
                                 // You could add a toast notification here if you have one
                               }}
@@ -375,7 +382,7 @@ export function OracleReport({
 
                           <div className="max-h-[200px] overflow-auto">
                             <CodeEditor
-                              code={selectedAnalysis.sql || ""}
+                              code={(selectedAnalysis as any).sql || ""}
                               language="sql"
                               editable={false}
                               className="text-sm"
@@ -391,7 +398,7 @@ export function OracleReport({
                             rows={selectedAnalysis.rows}
                             columnHeaderClassNames="py-2"
                             skipColumns={["index"]}
-                            className="shadow-sm"
+                            rootClassNames="shadow-sm"
                           />
                         ) : (
                           <ErrorBoundary>
@@ -407,7 +414,8 @@ export function OracleReport({
                       </div>
                     </div>
                   </div>
-                ) : selectedAnalysis.function_name === "web_search_tool" ? (
+                ) : selectedAnalysis &&
+                  selectedAnalysis.function_name === "web_search_tool" ? (
                   <div className="flex flex-col space-y-4">
                     {/* Question header with icon */}
                     {selectedAnalysis.inputs?.question && (
@@ -468,6 +476,9 @@ export function OracleReport({
 
                     {/* Reference sources card */}
                     {selectedAnalysis.result?.reference_sources &&
+                      Array.isArray(
+                        selectedAnalysis.result.reference_sources
+                      ) &&
                       selectedAnalysis.result.reference_sources.length > 0 && (
                         <div className="bg-gray-50 dark:bg-gray-700 rounded-lg border dark:border-gray-600 p-4">
                           <div className="flex items-center gap-2 mb-3 pb-2 border-b dark:border-gray-600">
@@ -507,7 +518,8 @@ export function OracleReport({
                         </div>
                       )}
                   </div>
-                ) : selectedAnalysis.function_name === "pdf_citations_tool" ? (
+                ) : selectedAnalysis &&
+                  selectedAnalysis.function_name === "pdf_citations_tool" ? (
                   <div className="flex flex-col space-y-4">
                     {/* Question header with icon */}
                     {selectedAnalysis.inputs?.question && (
@@ -559,54 +571,60 @@ export function OracleReport({
                         </h4>
                       </div>
 
-                      {selectedAnalysis.result.map((item, index) => (
-                        <div key={index} className="mb-4 relative group">
-                          <div
-                            className="prose dark:prose-invert prose-sm max-w-none py-1"
-                            dangerouslySetInnerHTML={{
-                              __html: marked.parse(item.text),
-                            }}
-                          />
+                      {Array.isArray(selectedAnalysis.result) &&
+                        selectedAnalysis.result.map((item, index) => (
+                          <div key={index} className="mb-4 relative group">
+                            <div
+                              className="prose dark:prose-invert prose-sm max-w-none py-1"
+                              dangerouslySetInnerHTML={{
+                                __html: marked.parse(item.text),
+                              }}
+                            />
 
-                          {item.citations && item.citations.length > 0 && (
-                            <>
-                              <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 flex items-center">
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  className="h-3 w-3 mr-1"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  strokeWidth="2"
-                                >
-                                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                                  <polyline points="14 2 14 8 20 8"></polyline>
-                                </svg>
-                                <span className="italic mr-1">Source:</span>
-                                <span>{item.citations[0].document_title}</span>
-                                {item.citations[0].start_page_number && (
-                                  <span className="ml-1">
-                                    (Pages {item.citations[0].start_page_number}
-                                    -{item.citations[0].end_page_number})
-                                  </span>
-                                )}
-                              </div>
+                            {item.citations &&
+                              Array.isArray(item.citations) &&
+                              item.citations.length > 0 && (
+                                <>
+                                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 flex items-center">
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      className="h-3 w-3 mr-1"
+                                      viewBox="0 0 24 24"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      strokeWidth="2"
+                                    >
+                                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                      <polyline points="14 2 14 8 20 8"></polyline>
+                                    </svg>
+                                    <span className="italic mr-1">Source:</span>
+                                    <span>
+                                      {item.citations[0].document_title}
+                                    </span>
+                                    {item.citations[0].start_page_number && (
+                                      <span className="ml-1">
+                                        (Pages{" "}
+                                        {item.citations[0].start_page_number}-
+                                        {item.citations[0].end_page_number})
+                                      </span>
+                                    )}
+                                  </div>
 
-                              {/* Citation hover panel */}
-                              <div className="absolute left-0 right-0 -bottom-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform translate-y-full z-10">
-                                <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg border dark:border-gray-600 mt-2 shadow-lg">
-                                  <h5 className="text-xs font-medium text-gray-700 dark:text-gray-200 mb-2">
-                                    Cited Text:
-                                  </h5>
-                                  <p className="text-xs text-gray-600 dark:text-gray-300 italic bg-gray-100 dark:bg-gray-800 p-2 rounded">
-                                    "{item.citations[0].cited_text}"
-                                  </p>
-                                </div>
-                              </div>
-                            </>
-                          )}
-                        </div>
-                      ))}
+                                  {/* Citation hover panel */}
+                                  <div className="absolute left-0 right-0 -bottom-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform translate-y-full z-10">
+                                    <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg border dark:border-gray-600 mt-2 shadow-lg">
+                                      <h5 className="text-xs font-medium text-gray-700 dark:text-gray-200 mb-2">
+                                        Cited Text:
+                                      </h5>
+                                      <p className="text-xs text-gray-600 dark:text-gray-300 italic bg-gray-100 dark:bg-gray-800 p-2 rounded">
+                                        "{item.citations[0].cited_text}"
+                                      </p>
+                                    </div>
+                                  </div>
+                                </>
+                              )}
+                          </div>
+                        ))}
                     </div>
                   </div>
                 ) : null}

@@ -65,7 +65,7 @@ export default function OracleThinkingSQLCard({
 
   // If there's an error, we'll show an error UI. Otherwise, we show the tabs.
   return (
-    <div className="border p-4 rounded-md shadow-sm bg-white dark:bg-dark-bg-secondary dark:border-dark-border max-h-[600px] overflow-y-auto">
+    <div className="border p-4 rounded-md shadow-sm bg-white dark:bg-dark-bg-secondary dark:border-dark-border max-h-full overflow-y-auto">
       <h2 className="text-lg font-semibold mb-2 text-gray-800 dark:text-dark-text-primary flex items-center">
         <span className="mr-2">SQL Query</span>
         {!error && (
@@ -74,7 +74,7 @@ export default function OracleThinkingSQLCard({
           </span>
         )}
       </h2>
-      
+
       {/* Show the question from the step */}
       {question && (
         <div className="mb-3 text-gray-700 dark:text-dark-text-secondary">
@@ -91,7 +91,12 @@ export default function OracleThinkingSQLCard({
       {step.inputs?.db_name && (
         <div className="mb-3">
           <span className="inline-flex items-center gap-1 bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 text-xs font-medium px-2.5 py-1 rounded">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-3.5 w-3.5"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
               <path d="M3 12v3c0 1.657 3.134 3 7 3s7-1.343 7-3v-3c0 1.657-3.134 3-7 3s-7-1.343-7-3z" />
               <path d="M3 7v3c0 1.657 3.134 3 7 3s7-1.343 7-3V7c0 1.657-3.134 3-7 3S3 8.657 3 7z" />
               <path d="M17 5c0 1.657-3.134 3-7 3S3 6.657 3 5s3.134-3 7-3 7 1.343 7 3z" />
@@ -105,8 +110,17 @@ export default function OracleThinkingSQLCard({
       {error ? (
         <div className="text-red-600 bg-red-100 p-3 rounded-md dark:bg-red-900/20 dark:text-red-400 dark:border dark:border-red-800">
           <div className="flex items-center mb-1">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5 mr-1.5"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                clipRule="evenodd"
+              />
             </svg>
             <strong>Query Error</strong>
           </div>
@@ -123,8 +137,17 @@ export default function OracleThinkingSQLCard({
                     {/* If `df_truncated` is true, show a small banner */}
                     {df_truncated && (
                       <div className="text-sm bg-yellow-50 p-2 rounded mb-3 border border-yellow-200 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800 flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-4 w-4 mr-1.5"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                            clipRule="evenodd"
+                          />
                         </svg>
                         Results have been truncated
                       </div>
@@ -136,7 +159,7 @@ export default function OracleThinkingSQLCard({
                         title: col,
                       }))}
                       rows={tableRows}
-                      className="shadow-sm"
+                      rootClassNames="shadow-sm"
                     />
                   </div>
                 ),
@@ -145,17 +168,16 @@ export default function OracleThinkingSQLCard({
                 name: "SQL",
                 content: (
                   <div className="bg-gray-50 dark:bg-gray-900 p-3">
-                    <CodeEditor 
-                      code={sql || ""} 
-                      language="sql" 
-                      editable={false} 
+                    <CodeEditor
+                      code={sql || ""}
+                      language="sql"
+                      editable={false}
                     />
                   </div>
                 ),
               },
             ]}
             defaultSelected="Results"
-            type="card"
           />
         </div>
       )}
