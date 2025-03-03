@@ -16,11 +16,11 @@
 }
 
 .bg-dotted-gray {
-  @apply bg-[radial-gradient(theme(colors.gray.300)_1px,transparent_1px)] [background-size:16px_16px] dark:bg-[radial-gradient(theme(colors.gray.800)_1px,transparent_1px)];
+  @apply bg-[radial-gradient(theme(colors.gray.300)_1px,transparent_1px)] [background-size:16px_16px] dark:bg-[radial-gradient(theme(colors.gray.500)_1px,theme(colors.gray.800)_1px)];
 }
 
 .bg-dotted-blue {
-  @apply bg-[radial-gradient(theme(colors.blue.500)_1px,transparent_1px)] [background-size:16px_16px] dark:bg-[radial-gradient(theme(colors.blue.900)_1px,transparent_1px)];
+  @apply bg-[radial-gradient(theme(colors.blue.500)_1px,transparent_1px)] [background-size:16px_16px] dark:bg-[radial-gradient(theme(colors.blue.400)_1px,theme(colors.gray.800)_1px)];
 }
 
 .bg-dotted-red {

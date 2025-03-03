@@ -153,7 +153,7 @@ export const QueryDataNewDb = ({
         }}
       />
       {loading && (
-        <div className="text-xs flex w-full h-full items-center justify-center gap-1">
+        <div className="text-xs flex w-full h-full items-center justify-center gap-1 text-gray-600 dark:text-gray-300">
           <SpinningLoader /> Uploading your file
         </div>
       )}
