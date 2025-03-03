@@ -29,7 +29,7 @@ export { Slider } from "./components/core-ui/Slider.jsx";
 export { Table } from "./components/core-ui/Table.jsx";
 export { Tabs } from "./components/core-ui/Tabs.jsx";
 export { TextArea } from "./components/core-ui/TextArea.tsx";
-export { Toggle } from "./components/core-ui/Toggle.jsx";
+export { Toggle } from "./components/core-ui/Toggle.tsx";
 export { DropFiles } from "./components/core-ui/DropFiles.jsx";
 export { DropFilesHeadless } from "./components/core-ui/DropFilesHeadless.tsx";
 export { NavBar } from "./components/core-ui/NavBar.tsx";
