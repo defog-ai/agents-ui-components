@@ -65,17 +65,19 @@ export function OracleDraftReport({
   dbName,
   token,
   onReportGenerated,
+  onClarified = () => {},
   onUploadDataFiles = () => {},
 }: {
   apiEndpoint: string;
   dbName: string;
   token: string;
-  onReportGenerated?: (
-    userQuestion: string,
-    reportId: string,
-    status: string,
-    newDbName?: string
-  ) => void;
+  onClarified?: (newDbName?: string) => void;
+  onReportGenerated?: (data: {
+    userQuestion: string;
+    reportId: string;
+    status: string;
+    newDbName?: string;
+  }) => void;
   onUploadDataFiles?: (dataFiles?: UploadedFile[]) => void;
 }) {
   const [draft, setDraft] = useState<ReportDraft>({
@@ -118,14 +120,13 @@ export function OracleDraftReport({
         );
       } catch (error) {
         message.success("Report submitted for generation");
+        onReportGenerated({
+          userQuestion: textAreaRef.current?.value || draft.userQuestion,
+          reportId: reportId,
+          status: ORACLE_REPORT_STATUS.THINKING,
+          newDbName: newDbName.current,
+        });
       }
-
-      onReportGenerated(
-        textAreaRef.current?.value || draft.userQuestion,
-        reportId,
-        ORACLE_REPORT_STATUS.THINKING,
-        newDbName.current
-      );
 
       // clear everything
       setDraft({
@@ -532,6 +533,7 @@ export function OracleDraftReport({
                     if (res.new_db_name && res.new_db_info) {
                       newDbName.current = res.new_db_name;
                       newDbInfo.current = res.new_db_info;
+                      onClarified(newDbName.current);
                     }
                   } catch (e) {
                     message.error("Error getting clarifications");
