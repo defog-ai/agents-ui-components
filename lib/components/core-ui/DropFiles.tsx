@@ -68,7 +68,7 @@ export function DropFiles({
     <div
       data-testid="file-drop"
       className={twMerge(
-        "min-w-full relative flex flex-col grow items-center justify-center border dark:border-gray-500 p-4 rounded-md text-gray-400 dark:text-gray-200 cursor-pointer group bg-white dark:bg-gray-800",
+        "min-w-full min-h-full relative flex flex-col grow items-center justify-center border dark:border-gray-500 p-4 rounded-md text-gray-400 dark:text-gray-200 cursor-pointer group bg-white dark:bg-gray-800",
         isDropping
           ? "bg-dotted-blue dark:border-blue-500"
           : "bg-dotted-gray dark:border-gray-500",
