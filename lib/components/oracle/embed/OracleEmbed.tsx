@@ -223,14 +223,6 @@ export function OracleEmbed({
   const dbSelector = useMemo(
     () => (
       <>
-        {/* {hasUploadedDataFiles ? (
-          <div className="flex flex-row items-start gap-2 w-full text-xs mb-4 text-blue-600 dark:text-blue-300">
-            <Info className="w-4 min-w-4" />
-            <span>
-              A new database will be created using your uploaded csv/excel files
-            </span>
-          </div>
-        ) : null} */}
         <SingleSelect
           label="Select Database"
           rootClassNames="mb-2"
@@ -270,9 +262,29 @@ export function OracleEmbed({
             dataFiles && dataFiles?.length ? true : false
           );
         }}
-        onReportGenerated={(userQuestion, reportId, status, newDbName) => {
+        onClarified={(newDbName) => {
+          if (newDbName) {
+            messageManager.current.success(`Database ${newDbName} created`);
+            setDbNames((prev) => [...prev, newDbName]);
+            setSelectedDbName(newDbName);
+            setSelectedReportId(null);
+            setReportHistory((prev) => ({
+              ...prev,
+              [newDbName]: {
+                Today: [],
+                Yesterday: [],
+                "Past week": [],
+                "Past month": [],
+                Earlier: [],
+              },
+            }));
+          }
+        }}
+        onReportGenerated={({ userQuestion, reportId, status, newDbName }) => {
           setReportHistory((prev) => {
             let newHistory: ReportHistory = { ...prev };
+
+            console.log(newDbName, selectedDbName);
 
             if (newDbName) {
               newHistory = {
