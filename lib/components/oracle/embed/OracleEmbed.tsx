@@ -38,12 +38,18 @@ const findReportGroupInHistory = (
   history: ReportHistory
 ) => {
   // default to Today
-  if (!history[dbName]) return "Today";
+  if (!dbName || !reportId || !history || !history[dbName]) return "Today";
 
   const groups = Object.keys(history[dbName]) as groups[];
 
   for (const group of groups) {
-    if (history[dbName][group].some((r) => r.report_id === reportId)) {
+    if (
+      history[dbName][group] &&
+      Array.isArray(history[dbName][group]) &&
+      history[dbName][group].some(
+        (r) => String(r.report_id) === String(reportId)
+      )
+    ) {
       return group;
     }
   }
@@ -73,10 +79,19 @@ export function OracleEmbed({
   const [error, setError] = useState<string | null>(null);
   const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
   const selectedReport = useMemo(() => {
-    if (!selectedReportId) return null;
-    return reportHistory[selectedDbName]?.[
-      findReportGroupInHistory(selectedDbName, selectedReportId, reportHistory)
-    ]?.find((r) => r.report_id === selectedReportId);
+    if (!selectedReportId || !reportHistory[selectedDbName]) return null;
+
+    const group = findReportGroupInHistory(
+      selectedDbName,
+      selectedReportId,
+      reportHistory
+    );
+    if (!reportHistory[selectedDbName][group]) return null;
+
+    // Use string comparison for safety
+    return reportHistory[selectedDbName][group].find(
+      (r) => String(r.report_id) === String(selectedReportId)
+    );
   }, [selectedReportId, reportHistory, selectedDbName]);
 
   const messageManager = useRef(MessageManager());
@@ -89,43 +104,77 @@ export function OracleEmbed({
   );
 
   const [hasUploadedDataFiles, setHasUploadedDataFiles] = useState(false);
-  
+
   // Function to update URL with report_id
-  const updateUrlWithReportId = useCallback((reportId: string | null) => {
-    if (typeof window !== 'undefined') {
-      const url = new URL(window.location.href);
-      if (reportId) {
-        url.searchParams.set('report_id', reportId);
-      } else {
-        url.searchParams.delete('report_id');
+  const updateUrlWithReportId = useCallback(
+    (reportId: string | number | null) => {
+      if (typeof window !== "undefined") {
+        const url = new URL(window.location.href);
+        if (reportId !== null) {
+          // Ensure reportId is string
+          const reportIdStr = String(reportId);
+          url.searchParams.set("report_id", reportIdStr);
+        } else {
+          url.searchParams.delete("report_id");
+        }
+        window.history.pushState({}, "", url.toString());
       }
-      window.history.pushState({}, '', url.toString());
-    }
-  }, []);
-  
-  // Function to get report_id from URL
-  const getReportIdFromUrl = useCallback(() => {
-    if (typeof window !== 'undefined') {
+    },
+    []
+  );
+
+  // Function to get report_id from URL - not as a callback to ensure it's actually checked
+  function getReportIdFromUrl() {
+    if (typeof window !== "undefined") {
       const urlParams = new URLSearchParams(window.location.search);
-      return urlParams.get('report_id');
+      const reportIdParam = urlParams.get("report_id");
+
+      if (reportIdParam) {
+        // Try to convert to number if it's numeric
+        const numericId = Number(reportIdParam);
+        const reportId = !isNaN(numericId)
+          ? numericId.toString()
+          : reportIdParam;
+        return reportId;
+      }
+      return null;
     }
     return null;
-  }, []);
+  }
 
-  // Effect to ensure URL is in sync with selected report
-  useEffect(() => {
-    if (selectedReportId) {
-      updateUrlWithReportId(selectedReportId);
-    } else {
-      updateUrlWithReportId(null);
-    }
-  }, [selectedReportId, updateUrlWithReportId]);
+  // Commenting out this effect to avoid circular updates
+  // We'll handle URL updates directly when setting the selectedReportId
+  // useEffect(() => {
+  //   if (selectedReportId) {
+  //     updateUrlWithReportId(selectedReportId);
+  //   } else {
+  //     updateUrlWithReportId(null);
+  //   }
+  // }, [selectedReportId, updateUrlWithReportId]);
+
+  // Add a ref to track if initial setup is complete
+  const initialSetupComplete = useRef(false);
+
+  // Create a ref to store the URL report ID
+  const urlReportIdRef = useRef(getReportIdFromUrl());
 
   useEffect(() => {
     async function setup() {
       try {
+        // Get the URL report ID directly
+        const urlReportId = urlReportIdRef.current;
+
+        // Setup history structure
         const histories: ReportHistory = {};
-        setSelectedDbName(dbNames.length ? dbNames[0] : uploadNewDbOption);
+
+        // Track if we've found the report from URL
+        let foundUrlReport = false;
+        let foundUrlReportDbName = null;
+
+        // Set default DB (only if not found in URL)
+        if (dbNames.length && selectedDbName === "Default DB" && !urlReportId) {
+          setSelectedDbName(dbNames.length ? dbNames[0] : uploadNewDbOption);
+        }
 
         const today = new Date();
         const yesterday = new Date(today);
@@ -134,11 +183,6 @@ export function OracleEmbed({
         week.setDate(week.getDate() - 7);
         const month = new Date(today);
         month.setMonth(month.getMonth() - 1);
-        
-        // Check if there's a report_id in the URL
-        const urlReportId = getReportIdFromUrl();
-        let foundUrlReport = false;
-        let foundUrlReportDbName: string | null = null;
 
         for (const dbName of dbNames) {
           histories[dbName] = {
@@ -152,50 +196,56 @@ export function OracleEmbed({
           try {
             const reports = await fetchReports(apiEndpoint, token, dbName);
             if (!reports) throw new Error("Failed to get reports");
-            
-            // Check if the URL report_id exists in this db
+
+            // Check for URL report ID in this database
             if (urlReportId && !foundUrlReport) {
-              const reportMatch = reports.find(report => report.report_id === urlReportId);
+              // Log the report IDs we find
+              const reportIds = reports.map((r) => r.report_id);
+
+              // Look for a match
+              const reportMatch = reports.find(
+                (r) => String(r.report_id) === String(urlReportId)
+              );
               if (reportMatch) {
                 foundUrlReport = true;
                 foundUrlReportDbName = dbName;
               }
             }
 
-            reports
-              // Filter out reports that had errors
-              .filter(
-                (report) =>
-                  report.status !== ORACLE_REPORT_STATUS.ERRORED &&
-                  report.status !== ORACLE_REPORT_STATUS.INITIALIZED
-              )
-              // add to histories based on date created
-              .forEach((report) => {
-                // Parse date_created as UTC and convert to local timezone
-                const date = new Date(report.date_created + "Z");
-                const localToday = new Date();
-                const localYesterday = new Date(localToday);
-                localYesterday.setDate(localYesterday.getDate() - 1);
-                const localWeek = new Date(localToday);
-                localWeek.setDate(localWeek.getDate() - 7);
-                const localMonth = new Date(localToday);
-                localMonth.setMonth(localMonth.getMonth() - 1);
+            // Now filter for regular display
+            const filteredReports = reports.filter(
+              (report) =>
+                report.status !== ORACLE_REPORT_STATUS.ERRORED &&
+                report.status !== ORACLE_REPORT_STATUS.INITIALIZED
+            );
 
-                // Compare dates using local timezone
-                if (date.toDateString() === localToday.toDateString()) {
-                  histories[dbName]["Today"].push(report);
-                } else if (
-                  date.toDateString() === localYesterday.toDateString()
-                ) {
-                  histories[dbName]["Yesterday"].push(report);
-                } else if (date >= localWeek) {
-                  histories[dbName]["Past week"].push(report);
-                } else if (date >= localMonth) {
-                  histories[dbName]["Past month"].push(report);
-                } else {
-                  histories[dbName]["Earlier"].push(report);
-                }
-              });
+            // add to histories based on date created
+            filteredReports.forEach((report) => {
+              // Parse date_created as UTC and convert to local timezone
+              const date = new Date(report.date_created + "Z");
+              const localToday = new Date();
+              const localYesterday = new Date(localToday);
+              localYesterday.setDate(localYesterday.getDate() - 1);
+              const localWeek = new Date(localToday);
+              localWeek.setDate(localWeek.getDate() - 7);
+              const localMonth = new Date(localToday);
+              localMonth.setMonth(localMonth.getMonth() - 1);
+
+              // Compare dates using local timezone
+              if (date.toDateString() === localToday.toDateString()) {
+                histories[dbName]["Today"].push(report);
+              } else if (
+                date.toDateString() === localYesterday.toDateString()
+              ) {
+                histories[dbName]["Yesterday"].push(report);
+              } else if (date >= localWeek) {
+                histories[dbName]["Past week"].push(report);
+              } else if (date >= localMonth) {
+                histories[dbName]["Past month"].push(report);
+              } else {
+                histories[dbName]["Earlier"].push(report);
+              }
+            });
 
             // sort the reports within each group in the history by date created in reverse chronological order
             Object.entries(histories[dbName]).forEach(([group, reports]) => {
@@ -211,14 +261,25 @@ export function OracleEmbed({
           }
         }
 
+        // Update report history state
         setReportHistory(histories);
-        
-        // If we found a report matching the URL param, select it
-        if (foundUrlReport && foundUrlReportDbName && urlReportId) {
+
+        // If we found the URL report, select it
+        if (urlReportId && foundUrlReport && foundUrlReportDbName) {
+          // First select the DB
           setSelectedDbName(foundUrlReportDbName);
-          setSelectedReportId(urlReportId);
+
+          // Then wait a moment and select the report ID
+          // This delay is important to avoid race conditions
+          setTimeout(() => {
+            setSelectedReportId(urlReportId);
+          }, 100);
         }
+
+        // Mark setup as complete
+        initialSetupComplete.current = true;
       } catch (err) {
+        console.error("Setup error:", err);
         setError(err.message);
       } finally {
         setLoading(false);
@@ -226,7 +287,7 @@ export function OracleEmbed({
     }
 
     setup();
-  }, [getReportIdFromUrl]);
+  }, [dbNames, selectedDbName, apiEndpoint, token]);
 
   const onReportDelete = useCallback(async () => {
     const reportGroup = findReportGroupInHistory(
@@ -267,12 +328,18 @@ export function OracleEmbed({
         }
         return newHistory;
       });
-      
+
       // Update URL to remove report_id and update state
       updateUrlWithReportId(null);
       setSelectedReportId(null);
     }
-  }, [apiEndpoint, token, selectedReportId, selectedDbName, updateUrlWithReportId]);
+  }, [
+    apiEndpoint,
+    token,
+    selectedReportId,
+    selectedDbName,
+    updateUrlWithReportId,
+  ]);
 
   const dbSelector = useMemo(
     () => (
@@ -307,7 +374,13 @@ export function OracleEmbed({
         />
       </div>
     ),
-    [selectedDbName, selectedReportId, dbNames, hasUploadedDataFiles, updateUrlWithReportId]
+    [
+      selectedDbName,
+      selectedReportId,
+      dbNames,
+      hasUploadedDataFiles,
+      updateUrlWithReportId,
+    ]
   );
 
   const draftReport = useMemo(() => {
@@ -342,8 +415,6 @@ export function OracleEmbed({
         onReportGenerated={({ userQuestion, reportId, status, newDbName }) => {
           setReportHistory((prev) => {
             let newHistory: ReportHistory = { ...prev };
-
-            console.log(newDbName, selectedDbName);
 
             if (newDbName) {
               newHistory = {
@@ -452,9 +523,11 @@ export function OracleEmbed({
               </p>
             )}
             {selectedDbName !== uploadNewDbOption &&
+              reportHistory[selectedDbName] &&
               Object.entries(reportHistory[selectedDbName]).map(
                 ([group, reports]) => {
-                  if (Object.keys(reports).length === 0) return null; // Skip empty groups
+                  if (!reports || Object.keys(reports).length === 0)
+                    return null; // Skip empty groups
                   return (
                     <div key={group} className="mb-6">
                       <div className="px-2 mb-2 text-xs font-medium tracking-wide text-blue-400 uppercase">
@@ -486,6 +559,7 @@ export function OracleEmbed({
           </div>
         </Sidebar>
         <div className="flex flex-col grow p-2 overflow-auto">
+          {/* Show OracleNewDb when the "Upload new" option is selected */}
           {selectedReportId === null &&
             selectedDbName === uploadNewDbOption && (
               <OracleNewDb
@@ -508,6 +582,7 @@ export function OracleEmbed({
               />
             )}
 
+          {/* Show completed report */}
           {selectedReportId &&
           selectedReport &&
           selectedReport.status === ORACLE_REPORT_STATUS.DONE ? (
@@ -547,38 +622,73 @@ export function OracleEmbed({
                 });
               }}
             />
-          ) : (
-            selectedReportId && (
-              <OracleThinking
-                apiEndpoint={apiEndpoint}
-                token={token}
-                reportId={selectedReportId}
-                onDelete={onReportDelete}
-                onStreamClosed={(thinkingSteps, hadError) => {
-                  const reportGroup = findReportGroupInHistory(
-                    selectedDbName,
-                    selectedReportId,
-                    reportHistory
-                  );
+          ) : selectedReportId ? (
+            // Show thinking status for in-progress report
+            <OracleThinking
+              apiEndpoint={apiEndpoint}
+              token={token}
+              reportId={selectedReportId}
+              onDelete={onReportDelete}
+              onStreamClosed={(thinkingSteps, hadError) => {
+                // Safety check - make sure the DB and report still exist
+                if (
+                  !selectedDbName ||
+                  !selectedReportId ||
+                  !reportHistory[selectedDbName]
+                ) {
+                  console.warn("Stream closed but DB or report data missing");
+                  return;
+                }
 
-                  if (hadError) {
-                    // remove this report from the history
-                    setReportHistory((prev) => {
-                      const newHistory = { ...prev };
+                const reportGroup = findReportGroupInHistory(
+                  selectedDbName,
+                  selectedReportId,
+                  reportHistory
+                );
+
+                // Safety check - make sure the report group exists
+                if (!reportHistory[selectedDbName][reportGroup]) {
+                  console.warn(
+                    "Stream closed but report group missing:",
+                    reportGroup
+                  );
+                  return;
+                }
+
+                if (hadError) {
+                  // remove this report from the history
+                  setReportHistory((prev) => {
+                    const newHistory = { ...prev };
+
+                    // Extra safety check
+                    if (
+                      newHistory[selectedDbName] &&
+                      newHistory[selectedDbName][reportGroup] &&
+                      Array.isArray(newHistory[selectedDbName][reportGroup])
+                    ) {
                       newHistory[selectedDbName][reportGroup] = newHistory[
                         selectedDbName
                       ][reportGroup].filter((r) => {
                         return r.report_id !== selectedReportId;
                       });
-                      return newHistory;
-                    });
+                    }
 
-                    updateUrlWithReportId(null);
-                    setSelectedReportId(null);
-                  } else {
-                    // set the status to done which will trigger the report rendering
-                    setReportHistory((prev) => {
-                      const newHistory = { ...prev };
+                    return newHistory;
+                  });
+
+                  updateUrlWithReportId(null);
+                  setSelectedReportId(null);
+                } else {
+                  // set the status to done which will trigger the report rendering
+                  setReportHistory((prev) => {
+                    const newHistory = { ...prev };
+
+                    // Extra safety check
+                    if (
+                      newHistory[selectedDbName] &&
+                      newHistory[selectedDbName][reportGroup] &&
+                      Array.isArray(newHistory[selectedDbName][reportGroup])
+                    ) {
                       newHistory[selectedDbName][reportGroup] = newHistory[
                         selectedDbName
                       ][reportGroup].map((r) => {
@@ -590,22 +700,20 @@ export function OracleEmbed({
                         }
                         return r;
                       });
-                      return newHistory;
-                    });
-                  }
-                }}
-              />
-            )
-          )}
+                    }
 
-          <div
-            className={twMerge(
-              "w-full h-full m-auto",
-              selectedReportId ? "hidden" : ""
+                    return newHistory;
+                  });
+                }
+              }}
+            />
+          ) : null}
+
+          {/* Show draft report creator when no report is selected and we're not uploading new DB */}
+          {selectedReportId === null &&
+            selectedDbName !== uploadNewDbOption && (
+              <div className="w-full h-full m-auto">{draftReport}</div>
             )}
-          >
-            {draftReport}
-          </div>
         </div>
       </div>
     </MessageManagerContext.Provider>
