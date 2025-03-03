@@ -265,25 +265,25 @@ export function OracleEmbed({
           open={true}
           beforeTitle={dbSelector}
           location="left"
-          rootClassNames="absolute left-0 min-h-full shadow-2xl lg:shadow-none lg:sticky top-0 bg-gray-50 z-20"
-          title={<span className="font-bold">History</span>}
+          rootClassNames="absolute left-0 min-h-full shadow-lg lg:shadow-none lg:sticky top-0 bg-gray-50 dark:bg-gray-800 z-20 border-r border-gray-100 dark:border-gray-700"
+          title={<h2 className="font-bold text-gray-800 dark:text-gray-200 mb-3 text-lg flex items-center"><span className="mr-2">📚</span> History</h2>}
           contentClassNames={
-            "w-72 p-4 rounded-tl-lg relative sm:block min-h-96 max-h-full overflow-auto"
+            "w-72 p-5 rounded-tl-lg relative sm:block min-h-96 max-h-full overflow-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent"
           }
         >
           <div className="space-y-4">
             {selectedDbName !== newDbName ? (
               <div
                 className={twMerge(
-                  "title hover:cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 history-item p-2 text-sm",
+                  "title hover:cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 history-item p-3 text-sm rounded-md transition-colors duration-200 mb-3 flex items-center border border-transparent",
                   !selectedReportId
-                    ? "font-medium bg-gray-100 dark:bg-gray-800 border-l-2 border-l-blue-500"
-                    : ""
+                    ? "font-medium bg-blue-50 dark:bg-gray-700 border-blue-200 dark:border-blue-800 shadow-sm text-blue-700 dark:text-blue-300"
+                    : "text-gray-700 dark:text-gray-300 hover:border-gray-200 dark:hover:border-gray-700"
                 )}
                 onClick={() => setSelectedReportId(null)}
               >
                 <div className="flex flex-row items-center gap-2">
-                  <SquarePen /> <span>New</span>
+                  <SquarePen size={18} /> <span className="font-medium">New Report</span>
                 </div>
               </div>
             ) : (
@@ -297,8 +297,10 @@ export function OracleEmbed({
                   if (Object.keys(reports).length === 0) return null; // Skip empty groups
                   return (
                     <div key={group} className="mb-6">
-                      <div className="px-2 mb-2 text-xs font-medium tracking-wide text-blue-400 uppercase">
+                      <div className="px-2 mb-3 text-xs font-medium tracking-wide text-blue-600 dark:text-blue-400 uppercase flex items-center">
+                        <div className="h-px bg-blue-100 dark:bg-blue-800 flex-grow mr-2"></div>
                         {group}
+                        <div className="h-px bg-blue-100 dark:bg-blue-800 flex-grow ml-2"></div>
                       </div>
                       {reports.map((report: OracleReportType) => (
                         <div
@@ -307,15 +309,27 @@ export function OracleEmbed({
                             setSelectedReportId(report.report_id);
                           }}
                           className={twMerge(
-                            "title hover:cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 history-item p-2 text-sm",
+                            "title hover:cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 history-item p-3 text-sm rounded-md transition-colors duration-200 mb-2 border border-transparent",
                             report.report_id === selectedReportId
-                              ? "font-bold bg-gray-100 dark:bg-gray-800 border-l-2 border-l-blue-500"
-                              : ""
+                              ? "font-medium bg-blue-50 dark:bg-gray-700 border-blue-200 dark:border-blue-800 shadow-sm text-blue-700 dark:text-blue-300"
+                              : "text-gray-700 dark:text-gray-300 hover:border-gray-200 dark:hover:border-gray-700"
                           )}
                         >
-                          {report.report_name ||
-                            report.inputs.user_question ||
-                            "Untitled report"}
+                          <div className="line-clamp-2 font-medium">
+                            {report.report_name ||
+                              report.inputs.user_question ||
+                              "Untitled report"}
+                          </div>
+                          <div className="flex items-center text-xs mt-1.5 text-gray-500 dark:text-gray-400">
+                            <span className="inline-block w-3 h-3 mr-1.5 rounded-full bg-blue-200 dark:bg-blue-700"></span>
+                            {new Date(report.date_created + 'Z').toLocaleString(undefined, {
+                              month: 'short',
+                              day: 'numeric',
+                              hour: 'numeric',
+                              minute: '2-digit',
+                              hour12: true
+                            })}
+                          </div>
                         </div>
                       ))}
                     </div>
