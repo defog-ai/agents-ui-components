@@ -115,3 +115,109 @@ p {
 .ant-tabs-tabpane {
   padding-left: 0px !important;
 }
+
+/* Table scrollbar and scroll indicators */
+.scrollbar-container {
+  /* Custom scrollbars for webkit browsers */
+  &::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: #cdcdcd;
+    border-radius: 4px;
+    
+    &:hover {
+      background: #999;
+    }
+  }
+  
+  /* For Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: #cdcdcd #f1f1f1;
+  
+  /* Cursor styles for scrollable tables */
+  &[style*="cursor: grab"]:active {
+    cursor: grabbing !important;
+  }
+  
+  /* Dark mode scrollbars */
+  @media (prefers-color-scheme: dark) {
+    &::-webkit-scrollbar-track {
+      background: #2d3748;
+    }
+    
+    &::-webkit-scrollbar-thumb {
+      background: #4a5568;
+      
+      &:hover {
+        background: #718096;
+      }
+    }
+    
+    scrollbar-color: #4a5568 #2d3748;
+  }
+  
+  /* Add a subtle animation on hover to indicate scrollability */
+  &:hover {
+    .horizontal-scroll-indicator-right,
+    .horizontal-scroll-indicator-left,
+    .vertical-scroll-indicator-bottom,
+    .vertical-scroll-indicator-top {
+      animation: pulse 2s infinite;
+    }
+  }
+  
+  /* Add scroll affordance hint on first render */
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    width: 24px;
+    height: 24px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='rgba(0,0,0,0.3)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 22a10 10 0 1 1 0-20 10 10 0 0 1 0 20z'%3E%3C/path%3E%3Cpath d='M12 16v-4'%3E%3C/path%3E%3Cpath d='M8 12h8'%3E%3C/path%3E%3C/svg%3E");
+    background-size: contain;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    animation: fadeInOut 3s ease-in-out;
+    
+    @media (prefers-color-scheme: dark) {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.5)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 22a10 10 0 1 1 0-20 10 10 0 0 1 0 20z'%3E%3C/path%3E%3Cpath d='M12 16v-4'%3E%3C/path%3E%3Cpath d='M8 12h8'%3E%3C/path%3E%3C/svg%3E");
+    }
+  }
+}
+
+@keyframes pulse {
+  0% {
+    opacity: var(--opacity-value, 0);
+  }
+  50% {
+    opacity: calc(var(--opacity-value, 0) * 1.5);
+  }
+  100% {
+    opacity: var(--opacity-value, 0);
+  }
+}
+
+@keyframes fadeInOut {
+  0% {
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.7;
+  }
+  80% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 0;
+  }
+}
