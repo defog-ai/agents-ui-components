@@ -151,41 +151,6 @@ export function OracleDraftReport({
     }
   }, [draft?.uploadedDataFiles]);
 
-  // Handler for PDF file uploads
-  const handlePDFUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log("handlePDFUpload called, files:", e.target?.files);
-
-    if (e.target.files && e.target.files.length > 0) {
-      const filesArray = Array.from(e.target.files).filter(
-        (file) => file.type === "application/pdf"
-      );
-
-      console.log("Filtered PDF files:", filesArray);
-
-      if (filesArray.length === 0) {
-        console.warn("No valid PDF files found in selection");
-        message.error("Please select only PDF files");
-        return;
-      }
-
-      setDraft((prev) => {
-        const newUploadedPDFs = [...(prev.uploadedPDFs || []), ...filesArray];
-        console.log("Updated state, new PDF count:", newUploadedPDFs.length);
-        console.log(
-          "PDF file names:",
-          newUploadedPDFs.map((f) => f.name)
-        );
-
-        return {
-          ...prev,
-          uploadedPDFs: newUploadedPDFs,
-        };
-      });
-    } else {
-      console.warn("No files selected or e.target.files is null");
-    }
-  };
-
   const [isDropping, setIsDropping] = useState<boolean>(false);
 
   const UploadedFileIcons = useMemo(() => {
