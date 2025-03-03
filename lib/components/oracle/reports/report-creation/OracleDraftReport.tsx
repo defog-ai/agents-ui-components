@@ -187,8 +187,7 @@ export function OracleDraftReport({
             suffix={
               <>
                 <span className="dark:text-gray-400">
-                  Drop CSV or Excel fiasdf alsdnfl asdfkl asdlg asdlf asdlg
-                  asles to analyse them. Press{" "}
+                  Drop CSV or Excel files to analyse them. Press{" "}
                   {isMac ? (
                     <>
                       <Command className="inline align-middle w-2.5" />+ Enter
