@@ -155,7 +155,16 @@ const defaultRowCellRender = ({
 };
 
 const defaultSorter = (a: any, b: any, dataIndex: string): number => {
-  return String(a[dataIndex]).localeCompare(String(b[dataIndex]));
+  const aValue = a[dataIndex];
+  const bValue = b[dataIndex];
+  
+  // Check if both values are numeric (including negative numbers and floats)
+  if (!isNaN(parseFloat(aValue)) && !isNaN(parseFloat(bValue))) {
+    return parseFloat(aValue) - parseFloat(bValue);
+  }
+  
+  // Fall back to string comparison for non-numeric values
+  return String(aValue).localeCompare(String(bValue));
 };
 
 const TableBody = React.memo(
