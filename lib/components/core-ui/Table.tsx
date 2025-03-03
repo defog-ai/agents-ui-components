@@ -275,6 +275,7 @@ export function Table({
   );
   const [searchQuery, setSearchQuery] = useState("");
   const [isPending, startTransition] = useTransition();
+  const tableContainerRef = useRef<HTMLDivElement>(null);
 
   const dataIndexes = useMemo(
     () => columnsToDisplay.map((col) => col.dataIndex),
@@ -439,6 +440,83 @@ export function Table({
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [handleKeyDown]);
 
+  // Scroll indicators effect
+  useEffect(() => {
+    const container = tableContainerRef.current;
+    if (!container) return;
+
+    const updateScrollIndicators = () => {
+      // Check if scrollable
+      const isHorizontallyScrollable = container.scrollWidth > container.clientWidth;
+      const isVerticallyScrollable = container.scrollHeight > container.clientHeight;
+      
+      // Get all indicators
+      const rightIndicator = container.querySelector('.horizontal-scroll-indicator-right') as HTMLElement;
+      const leftIndicator = container.querySelector('.horizontal-scroll-indicator-left') as HTMLElement;
+      const bottomIndicator = container.querySelector('.vertical-scroll-indicator-bottom') as HTMLElement;
+      const topIndicator = container.querySelector('.vertical-scroll-indicator-top') as HTMLElement;
+      
+      // Update cursor style based on scrollability
+      if (isHorizontallyScrollable || isVerticallyScrollable) {
+        container.style.cursor = "grab";
+      } else {
+        container.style.cursor = "default";
+      }
+      
+      // Horizontal scroll indicators
+      if (isHorizontallyScrollable) {
+        // Right indicator - show when not scrolled all the way right
+        if (rightIndicator) {
+          const opacity = container.scrollLeft < (container.scrollWidth - container.clientWidth - 10) ? '0.7' : '0';
+          rightIndicator.style.opacity = opacity;
+          rightIndicator.style.setProperty('--opacity-value', opacity);
+        }
+        
+        // Left indicator - show when scrolled right
+        if (leftIndicator) {
+          const opacity = container.scrollLeft > 10 ? '0.7' : '0';
+          leftIndicator.style.opacity = opacity;
+          leftIndicator.style.setProperty('--opacity-value', opacity);
+        }
+      }
+      
+      // Vertical scroll indicators
+      if (isVerticallyScrollable) {
+        // Bottom indicator - show when not scrolled all the way down
+        if (bottomIndicator) {
+          const opacity = container.scrollTop < (container.scrollHeight - container.clientHeight - 10) ? '0.7' : '0';
+          bottomIndicator.style.opacity = opacity;
+          bottomIndicator.style.setProperty('--opacity-value', opacity);
+        }
+        
+        // Top indicator - show when scrolled down
+        if (topIndicator) {
+          const opacity = container.scrollTop > 10 ? '0.7' : '0';
+          topIndicator.style.opacity = opacity;
+          topIndicator.style.setProperty('--opacity-value', opacity);
+        }
+      }
+    };
+
+    // Run initially
+    updateScrollIndicators();
+    
+    // Add scroll event listener
+    container.addEventListener('scroll', updateScrollIndicators);
+    
+    // Add resize observer to detect when table size changes
+    const resizeObserver = new ResizeObserver(() => {
+      updateScrollIndicators();
+    });
+    
+    resizeObserver.observe(container);
+    
+    return () => {
+      container.removeEventListener('scroll', updateScrollIndicators);
+      resizeObserver.disconnect();
+    };
+  }, []);
+
   const pager = useMemo(() => {
     return (
       maxPage > 1 && (
@@ -572,12 +650,26 @@ export function Table({
       )}
       {paginationPosition === "top" && pager}
       <div
-        className="flow-root overflow-x-auto"
+        ref={tableContainerRef}
+        className="relative flow-root overflow-auto scrollbar-container rounded-md max-h-[500px]"
         style={{ minHeight: `${minTableHeight}px` }}
       >
         {isPending && <TableLoader />}
+        
+        {/* Horizontal scroll indicator - right */}
+        <div className="absolute right-0 top-0 bottom-0 w-8 pointer-events-none z-10 bg-gradient-to-l from-white dark:from-gray-900 to-transparent opacity-0 transition-opacity duration-300 horizontal-scroll-indicator-right"></div>
+        
+        {/* Horizontal scroll indicator - left */}
+        <div className="absolute left-0 top-0 bottom-0 w-8 pointer-events-none z-10 bg-gradient-to-r from-white dark:from-gray-900 to-transparent opacity-0 transition-opacity duration-300 horizontal-scroll-indicator-left"></div>
+        
+        {/* Vertical scroll indicator - bottom */}
+        <div className="absolute left-0 right-0 bottom-0 h-8 pointer-events-none z-10 bg-gradient-to-t from-white dark:from-gray-900 to-transparent opacity-0 transition-opacity duration-300 vertical-scroll-indicator-bottom"></div>
+        
+        {/* Vertical scroll indicator - top */}
+        <div className="absolute left-0 right-0 top-0 h-8 pointer-events-none z-10 bg-gradient-to-b from-white dark:from-gray-900 to-transparent opacity-0 transition-opacity duration-300 vertical-scroll-indicator-top"></div>
+        
         <table className="w-full divide-y divide-gray-300 dark:divide-gray-700">
-          <thead className="bg-gray-50 dark:bg-gray-800">
+          <thead className="bg-gray-50 dark:bg-gray-800 sticky top-0 z-10">
             <tr>
               {columnsToDisplay.map((column, i) => {
                 return (
