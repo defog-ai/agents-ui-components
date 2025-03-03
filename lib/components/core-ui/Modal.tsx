@@ -81,7 +81,7 @@ export function Modal({
   footer = true,
   title = null,
   description = null,
-  closeIcon = <CircleX className="w-6 h-6 text-gray-300 hover:text-gray-600" />,
+  closeIcon = <CircleX className="w-6 h-6 text-gray-300 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300" />,
   onOk = () => {},
   okLoading = false,
   okText = "Ok",
@@ -115,7 +115,7 @@ export function Modal({
       )}
       <div
         className={twMerge(
-          "agui-item agui-modal bg-gray-100 border border-gray-200 w-full max-w-2xl max-h-full rounded-md relative p-4 m-auto gap-2 flex flex-col shadow-lg",
+          "agui-item agui-modal bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 w-full max-w-2xl max-h-full rounded-md relative p-4 m-auto gap-2 flex flex-col shadow-lg",
           contentClassNames
         )}
         onClick={(e) => e.stopPropagation()}

@@ -76,8 +76,8 @@ export function DropFiles({
     <div
       data-testid="file-drop"
       className={twMerge(
-        "min-w-full relative flex flex-col grow items-center justify-center border dark:border-gray-600 p-4 rounded-md text-gray-400 dark:text-gray-200 cursor-pointer group",
-        isDropping ? "bg-dotted-blue" : "bg-dotted-gray",
+        "min-w-full relative flex flex-col grow items-center justify-center border dark:border-gray-500 p-4 rounded-md text-gray-400 dark:text-gray-200 cursor-pointer group bg-white dark:bg-gray-800",
+        isDropping ? "bg-dotted-blue dark:border-blue-500" : "bg-dotted-gray dark:border-gray-500",
         rootClassNames
       )}
       onDrop={(e) => {
@@ -166,10 +166,10 @@ export function DropFiles({
       
       {/* Show upload icon if there are no files or showIcon is true */}
       {(showIcon || selectedFiles.length === 0) && (
-        <Download className={twMerge("h-6 w-6 mx-auto", iconClassNames)} />
+        <Download className={twMerge("h-6 w-6 mx-auto text-gray-500 dark:text-gray-300", iconClassNames)} />
       )}
 
-      <p className="text-xs text-gray-400 group-hover:underline z-[2] mt-4 relative pointer-events-none">
+      <p className="text-xs text-gray-500 dark:text-gray-300 group-hover:underline z-[2] mt-4 relative pointer-events-none">
         Or click anywhere to select from your computer
       </p>
       <input

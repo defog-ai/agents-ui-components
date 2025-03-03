@@ -309,7 +309,7 @@ export function QueryDataEmbed({
                 size="small"
                 tabs={tabs}
                 vertical={true}
-                contentClassNames="p-0 mt-2 sm:mt-0 bg-white"
+                contentClassNames="p-0 mt-2 sm:mt-0 bg-white dark:bg-gray-800"
                 defaultTabClassNames="p-0 sm:mt-0 h-full"
                 selectedTabHeaderClasses={(nm) =>
                   nm === "Tree" ? "bg-transparent" : ""
