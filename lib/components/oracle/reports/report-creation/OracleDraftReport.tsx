@@ -337,7 +337,7 @@ export function OracleDraftReport({
             <TextArea
               prefix={UploadedFileIcons}
               ref={textAreaRef}
-              rootClassNames="w-full h-full rounded-xl border dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 overflow-hidden"
+              rootClassNames="p-2 w-full h-full rounded-xl border dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 overflow-hidden"
               textAreaClassNames="border-0 outline-0 ring-0 shadow-none focus:ring-0"
               suffix={
                 <div className="flex flex-col">

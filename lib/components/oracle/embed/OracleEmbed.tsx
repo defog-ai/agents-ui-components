@@ -16,7 +16,7 @@ import {
   ReportData,
   ListReportResponseItem,
 } from "@oracle";
-import { Info, SquarePen, TriangleAlert } from "lucide-react";
+import { Info, SquarePen } from "lucide-react";
 import { twMerge } from "tailwind-merge";
 import { OracleDraftReport } from "../reports/report-creation/OracleDraftReport";
 import { OracleNewDb } from "./OracleNewDb";
@@ -222,12 +222,16 @@ export function OracleEmbed({
 
   const dbSelector = useMemo(
     () => (
-      <>
+      <div>
         <SingleSelect
-          label="Select Database"
+          label={
+            !selectedReportId && hasUploadedDataFiles
+              ? "Remove uploaded CSV/Excel files to select a database"
+              : "Select Database"
+          }
           rootClassNames="mb-2"
           value={selectedDbName}
-          disabled={hasUploadedDataFiles}
+          disabled={selectedReportId === null && hasUploadedDataFiles}
           allowClear={false}
           allowCreateNewOption={false}
           options={[
@@ -246,9 +250,9 @@ export function OracleEmbed({
             setSelectedReportId(null);
           }}
         />
-      </>
+      </div>
     ),
-    [selectedDbName, dbNames, hasUploadedDataFiles]
+    [selectedDbName, selectedReportId, dbNames, hasUploadedDataFiles]
   );
 
   const draftReport = useMemo(() => {

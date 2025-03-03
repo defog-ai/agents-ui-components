@@ -117,7 +117,7 @@ let TextArea = forwardRef(function TextArea(
           {label}
         </label>
       )}
-      <div className="relative p-2">
+      <div className="relative">
         {prefix && (
           <div className="text-gray-400 text-[0.65rem] dark:text-gray-100 pb-3">
             {prefix}
