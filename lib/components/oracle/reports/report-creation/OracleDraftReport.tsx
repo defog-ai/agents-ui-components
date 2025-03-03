@@ -255,7 +255,8 @@ export function OracleDraftReport({
       <div className="flex flex-col items-start justify-center min-h-full m-auto gap-10">
         <div className="w-full">
           <div className="text-lg dark:text-gray-200 font-light mb-4">
-            What would you like a report on?
+            Add a spreadsheet or select a database, and start asking your
+            questions!
           </div>
           <DropFilesHeadless
             fileSelection={false}
@@ -353,8 +354,8 @@ export function OracleDraftReport({
                   </div>
                   <Toggle
                     title="Use web search to enhance report"
-                    onLabel="Web search is enabled"
-                    offLabel="Web search is disabled"
+                    onLabel=""
+                    offLabel=""
                     defaultOn={draft.useWebsearch}
                     disabled={
                       clarificationStarted || Boolean(draft.clarifications)
