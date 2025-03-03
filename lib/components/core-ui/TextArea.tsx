@@ -57,7 +57,7 @@ interface TextAreaProps {
   name?: string;
   onChange?: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   onKeyDown?: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
-  textAreaHtmlProps?: TextareaHTMLAttributes<HTMLTextAreaElement>;
+  textAreaHtmlProps?: object;
   autoResize?: boolean;
   ref?: React.Ref<HTMLTextAreaElement>;
   size?: string;

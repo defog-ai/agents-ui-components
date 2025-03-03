@@ -170,7 +170,7 @@ export function Tabs({
                 transform: showVerticalTabs ? "rotate(-180deg)" : "",
               }}
             >
-              {tab.content || tab.name}
+              {tab.headerContent || tab.name}
             </div>
             <span
               aria-hidden="true"
