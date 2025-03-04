@@ -2,22 +2,52 @@ import { CircleCheck, CircleAlert, Info, CircleX } from "lucide-react";
 import React, { createContext, useContext, useSyncExternalStore } from "react";
 import { twMerge } from "tailwind-merge";
 
+type MessageType = "success" | "error" | "warning" | "info";
+
+interface Message {
+  id: string;
+  type: MessageType;
+  message: string;
+  /** in seconds */
+  deleteAfter?: number;
+  persist?: boolean;
+  time: number;
+  deleteInterval: NodeJS.Timeout;
+}
+
+type MessagePusher = (
+  /** The message to be displayed */
+  message: string | Message,
+  /** delete this message after given time (in milliseconds). Defaults to 3000 (3 seconds). */
+  deleteAfter?: number,
+  /**
+   * Persist this message.
+   * This means that the message will not be deleted even if
+   * the delete after time has passed.
+   */
+  persist?: boolean
+) => void;
+
+interface MessageManager {
+  success: MessagePusher;
+  error: MessagePusher;
+  warning: MessagePusher;
+  info: MessagePusher;
+  clear: (id: number) => void;
+  getList: () => Message[];
+  subscribe: (listener: Listener) => () => void;
+  getServerSnapshot: () => Message[];
+}
+
+type Listener = () => void;
+
 /**
  * Provides a message manager with success, error, warning, and info messages.
  * Allows subscribing to messages and getting a list of messages.
  *
  * **Usually used with the MessageMonitor and MessageContext components.**
  *
- * @returns {{
- * success: function,
- * error: function,
- * warning: function,
- * info: function,
- * subscribe: function,
- * getList: function,
- * clear: function,
- * getServerSnapshot: function
- * }}
+ * @returns
  *
  * @example
  * // Usage with context:
@@ -41,18 +71,23 @@ import { twMerge } from "tailwind-merge";
  *
  * messageManager.clear();
  * */
-export function MessageManager() {
-  let list = [];
-  let listeners = [];
+export function MessageManager(): MessageManager {
+  let list: Message[] = [];
+  let listeners: Listener[] = [];
 
-  const deleteAfter = 3000;
+  const defaultDeleteAfter = 3000;
 
   const deleteMessage = (id) => {
     list = list.filter((m) => m.id !== id);
     emitChange();
   };
 
-  function addMessage(type, message) {
+  function addMessage(
+    type: MessageType,
+    message: Message | string,
+    deleteAfter?: number,
+    persist?: boolean
+  ) {
     const time = performance.now();
     const id = crypto.randomUUID();
 
@@ -64,29 +99,46 @@ export function MessageManager() {
         message: typeof message === "string" ? message : message?.message,
         time,
         deleteInterval: setTimeout(() => {
+          if (persist) return;
           deleteMessage(id);
-        }, deleteAfter),
+        }, deleteAfter || defaultDeleteAfter),
       },
     ];
   }
 
-  function success(message) {
-    addMessage("success", message);
+  function success(
+    message: string | Message,
+    deleteAfter?: number,
+    persist?: boolean
+  ) {
+    addMessage("success", message, deleteAfter, persist);
     emitChange();
   }
 
-  function error(message) {
-    addMessage("error", message);
+  function error(
+    message: string | Message,
+    deleteAfter?: number,
+    persist?: boolean
+  ) {
+    addMessage("error", message, deleteAfter, persist);
     emitChange();
   }
 
-  function warning(message) {
-    addMessage("warning", message);
+  function warning(
+    message: string | Message,
+    deleteAfter?: number,
+    persist?: boolean
+  ) {
+    addMessage("warning", message, deleteAfter, persist);
     emitChange();
   }
 
-  function info(message) {
-    addMessage("info", message);
+  function info(
+    message: string | Message,
+    deleteAfter?: number,
+    persist?: boolean
+  ) {
+    addMessage("info", message, deleteAfter, persist);
     emitChange();
   }
 
@@ -94,7 +146,7 @@ export function MessageManager() {
     list = [];
   }
 
-  function subscribe(listener) {
+  function subscribe(listener: Listener) {
     listeners = [...listeners, listener];
 
     return function unsubscribe() {
@@ -144,17 +196,25 @@ const icons = {
   info: <Info className="text-blue-500 w-4 h-4" />,
 };
 
-/**
- * @typedef {Object} MessageMonitorProps
- * @property {boolean} [disabled=false] - If true, the message monitor will be disabled. Messages will still be pushed to message manager, but nothign will be displayed by this component.
- * @property {string} [rootClassNames] - Additional classes to be added to the root div. For example, You can choose to make this an absolute div at the bottom/top of a relative container if you want to keep the messages "contained" within the portion of the screen your container is in.
- */
+interface MessageMonitorProps {
+  /**
+   * If true, the message monitor will be disabled. Messages will still be pushed to message manager, but nothing will be displayed by this component.
+   */
+  disabled?: boolean;
+  /**
+   * Additional classes to be added to the root div. For example, You can choose to make this an absolute div at the bottom/top of a relative container if you want to keep the messages "contained" within the portion of the screen your container is in.
+   */
+  rootClassNames?: string;
+}
 
 /**
  * Provides a message monitor for the MessageManager. This subscribes to the message manager and displays the messages. By default, renders in a fixed div at the top of the screen.
  * @param {MessageMonitorProps} props
  * */
-export function MessageMonitor({ disabled = false, rootClassNames = "" }) {
+export function MessageMonitor({
+  disabled = false,
+  rootClassNames = "",
+}: MessageMonitorProps) {
   const messageManager = useContext(MessageManagerContext);
 
   const messages = useSyncExternalStore(

@@ -18,7 +18,7 @@ export {
   MessageManager,
   MessageManagerContext,
   MessageMonitor,
-} from "./components/core-ui/Message.jsx";
+} from "./components/core-ui/Message.tsx";
 export { Modal } from "./components/core-ui/Modal.tsx";
 export { MultiSelect } from "./components/core-ui/MultiSelect.tsx";
 export { Popover } from "./components/core-ui/Popover.tsx";
