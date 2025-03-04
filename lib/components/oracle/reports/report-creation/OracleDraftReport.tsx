@@ -108,6 +108,9 @@ export function OracleDraftReport({
       setLoading(true);
       loadingStatus.current = "Submitting report for generation...";
 
+      // prepare either for success or a new error message
+      setErrorMessage("");
+
       try {
         // This will always error because of a 10ms timeout
         await generateReport(
@@ -140,6 +143,9 @@ export function OracleDraftReport({
       textAreaRef.current.value = "";
     } catch (error) {
       setErrorMessage(`Error generating report: ${error}`);
+
+      // also use message for this error because user is usually scrolled down to the bottom when they click "generate"
+      message.error(`Error generating report: ${error}`);
     } finally {
       setLoading(false);
     }
