@@ -83,11 +83,20 @@ export function Sidebar({
         className="transition-all grow overflow-y-hidden"
       >
         <div
-          className={twMerge("w-80 block text-gray-900 dark:text-gray-100", contentClassNames)}
+          className={twMerge(
+            "w-80 block text-gray-900 dark:text-gray-100",
+            contentClassNames
+          )}
           ref={contentRef}
         >
           {beforeTitle || <></>}
-          {title ? <h2 className="mb-3 font-sans text-gray-900 dark:text-gray-100">{title}</h2> : <></>}
+          {title ? (
+            <div className="mb-3 font-sans text-gray-900 dark:text-gray-100">
+              {title}
+            </div>
+          ) : (
+            <></>
+          )}
           {children}
         </div>
       </div>
