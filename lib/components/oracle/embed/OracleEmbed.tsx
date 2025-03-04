@@ -396,7 +396,9 @@ export function OracleEmbed({
         }}
         onClarified={(newDbName) => {
           if (newDbName) {
-            messageManager.current.success(`Database ${newDbName} created`);
+            messageManager.current.success(
+              `A new database was created using your uploaded csv/excel files: ${newDbName}`
+            );
             setDbNames((prev) => [...prev, newDbName]);
             setSelectedDbName(newDbName);
             setSelectedReportId(null);
@@ -455,14 +457,6 @@ export function OracleEmbed({
             return newHistory;
           });
 
-          if (newDbName) {
-            messageManager.current.success(
-              `A new database was created using your uploaded csv/excel files: ${newDbName}`
-            );
-            setSelectedDbName(newDbName);
-            setDbNames((prev) => [...prev, newDbName]);
-          }
-
           updateUrlWithReportId(reportId);
           setSelectedReportId(reportId);
         }}
@@ -494,7 +488,11 @@ export function OracleEmbed({
           beforeTitle={dbSelector}
           location="left"
           rootClassNames="absolute left-0 min-h-full shadow-lg lg:shadow-none lg:sticky top-0 bg-gray-50 dark:bg-gray-800 z-20 border-r border-gray-100 dark:border-gray-700"
-          title={<h2 className="font-bold text-gray-800 dark:text-gray-200 mb-3 text-lg flex items-center"><span className="mr-2">📚</span> History</h2>}
+          title={
+            <h2 className="font-bold text-gray-800 dark:text-gray-200 mb-3 text-lg flex items-center">
+              <span className="mr-2">📚</span> History
+            </h2>
+          }
           contentClassNames={
             "w-72 p-5 rounded-tl-lg relative sm:block min-h-96 max-h-full overflow-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent"
           }
@@ -514,7 +512,8 @@ export function OracleEmbed({
                 }}
               >
                 <div className="flex flex-row items-center gap-2">
-                  <SquarePen size={18} /> <span className="font-medium">New Report</span>
+                  <SquarePen size={18} />{" "}
+                  <span className="font-medium">New Report</span>
                 </div>
               </div>
             ) : (
@@ -556,13 +555,16 @@ export function OracleEmbed({
                           </div>
                           <div className="flex items-center text-xs mt-1.5 text-gray-500 dark:text-gray-400">
                             <span className="inline-block w-3 h-3 mr-1.5 rounded-full bg-blue-200 dark:bg-blue-700"></span>
-                            {new Date(report.date_created + 'Z').toLocaleString(undefined, {
-                              month: 'short',
-                              day: 'numeric',
-                              hour: 'numeric',
-                              minute: '2-digit',
-                              hour12: true
-                            })}
+                            {new Date(report.date_created + "Z").toLocaleString(
+                              undefined,
+                              {
+                                month: "short",
+                                day: "numeric",
+                                hour: "numeric",
+                                minute: "2-digit",
+                                hour12: true,
+                              }
+                            )}
                           </div>
                         </div>
                       ))}
