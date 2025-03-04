@@ -263,9 +263,9 @@ export function OracleDraftReport({
           </div>
           {errorMessage && (
             <div className="mb-4">
-              <AlertBanner 
-                type="error" 
-                message={errorMessage} 
+              <AlertBanner
+                type="error"
+                message={errorMessage}
                 dismissable={true}
                 onDismiss={() => setErrorMessage("")}
               />
@@ -525,6 +525,9 @@ export function OracleDraftReport({
                         dataFiles.length
                       );
                     }
+
+                    // prepare either for success or a new error message
+                    setErrorMessage("");
 
                     const res = await getClarifications(
                       apiEndpoint,
