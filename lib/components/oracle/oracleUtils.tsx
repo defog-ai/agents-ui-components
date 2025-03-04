@@ -1079,7 +1079,9 @@ export const getClarifications = async (
       }),
     }
   );
-  if (!res.ok) throw new Error("Failed to get clarifications");
+  if (!res.ok) {
+    throw new Error((await res.text()) || "Failed to get clarifications");
+  }
   const data = await res.json();
   return data;
 };
