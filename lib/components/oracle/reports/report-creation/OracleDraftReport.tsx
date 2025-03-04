@@ -385,6 +385,10 @@ export function OracleDraftReport({
               onKeyDown={async (e) => {
                 if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
                   const question = e.currentTarget.value;
+                  if (!question) {
+                    message.error("Please enter a question");
+                    return;
+                  }
                   try {
                     // Set clarification started flag immediately
                     setClarificationStarted(true);
@@ -536,7 +540,8 @@ export function OracleDraftReport({
                       onClarified(newDbName.current);
                     }
                   } catch (e) {
-                    message.error("Error getting clarifications");
+                    console.log(e);
+                    message.error(e);
                     // If there's an error, allow the user to try again
                     setClarificationStarted(false);
                   } finally {
