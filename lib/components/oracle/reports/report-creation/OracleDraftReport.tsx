@@ -541,7 +541,7 @@ export function OracleDraftReport({
                     }
                   } catch (e) {
                     console.log(e);
-                    message.error(e);
+                    message.error(e, 10_000);
                     // If there's an error, allow the user to try again
                     setClarificationStarted(false);
                   } finally {
