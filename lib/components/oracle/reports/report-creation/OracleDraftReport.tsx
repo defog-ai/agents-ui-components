@@ -1,4 +1,5 @@
 import {
+  AlertBanner,
   Button,
   DropFiles,
   DropFilesHeadless,
@@ -90,6 +91,7 @@ export function OracleDraftReport({
   const [reportId, setReportId] = useState<string>("");
   const [clarificationStarted, setClarificationStarted] =
     useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string>("");
   const loadingStatus = useRef<string>("");
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
   const newDbName = useRef<string | null>(null);
@@ -137,7 +139,7 @@ export function OracleDraftReport({
       loadingStatus.current = "";
       textAreaRef.current.value = "";
     } catch (error) {
-      message.error("Error generating report:", error);
+      setErrorMessage(`Error generating report: ${error}`);
     } finally {
       setLoading(false);
     }
@@ -259,6 +261,16 @@ export function OracleDraftReport({
             Add a spreadsheet or select a database, and start asking your
             questions!
           </div>
+          {errorMessage && (
+            <div className="mb-4">
+              <AlertBanner 
+                type="error" 
+                message={errorMessage} 
+                dismissable={true}
+                onDismiss={() => setErrorMessage("")}
+              />
+            </div>
+          )}
           <DropFilesHeadless
             fileSelection={false}
             onDragOver={(e) => {
@@ -386,7 +398,7 @@ export function OracleDraftReport({
                 if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
                   const question = e.currentTarget.value;
                   if (!question) {
-                    message.error("Please enter a question");
+                    setErrorMessage("Please enter a question");
                     return;
                   }
                   try {
@@ -442,7 +454,7 @@ export function OracleDraftReport({
                           console.log("PDF added to processing list");
                         } catch (err) {
                           console.error("Error processing PDF:", err);
-                          message.error(
+                          setErrorMessage(
                             `Error processing PDF: ${pdfFile.fileName}`
                           );
                         }
@@ -502,7 +514,7 @@ export function OracleDraftReport({
                           console.log("data file added to processing list");
                         } catch (err) {
                           console.error("Error processing data file:", err);
-                          message.error(
+                          setErrorMessage(
                             `Error processing data file: ${dataFile.fileName}`
                           );
                         }
@@ -541,7 +553,7 @@ export function OracleDraftReport({
                     }
                   } catch (e) {
                     console.log(e);
-                    message.error(e, 10_000);
+                    setErrorMessage(e.toString());
                     // If there's an error, allow the user to try again
                     setClarificationStarted(false);
                   } finally {
