@@ -82,7 +82,7 @@ export default function OracleThinkingSQLCard({
           <p className="mb-1 font-medium text-gray-800 dark:text-dark-text-primary">
             Question
           </p>
-          <p className="bg-gray-50 dark:bg-dark-bg-tertiary p-2 rounded-md border-l-2 border-blue-500 dark:border-blue-600 italic">
+          <p className="bg-gray-50 dark:bg-gray-800 p-2 rounded-md border-l-2 border-blue-500 dark:border-blue-600 italic text-gray-700 dark:text-dark-text-secondary">
             {question}
           </p>
         </div>
