@@ -28,7 +28,7 @@ export function SkeletalLoader({
           "flex items-end gap-2 p-4",
           height,
           width,
-          classNames
+          classNames,
         )}
       >
         {[80, 45, 65, 30, 70, 50, 40].map((h, i) => (
@@ -38,7 +38,7 @@ export function SkeletalLoader({
             className={twMerge(
               "flex-1 bg-gradient-to-t from-gray-300 to-gray-200 dark:from-gray-600 dark:to-gray-500",
               "animate-[pulse_1.0s_ease-in-out_infinite]",
-              rounded && "rounded-t-md"
+              rounded && "rounded-t-md",
             )}
           />
         ))}
@@ -55,7 +55,7 @@ export function SkeletalLoader({
           rounded && "rounded-md",
           height,
           width,
-          classNames
+          classNames,
         )}
       />
     </div>

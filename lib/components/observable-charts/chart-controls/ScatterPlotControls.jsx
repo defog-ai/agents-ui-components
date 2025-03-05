@@ -20,7 +20,7 @@ const ScatterPlotControls = () => {
             onChange={(color) =>
               handleOptionChange(
                 "pointColor",
-                color.cleared ? null : color.toHexString()
+                color.cleared ? null : color.toHexString(),
               )
             }
           />

@@ -49,7 +49,7 @@ const BarChartControls = () => {
                 handleBarOptionChange(
                   column,
                   "fill",
-                  color.cleared ? null : color.toHexString()
+                  color.cleared ? null : color.toHexString(),
                 )
               }
             />

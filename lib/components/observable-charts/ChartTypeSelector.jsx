@@ -14,7 +14,7 @@ export default function ChartTypeSelector({
 }) {
   // Filter out any hidden charts
   const availableChartTypes = CHART_TYPES.filter(
-    (ct) => !hiddenCharts.includes(ct.value)
+    (ct) => !hiddenCharts.includes(ct.value),
   );
   return (
     <div>

@@ -35,7 +35,7 @@ export function Collapse({
   titleClassNames = "",
 }) {
   const [internalCollapsed, setInternalCollapsed] = useState(
-    alwaysOpen ? false : defaultCollapsed || collapsed || false
+    alwaysOpen ? false : defaultCollapsed || collapsed || false,
   );
   const ctr = useRef(null);
   const [haveHeight, setHaveHeight] = useState(false);
@@ -87,13 +87,13 @@ export function Collapse({
       <div
         className={twMerge(
           "agui-item agui-collapse max-h-96 mb-2 pointer-events-auto",
-          rootClassNames
+          rootClassNames,
         )}
       >
         <div
           className={twMerge(
             "agui-item agui-collapse-header h-10 w-full cursor-pointer",
-            headerClassNames
+            headerClassNames,
           )}
           onClick={(e) => {
             e.stopPropagation();
@@ -104,7 +104,7 @@ export function Collapse({
           <ChevronRightIcon
             className={twMerge(
               "w-4 h-4 inline fill-gray-500 dark:fill-gray-400 stroke-gray-500 dark:stroke-gray-400",
-              iconClassNames
+              iconClassNames,
             )}
             style={{
               transition: "transform 0.3s ease-in-out",
@@ -116,7 +116,7 @@ export function Collapse({
           <span
             className={twMerge(
               "font-bold text-md text-gray-900 dark:text-gray-100",
-              titleClassNames
+              titleClassNames,
             )}
           >
             {title}

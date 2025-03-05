@@ -38,7 +38,7 @@ export function Customization() {
             onChange={(color) =>
               handleStyleChange(
                 "backgroundColor",
-                color.cleared ? null : color.toHexString()
+                color.cleared ? null : color.toHexString(),
               )
             }
           />
