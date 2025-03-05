@@ -1028,8 +1028,8 @@ export const generateReport = async (
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      // timeout which instantly errors
-      signal: AbortSignal.timeout(10),
+      // Using a longer timeout to ensure requests have time to reach the server
+      signal: AbortSignal.timeout(5000),
       body: JSON.stringify({
         db_name: dbName,
         token,

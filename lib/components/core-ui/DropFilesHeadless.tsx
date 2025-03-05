@@ -16,6 +16,7 @@ interface Props {
   disabled?: boolean;
   /**
    * Function to be called when files are dropped.
+   * Note: The entire event is passed to give access to all dropped files.
    */
   onDrop?: (e: React.DragEvent<HTMLDivElement>) => {};
   /**
@@ -42,6 +43,10 @@ interface Props {
    * Allows file selection from the finder or not. Defaults to true.
    */
   fileSelection?: boolean;
+  /**
+   * If true, allows multiple files to be dropped/selected. Defaults to false.
+   */
+  allowMultiple?: boolean;
 }
 
 /**
@@ -59,6 +64,7 @@ export function DropFilesHeadless({
   onDragLeave = (...args) => {},
   rootClassNames = "",
   fileSelection = true,
+  allowMultiple = false,
 }) {
   return (
     <div
@@ -102,6 +108,7 @@ export function DropFilesHeadless({
           accept={acceptedFileTypes.join(",")}
           className="w-full h-full z-[1] opacity-0 absolute left-0 top-0 cursor-pointer"
           type="file"
+          multiple={allowMultiple}
           disabled={disabled}
           onInput={(e) => {
             e.preventDefault();
