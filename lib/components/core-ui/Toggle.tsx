@@ -63,7 +63,7 @@ interface ToggleProps {
 const barClassNames = {
   small: "h-3 w-8",
   default: "h-5 w-9",
-  large: "h-8 w-11",
+  large: "h-8 w-14",
 };
 
 const buttonClassNames = {
