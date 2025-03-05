@@ -6,7 +6,14 @@ import {
   SpinningLoader,
   SingleSelect,
 } from "@ui-components";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import {
   deleteReport,
   fetchReports,
@@ -21,6 +28,9 @@ import { twMerge } from "tailwind-merge";
 import { OracleDraftReport } from "../reports/report-creation/OracleDraftReport";
 import { OracleNewDb } from "./OracleNewDb";
 import { OracleThinking } from "../reports/OracleThinking";
+import { OracleEmbedContext } from "./OracleEmbedContext";
+import { OracleSearchBarManager } from "./search-bar/oracleSearchBarManager";
+import { OracleSearchBar } from "./search-bar/OracleSearchBar";
 
 interface OracleReportType extends ListReportResponseItem {
   reportData?: ReportData;
@@ -78,6 +88,8 @@ export function OracleEmbed({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
+  const searchBarManager = useRef(OracleSearchBarManager());
+
   const selectedReport = useMemo(() => {
     if (!selectedReportId || !reportHistory[selectedDbName]) return null;
 
@@ -103,7 +115,14 @@ export function OracleEmbed({
     crypto.randomUUID().toString()
   );
 
-  const [hasUploadedDataFiles, setHasUploadedDataFiles] = useState(false);
+  const draft = useSyncExternalStore(
+    searchBarManager.current.subscribeToDraftChanges,
+    searchBarManager.current.getDraft
+  );
+
+  const hasUploadedDataFiles = useMemo(() => {
+    return draft.uploadedDataFiles && draft.uploadedDataFiles.length > 0;
+  }, [draft]);
 
   // Function to update URL with report_id
   const updateUrlWithReportId = useCallback(
@@ -141,16 +160,6 @@ export function OracleEmbed({
     }
     return null;
   }
-
-  // Commenting out this effect to avoid circular updates
-  // We'll handle URL updates directly when setting the selectedReportId
-  // useEffect(() => {
-  //   if (selectedReportId) {
-  //     updateUrlWithReportId(selectedReportId);
-  //   } else {
-  //     updateUrlWithReportId(null);
-  //   }
-  // }, [selectedReportId, updateUrlWithReportId]);
 
   // Add a ref to track if initial setup is complete
   const initialSetupComplete = useRef(false);
@@ -287,7 +296,7 @@ export function OracleEmbed({
     }
 
     setup();
-  }, [dbNames, selectedDbName, apiEndpoint, token]);
+  }, [dbNames, apiEndpoint, token]);
 
   const onReportDelete = useCallback(async () => {
     const reportGroup = findReportGroupInHistory(
@@ -383,84 +392,85 @@ export function OracleEmbed({
     ]
   );
 
-  const draftReport = useMemo(() => {
+  const nullState = useMemo(() => {
     return (
-      <OracleDraftReport
-        token={token}
-        dbName={selectedDbName}
-        apiEndpoint={apiEndpoint}
-        onUploadDataFiles={(dataFiles) => {
-          setHasUploadedDataFiles(
-            dataFiles && dataFiles?.length ? true : false
-          );
-        }}
-        onClarified={(newDbName) => {
-          if (newDbName) {
-            messageManager.current.success(
-              `A new database was created using your uploaded csv/excel files: ${newDbName}`
-            );
-            setDbNames((prev) => [...prev, newDbName]);
-            setSelectedDbName(newDbName);
-            setSelectedReportId(null);
-            setReportHistory((prev) => ({
-              ...prev,
-              [newDbName]: {
-                Today: [],
-                Yesterday: [],
-                "Past week": [],
-                "Past month": [],
-                Earlier: [],
-              },
-            }));
-          }
-        }}
-        onReportGenerated={({ userQuestion, reportId, status, newDbName }) => {
-          setReportHistory((prev) => {
-            let newHistory: ReportHistory = { ...prev };
-
+      <div className="w-full h-full flex flex-col items-center">
+        <OracleDraftReport
+          dbName={selectedDbName}
+          onClarified={(newDbName) => {
             if (newDbName) {
-              newHistory = {
+              messageManager.current.success(
+                `A new database was created using your uploaded csv/excel files: ${newDbName}`
+              );
+              setDbNames((prev) => [...prev, newDbName]);
+              setSelectedDbName(newDbName);
+              setSelectedReportId(null);
+              setReportHistory((prev) => ({
                 ...prev,
                 [newDbName]: {
-                  Today: [
-                    {
-                      report_id: reportId,
-                      report_name: userQuestion,
-                      status,
-                      date_created: oracleReportTimestamp(),
-                    },
-                  ],
+                  Today: [],
                   Yesterday: [],
                   "Past week": [],
                   "Past month": [],
                   Earlier: [],
                 },
-              };
-            } else {
-              newHistory = {
-                ...prev,
-                [selectedDbName]: {
-                  ...prev[selectedDbName],
-                  Today: [
-                    {
-                      report_id: reportId,
-                      report_name: userQuestion,
-                      status,
-                      date_created: oracleReportTimestamp(),
-                    },
-                    ...(prev?.[selectedDbName]?.["Today"] || []),
-                  ],
-                },
-              };
+              }));
             }
+          }}
+          onReportGenerated={({
+            userQuestion,
+            reportId,
+            status,
+            newDbName,
+          }) => {
+            setReportHistory((prev) => {
+              let newHistory: ReportHistory = { ...prev };
 
-            return newHistory;
-          });
+              if (newDbName) {
+                newHistory = {
+                  ...prev,
+                  [newDbName]: {
+                    Today: [
+                      {
+                        report_id: reportId,
+                        report_name: userQuestion,
+                        status,
+                        date_created: oracleReportTimestamp(),
+                      },
+                    ],
+                    Yesterday: [],
+                    "Past week": [],
+                    "Past month": [],
+                    Earlier: [],
+                  },
+                };
+              } else {
+                newHistory = {
+                  ...prev,
+                  [selectedDbName]: {
+                    ...prev[selectedDbName],
+                    Today: [
+                      {
+                        report_id: reportId,
+                        report_name: userQuestion,
+                        status,
+                        date_created: oracleReportTimestamp(),
+                      },
+                      ...(prev?.[selectedDbName]?.["Today"] || []),
+                    ],
+                  },
+                };
+              }
 
-          updateUrlWithReportId(reportId);
-          setSelectedReportId(reportId);
-        }}
-      />
+              return newHistory;
+            });
+
+            updateUrlWithReportId(reportId);
+            setSelectedReportId(reportId);
+          }}
+        />
+        <OracleSearchBar />
+      </div>
     );
   }, [messageManager, selectedDbName, updateUrlWithReportId]);
 
@@ -480,276 +490,277 @@ export function OracleEmbed({
   }
 
   return (
-    <MessageManagerContext.Provider value={messageManager.current}>
-      <MessageMonitor rootClassNames={"absolute left-0 right-0"} />
-      <div className="flex flex-row min-w-full min-h-full max-h-full overflow-hidden text-gray-600 bg-white dark:bg-gray-900">
-        <Sidebar
-          open={true}
-          beforeTitle={dbSelector}
-          location="left"
-          rootClassNames="absolute left-0 min-h-full shadow-lg lg:shadow-none lg:sticky top-0 bg-gray-50 dark:bg-gray-800 z-20 border-r border-gray-100 dark:border-gray-700"
-          title={
-            <h2 className="font-bold text-gray-800 dark:text-gray-200 mb-3 text-lg flex items-center">
-              <span className="mr-2">📚</span> History
-            </h2>
-          }
-          contentClassNames={
-            "w-72 p-5 rounded-tl-lg relative sm:block min-h-96 max-h-full overflow-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent"
-          }
-        >
-          <div className="space-y-4">
-            {selectedDbName !== uploadNewDbOption ? (
-              <div
-                className={twMerge(
-                  "title hover:cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 history-item p-3 text-sm rounded-md transition-colors duration-200 mb-3 flex items-center border border-transparent",
-                  !selectedReportId
-                    ? "font-medium bg-blue-50 dark:bg-gray-700 border-blue-200 dark:border-blue-800 shadow-sm text-blue-700 dark:text-blue-300"
-                    : "text-gray-700 dark:text-gray-300 hover:border-gray-200 dark:hover:border-gray-700"
-                )}
-                onClick={() => {
-                  updateUrlWithReportId(null);
-                  setSelectedReportId(null);
-                }}
-              >
-                <div className="flex flex-row items-center gap-2">
-                  <SquarePen size={18} />{" "}
-                  <span className="font-medium">New Report</span>
+    <OracleEmbedContext.Provider
+      value={{ token, apiEndpoint, searchBarManager: searchBarManager.current }}
+    >
+      <MessageManagerContext.Provider value={messageManager.current}>
+        <MessageMonitor rootClassNames={"absolute left-0 right-0"} />
+        <div className="flex flex-row min-w-full min-h-full max-h-full overflow-hidden text-gray-600 bg-white dark:bg-gray-900">
+          <Sidebar
+            open={true}
+            beforeTitle={dbSelector}
+            location="left"
+            rootClassNames="absolute left-0 min-h-full shadow-lg lg:shadow-none lg:sticky top-0 bg-gray-50 dark:bg-gray-800 z-20 border-r border-gray-100 dark:border-gray-700"
+            title={
+              <h2 className="font-bold text-gray-800 dark:text-gray-200 mb-3 text-lg flex items-center">
+                <span className="mr-2">📚</span> History
+              </h2>
+            }
+            contentClassNames={
+              "w-72 p-5 rounded-tl-lg relative sm:block min-h-96 max-h-full overflow-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent"
+            }
+          >
+            <div className="space-y-4">
+              {selectedDbName !== uploadNewDbOption ? (
+                <div
+                  className={twMerge(
+                    "title hover:cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 history-item p-3 text-sm rounded-md transition-colors duration-200 mb-3 flex items-center border border-transparent",
+                    !selectedReportId
+                      ? "font-medium bg-blue-50 dark:bg-gray-700 border-blue-200 dark:border-blue-800 shadow-sm text-blue-700 dark:text-blue-300"
+                      : "text-gray-700 dark:text-gray-300 hover:border-gray-200 dark:hover:border-gray-700"
+                  )}
+                  onClick={() => {
+                    updateUrlWithReportId(null);
+                    setSelectedReportId(null);
+                  }}
+                >
+                  <div className="flex flex-row items-center gap-2">
+                    <SquarePen size={18} />{" "}
+                    <span className="font-medium">New Report</span>
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <p className="text-xs">
-                Upload a new CSV/Excel file on the right
-              </p>
-            )}
-            {selectedDbName !== uploadNewDbOption &&
-              reportHistory[selectedDbName] &&
-              Object.entries(reportHistory[selectedDbName]).map(
-                ([group, reports]) => {
-                  if (!reports || Object.keys(reports).length === 0)
-                    return null; // Skip empty groups
-                  return (
-                    <div key={group} className="mb-6">
-                      <div className="px-2 mb-3 text-xs font-medium tracking-wide text-blue-600 dark:text-blue-400 uppercase flex items-center">
-                        <div className="h-px bg-blue-100 dark:bg-blue-800 flex-grow mr-2"></div>
-                        {group}
-                        <div className="h-px bg-blue-100 dark:bg-blue-800 flex-grow ml-2"></div>
-                      </div>
-                      {reports.map((report: OracleReportType) => (
-                        <div
-                          key={report.report_id}
-                          onClick={() => {
-                            updateUrlWithReportId(report.report_id);
-                            setSelectedReportId(report.report_id);
-                          }}
-                          className={twMerge(
-                            "title hover:cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 history-item p-3 text-sm rounded-md transition-colors duration-200 mb-2 border border-transparent",
-                            report.report_id === selectedReportId
-                              ? "font-medium bg-blue-50 dark:bg-gray-700 border-blue-200 dark:border-blue-800 shadow-sm text-blue-700 dark:text-blue-300"
-                              : "text-gray-700 dark:text-gray-300 hover:border-gray-200 dark:hover:border-gray-700"
-                          )}
-                        >
-                          {/* Use max-height transition for smooth expansion on hover */}
+              ) : (
+                <p className="text-xs">
+                  Upload a new CSV/Excel file on the right
+                </p>
+              )}
+              {selectedDbName !== uploadNewDbOption &&
+                reportHistory[selectedDbName] &&
+                Object.entries(reportHistory[selectedDbName]).map(
+                  ([group, reports]) => {
+                    if (!reports || Object.keys(reports).length === 0)
+                      return null; // Skip empty groups
+                    return (
+                      <div key={group} className="mb-6">
+                        <div className="px-2 mb-3 text-xs font-medium tracking-wide text-blue-600 dark:text-blue-400 uppercase flex items-center">
+                          <div className="h-px bg-blue-100 dark:bg-blue-800 flex-grow mr-2"></div>
+                          {group}
+                          <div className="h-px bg-blue-100 dark:bg-blue-800 flex-grow ml-2"></div>
+                        </div>
+                        {reports.map((report: OracleReportType) => (
                           <div
-                            className="overflow-hidden transition-all duration-300 hover:max-h-[500px]"
+                            key={report.report_id}
+                            onClick={() => {
+                              updateUrlWithReportId(report.report_id);
+                              setSelectedReportId(report.report_id);
+                            }}
+                            className={twMerge(
+                              "title hover:cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 history-item p-3 text-sm rounded-md transition-colors duration-200 mb-2 border border-transparent",
+                              report.report_id === selectedReportId
+                                ? "font-medium bg-blue-50 dark:bg-gray-700 border-blue-200 dark:border-blue-800 shadow-sm text-blue-700 dark:text-blue-300"
+                                : "text-gray-700 dark:text-gray-300 hover:border-gray-200 dark:hover:border-gray-700"
+                            )}
                           >
-                            <p
-                              className="font-medium hover:line-clamp-none line-clamp-2"
-                            >
-                              {report.report_name ||
-                                report.inputs.user_question ||
-                                "Untitled report"}
-                            </p>
-                          </div>
-                          <div className="flex items-center text-xs mt-1.5 text-gray-500 dark:text-gray-400">
-                            <span 
-                              className={`inline-block w-3 h-3 mr-1.5 rounded-full ${
-                                report.status === ORACLE_REPORT_STATUS.DONE 
-                                  ? "bg-blue-200 dark:bg-blue-800" 
-                                  : report.status === ORACLE_REPORT_STATUS.THINKING
-                                    ? "bg-green-300 dark:bg-green-600"
-                                    : report.status === ORACLE_REPORT_STATUS.ERRORED
-                                      ? "bg-red-200 dark:bg-red-800"
-                                      : "bg-blue-200 dark:bg-blue-800"
-                              }`}
-                              title={`Status: ${report.status || "Unknown"}`}
-                            ></span>
-                            {new Date(report.date_created + "Z").toLocaleString(
-                              undefined,
-                              {
+                            {/* Use max-height transition for smooth expansion on hover */}
+                            <div className="overflow-hidden transition-all duration-300 hover:max-h-[500px]">
+                              <p className="font-medium hover:line-clamp-none line-clamp-2">
+                                {report.report_name ||
+                                  report.inputs.user_question ||
+                                  "Untitled report"}
+                              </p>
+                            </div>
+                            <div className="flex items-center text-xs mt-1.5 text-gray-500 dark:text-gray-400">
+                              <span
+                                className={`inline-block w-3 h-3 mr-1.5 rounded-full ${
+                                  report.status === ORACLE_REPORT_STATUS.DONE
+                                    ? "bg-blue-200 dark:bg-blue-800"
+                                    : report.status ===
+                                        ORACLE_REPORT_STATUS.THINKING
+                                      ? "bg-green-300 dark:bg-green-600"
+                                      : report.status ===
+                                          ORACLE_REPORT_STATUS.ERRORED
+                                        ? "bg-red-200 dark:bg-red-800"
+                                        : "bg-blue-200 dark:bg-blue-800"
+                                }`}
+                                title={`Status: ${report.status || "Unknown"}`}
+                              ></span>
+                              {new Date(
+                                report.date_created + "Z"
+                              ).toLocaleString(undefined, {
                                 month: "short",
                                 day: "numeric",
                                 hour: "numeric",
                                 minute: "2-digit",
                                 hour12: true,
-                              }
-                            )}
+                              })}
+                            </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
-                  );
-                }
+                        ))}
+                      </div>
+                    );
+                  }
+                )}
+            </div>
+          </Sidebar>
+          <div className="flex flex-col grow p-2 overflow-auto">
+            {/* Show OracleNewDb when the "Upload new" option is selected */}
+            {selectedReportId === null &&
+              selectedDbName === uploadNewDbOption && (
+                <OracleNewDb
+                  apiEndpoint={apiEndpoint}
+                  token={token}
+                  onDbCreated={(dbName) => {
+                    setReportHistory((prev) => ({
+                      ...prev,
+                      [dbName]: {
+                        Today: [],
+                        Yesterday: [],
+                        "Past week": [],
+                        "Past month": [],
+                        Earlier: [],
+                      },
+                    }));
+                    setDbNames((prev) => [...prev, dbName]);
+                    setSelectedDbName(dbName);
+                  }}
+                />
               )}
-          </div>
-        </Sidebar>
-        <div className="flex flex-col grow p-2 overflow-auto">
-          {/* Show OracleNewDb when the "Upload new" option is selected */}
-          {selectedReportId === null &&
-            selectedDbName === uploadNewDbOption && (
-              <OracleNewDb
+
+            {/* Show completed report */}
+            {selectedReportId &&
+            selectedReport &&
+            selectedReport.status === ORACLE_REPORT_STATUS.DONE ? (
+              <OracleReport
+                key={selectedReportId}
+                reportId={selectedReportId}
                 apiEndpoint={apiEndpoint}
+                dbName={selectedDbName}
                 token={token}
-                onDbCreated={(dbName) => {
-                  setReportHistory((prev) => ({
-                    ...prev,
-                    [dbName]: {
-                      Today: [],
-                      Yesterday: [],
-                      "Past week": [],
-                      "Past month": [],
-                      Earlier: [],
-                    },
-                  }));
-                  setDbNames((prev) => [...prev, dbName]);
-                  setSelectedDbName(dbName);
+                onDelete={onReportDelete}
+                onReportParsed={(data: ReportData) => {
+                  // find the group of this report in histories
+                  const group = findReportGroupInHistory(
+                    selectedDbName,
+                    selectedReportId,
+                    reportHistory
+                  );
+
+                  setReportHistory((prev) => {
+                    const prevReports = prev[selectedDbName][group];
+                    // if report is found, update it
+                    return {
+                      ...prev,
+                      [selectedDbName]: {
+                        ...prev[selectedDbName],
+                        [group]: prevReports.map((r) => {
+                          if (r.report_id === selectedReportId) {
+                            return {
+                              ...r,
+                              reportData: data,
+                            };
+                          }
+                          return r;
+                        }),
+                      },
+                    };
+                  });
                 }}
               />
-            )}
+            ) : selectedReportId ? (
+              // Show thinking status for in-progress report
+              <OracleThinking
+                apiEndpoint={apiEndpoint}
+                token={token}
+                reportId={selectedReportId}
+                onDelete={onReportDelete}
+                onStreamClosed={(thinkingSteps, hadError) => {
+                  // Safety check - make sure the DB and report still exist
+                  if (
+                    !selectedDbName ||
+                    !selectedReportId ||
+                    !reportHistory[selectedDbName]
+                  ) {
+                    console.warn("Stream closed but DB or report data missing");
+                    return;
+                  }
 
-          {/* Show completed report */}
-          {selectedReportId &&
-          selectedReport &&
-          selectedReport.status === ORACLE_REPORT_STATUS.DONE ? (
-            <OracleReport
-              key={selectedReportId}
-              reportId={selectedReportId}
-              apiEndpoint={apiEndpoint}
-              dbName={selectedDbName}
-              token={token}
-              onDelete={onReportDelete}
-              onReportParsed={(data: ReportData) => {
-                // find the group of this report in histories
-                const group = findReportGroupInHistory(
-                  selectedDbName,
-                  selectedReportId,
-                  reportHistory
-                );
-
-                setReportHistory((prev) => {
-                  const prevReports = prev[selectedDbName][group];
-                  // if report is found, update it
-                  return {
-                    ...prev,
-                    [selectedDbName]: {
-                      ...prev[selectedDbName],
-                      [group]: prevReports.map((r) => {
-                        if (r.report_id === selectedReportId) {
-                          return {
-                            ...r,
-                            reportData: data,
-                          };
-                        }
-                        return r;
-                      }),
-                    },
-                  };
-                });
-              }}
-            />
-          ) : selectedReportId ? (
-            // Show thinking status for in-progress report
-            <OracleThinking
-              apiEndpoint={apiEndpoint}
-              token={token}
-              reportId={selectedReportId}
-              onDelete={onReportDelete}
-              onStreamClosed={(thinkingSteps, hadError) => {
-                // Safety check - make sure the DB and report still exist
-                if (
-                  !selectedDbName ||
-                  !selectedReportId ||
-                  !reportHistory[selectedDbName]
-                ) {
-                  console.warn("Stream closed but DB or report data missing");
-                  return;
-                }
-
-                const reportGroup = findReportGroupInHistory(
-                  selectedDbName,
-                  selectedReportId,
-                  reportHistory
-                );
-
-                // Safety check - make sure the report group exists
-                if (!reportHistory[selectedDbName][reportGroup]) {
-                  console.warn(
-                    "Stream closed but report group missing:",
-                    reportGroup
+                  const reportGroup = findReportGroupInHistory(
+                    selectedDbName,
+                    selectedReportId,
+                    reportHistory
                   );
-                  return;
-                }
 
-                if (hadError) {
-                  // remove this report from the history
-                  setReportHistory((prev) => {
-                    const newHistory = { ...prev };
+                  // Safety check - make sure the report group exists
+                  if (!reportHistory[selectedDbName][reportGroup]) {
+                    console.warn(
+                      "Stream closed but report group missing:",
+                      reportGroup
+                    );
+                    return;
+                  }
 
-                    // Extra safety check
-                    if (
-                      newHistory[selectedDbName] &&
-                      newHistory[selectedDbName][reportGroup] &&
-                      Array.isArray(newHistory[selectedDbName][reportGroup])
-                    ) {
-                      newHistory[selectedDbName][reportGroup] = newHistory[
-                        selectedDbName
-                      ][reportGroup].filter((r) => {
-                        return r.report_id !== selectedReportId;
-                      });
-                    }
+                  if (hadError) {
+                    // remove this report from the history
+                    setReportHistory((prev) => {
+                      const newHistory = { ...prev };
 
-                    return newHistory;
-                  });
+                      // Extra safety check
+                      if (
+                        newHistory[selectedDbName] &&
+                        newHistory[selectedDbName][reportGroup] &&
+                        Array.isArray(newHistory[selectedDbName][reportGroup])
+                      ) {
+                        newHistory[selectedDbName][reportGroup] = newHistory[
+                          selectedDbName
+                        ][reportGroup].filter((r) => {
+                          return r.report_id !== selectedReportId;
+                        });
+                      }
 
-                  updateUrlWithReportId(null);
-                  setSelectedReportId(null);
-                } else {
-                  // set the status to done which will trigger the report rendering
-                  setReportHistory((prev) => {
-                    const newHistory = { ...prev };
+                      return newHistory;
+                    });
 
-                    // Extra safety check
-                    if (
-                      newHistory[selectedDbName] &&
-                      newHistory[selectedDbName][reportGroup] &&
-                      Array.isArray(newHistory[selectedDbName][reportGroup])
-                    ) {
-                      newHistory[selectedDbName][reportGroup] = newHistory[
-                        selectedDbName
-                      ][reportGroup].map((r) => {
-                        if (r.report_id === selectedReportId) {
-                          return {
-                            ...r,
-                            status: ORACLE_REPORT_STATUS.DONE,
-                          };
-                        }
-                        return r;
-                      });
-                    }
+                    updateUrlWithReportId(null);
+                    setSelectedReportId(null);
+                  } else {
+                    // set the status to done which will trigger the report rendering
+                    setReportHistory((prev) => {
+                      const newHistory = { ...prev };
 
-                    return newHistory;
-                  });
-                }
-              }}
-            />
-          ) : null}
+                      // Extra safety check
+                      if (
+                        newHistory[selectedDbName] &&
+                        newHistory[selectedDbName][reportGroup] &&
+                        Array.isArray(newHistory[selectedDbName][reportGroup])
+                      ) {
+                        newHistory[selectedDbName][reportGroup] = newHistory[
+                          selectedDbName
+                        ][reportGroup].map((r) => {
+                          if (r.report_id === selectedReportId) {
+                            return {
+                              ...r,
+                              status: ORACLE_REPORT_STATUS.DONE,
+                            };
+                          }
+                          return r;
+                        });
+                      }
 
-          {/* Show draft report creator when no report is selected and we're not uploading new DB */}
-          {selectedReportId === null &&
-            selectedDbName !== uploadNewDbOption && (
-              <div className="w-full h-full m-auto">{draftReport}</div>
-            )}
+                      return newHistory;
+                    });
+                  }
+                }}
+              />
+            ) : null}
+
+            {/* Show draft report creator when no report is selected and we're not uploading new DB */}
+            {selectedReportId === null &&
+              selectedDbName !== uploadNewDbOption && (
+                <div className="w-full h-full m-auto">{nullState}</div>
+              )}
+          </div>
         </div>
-      </div>
-    </MessageManagerContext.Provider>
+      </MessageManagerContext.Provider>
+    </OracleEmbedContext.Provider>
   );
 }
