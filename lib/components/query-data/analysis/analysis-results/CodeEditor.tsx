@@ -23,6 +23,37 @@ export function CodeEditor({
 }) {
   const [toolCode, setToolCode] = useState(code || "");
   const editorRef = useRef(null);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  useEffect(() => {
+    const checkDarkMode = () => {
+      const isDark = !!document.querySelector(".dark");
+      setIsDarkMode(isDark);
+    };
+
+    checkDarkMode();
+
+    const rootObserver = new MutationObserver(checkDarkMode);
+    rootObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+      subtree: true,
+      childList: true,
+    });
+
+    // Check for dark mode changes on window events
+    window.addEventListener("storage", checkDarkMode);
+
+    // Check for media query changes (system preference)
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    mediaQuery.addEventListener("change", checkDarkMode);
+
+    return () => {
+      rootObserver.disconnect();
+      window.removeEventListener("storage", checkDarkMode);
+      mediaQuery.removeEventListener("change", checkDarkMode);
+    };
+  }, []);
 
   useEffect(() => {
     setToolCode(code || "");
@@ -55,7 +86,7 @@ export function CodeEditor({
           basicSetup={{
             lineNumbers: false,
           }}
-          theme="light"
+          theme={isDarkMode ? "dark" : "light"}
           className={twMerge(
             "language-" + language,
             "dark:prose-invert [&_.cm-editor]:dark:!bg-gray-800 [&_.cm-scroller]:dark:!bg-gray-800 [&_.cm-gutters]:dark:!bg-gray-800 [&_.cm-tooltip]:dark:!bg-gray-700 [&_.cm-tooltip]:dark:!border-gray-600 [&_.cm-activeLine]:dark:!bg-gray-700/50 [&_.cm-activeLineGutter]:dark:!bg-gray-700/50",
