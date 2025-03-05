@@ -14,10 +14,20 @@ export interface OracleReportComment {
 
 // Analysis Types
 export interface OracleAnalysis {
-  // Define properties for oracle analysis
-  id?: string;
-  content?: string;
-  // Add other properties as needed
+  analysis_id: string;
+  function_name: string;
+  mdx?: string;
+  question?: string;
+  inputs?: Record<string, any>;
+  outputs?: Record<string, any>;
+  rows?: Record<string, any>[];
+  columns?: {
+    title: string;
+    dataIndex: string;
+  }[];
+  result?: any;
+  status?: string;
+  error?: string;
 }
 
 // Report Types
@@ -41,10 +51,13 @@ export interface ReportData {
 }
 
 export interface ClarificationObject {
-  // Define properties for clarification object
-  question?: string;
-  response?: string;
-  // Add other properties as needed
+  question: string;
+  clarification: string;
+  options: string[];
+  input_type: "single_choice" | "multiple_choice" | "text";
+  answer?: string | string[];
+  onAnswerChange?: (answer: string | string[]) => void;
+  onDismiss?: () => void;
 }
 
 export interface DbInfo {

@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState, useSyncExternalStore } from "react";
 import { OracleCommentPopover } from "./OracleCommentPopover";
-import type { OracleReportComment } from "../../../utils/OracleReportContext";
+import type { OracleReportComment } from "../../../utils";
 import {
   Editor,
   mergeAttributes,
