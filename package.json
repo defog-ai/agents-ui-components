@@ -11,7 +11,7 @@
     "pack": "npm run build && npm pack",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "format": "prettier --loglevel warn --write \"./**/*.{jsx,js}\""
+    "format": "prettier --log-level warn --write \"./**/*.{jsx,js}\""
   },
   "main": "dist/agent.js",
   "types": "dist/agent.d.ts",
