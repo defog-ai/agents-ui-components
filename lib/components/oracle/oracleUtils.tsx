@@ -20,6 +20,7 @@ import debounce from "lodash.debounce";
 import { Editor } from "@tiptap/core";
 import setupBaseUrl from "../utils/setupBaseUrl";
 import { ClarificationObject } from "./reports/report-creation/ClarificationItem";
+import { marked } from "marked";
 
 // Custom hook for comment management
 const debouncedSendUpdates = debounce(
@@ -1154,3 +1155,297 @@ export const ORACLE_REPORT_STATUS = {
  */
 export const oracleReportTimestamp = (dateObj: Date = new Date()) =>
   dateObj.toISOString().replace("Z", "");
+
+/**
+ * Converts the MDX content to Markdown format
+ *
+ * @param mdx - The MDX content to convert
+ * @returns Clean Markdown content
+ */
+export const convertMdxToMarkdown = (mdx: string): string => {
+  // Replace oracle-specific components with their markdown equivalents
+  let markdown = mdx;
+
+  // Remove oracle-table tags
+  markdown = markdown.replace(/<oracle-table[^>]*><\/oracle-table>/g, "");
+
+  // Remove oracle-multi-table tags
+  markdown = markdown.replace(
+    /<oracle-multi-table[^>]*><\/oracle-multi-table>/g,
+    ""
+  );
+
+  // Remove oracle-image tags
+  markdown = markdown.replace(/<oracle-image[^>]*><\/oracle-image>/g, "");
+
+  // Remove oracle-comment-handler tag
+  markdown = markdown.replace(/<oracle-comment-handler\/>/g, "");
+
+  // Clean up any other oracle-specific tags or formatting
+  markdown = markdown.replace(/<oracle-[^>]*>/g, "");
+  markdown = markdown.replace(/<\/oracle-[^>]*>/g, "");
+
+  return markdown;
+};
+
+/**
+ * Downloads content as a file
+ *
+ * @param content - The content to download
+ * @param fileName - The name of the file
+ * @param contentType - The content type of the file
+ */
+export const downloadFile = (
+  content: string,
+  fileName: string,
+  contentType: string
+): void => {
+  const blob = new Blob([content], { type: contentType });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};
+
+/**
+ * Exports the report content as a Markdown file
+ *
+ * @param mdx - The MDX content to export
+ * @param fileName - The name of the file (defaults to 'report.md')
+ */
+export const exportAsMarkdown = (
+  mdx: string,
+  fileName: string = "report.md"
+): void => {
+  const markdown = convertMdxToMarkdown(mdx);
+  downloadFile(markdown, fileName, "text/markdown");
+};
+
+/**
+ * Prepares the report content for PDF export
+ *
+ * @param mdx - The MDX content to export
+ * @returns HTML content ready for PDF generation
+ */
+export const prepareHtmlForPdf = (mdx: string): string => {
+  const markdown = convertMdxToMarkdown(mdx);
+
+  // Use the marked library to convert markdown to HTML
+  const html = marked.parse(markdown);
+
+  // Add styling for proper PDF rendering
+  return `
+    <html>
+      <head>
+        <style>
+          body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+          }
+          h1, h2, h3, h4, h5, h6 {
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+            font-weight: 600;
+          }
+          h1 { font-size: 2em; }
+          h2 { font-size: 1.5em; }
+          h3 { font-size: 1.25em; }
+          p { margin: 1em 0; }
+          ul, ol { padding-left: 2em; }
+          blockquote {
+            border-left: 4px solid #ddd;
+            padding-left: 1em;
+            color: #666;
+            margin: 1em 0;
+          }
+          code {
+            font-family: Menlo, Monaco, 'Courier New', monospace;
+            background-color: #f5f5f5;
+            padding: 0.2em 0.4em;
+            border-radius: 3px;
+            font-size: 0.9em;
+          }
+          pre {
+            background-color: #f5f5f5;
+            padding: 1em;
+            border-radius: 5px;
+            overflow-x: auto;
+          }
+          pre code {
+            background-color: transparent;
+            padding: 0;
+          }
+          table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1em 0;
+          }
+          th, td {
+            text-align: left;
+            padding: 8px;
+            border-bottom: 1px solid #ddd;
+          }
+          th {
+            background-color: #f5f5f5;
+            font-weight: 600;
+          }
+          img {
+            max-width: 100%;
+            height: auto;
+          }
+          a {
+            color: #0366d6;
+            text-decoration: none;
+          }
+          a:hover {
+            text-decoration: underline;
+          }
+        </style>
+      </head>
+      <body>
+        ${html}
+      </body>
+    </html>
+  `;
+};
+
+/**
+ * Uses html2canvas and jsPDF to export MDX content as PDF
+ *
+ * This function needs to be called in a browser environment where
+ * both html2canvas and jsPDF are available. You'll need to import
+ * and load these libraries before using this function.
+ *
+ * @param htmlNode - The HTML node to convert to PDF
+ * @param fileName - The name of the PDF file (defaults to 'report.pdf')
+ */
+export const exportAsPdf = async (
+  mdx: string,
+  fileName: string = "report.pdf"
+): Promise<void> => {
+  // Convert MDX to HTML
+  const markdown = convertMdxToMarkdown(mdx);
+  const html = await marked.parse(markdown);
+
+  // Create a temporary container to render the HTML
+  const container = document.createElement("div");
+  container.innerHTML = html;
+  container.style.position = "absolute";
+  container.style.left = "-9999px";
+  container.style.top = "-9999px";
+  container.style.width = "800px";
+  container.classList.add("prose", "prose-base");
+
+  // Add the container to the document
+  document.body.appendChild(container);
+
+  try {
+    // Use the print function to generate a PDF
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) {
+      throw new Error("Could not open print window");
+    }
+
+    const printDocument = printWindow.document;
+    printDocument.write(`
+      <html>
+        <head>
+          <title>${fileName}</title>
+          <style>
+            body {
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+              line-height: 1.6;
+              color: #333;
+              max-width: 800px;
+              margin: 0 auto;
+              padding: 20px;
+            }
+            h1, h2, h3, h4, h5, h6 {
+              margin-top: 1.5em;
+              margin-bottom: 0.5em;
+              font-weight: 600;
+            }
+            h1 { font-size: 2em; }
+            h2 { font-size: 1.5em; }
+            h3 { font-size: 1.25em; }
+            p { margin: 1em 0; }
+            ul, ol { padding-left: 2em; }
+            blockquote {
+              border-left: 4px solid #ddd;
+              padding-left: 1em;
+              color: #666;
+              margin: 1em 0;
+            }
+            code {
+              font-family: Menlo, Monaco, 'Courier New', monospace;
+              background-color: #f5f5f5;
+              padding: 0.2em 0.4em;
+              border-radius: 3px;
+              font-size: 0.9em;
+            }
+            pre {
+              background-color: #f5f5f5;
+              padding: 1em;
+              border-radius: 5px;
+              overflow-x: auto;
+            }
+            pre code {
+              background-color: transparent;
+              padding: 0;
+            }
+            table {
+              border-collapse: collapse;
+              width: 100%;
+              margin: 1em 0;
+            }
+            th, td {
+              text-align: left;
+              padding: 8px;
+              border-bottom: 1px solid #ddd;
+            }
+            th {
+              background-color: #f5f5f5;
+              font-weight: 600;
+            }
+            img {
+              max-width: 100%;
+              height: auto;
+            }
+            a {
+              color: #0366d6;
+              text-decoration: none;
+            }
+            @media print {
+              body {
+                padding: 0;
+                margin: 0;
+              }
+            }
+          </style>
+        </head>
+        <body>
+          ${html}
+        </body>
+      </html>
+    `);
+
+    printDocument.close();
+
+    // Allow some time for resources to load
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+    }, 500);
+  } finally {
+    // Clean up the temporary container
+    document.body.removeChild(container);
+  }
+};

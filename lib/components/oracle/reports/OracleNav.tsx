@@ -5,18 +5,16 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
-import { Info, MessageSquare, Settings } from "lucide-react";
-import {
-  Button,
-  MessageManagerContext,
-  Modal,
-  NavBar,
-  Popover,
-  TextArea,
-} from "@ui-components";
+import { Download, FileText, Info, MessageSquare } from "lucide-react";
+import { Button, MessageManagerContext, Modal, TextArea } from "@ui-components";
 import { OracleReportContext } from "../OracleReportContext";
 import { EditorProvider, useCurrentEditor } from "@tiptap/react";
-import { revisionExtensions, submitForRevision } from "../oracleUtils";
+import {
+  revisionExtensions,
+  submitForRevision,
+  exportAsMarkdown,
+  exportAsPdf,
+} from "../oracleUtils";
 import { OracleCommentsSidebar } from "./tiptap-extensions/comments/OracleCommentsSidebar";
 
 export const OracleNav = ({
@@ -33,6 +31,7 @@ export const OracleNav = ({
     useContext(OracleReportContext);
 
   const generalCommentsRef = useRef<HTMLTextAreaElement>(null);
+  const [status, setStatus] = useState<string | null>(null);
 
   const comments = useSyncExternalStore(
     commentManager?.subscribeToCommentUpdates || (() => () => {}),
@@ -183,28 +182,106 @@ export const OracleNav = ({
 
   if (!editor) return null;
 
+  const [exportDropdownOpen, setExportDropdownOpen] = useState(false);
+  const exportDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Function to handle exporting as Markdown
+  const handleExportMarkdown = () => {
+    if (editor) {
+      const mdxContent = editor.storage.markdown.getMarkdown();
+      const fileName = `report-${reportId}.md`;
+      exportAsMarkdown(mdxContent, fileName);
+      setExportDropdownOpen(false);
+    }
+  };
+
+  // Function to handle exporting as PDF
+  const handleExportPdf = () => {
+    if (editor) {
+      const mdxContent = editor.storage.markdown.getMarkdown();
+      const fileName = `report-${reportId}.pdf`;
+      exportAsPdf(mdxContent, fileName);
+      setExportDropdownOpen(false);
+    }
+  };
+
+  // Add click outside handler to close dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        exportDropdownRef.current &&
+        !exportDropdownRef.current.contains(event.target as Node)
+      ) {
+        setExportDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   return (
     <div className="flex flex-col">
       <div className="flex items-center flex-row-reverse justify-between px-4 py-2 border-b dark:border-gray-700">
-        <div className="relative">
-          <Button
-            variant="secondary"
-            onClick={() => {
-              processComments();
-              setShowCommentsSidebar(!showCommentsSidebar);
-            }}
-            className={
-              showCommentsSidebar ? "bg-gray-100 dark:bg-gray-700" : ""
-            }
-          >
-            <MessageSquare className="w-5 h-5" />
-          </Button>
-          {comments.length > 0 && (
-            <div className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-              {comments.length}
-            </div>
-          )}
+        <div className="relative flex gap-2">
+          {/* Comments button */}
+          <div className="relative">
+            <Button
+              variant="secondary"
+              onClick={() => {
+                processComments();
+                setShowCommentsSidebar(!showCommentsSidebar);
+              }}
+              className={
+                showCommentsSidebar ? "bg-gray-100 dark:bg-gray-700" : ""
+              }
+            >
+              <MessageSquare className="w-5 h-5" />
+            </Button>
+            {comments.length > 0 && (
+              <div className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                {comments.length}
+              </div>
+            )}
+          </div>
+
+          {/* Export dropdown */}
+          <div className="relative" ref={exportDropdownRef}>
+            <Button
+              variant="secondary"
+              onClick={() => setExportDropdownOpen(!exportDropdownOpen)}
+              className={
+                exportDropdownOpen ? "bg-gray-100 dark:bg-gray-700" : ""
+              }
+            >
+              <Download className="w-5 h-5" />
+            </Button>
+
+            {exportDropdownOpen && (
+              <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg z-50 border dark:border-gray-700">
+                <div className="py-1">
+                  <button
+                    onClick={handleExportMarkdown}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center"
+                  >
+                    <FileText className="w-4 h-4 mr-2" />
+                    Export as Markdown
+                  </button>
+                  <button
+                    onClick={handleExportPdf}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center"
+                  >
+                    <FileText className="w-4 h-4 mr-2" />
+                    Export as PDF
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
+
         <Button variant="danger" onClick={() => setDeleteModalOpen(true)}>
           Delete
         </Button>
