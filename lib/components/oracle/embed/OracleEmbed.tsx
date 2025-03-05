@@ -566,7 +566,7 @@ export function OracleEmbed({
                                 report.status === ORACLE_REPORT_STATUS.DONE 
                                   ? "bg-blue-200 dark:bg-blue-800" 
                                   : report.status === ORACLE_REPORT_STATUS.THINKING
-                                    ? "bg-green-300 dark:bg-green-800"
+                                    ? "bg-green-300 dark:bg-green-600"
                                     : report.status === ORACLE_REPORT_STATUS.ERRORED
                                       ? "bg-red-200 dark:bg-red-800"
                                       : "bg-blue-200 dark:bg-blue-800"
