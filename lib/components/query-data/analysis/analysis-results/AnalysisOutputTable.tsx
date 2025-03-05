@@ -7,7 +7,7 @@ import {
   useContext,
 } from "react";
 import { MessageManagerContext } from "@ui-components";
-import { roundColumns } from "../../agentUtils";
+import { roundColumns } from "../../queryDataUtils";
 
 import { Download, ChartBarIcon, TableIcon, Sparkles } from "lucide-react";
 import ErrorBoundary from "../../../common/ErrorBoundary";

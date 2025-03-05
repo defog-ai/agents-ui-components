@@ -1,3 +1,4 @@
+import { AnalysisManager } from "lib/components/query-data/analysis/analysisManager";
 import { ClarificationObject } from "../../reports/report-creation/ClarificationItem";
 
 type QueryTaskType = "exploration" | "";
@@ -9,7 +10,19 @@ interface UploadedFile {
   type: string;
 }
 
+export type Mode = "query-data" | "oracle";
+
+type Status =
+  | "blank"
+  | "getting_clarifications"
+  | "clarifications_received"
+  | "submitting";
+
 interface ReportDraft {
+  reportId: string;
+  status: Status;
+  mode: Mode;
+  loading: boolean;
   userQuestion?: string;
   task_type?: QueryTaskType;
   clarifications?: ClarificationObject[];
@@ -29,14 +42,35 @@ export interface OracleSearchBarManager {
   setDraft(draftFn: (oldDraft: ReportDraft) => ReportDraft): void;
   resetDraft(): void;
   subscribeToDraftChanges(listener: Listener): () => void;
+  setMode(newMode: Mode): void;
+  setReportId(newReportId: string): void;
+  setStatus(newStatus: Status): void;
 }
 
+function createBlankDraft(): ReportDraft {
+  return {
+    reportId: "",
+    status: "blank",
+    loading: false,
+    mode: "query-data",
+    userQuestion: "",
+    useWebsearch: true,
+    uploadedPDFs: [],
+    uploadedDataFiles: [],
+  };
+}
+
+export const statusDescriptions: Record<Status, string> = {
+  blank:
+    "Add a spreadsheet or select a database, and start asking your questions!",
+  getting_clarifications: "Getting clarifying questions...",
+  clarifications_received: "Please answer these clarifying questions...",
+  submitting: "Submitting for generation...",
+};
+
 export function OracleSearchBarManager(): OracleSearchBarManager {
-  console.log("called main func");
-  let draft: ReportDraft = {};
+  let draft: ReportDraft = createBlankDraft();
   let draftListeners: Listener[] = [];
-  let uploadedPdfs: UploadedFile[] = [];
-  let uploadedDataFiles: UploadedFile[] = [];
 
   function alertDraftListeners() {
     console.log("called alertDraftListeners");
@@ -65,7 +99,7 @@ export function OracleSearchBarManager(): OracleSearchBarManager {
 
   function resetDraft() {
     console.log("called resetDraft");
-    draft = {};
+    setDraft(createBlankDraft());
   }
 
   function subscribeToDraftChanges(listener: Listener) {
@@ -78,10 +112,25 @@ export function OracleSearchBarManager(): OracleSearchBarManager {
     };
   }
 
+  function setMode(newMode: Mode) {
+    setDraft({ ...draft, mode: newMode });
+  }
+
+  function setReportId(newReportId: string) {
+    setDraft({ ...draft, reportId: newReportId });
+  }
+
+  function setStatus(newStatus: Status) {
+    setDraft({ ...draft, status: newStatus });
+  }
+
   return {
     getDraft,
     setDraft,
     resetDraft,
     subscribeToDraftChanges,
+    setMode,
+    setReportId,
+    setStatus,
   };
 }

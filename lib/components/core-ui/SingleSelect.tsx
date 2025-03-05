@@ -160,6 +160,7 @@ export function SingleSelect({
   );
 
   useEffect(() => {
+    console.log("here 4");
     setInternalOptions(
       options.map((d) => ({
         value: isNumber(d.value) ? +d.value : d.value,
@@ -227,6 +228,7 @@ export function SingleSelect({
       typeof value !== "undefined" &&
       opt.value !== selectedOption?.value
     ) {
+      console.log("here1");
       setSelectedOption(opt);
     } else if (
       !opt &&
@@ -234,6 +236,7 @@ export function SingleSelect({
       value !== null &&
       typeof value !== "undefined"
     ) {
+      console.log("here2");
       opt = createNewOption(value);
       setInternalOptions([...internalOptions, opt]);
       setSelectedOption(opt);
@@ -250,6 +253,7 @@ export function SingleSelect({
       typeof selectedOption !== "undefined" &&
       !internalOptions.find((option) => option.value === selectedOption?.value)
     ) {
+      console.log("here3");
       const newOption = createNewOption(selectedOption?.value);
       setInternalOptions([...internalOptions, newOption]);
     }

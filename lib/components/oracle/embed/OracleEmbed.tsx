@@ -120,6 +120,8 @@ export function OracleEmbed({
     searchBarManager.current.getDraft
   );
 
+  console.log(draft);
+
   const hasUploadedDataFiles = useMemo(() => {
     return draft.uploadedDataFiles && draft.uploadedDataFiles.length > 0;
   }, [draft]);
@@ -395,7 +397,7 @@ export function OracleEmbed({
   const nullState = useMemo(() => {
     return (
       <div className="w-full h-full flex flex-col items-center justify-center">
-        <OracleReportClarifications
+        <OracleSearchBar
           dbName={selectedDbName}
           onClarified={(newDbName) => {
             if (newDbName) {
@@ -417,50 +419,29 @@ export function OracleEmbed({
               }));
             }
           }}
-          onReportGenerated={({
-            userQuestion,
-            reportId,
-            status,
-            newDbName,
-          }) => {
+          onReportGenerated={({ userQuestion, reportId, status }) => {
             setReportHistory((prev) => {
               let newHistory: ReportHistory = { ...prev };
 
-              if (newDbName) {
-                newHistory = {
-                  ...prev,
-                  [newDbName]: {
-                    Today: [
-                      {
-                        report_id: reportId,
-                        report_name: userQuestion,
-                        status,
-                        date_created: oracleReportTimestamp(),
-                      },
-                    ],
-                    Yesterday: [],
-                    "Past week": [],
-                    "Past month": [],
-                    Earlier: [],
-                  },
-                };
-              } else {
-                newHistory = {
-                  ...prev,
-                  [selectedDbName]: {
-                    ...prev[selectedDbName],
-                    Today: [
-                      {
-                        report_id: reportId,
-                        report_name: userQuestion,
-                        status,
-                        date_created: oracleReportTimestamp(),
-                      },
-                      ...(prev?.[selectedDbName]?.["Today"] || []),
-                    ],
-                  },
-                };
-              }
+              newHistory = {
+                ...prev,
+                [selectedDbName]: {
+                  ...prev[selectedDbName],
+                  Today: [
+                    {
+                      report_id: reportId,
+                      report_name: userQuestion,
+                      status,
+                      date_created: oracleReportTimestamp(),
+                    },
+                    ...(prev?.[selectedDbName]?.["Today"] || []),
+                  ],
+                  Yesterday: prev?.[selectedDbName]?.["Yesterday"] || [],
+                  "Past week": prev?.[selectedDbName]?.["Past week"] || [],
+                  "Past month": prev?.[selectedDbName]?.["Past month"] || [],
+                  Earlier: prev?.[selectedDbName]?.["Earlier"] || [],
+                },
+              };
 
               return newHistory;
             });
@@ -469,7 +450,6 @@ export function OracleEmbed({
             setSelectedReportId(reportId);
           }}
         />
-        <OracleSearchBar />
       </div>
     );
   }, [messageManager, selectedDbName, updateUrlWithReportId]);
