@@ -25,7 +25,7 @@ import {
 } from "@oracle";
 import { Info, SquarePen } from "lucide-react";
 import { twMerge } from "tailwind-merge";
-import { OracleDraftReport } from "../reports/report-creation/OracleDraftReport";
+import { OracleReportClarifications } from "../reports/report-creation/OracleReportClarifications";
 import { OracleNewDb } from "./OracleNewDb";
 import { OracleThinking } from "../reports/OracleThinking";
 import { OracleEmbedContext } from "./OracleEmbedContext";
@@ -394,8 +394,8 @@ export function OracleEmbed({
 
   const nullState = useMemo(() => {
     return (
-      <div className="w-full h-full flex flex-col items-center">
-        <OracleDraftReport
+      <div className="w-full h-full flex flex-col items-center justify-center">
+        <OracleReportClarifications
           dbName={selectedDbName}
           onClarified={(newDbName) => {
             if (newDbName) {
@@ -602,7 +602,7 @@ export function OracleEmbed({
                 )}
             </div>
           </Sidebar>
-          <div className="flex flex-col grow p-2 overflow-auto">
+          <div className="flex flex-col grow p-2">
             {/* Show OracleNewDb when the "Upload new" option is selected */}
             {selectedReportId === null &&
               selectedDbName === uploadNewDbOption && (

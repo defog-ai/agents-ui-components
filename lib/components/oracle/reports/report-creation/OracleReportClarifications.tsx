@@ -22,7 +22,7 @@ import { OracleSearchBar } from "../../embed/search-bar/OracleSearchBar";
  * Stores the user question and the clarification questions + answers.
  * We don't "create" a report until the user finally submits
  */
-export function OracleDraftReport({
+export function OracleReportClarifications({
   dbName,
   onReportGenerated,
   onClarified = () => {},
@@ -110,9 +110,9 @@ export function OracleDraftReport({
   }, [draft, apiEndpoint, token, dbName, reportId, onReportGenerated, message]);
 
   return (
-    <div className="h-full overflow-auto py-4 px-1 lg:px-10">
-      <div className="flex flex-col items-start justify-center min-h-full m-auto gap-10">
-        {!loading && draft.clarifications && (
+    <div className="">
+      {!loading && draft.clarifications && (
+        <div className="w-full overflow-auto flex flex-col items-start justify-center m-auto gap-10">
           <div className="my-4 max-w-2xl">
             <div className="font-light mb-2 dark:text-gray-300">
               Add Details
@@ -161,15 +161,15 @@ export function OracleDraftReport({
               </Button>
             </div>
           </div>
-        )}
+        </div>
+      )}
 
-        {loading && (
-          <div className="w-full text-sm text-gray-400 dark:text-gray-500 relative flex items-start rounded-xl">
-            <SpinningLoader></SpinningLoader>
-            {loadingStatus.current}
-          </div>
-        )}
-      </div>
+      {loading && (
+        <div className="w-full text-sm text-gray-400 dark:text-gray-500 relative flex items-start rounded-xl">
+          <SpinningLoader></SpinningLoader>
+          {loadingStatus.current}
+        </div>
+      )}
     </div>
   );
 }
