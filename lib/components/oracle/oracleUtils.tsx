@@ -1423,16 +1423,64 @@ export const exportAsPdf = async (
               color: #0366d6;
               text-decoration: none;
             }
+            /* Print-specific styles */
             @media print {
+              /* General print settings */
               body {
                 padding: 0;
                 margin: 0;
+              }
+              
+              /* Hide URL, date, and page numbers */
+              @page {
+                margin: 1cm;
+                size: auto;
+              }
+              
+              /* Chrome, Safari, Edge */
+              @page {
+                size: auto;
+                margin: 5mm 10mm;
+                margin-header: 0;
+                margin-footer: 0;
+              }
+              
+              /* Hide header and footer completely */
+              html {
+                -webkit-print-color-adjust: exact !important;
+              }
+              
+              /* Hide any browser-specific headers and footers */
+              body {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
               }
             }
           </style>
         </head>
         <body>
           ${html}
+          
+          <script>
+            // This script runs in the print window to assist with print settings
+            document.addEventListener('DOMContentLoaded', function() {
+              // Add a small delay for browsers to process the content
+              setTimeout(function() {
+                // Some additional print settings via script
+                const style = document.createElement('style');
+                style.textContent = 
+                  "@media print {" +
+                    "/* More specific fixes for different browsers */" +
+                    "body::before, body::after { display: none !important; }" +
+                    "header, footer { display: none !important; }" +
+                    
+                    "/* Ensure our content is visible */" +
+                    "body { -webkit-print-color-adjust: exact !important; }" +
+                  "}";
+                document.head.appendChild(style);
+              }, 100);
+            });
+          </script>
         </body>
       </html>
     `);
@@ -1441,8 +1489,19 @@ export const exportAsPdf = async (
 
     // Allow some time for resources to load
     setTimeout(() => {
+      // Add a listener to close the window after printing is done
+      if (printWindow.matchMedia) {
+        const mediaQueryList = printWindow.matchMedia("print");
+        mediaQueryList.addEventListener("change", function (mql) {
+          if (!mql.matches) {
+            // Print dialog closed, now close the window
+            setTimeout(() => printWindow.close(), 100);
+          }
+        });
+      }
+
       printWindow.print();
-      printWindow.close();
+      // Don't close immediately - allow the print dialog to appear and let the user finish
     }, 500);
   } finally {
     // Clean up the temporary container
