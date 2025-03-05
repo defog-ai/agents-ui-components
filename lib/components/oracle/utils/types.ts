@@ -1,17 +1,6 @@
 // types.ts
 import { Editor } from "@tiptap/core";
 
-// Comment Types
-export interface OracleReportComment {
-  id: string;
-  text: string;
-  from: number;
-  to: number;
-  color: string;
-  createdAt: string;
-  // Add any other comment properties used in the application
-}
-
 // Analysis Types
 export interface OracleAnalysis {
   analysis_id: string;
@@ -223,4 +212,10 @@ export interface OracleReportComment {
   user?: string | null;
   id: string;
   content: string;
+  // Add fields that were causing type errors
+  text?: string;
+  from?: number;
+  to?: number;
+  color?: string;
+  createdAt?: string;
 }
