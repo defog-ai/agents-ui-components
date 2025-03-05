@@ -7,9 +7,7 @@ import OracleThinkingSQLCard, {
 import OracleThinkingCardSearch, {
   ThinkingStep,
 } from "./OracleThinkingCardSearch";
-import OracleThinkingCardPDF, {
-  ThinkingStepPDF,
-} from "./OracleThinkingCardPDF";
+import OracleThinkingCardPDF from "./OracleThinkingCardPDF";
 
 type OracleThinkingProps = {
   apiEndpoint: string;
