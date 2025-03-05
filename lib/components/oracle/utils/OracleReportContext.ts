@@ -84,28 +84,6 @@ export interface OracleReportContext {
   commentManager?: CommentManager;
 }
 
-export interface AnalysisParsed {
-  analysis_id: string;
-  mdx?: string;
-  tables?: {
-    [key: string]: Table;
-  };
-  multiTables?: {
-    [key: string]: MultiTable;
-  };
-  images?: {
-    [key: string]: Image;
-  };
-  analysis_json: OracleAnalysis;
-  status?: string;
-}
-
-export interface OracleReportComment {
-  user?: string | null;
-  id: string;
-  content: string;
-}
-
 /**
  * Holds the context for the oracle reports
  */

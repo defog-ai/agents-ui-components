@@ -1,8 +1,5 @@
 import { EditorProvider } from "@tiptap/react";
-import {
-  AnalysisParsed,
-  OracleReportContext,
-} from "../utils/OracleReportContext";
+import { AnalysisParsed, OracleReportContext } from "../utils";
 import { analysisExtensions, getReportAnalysis, parseMDX } from "../utils";
 import { useContext, useEffect, useState } from "react";
 import { SpinningLoader } from "@ui-components";
