@@ -548,13 +548,31 @@ export function OracleEmbed({
                               : "text-gray-700 dark:text-gray-300 hover:border-gray-200 dark:hover:border-gray-700"
                           )}
                         >
-                          <div className="line-clamp-2 font-medium">
-                            {report.report_name ||
-                              report.inputs.user_question ||
-                              "Untitled report"}
+                          {/* Use max-height transition for smooth expansion on hover */}
+                          <div
+                            className="overflow-hidden transition-all duration-300 hover:max-h-[500px]"
+                          >
+                            <p
+                              className="font-medium hover:line-clamp-none line-clamp-2"
+                            >
+                              {report.report_name ||
+                                report.inputs.user_question ||
+                                "Untitled report"}
+                            </p>
                           </div>
                           <div className="flex items-center text-xs mt-1.5 text-gray-500 dark:text-gray-400">
-                            <span className="inline-block w-3 h-3 mr-1.5 rounded-full bg-blue-200 dark:bg-blue-700"></span>
+                            <span 
+                              className={`inline-block w-3 h-3 mr-1.5 rounded-full ${
+                                report.status === ORACLE_REPORT_STATUS.DONE 
+                                  ? "bg-blue-200 dark:bg-blue-800" 
+                                  : report.status === ORACLE_REPORT_STATUS.THINKING
+                                    ? "bg-green-300 dark:bg-green-800"
+                                    : report.status === ORACLE_REPORT_STATUS.ERRORED
+                                      ? "bg-red-200 dark:bg-red-800"
+                                      : "bg-blue-200 dark:bg-blue-800"
+                              }`}
+                              title={`Status: ${report.status || "Unknown"}`}
+                            ></span>
                             {new Date(report.date_created + "Z").toLocaleString(
                               undefined,
                               {
