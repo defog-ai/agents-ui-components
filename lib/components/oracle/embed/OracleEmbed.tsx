@@ -352,7 +352,7 @@ export function OracleEmbed({
           }
           rootClassNames="mb-2"
           value={selectedDbName}
-          disabled={selectedReportId === null && hasUploadedDataFiles}
+          // disabled={selectedReportId === null && hasUploadedDataFiles}
           allowClear={false}
           allowCreateNewOption={false}
           options={[

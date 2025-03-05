@@ -1,20 +1,26 @@
 import {
   AlertBanner,
   Button,
-  DropFiles,
   DropFilesHeadless,
   MessageManagerContext,
   SpinningLoader,
   TextArea,
   Toggle,
+  Menu,
+  MenuItem,
+  Dropdown,
 } from "@ui-components";
 import {
+  Axe,
+  ChevronDown,
   Command,
-  File,
   FileSpreadsheet,
   FileText,
   Info,
+  Search,
+  Telescope,
   XCircle,
+  Zap,
 } from "lucide-react";
 import {
   useCallback,
@@ -55,6 +61,26 @@ interface ReportDraft {
    */
   uploadedDataFiles?: UploadedFile[];
 }
+
+type Mode = "query-data" | "oracle";
+const modeDisplayName = {
+  "query-data": "Fast data analysis",
+  oracle: "Deep research",
+};
+
+const modeIcons: Record<Mode, React.ReactNode> = {
+  "query-data": (
+    <Zap className="w-5 stroke-yellow-500 dark:stroke-yellow-600" />
+  ),
+  oracle: <Telescope className="w-5 stroke-blue-500 dark:stroke-blue-400" />,
+};
+
+const modeDescriptions: Record<Mode, string> = {
+  "query-data":
+    "Executes quick, direct SQL queries to retrieve specific data points with minimal processing",
+  oracle:
+    "Performs in-depth analysis, synthesizing multiple data sources to generate comprehensive insights and structured reports",
+};
 
 /**
  * This stores the report before it is submitted for generation.
@@ -161,6 +187,8 @@ export function OracleDraftReport({
   }, [draft?.uploadedDataFiles]);
 
   const [isDropping, setIsDropping] = useState<boolean>(false);
+
+  const [selectedMode, setSelectedMode] = useState<Mode>("query-data");
 
   const UploadedFileIcons = useMemo(() => {
     return draft?.uploadedDataFiles?.length || draft?.uploadedPDFs?.length ? (
@@ -429,7 +457,7 @@ export function OracleDraftReport({
             <TextArea
               prefix={UploadedFileIcons}
               ref={textAreaRef}
-              rootClassNames="p-2 w-full h-full rounded-xl border dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 overflow-hidden"
+              rootClassNames="p-2 w-full h-full rounded-xl border dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700"
               textAreaClassNames="border-0 outline-0 ring-0 shadow-none focus:ring-0"
               suffix={
                 <div className="flex flex-col">
@@ -445,29 +473,63 @@ export function OracleDraftReport({
                     to start. Drop PDFs to add context to the report. Drop CSV
                     or Excel files to analyse them.
                   </div>
-                  <Toggle
-                    title="Use web search to enhance report"
-                    onLabel=""
-                    offLabel=""
-                    defaultOn={draft.useWebsearch}
-                    disabled={
-                      clarificationStarted || Boolean(draft.clarifications)
-                    }
-                    onToggle={(value) => {
-                      setDraft((prev) => ({
-                        ...prev,
-                        useWebsearch: value,
-                      }));
-                    }}
-                    rootClassNames="mt-2"
-                  />
+
+                  <div className="flex flex-row mt-2 gap-4 items-center">
+                    <Dropdown
+                      trigger={
+                        <>
+                          {modeIcons[selectedMode]}
+                          <span className="whitespace-nowrap">
+                            {modeDisplayName[selectedMode]}
+                          </span>
+                          <ChevronDown className="w-4 h-4" />
+                        </>
+                      }
+                    >
+                      {Object.entries(modeIcons).map(([key, icon]) => (
+                        <MenuItem
+                          className="w-96"
+                          onClick={() => setSelectedMode(key)}
+                          active={selectedMode === key}
+                        >
+                          <div className="flex flex-col gap-2">
+                            <span className="flex flex-row items-center gap-2">
+                              {icon}
+                              {modeDisplayName[key]}
+                            </span>
+                            <span className="text-xs text-gray-400">
+                              {modeDescriptions[key]}
+                            </span>
+                          </div>
+                        </MenuItem>
+                      ))}
+                    </Dropdown>
+                    {selectedMode === "oracle" ? (
+                      <Toggle
+                        // size="small"
+                        // title="Use web search to enhance report"
+                        onLabel="Use web search to enhance report"
+                        offLabel="Use web search to enhance report"
+                        defaultOn={draft.useWebsearch}
+                        disabled={
+                          clarificationStarted || Boolean(draft.clarifications)
+                        }
+                        onToggle={(value) => {
+                          setDraft((prev) => ({
+                            ...prev,
+                            useWebsearch: value,
+                          }));
+                        }}
+                      />
+                    ) : null}
+                  </div>
                 </div>
               }
               disabled={loading}
               placeholder={
                 isDropping
                   ? "Release to drop"
-                  : "Type here or drop PDF, CSV or Excel file"
+                  : "Type here or drop PDF, CSV or Excel files"
               }
               autoResize={true}
               defaultRows={1}
