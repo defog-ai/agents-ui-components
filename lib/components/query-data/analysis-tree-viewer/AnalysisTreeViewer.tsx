@@ -16,7 +16,7 @@ import { Sidebar, MessageManagerContext, breakpoints } from "@ui-components";
 import ErrorBoundary from "../../common/ErrorBoundary";
 import { QueryDataEmbedContext } from "../../context/QueryDataEmbedContext";
 import { DraggableInput } from "./DraggableInput";
-import { getMostVisibleAnalysis } from "../agentUtils";
+import { getMostVisibleAnalysis } from "../queryDataUtils";
 import setupBaseUrl from "../../utils/setupBaseUrl";
 import { SkeletalLoader } from "@ui-components";
 import type {
@@ -691,7 +691,9 @@ export function AnalysisTreeViewer({
             beforeTitle={beforeTitle}
             title={
               <h2 className="font-bold text-gray-800 dark:text-gray-200 mb-3 text-lg flex items-center justify-between">
-                <span className="flex items-center"><span className="mr-2">📚</span> History</span>
+                <span className="flex items-center">
+                  <span className="mr-2">📚</span> History
+                </span>
                 <span
                   title="Clear history"
                   className="inline-block text-xs font-medium text-gray-400 cursor-pointer dark:text-gray-500 hover:text-blue-500 dark:hover:text-blue-500 px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"

@@ -46,9 +46,9 @@ function OracleEmbedTest() {
           setUseSystemTheme(false);
           setDarkMode(!darkMode);
         }}
-        className="fixed z-[100] bottom-4 right-4 px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-md shadow-sm hover:shadow-md transition-all"
+        className="rounded-full fixed z-[100] top-2 right-2 p-2 bg-gray-600 dark:bg-gray-700 shadow-sm hover:shadow-md transition-all"
       >
-        {darkMode ? "☀️ Light" : "🌙 Dark"} {useSystemTheme && "(System)"}
+        {darkMode ? "☀️" : "🌙"}
       </button>
       {loading ? (
         <SpinningLoader />

@@ -1,4 +1,4 @@
-import { getClarifications, OracleReportContext } from "@oracle";
+import { getClarifications } from "@oracle";
 import {
   AlertBanner,
   Dropdown,
@@ -31,8 +31,14 @@ import {
   formatFileSize,
   isValidFileType,
 } from "@utils/utils";
+import { statusDescriptions, Mode } from "./oracleSearchBarManager";
+import { OracleReportClarifications } from "../../reports/report-creation/OracleReportClarifications";
+import { twMerge } from "tailwind-merge";
+import {
+  AnalysisTree,
+  AnalysisTreeManager,
+} from "lib/components/query-data/analysis-tree-viewer/analysisTreeManager";
 
-type Mode = "query-data" | "oracle";
 const modeDisplayName = {
   "query-data": "Fast data analysis",
   oracle: "Deep research",
@@ -52,10 +58,25 @@ const modeDescriptions: Record<Mode, string> = {
     "Performs in-depth analysis, synthesizing multiple data sources to generate comprehensive insights and structured reports",
 };
 
-export function OracleSearchBar() {
+export function OracleSearchBar({
+  dbName,
+  analysisTree = null,
+  onClarified,
+  onReportGenerated,
+}: {
+  dbName: string;
+  analysisTree?: AnalysisTree | null;
+  onClarified: (newDbName?: string) => void;
+  onReportGenerated?: (data: {
+    userQuestion: string;
+    reportId: string;
+    status: string;
+  }) => void;
+}) {
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [isDropping, setIsDropping] = useState<boolean>(false);
-  const { searchBarManager } = useContext(OracleEmbedContext);
+  const { searchBarManager, apiEndpoint, token } =
+    useContext(OracleEmbedContext);
 
   const [isMac, setIsMac] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
@@ -69,9 +90,15 @@ export function OracleSearchBar() {
     searchBarManager.getDraft
   );
 
-  const [selectedMode, setSelectedMode] = useState<Mode>("query-data");
-
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
+
+  const analysisTreeManager = useMemo<AnalysisTreeManager | null>(() => {
+    if (analysisTree) {
+      return AnalysisTreeManager(analysisTree);
+    } else {
+      return null;
+    }
+  }, [analysisTree]);
 
   useEffect(() => {
     setIsMac(navigator.userAgent.toLowerCase().includes("mac"));
@@ -178,10 +205,7 @@ export function OracleSearchBar() {
   }, [draft]);
 
   return (
-    <div className="w-full">
-      <div className="text-lg dark:text-gray-200 font-light mb-4">
-        Add a spreadsheet or select a database, and start asking your questions!
-      </div>
+    <>
       {errorMessage && (
         <div className="mb-4">
           <AlertBanner
@@ -192,7 +216,9 @@ export function OracleSearchBar() {
           />
         </div>
       )}
+
       <DropFilesHeadless
+        rootClassNames="min-h-0 relative z-[2] rounded-2xl p-2 shadow-sm border bg-white dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700"
         fileSelection={false}
         allowMultiple={true}
         onDragOver={(e) => {
@@ -304,6 +330,7 @@ export function OracleSearchBar() {
               } else {
                 console.log(`Adding data file: ${file.name}`);
                 searchBarManager.setDraft((prev) => {
+                  console.log(prev);
                   const newDataFiles = [
                     ...prev.uploadedDataFiles,
                     {
@@ -334,11 +361,16 @@ export function OracleSearchBar() {
           newDbInfo.current = null;
         }}
       >
+        {draft.status !== "clarifications_received" && (
+          <div className="text-lg dark:text-gray-200 font-light mb-4">
+            {statusDescriptions[draft.status]}
+          </div>
+        )}
         <TextArea
           prefix={UploadedFileIcons}
           ref={textAreaRef}
-          rootClassNames="p-2 w-full h-full rounded-2xl shadow-md border dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700"
-          textAreaClassNames="border-0 outline-0 ring-0 shadow-none focus:ring-0"
+          rootClassNames="w-full"
+          textAreaClassNames="border-0 outline-0 ring-0 shadow-none focus:ring-0 bg-gray-50"
           suffix={
             <div className="flex flex-col">
               <div className="dark:text-gray-400 border-b dark:border-gray-700 pb-2">
@@ -358,9 +390,9 @@ export function OracleSearchBar() {
                 <Dropdown
                   trigger={
                     <>
-                      {modeIcons[selectedMode]}
+                      {modeIcons[draft.mode]}
                       <span className="whitespace-nowrap">
-                        {modeDisplayName[selectedMode]}
+                        {modeDisplayName[draft.mode]}
                       </span>
                       <ChevronDown className="w-4 h-4" />
                     </>
@@ -369,8 +401,8 @@ export function OracleSearchBar() {
                   {Object.entries(modeIcons).map(([key, icon]) => (
                     <MenuItem
                       className="w-96"
-                      onClick={() => setSelectedMode(key)}
-                      active={selectedMode === key}
+                      onClick={() => searchBarManager.setMode(key as Mode)}
+                      active={draft.mode === key}
                     >
                       <div className="flex flex-col gap-2">
                         <span className="flex flex-row items-center gap-2">
@@ -384,7 +416,7 @@ export function OracleSearchBar() {
                     </MenuItem>
                   ))}
                 </Dropdown>
-                {selectedMode === "oracle" ? (
+                {draft.mode === "oracle" ? (
                   <Toggle
                     // size="small"
                     // title="Use web search to enhance report"
@@ -560,11 +592,11 @@ export function OracleSearchBar() {
 
                 console.log("clarifications", res.clarifications);
 
-                setReportId(res.report_id);
-
                 searchBarManager.setDraft((prev) => ({
                   ...prev,
+                  status: "clarifications_received",
                   clarifications: res.clarifications,
+                  reportId: res.report_id,
                 }));
 
                 // if the res has a db_name and db_info
@@ -586,6 +618,21 @@ export function OracleSearchBar() {
           }}
         />
       </DropFilesHeadless>
-    </div>
+
+      <div
+        className={twMerge(
+          "w-11/12 mx-auto my-0 h-0 relative z-[1] transition-all duration-200 ease-in-out overflow-auto",
+          !loading &&
+            draft.clarifications &&
+            draft.clarifications.length > 0 &&
+            "p-4 h-96 rounded-b-xl bg-blue-200 dark:bg-sky-900 border-t-0"
+        )}
+      >
+        <OracleReportClarifications
+          dbName={dbName}
+          onReportGenerated={onReportGenerated}
+        />
+      </div>
+    </>
   );
 }

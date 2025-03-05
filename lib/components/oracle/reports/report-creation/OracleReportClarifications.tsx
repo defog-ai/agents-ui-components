@@ -16,6 +16,7 @@ import {
 } from "@oracle";
 import { OracleEmbedContext } from "../../embed/OracleEmbedContext";
 import { OracleSearchBar } from "../../embed/search-bar/OracleSearchBar";
+import { statusDescriptions } from "../../embed/search-bar/oracleSearchBarManager";
 
 /**
  * This stores the report before it is submitted for generation.
@@ -25,34 +26,22 @@ import { OracleSearchBar } from "../../embed/search-bar/OracleSearchBar";
 export function OracleReportClarifications({
   dbName,
   onReportGenerated,
-  onClarified = () => {},
 }: {
   dbName: string;
-  onClarified?: (newDbName?: string) => void;
   onReportGenerated?: (data: {
     userQuestion: string;
     reportId: string;
     status: string;
-    newDbName?: string;
   }) => void;
 }) {
   const { apiEndpoint, token, searchBarManager } =
     useContext(OracleEmbedContext);
 
   const [loading, setLoading] = useState<boolean>(false);
-  const [isMac, setIsMac] = useState<boolean>(false);
   const [reportId, setReportId] = useState<string>("");
-  const [clarificationStarted, setClarificationStarted] =
-    useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const loadingStatus = useRef<string>("");
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
-  const newDbName = useRef<string | null>(null);
-  const newDbInfo = useRef<DbInfo | null>(null);
-
-  useEffect(() => {
-    setIsMac(navigator.userAgent.toLowerCase().includes("mac"));
-  }, []);
 
   const message = useContext(MessageManagerContext);
 
@@ -74,7 +63,7 @@ export function OracleReportClarifications({
         await generateReport(
           apiEndpoint,
           token,
-          newDbName.current || dbName,
+          dbName,
           reportId,
           textAreaRef.current?.value || draft.userQuestion,
           draft.clarifications?.filter((c) => c.answer && c.is_answered) || [],
@@ -87,16 +76,11 @@ export function OracleReportClarifications({
           userQuestion: textAreaRef.current?.value || draft.userQuestion,
           reportId: reportId,
           status: ORACLE_REPORT_STATUS.THINKING,
-          newDbName: newDbName.current,
         });
       }
 
       // clear everything
-      searchBarManager.setDraft({
-        useWebsearch: true,
-        uploadedPDFs: [],
-      });
-      setClarificationStarted(false);
+      searchBarManager.resetDraft();
       loadingStatus.current = "";
       textAreaRef.current.value = "";
     } catch (error) {
@@ -110,56 +94,54 @@ export function OracleReportClarifications({
   }, [draft, apiEndpoint, token, dbName, reportId, onReportGenerated, message]);
 
   return (
-    <div className="">
+    <div className="w-full overflow-auto flex flex-col items-start justify-center m-auto">
+      <div className="text-lg dark:text-gray-200 font-light">
+        {statusDescriptions[draft.status]}
+      </div>
       {!loading && draft.clarifications && (
-        <div className="w-full overflow-auto flex flex-col items-start justify-center m-auto gap-10">
-          <div className="my-4 max-w-2xl">
-            <div className="font-light mb-2 dark:text-gray-300">
-              Add Details
+        <div className="my-4 w-full max-w-4xl">
+          <div className="space-y-6">
+            <div className="space-y-2">
+              {draft.clarifications.map((obj, idx) => (
+                <ClarificationItem
+                  {...obj}
+                  key={idx + obj.clarification}
+                  onAnswerChange={(answer) => {
+                    searchBarManager.setDraft((prev) => ({
+                      ...prev,
+                      clarifications: prev.clarifications.map((d, i) => {
+                        if (i === idx) {
+                          return {
+                            ...d,
+                            answer,
+                            is_answered: !answer
+                              ? false
+                              : typeof answer === "string"
+                                ? Boolean(answer)
+                                : answer.length > 0,
+                          };
+                        }
+                        return d;
+                      }),
+                    }));
+                  }}
+                  onDismiss={() => {
+                    searchBarManager.setDraft((prev) => ({
+                      ...prev,
+                      clarifications: prev.clarifications.filter(
+                        (_, i) => i !== idx
+                      ),
+                    }));
+                  }}
+                />
+              ))}
             </div>
-            <div className="space-y-6">
-              <div className="space-y-2">
-                {draft.clarifications.map((obj, idx) => (
-                  <ClarificationItem
-                    {...obj}
-                    key={idx + obj.clarification}
-                    onAnswerChange={(answer) => {
-                      searchBarManager.setDraft((prev) => ({
-                        ...prev,
-                        clarifications: prev.clarifications.map((d, i) => {
-                          if (i === idx) {
-                            return {
-                              ...d,
-                              answer,
-                              is_answered: !answer
-                                ? false
-                                : typeof answer === "string"
-                                  ? Boolean(answer)
-                                  : answer.length > 0,
-                            };
-                          }
-                          return d;
-                        }),
-                      }));
-                    }}
-                    onDismiss={() => {
-                      searchBarManager.setDraft((prev) => ({
-                        ...prev,
-                        clarifications: prev.clarifications.filter(
-                          (_, i) => i !== idx
-                        ),
-                      }));
-                    }}
-                  />
-                ))}
-              </div>
-              <Button
-                className="bg-gray-600 text-white border-0 hover:bg-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600"
-                onClick={handleGenerateReport}
-              >
-                {loading ? loadingStatus.current : "Generate"}
-              </Button>
-            </div>
+            <Button
+              className="bg-gray-600 text-white border-0 hover:bg-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600"
+              onClick={handleGenerateReport}
+            >
+              {loading ? loadingStatus.current : "Generate"}
+            </Button>
           </div>
         </div>
       )}

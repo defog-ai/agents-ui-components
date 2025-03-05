@@ -3,7 +3,7 @@ import setupBaseUrl from "./setupBaseUrl";
 import { Annotation, EditorState, Transaction } from "@codemirror/state";
 import { csvParse } from "d3";
 import { useEffect, useState } from "react";
-import { reFormatData } from "../query-data/agentUtils";
+import { reFormatData } from "../query-data/queryDataUtils";
 
 export const fetchAnalysis = async (
   analysisId: string,
