@@ -279,6 +279,7 @@ export function OracleDraftReport({
           )}
           <DropFilesHeadless
             fileSelection={false}
+            allowMultiple={true}
             onDragOver={(e) => {
               e.preventDefault();
               e.stopPropagation();
@@ -294,60 +295,114 @@ export function OracleDraftReport({
               e.stopPropagation();
               setIsDropping(false);
 
-              let dataTransferObject: DataTransferItem =
-                e?.dataTransfer?.items?.[0];
-              if (
-                !dataTransferObject ||
-                !dataTransferObject.kind ||
-                dataTransferObject.kind !== "file"
-              ) {
-                throw new Error("Invalid file");
+              console.log("Drop event triggered");
+              
+              // Handle dropped files
+              const dataTransfer = e.dataTransfer;
+              if (!dataTransfer) {
+                console.error("No dataTransfer in drop event");
+                return;
               }
+              
+              // Log the number of files in both interfaces
+              console.log(`Files in dataTransfer.files: ${dataTransfer.files ? dataTransfer.files.length : 0}`);
+              console.log(`Items in dataTransfer.items: ${dataTransfer.items ? dataTransfer.items.length : 0}`);
 
-              if (!isValidFileType(dataTransferObject.type, true)) {
-                throw new Error("Only CSV, Excel or PDF files are accepted");
+              // Array to collect all files for processing
+              const filesToProcess = [];
+              
+              // Prefer DataTransfer.files as it's more widely supported
+              if (dataTransfer.files && dataTransfer.files.length > 0) {
+                console.log("Processing files from dataTransfer.files");
+                for (let i = 0; i < dataTransfer.files.length; i++) {
+                  const file = dataTransfer.files[i];
+                  console.log(`Checking file ${i}: ${file.name} (${file.type})`);
+                  
+                  if (isValidFileType(file.type, true)) {
+                    console.log(`File is valid: ${file.name}`);
+                    filesToProcess.push(file);
+                  } else {
+                    console.warn(`Skipping invalid file type: ${file.type} (${file.name})`);
+                  }
+                }
               }
-
-              let file = dataTransferObject.getAsFile();
-
-              const buf = await file.arrayBuffer();
-
-              if (file.type.endsWith("pdf")) {
-                const newPDFs = [
-                  ...draft.uploadedPDFs,
-                  {
-                    buf,
-                    fileName: file.name,
-                    size: file.size,
-                    type: file.type,
-                    isCsv: false,
-                    isPdf: true,
-                  },
-                ];
-
-                setDraft((prev) => ({
-                  ...prev,
-                  uploadedPDFs: newPDFs,
-                }));
-              } else {
-                const newDataFiles = [
-                  ...draft.uploadedDataFiles,
-                  {
-                    buf,
-                    fileName: file.name,
-                    size: file.size,
-                    type: file.type,
-                    isPdf: false,
-                    isCsv: true,
-                  },
-                ];
-
-                setDraft((prev) => ({
-                  ...prev,
-                  uploadedDataFiles: newDataFiles,
-                }));
+              // As a fallback, try DataTransfer.items 
+              else if (dataTransfer.items && dataTransfer.items.length > 0) {
+                console.log("Processing files from dataTransfer.items");
+                for (let i = 0; i < dataTransfer.items.length; i++) {
+                  const item = dataTransfer.items[i];
+                  console.log(`Checking item ${i}: kind=${item.kind}, type=${item.type}`);
+                  
+                  if (item.kind === 'file' && isValidFileType(item.type, true)) {
+                    const file = item.getAsFile();
+                    if (file) {
+                      console.log(`Item converted to file: ${file.name}`);
+                      filesToProcess.push(file);
+                    }
+                  }
+                }
               }
-
+              
+              console.log(`Total valid files to process: ${filesToProcess.length}`);
+              
+              if (filesToProcess.length === 0) {
+                console.error("No valid files found");
+                throw new Error("No valid files found. Only CSV, Excel or PDF files are accepted.");
+              }
+              
+              // Process all collected files
+              for (const file of filesToProcess) {
+                try {
+                  console.log(`Processing file: ${file.name}`);
+                  const buf = await file.arrayBuffer();
+                  
+                  if (file.type.endsWith("pdf")) {
+                    console.log(`Adding PDF: ${file.name}`);
+                    setDraft((prev) => {
+                      const newPDFs = [
+                        ...prev.uploadedPDFs,
+                        {
+                          buf,
+                          fileName: file.name,
+                          size: file.size,
+                          type: file.type,
+                          isCsv: false,
+                          isPdf: true,
+                        }
+                      ];
+                      console.log(`Total PDFs after adding: ${newPDFs.length}`);
+                      return {
+                        ...prev,
+                        uploadedPDFs: newPDFs
+                      };
+                    });
+                  } else {
+                    console.log(`Adding data file: ${file.name}`);
+                    setDraft((prev) => {
+                      const newDataFiles = [
+                        ...prev.uploadedDataFiles,
+                        {
+                          buf,
+                          fileName: file.name,
+                          size: file.size,
+                          type: file.type,
+                          isPdf: false,
+                          isCsv: true,
+                        }
+                      ];
+                      console.log(`Total data files after adding: ${newDataFiles.length}`);
+                      return {
+                        ...prev,
+                        uploadedDataFiles: newDataFiles
+                      };
+                    });
+                  }
+                } catch (error) {
+                  console.error(`Error processing file ${file.name}:`, error);
+                }
+              }
+              
+              // Reset database info since we've added new files
               newDbName.current = null;
               newDbInfo.current = null;
             }}
