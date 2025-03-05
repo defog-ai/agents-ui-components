@@ -225,6 +225,10 @@ interface DropdownProps {
    * The class names of the label
    */
   labelClassNames?: string;
+  /**
+   * The class names of the trigger
+   */
+  triggerClassNames?: string;
 }
 
 /**
@@ -237,6 +241,7 @@ export function Dropdown({
   placement = "bottom-left",
   label = null,
   labelClassNames = "",
+  triggerClassNames = "",
 }: DropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -303,7 +308,12 @@ export function Dropdown({
           </label>
         )}
 
-        <Button className="flex items-center gap-2 rounded-xl bg-transparent dark:bg-transparent">
+        <Button
+          className={twMerge(
+            "flex items-center gap-2 rounded-xl bg-transparent dark:bg-transparent",
+            triggerClassNames
+          )}
+        >
           {trigger}
         </Button>
       </div>
