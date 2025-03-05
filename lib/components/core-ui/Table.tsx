@@ -157,12 +157,12 @@ const defaultRowCellRender = ({
 const defaultSorter = (a: any, b: any, dataIndex: string): number => {
   const aValue = a[dataIndex];
   const bValue = b[dataIndex];
-  
+
   // Check if both values are numeric (including negative numbers and floats)
   if (!isNaN(parseFloat(aValue)) && !isNaN(parseFloat(bValue))) {
     return parseFloat(aValue) - parseFloat(bValue);
   }
-  
+
   // Fall back to string comparison for non-numeric values
   return String(aValue).localeCompare(String(bValue));
 };
@@ -456,72 +456,85 @@ export function Table({
 
     const updateScrollIndicators = () => {
       // Check if scrollable
-      const isHorizontallyScrollable = container.scrollWidth > container.clientWidth;
-      const isVerticallyScrollable = container.scrollHeight > container.clientHeight;
-      
+      const isHorizontallyScrollable =
+        container.scrollWidth > container.clientWidth;
+      const isVerticallyScrollable =
+        container.scrollHeight > container.clientHeight;
+
       // Get all indicators
-      const rightIndicator = container.querySelector('.horizontal-scroll-indicator-right') as HTMLElement;
-      const leftIndicator = container.querySelector('.horizontal-scroll-indicator-left') as HTMLElement;
-      const bottomIndicator = container.querySelector('.vertical-scroll-indicator-bottom') as HTMLElement;
-      const topIndicator = container.querySelector('.vertical-scroll-indicator-top') as HTMLElement;
-      
-      // Update cursor style based on scrollability
-      if (isHorizontallyScrollable || isVerticallyScrollable) {
-        container.style.cursor = "grab";
-      } else {
-        container.style.cursor = "default";
-      }
-      
+      const rightIndicator = container.querySelector(
+        ".horizontal-scroll-indicator-right"
+      ) as HTMLElement;
+      const leftIndicator = container.querySelector(
+        ".horizontal-scroll-indicator-left"
+      ) as HTMLElement;
+      const bottomIndicator = container.querySelector(
+        ".vertical-scroll-indicator-bottom"
+      ) as HTMLElement;
+      const topIndicator = container.querySelector(
+        ".vertical-scroll-indicator-top"
+      ) as HTMLElement;
+
+      container.style.cursor = "default";
+
       // Horizontal scroll indicators
       if (isHorizontallyScrollable) {
         // Right indicator - show when not scrolled all the way right
         if (rightIndicator) {
-          const opacity = container.scrollLeft < (container.scrollWidth - container.clientWidth - 10) ? '0.7' : '0';
+          const opacity =
+            container.scrollLeft <
+            container.scrollWidth - container.clientWidth - 10
+              ? "0.7"
+              : "0";
           rightIndicator.style.opacity = opacity;
-          rightIndicator.style.setProperty('--opacity-value', opacity);
+          rightIndicator.style.setProperty("--opacity-value", opacity);
         }
-        
+
         // Left indicator - show when scrolled right
         if (leftIndicator) {
-          const opacity = container.scrollLeft > 10 ? '0.7' : '0';
+          const opacity = container.scrollLeft > 10 ? "0.7" : "0";
           leftIndicator.style.opacity = opacity;
-          leftIndicator.style.setProperty('--opacity-value', opacity);
+          leftIndicator.style.setProperty("--opacity-value", opacity);
         }
       }
-      
+
       // Vertical scroll indicators
       if (isVerticallyScrollable) {
         // Bottom indicator - show when not scrolled all the way down
         if (bottomIndicator) {
-          const opacity = container.scrollTop < (container.scrollHeight - container.clientHeight - 10) ? '0.7' : '0';
+          const opacity =
+            container.scrollTop <
+            container.scrollHeight - container.clientHeight - 10
+              ? "0.7"
+              : "0";
           bottomIndicator.style.opacity = opacity;
-          bottomIndicator.style.setProperty('--opacity-value', opacity);
+          bottomIndicator.style.setProperty("--opacity-value", opacity);
         }
-        
+
         // Top indicator - show when scrolled down
         if (topIndicator) {
-          const opacity = container.scrollTop > 10 ? '0.7' : '0';
+          const opacity = container.scrollTop > 10 ? "0.7" : "0";
           topIndicator.style.opacity = opacity;
-          topIndicator.style.setProperty('--opacity-value', opacity);
+          topIndicator.style.setProperty("--opacity-value", opacity);
         }
       }
     };
 
     // Run initially
     updateScrollIndicators();
-    
+
     // Add scroll event listener
-    container.addEventListener('scroll', updateScrollIndicators);
-    
+    container.addEventListener("scroll", updateScrollIndicators);
+
     // Add resize observer to detect when table size changes
     const resizeObserver = new ResizeObserver(() => {
       updateScrollIndicators();
     });
-    
+
     resizeObserver.observe(container);
-    
+
     return () => {
-      container.removeEventListener('scroll', updateScrollIndicators);
+      container.removeEventListener("scroll", updateScrollIndicators);
       resizeObserver.disconnect();
     };
   }, []);
@@ -664,19 +677,19 @@ export function Table({
         style={{ minHeight: `${minTableHeight}px` }}
       >
         {isPending && <TableLoader />}
-        
+
         {/* Horizontal scroll indicator - right */}
         <div className="absolute right-0 top-0 bottom-0 w-8 pointer-events-none z-10 bg-gradient-to-l from-white dark:from-gray-900 to-transparent opacity-0 transition-opacity duration-300 horizontal-scroll-indicator-right"></div>
-        
+
         {/* Horizontal scroll indicator - left */}
         <div className="absolute left-0 top-0 bottom-0 w-8 pointer-events-none z-10 bg-gradient-to-r from-white dark:from-gray-900 to-transparent opacity-0 transition-opacity duration-300 horizontal-scroll-indicator-left"></div>
-        
+
         {/* Vertical scroll indicator - bottom */}
         <div className="absolute left-0 right-0 bottom-0 h-8 pointer-events-none z-10 bg-gradient-to-t from-white dark:from-gray-900 to-transparent opacity-0 transition-opacity duration-300 vertical-scroll-indicator-bottom"></div>
-        
+
         {/* Vertical scroll indicator - top */}
         <div className="absolute left-0 right-0 top-0 h-8 pointer-events-none z-10 bg-gradient-to-b from-white dark:from-gray-900 to-transparent opacity-0 transition-opacity duration-300 vertical-scroll-indicator-top"></div>
-        
+
         <table className="w-full divide-y divide-gray-300 dark:divide-gray-700">
           <thead className="bg-gray-50 dark:bg-gray-800 sticky top-0 z-10">
             <tr>
