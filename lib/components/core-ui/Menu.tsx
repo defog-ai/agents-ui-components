@@ -245,6 +245,10 @@ export function Dropdown({
 }: DropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLDivElement>(null);
+  const [calculatedPlacement, setCalculatedPlacement] = useState<
+    "bottom-left" | "bottom-right" | "top-left" | "top-right"
+  >(placement);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -263,11 +267,73 @@ export function Dropdown({
     };
   }, []);
 
+  // Calculate the best placement based on window height and trigger position
+  const updatePlacement = () => {
+    if (triggerRef.current && dropdownRef.current) {
+      const triggerRect = triggerRef.current.getBoundingClientRect();
+      const dropdownRect = dropdownRef.current.getBoundingClientRect();
+      const windowHeight = window.innerHeight;
+      const windowWidth = window.innerWidth;
+
+      // Check if there's enough space below
+      const spaceBelow = windowHeight - triggerRect.bottom;
+      const spaceAbove = triggerRect.top;
+
+      // Check if there's enough space to the right
+      const spaceRight = windowWidth - triggerRect.right;
+      const spaceLeft = triggerRect.left;
+
+      // Determine vertical placement (top or bottom)
+      const verticalPlacement =
+        spaceBelow >= dropdownRect.height || spaceBelow >= spaceAbove
+          ? "bottom"
+          : "top";
+
+      // Determine horizontal placement (left or right)
+      const horizontalPlacement =
+        spaceRight >= dropdownRect.width || spaceRight >= spaceLeft
+          ? "left"
+          : "right";
+
+      // Set the calculated placement
+      setCalculatedPlacement(
+        `${verticalPlacement}-${horizontalPlacement}` as
+          | "bottom-left"
+          | "bottom-right"
+          | "top-left"
+          | "top-right"
+      );
+    }
+  };
+
+  // Update placement when dropdown opens
+  useEffect(() => {
+    if (isOpen) {
+      // Set initial placement
+      setCalculatedPlacement(placement);
+
+      // We need to wait for the dropdown to render before calculating its position
+      setTimeout(() => {
+        updatePlacement();
+      }, 0);
+
+      // Update placement on window resize
+      window.addEventListener("resize", updatePlacement);
+      // Update placement on scroll
+      window.addEventListener("scroll", updatePlacement, true);
+
+      return () => {
+        window.removeEventListener("resize", updatePlacement);
+        window.removeEventListener("scroll", updatePlacement, true);
+      };
+    }
+  }, [isOpen, placement]);
+
   const placementClasses = {
-    "bottom-left": "top-full left-0",
-    "bottom-right": "top-full right-0",
-    "top-left": "bottom-full left-0",
-    "top-right": "bottom-full right-0",
+    "bottom-left": "top-full mt-1 left-0",
+    "bottom-right": "top-full mt-1 right-0",
+    "top-left": "bottom-full mb-1 left-0",
+    "top-right": "bottom-full mb-1 right-0",
   };
 
   // Function to close the dropdown
@@ -294,6 +360,7 @@ export function Dropdown({
       className={twMerge("agui-dropdown relative", className)}
     >
       <div
+        ref={triggerRef}
         className="agui-dropdown-trigger cursor-pointer"
         onClick={() => setIsOpen(!isOpen)}
       >
@@ -320,8 +387,8 @@ export function Dropdown({
       {isOpen && (
         <div
           className={twMerge(
-            "agui-dropdown-content absolute z-10 mt-1 min-w-[200px] bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg",
-            placementClasses[placement]
+            "agui-dropdown-content absolute z-10 mt-1 min-w-[200px] bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg overflow-auto",
+            placementClasses[calculatedPlacement]
           )}
         >
           {childrenWithProps}

@@ -113,7 +113,7 @@ export function OracleReport({
         }),
       }}
     >
-      <div className="flex flex-col lg:flex-row gap-4 relative">
+      <div className="flex flex-col lg:flex-row gap-4 relative overflow-auto">
         <div className="flex-1 relative oracle-report-ctr">
           <EditorProvider
             extensions={extensions}
