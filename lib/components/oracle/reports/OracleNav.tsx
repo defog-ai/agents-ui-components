@@ -7,14 +7,14 @@ import {
 } from "react";
 import { Download, FileText, Info, MessageSquare } from "lucide-react";
 import { Button, MessageManagerContext, Modal, TextArea } from "@ui-components";
-import { OracleReportContext } from "../OracleReportContext";
+import { OracleReportContext } from "../utils/OracleReportContext";
 import { EditorProvider, useCurrentEditor } from "@tiptap/react";
 import {
   revisionExtensions,
   submitForRevision,
   exportAsMarkdown,
   exportAsPdf,
-} from "../oracleUtils";
+} from "../utils";
 import { OracleCommentsSidebar } from "./tiptap-extensions/comments/OracleCommentsSidebar";
 
 export const OracleNav = ({

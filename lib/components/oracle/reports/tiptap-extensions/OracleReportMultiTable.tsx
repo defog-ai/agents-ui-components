@@ -6,9 +6,9 @@ import {
   ReactNodeViewRenderer,
 } from "@tiptap/react";
 import { useContext, useMemo, useState } from "react";
-import { OracleReportContext } from "../../OracleReportContext";
+import { OracleReportContext } from "../../utils/OracleReportContext";
 import { Table, Tabs } from "@ui-components";
-import { TABLE_TYPE_TO_NAME } from "../../oracleUtils";
+import { TABLE_TYPE_TO_NAME } from "../../utils";
 import ErrorBoundary from "../../../common/ErrorBoundary";
 import { ChartContainer } from "../../../observable-charts/ChartContainer";
 

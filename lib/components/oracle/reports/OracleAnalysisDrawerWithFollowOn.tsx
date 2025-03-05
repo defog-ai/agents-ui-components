@@ -1,5 +1,5 @@
-import { OracleReportContext } from "../OracleReportContext";
-import { deleteAnalysis, generateNewAnalysis } from "../oracleUtils";
+import { OracleReportContext } from "../utils/OracleReportContext";
+import { deleteAnalysis, generateNewAnalysis } from "../utils";
 import { Input } from "@ui-components";
 import { useContext, useRef, useState } from "react";
 import { OracleAnalysis } from "./OracleAnalysis";

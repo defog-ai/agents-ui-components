@@ -1,60 +1,5 @@
 import { createContext } from "react";
-import { CommentManager } from "./oracleUtils";
-
-export interface Segment {
-  name: string;
-  description: string;
-  "table.column": string[];
-}
-
-export interface Artifacts {
-  fetched_table_csv?: {
-    artifact_content?: string;
-    data?: any[];
-    columns?: any[];
-  };
-}
-
-interface Recommendation {
-  title: string;
-  insight: string;
-  action: string;
-  id: string;
-  analysis_reference: string[];
-}
-
-export interface Summary {
-  title: string;
-  introduction: string;
-  recommendations: Recommendation[];
-}
-
-export interface Working {
-  generated_sql: string;
-}
-
-export interface Analysis {
-  analysis_id: string;
-  generated_qn?: string;
-  segment?: Segment;
-  artifacts?: Artifacts;
-  working?: Working;
-  summary?: string;
-  title?: string;
-  round?: number;
-}
-
-export interface OracleAnalysis {
-  question: string;
-  analysis_id?: string;
-  function_name?: string;
-  columns?: any[];
-  rows?: any[];
-  df_truncated?: boolean;
-  error?: string;
-  inputs?: Record<string, any>;
-  result?: Record<string, any>;
-}
+import { CommentManager, OracleAnalysis, Summary } from "./types";
 
 interface MultiTable {
   [key: string]: {
@@ -81,22 +26,6 @@ interface Image {
   alt: string;
   attributes?: Object;
   fullText?: string;
-}
-
-export interface AnalysisParsed {
-  analysis_id: string;
-  mdx?: string;
-  tables?: {
-    [key: string]: Table;
-  };
-  multiTables?: {
-    [key: string]: MultiTable;
-  };
-  images?: {
-    [key: string]: Image;
-  };
-  analysis_json: Analysis;
-  status?: string;
 }
 
 export interface OracleReportContext {
@@ -174,9 +103,3 @@ export const OracleReportContext = createContext<OracleReportContext>({
     recommendations: [],
   },
 });
-
-export interface OracleReportComment {
-  user?: string | null;
-  id: string;
-  content: string;
-}
