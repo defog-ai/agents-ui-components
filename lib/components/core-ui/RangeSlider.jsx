@@ -53,7 +53,7 @@ export function RangeSlider({
     const domain = d3Range(
       0,
       1 + 0.9 / (values.length - 1),
-      1 / (values.length - 1)
+      1 / (values.length - 1),
     );
 
     const findClosest = (x) => {
@@ -94,20 +94,20 @@ export function RangeSlider({
         className={twMerge(
           "relative bg-white dark:bg-gray-800 flex justify-center items-center overflow-visible",
           vertical ? "w-8" : "h-8",
-          rootClassNames
+          rootClassNames,
         )}
         ref={ctr}
       >
         <div
           className={twMerge(
             "absolute rounded-full bg-gray-100 dark:bg-gray-700",
-            vertical ? "top-0 w-5 h-full" : "left-0 h-5 w-full"
+            vertical ? "top-0 w-5 h-full" : "left-0 h-5 w-full",
           )}
         ></div>
         <div
           className={twMerge(
             "track bg-indigo-600 dark:bg-indigo-500 border dark:border-gray-600 rounded-full absolute hover:opacity-50 transition-all cursor-pointer",
-            vertical ? "w-5" : "h-5"
+            vertical ? "w-5" : "h-5",
           )}
           style={trackStyles}
           draggable
@@ -130,7 +130,7 @@ export function RangeSlider({
               newLeftSlider = scale(leftRaw);
 
               newRightSlider = scale(
-                leftRaw + (rightSlider.left - leftSlider.left)
+                leftRaw + (rightSlider.left - leftSlider.left),
               );
 
               if (newLeftSlider.value === newRightSlider.value) return;
@@ -146,7 +146,7 @@ export function RangeSlider({
               newLeftSlider = scale(topRaw);
 
               newRightSlider = scale(
-                topRaw + (rightSlider.top - leftSlider.top)
+                topRaw + (rightSlider.top - leftSlider.top),
               );
 
               if (newLeftSlider.value === newRightSlider.value) return;
@@ -166,13 +166,13 @@ export function RangeSlider({
             "pointer-events-none absolute",
             vertical
               ? "h-full w-3 top-0 left-1/2 transform -translate-x-1/2"
-              : "w-full h-3 left-0 top-1/2 transform -translate-y-1/2"
+              : "w-full h-3 left-0 top-1/2 transform -translate-y-1/2",
           )}
         >
           <div
             className={twMerge(
               "left-slider absolute rounded-full pointer-events-auto hover:scale-150 transition-all",
-              vertical ? "h-0 w-3" : "w-0 h-3"
+              vertical ? "h-0 w-3" : "w-0 h-3",
             )}
             draggable
             data-value={sliders[0].value}
@@ -220,7 +220,7 @@ export function RangeSlider({
                     top: newTop,
                   },
                   sliders[1],
-                ].sort((a, b) => a.value - b.value)
+                ].sort((a, b) => a.value - b.value),
               );
 
               onChange(sliders.map((d) => d.value));
@@ -233,7 +233,7 @@ export function RangeSlider({
             <div
               className={twMerge(
                 "w-3 h-3 absolute cursor-pointer border-2 border-indigo-600 dark:border-indigo-500 bg-white dark:bg-gray-200 rounded-full",
-                vertical ? "top-0" : "left-0"
+                vertical ? "top-0" : "left-0",
               )}
             ></div>
           </div>
@@ -243,13 +243,13 @@ export function RangeSlider({
             "pointer-events-none absolute",
             vertical
               ? "h-full w-3 top-0 left-1/2 transform -translate-x-1/2"
-              : "w-full h-3 left-0 top-1/2 transform -translate-y-1/2"
+              : "w-full h-3 left-0 top-1/2 transform -translate-y-1/2",
           )}
         >
           <div
             className={twMerge(
               "right-slider absolute rounded-full pointer-events-auto hover:scale-150 transition-all",
-              vertical ? "h-0 w-3" : "w-0 h-3"
+              vertical ? "h-0 w-3" : "w-0 h-3",
             )}
             draggable
             data-value={sliders[1].value}
@@ -297,7 +297,7 @@ export function RangeSlider({
                     left: newLeft,
                     top: newTop,
                   },
-                ].sort((a, b) => a.value - b.value)
+                ].sort((a, b) => a.value - b.value),
               );
 
               onChange(sliders.map((d) => d.value));
@@ -309,7 +309,7 @@ export function RangeSlider({
             <div
               className={twMerge(
                 "w-3 h-3 absolute cursor-pointer border-2 border-indigo-600 dark:border-indigo-500 bg-white dark:bg-gray-200 rounded-full",
-                vertical ? "bottom-0" : "right-0"
+                vertical ? "bottom-0" : "right-0",
               )}
             ></div>
           </div>

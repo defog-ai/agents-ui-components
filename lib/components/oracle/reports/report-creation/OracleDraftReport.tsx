@@ -296,44 +296,57 @@ export function OracleDraftReport({
               setIsDropping(false);
 
               console.log("Drop event triggered");
-              
+
               // Handle dropped files
               const dataTransfer = e.dataTransfer;
               if (!dataTransfer) {
                 console.error("No dataTransfer in drop event");
                 return;
               }
-              
+
               // Log the number of files in both interfaces
-              console.log(`Files in dataTransfer.files: ${dataTransfer.files ? dataTransfer.files.length : 0}`);
-              console.log(`Items in dataTransfer.items: ${dataTransfer.items ? dataTransfer.items.length : 0}`);
+              console.log(
+                `Files in dataTransfer.files: ${dataTransfer.files ? dataTransfer.files.length : 0}`
+              );
+              console.log(
+                `Items in dataTransfer.items: ${dataTransfer.items ? dataTransfer.items.length : 0}`
+              );
 
               // Array to collect all files for processing
               const filesToProcess = [];
-              
+
               // Prefer DataTransfer.files as it's more widely supported
               if (dataTransfer.files && dataTransfer.files.length > 0) {
                 console.log("Processing files from dataTransfer.files");
                 for (let i = 0; i < dataTransfer.files.length; i++) {
                   const file = dataTransfer.files[i];
-                  console.log(`Checking file ${i}: ${file.name} (${file.type})`);
-                  
+                  console.log(
+                    `Checking file ${i}: ${file.name} (${file.type})`
+                  );
+
                   if (isValidFileType(file.type, true)) {
                     console.log(`File is valid: ${file.name}`);
                     filesToProcess.push(file);
                   } else {
-                    console.warn(`Skipping invalid file type: ${file.type} (${file.name})`);
+                    console.warn(
+                      `Skipping invalid file type: ${file.type} (${file.name})`
+                    );
                   }
                 }
               }
-              // As a fallback, try DataTransfer.items 
+              // As a fallback, try DataTransfer.items
               else if (dataTransfer.items && dataTransfer.items.length > 0) {
                 console.log("Processing files from dataTransfer.items");
                 for (let i = 0; i < dataTransfer.items.length; i++) {
                   const item = dataTransfer.items[i];
-                  console.log(`Checking item ${i}: kind=${item.kind}, type=${item.type}`);
-                  
-                  if (item.kind === 'file' && isValidFileType(item.type, true)) {
+                  console.log(
+                    `Checking item ${i}: kind=${item.kind}, type=${item.type}`
+                  );
+
+                  if (
+                    item.kind === "file" &&
+                    isValidFileType(item.type, true)
+                  ) {
                     const file = item.getAsFile();
                     if (file) {
                       console.log(`Item converted to file: ${file.name}`);
@@ -342,20 +355,24 @@ export function OracleDraftReport({
                   }
                 }
               }
-              
-              console.log(`Total valid files to process: ${filesToProcess.length}`);
-              
+
+              console.log(
+                `Total valid files to process: ${filesToProcess.length}`
+              );
+
               if (filesToProcess.length === 0) {
                 console.error("No valid files found");
-                throw new Error("No valid files found. Only CSV, Excel or PDF files are accepted.");
+                throw new Error(
+                  "No valid files found. Only CSV, Excel or PDF files are accepted."
+                );
               }
-              
+
               // Process all collected files
               for (const file of filesToProcess) {
                 try {
                   console.log(`Processing file: ${file.name}`);
                   const buf = await file.arrayBuffer();
-                  
+
                   if (file.type.endsWith("pdf")) {
                     console.log(`Adding PDF: ${file.name}`);
                     setDraft((prev) => {
@@ -368,12 +385,12 @@ export function OracleDraftReport({
                           type: file.type,
                           isCsv: false,
                           isPdf: true,
-                        }
+                        },
                       ];
                       console.log(`Total PDFs after adding: ${newPDFs.length}`);
                       return {
                         ...prev,
-                        uploadedPDFs: newPDFs
+                        uploadedPDFs: newPDFs,
                       };
                     });
                   } else {
@@ -388,12 +405,14 @@ export function OracleDraftReport({
                           type: file.type,
                           isPdf: false,
                           isCsv: true,
-                        }
+                        },
                       ];
-                      console.log(`Total data files after adding: ${newDataFiles.length}`);
+                      console.log(
+                        `Total data files after adding: ${newDataFiles.length}`
+                      );
                       return {
                         ...prev,
-                        uploadedDataFiles: newDataFiles
+                        uploadedDataFiles: newDataFiles,
                       };
                     });
                   }
@@ -401,7 +420,7 @@ export function OracleDraftReport({
                   console.error(`Error processing file ${file.name}:`, error);
                 }
               }
-              
+
               // Reset database info since we've added new files
               newDbName.current = null;
               newDbInfo.current = null;

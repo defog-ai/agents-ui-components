@@ -32,7 +32,9 @@ const LineChartControls = () => {
         <div>
           <div className="mt-2 space-y-4">
             <div>
-              <h3 className="mb-2 input-label dark:text-gray-300">Line Width</h3>
+              <h3 className="mb-2 input-label dark:text-gray-300">
+                Line Width
+              </h3>
               <Slider
                 min={1}
                 max={10}
@@ -75,7 +77,7 @@ const LineChartControls = () => {
                       handleLineOptionChange(
                         column,
                         "stroke",
-                        color.cleared ? null : color.toHexString()
+                        color.cleared ? null : color.toHexString(),
                       )
                     }
                   />

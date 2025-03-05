@@ -23,7 +23,7 @@ export function CheckGroup({
   defaultChecked = null,
 }) {
   const [selectedOption, setSelectedOption] = useState(
-    defaultChecked || options?.[0]?.id
+    defaultChecked || options?.[0]?.id,
   );
 
   return (
@@ -32,7 +32,9 @@ export function CheckGroup({
         {title}
       </legend>
       {subhead && (
-        <p className="mt-1 text-sm leading-6 text-gray-600 dark:text-gray-400">{subhead}</p>
+        <p className="mt-1 text-sm leading-6 text-gray-600 dark:text-gray-400">
+          {subhead}
+        </p>
       )}
 
       <div className="mt-2 space-y-6 sm:flex sm:items-center sm:space-x-10 sm:space-y-0">

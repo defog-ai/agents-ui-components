@@ -39,7 +39,7 @@ export function Slider({
         // white slider with indigo thumb
         className={twMerge(
           "w-ful bg-white dark:bg-gray-800 border appearance-none rounded-2xl",
-          rootClassNames
+          rootClassNames,
         )}
         type="range"
         min={min}

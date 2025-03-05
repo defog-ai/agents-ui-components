@@ -63,7 +63,7 @@ const FilterBuilder = ({ columns }) => {
                 };
 
                 return operatorFunctions[operator](compareValue, filterValue);
-              }
+              },
             );
           }
         : null;
@@ -72,17 +72,17 @@ const FilterBuilder = ({ columns }) => {
         .updateChartSpecificOptions({ filter: filterFunction })
         .render();
     },
-    [chartManager.config, columns]
+    [chartManager.config, columns],
   );
 
   const debouncedUpdateFilterFunction = useCallback(
     debounce(updateFilterFunction, 200),
-    [updateFilterFunction]
+    [updateFilterFunction],
   );
 
   useEffect(() => {
     const selectedColumnKeys = Object.values(
-      chartManager.config.selectedColumns || {}
+      chartManager.config.selectedColumns || {},
     ).flat();
 
     const newFilters = filters.map((filter) => ({
@@ -271,7 +271,7 @@ const FilterBuilder = ({ columns }) => {
                       .filter(
                         (col) =>
                           col.dataIndex === filter.column ||
-                          col.colType !== "date"
+                          col.colType !== "date",
                       )
                       .map(renderColumnOption)}
                     allowClear

@@ -35,7 +35,9 @@ class ErrorBoundary extends React.Component {
               the UI.
             </p>
           ) : (
-            <p className="dark:text-gray-300">{this.props.customErrorMessage || "Something went wrong."}</p>
+            <p className="dark:text-gray-300">
+              {this.props.customErrorMessage || "Something went wrong."}
+            </p>
           )}
         </div>
       );

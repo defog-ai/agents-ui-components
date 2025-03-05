@@ -82,7 +82,7 @@ export function PrimarySelection({ columns, showChartTypeOnly = false }) {
 
       chartManager.render();
     },
-    [chartManager, selectedColumns, selectedChart, columns]
+    [chartManager, selectedColumns, selectedChart, columns],
   );
 
   const handleAggregateChange = (value) => {
@@ -208,7 +208,9 @@ export function PrimarySelection({ columns, showChartTypeOnly = false }) {
           <div className="pt-4 space-y-2 border-t border-gray-100 dark:border-gray-700">
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1.5">
-                <h3 className="mb-2 font-medium input-label dark:text-gray-300">Facet by</h3>
+                <h3 className="mb-2 font-medium input-label dark:text-gray-300">
+                  Facet by
+                </h3>
                 <Select
                   style={{ width: "100%" }}
                   placeholder="Select Facet Column"
@@ -219,7 +221,9 @@ export function PrimarySelection({ columns, showChartTypeOnly = false }) {
                 />
               </div>
               <div className="space-y-1.5">
-                <h3 className="mb-2 font-medium input-label dark:text-gray-300">Color By</h3>
+                <h3 className="mb-2 font-medium input-label dark:text-gray-300">
+                  Color By
+                </h3>
                 <Select
                   placeholder="Color Column"
                   value={selectedColumns.fill}

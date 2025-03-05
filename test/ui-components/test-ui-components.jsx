@@ -8,5 +8,5 @@ function TestWindowSizeHook() {
   return <div>Run npm run storybook to see the ui components.</div>;
 }
 ReactDOM.createRoot(document.getElementById("root")).render(
-  <TestWindowSizeHook />
+  <TestWindowSizeHook />,
 );

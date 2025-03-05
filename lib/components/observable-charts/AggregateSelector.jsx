@@ -23,7 +23,7 @@ export default function AggregateSelector({
 
   // Filter options: remove 'none' for line chart if exists, though here our options do not contain "none" by default
   const filteredOptions = AGGREGATE_OPTIONS.filter(
-    (option) => option.value !== "none" || selectedChart !== "line"
+    (option) => option.value !== "none" || selectedChart !== "line",
   );
 
   return (

@@ -245,7 +245,7 @@ export const mapToObject = (
   parentNestLocation = [],
   processValue = (d) => d,
   // hook will allow you to do extra computation on every recursive call to this function
-  hook = () => {}
+  hook = () => {},
 ) =>
   Object.fromEntries(
     Array.from(map.entries(), ([key, value]) => {
@@ -257,7 +257,7 @@ export const mapToObject = (
       return value instanceof Map
         ? [key, mapToObject(value, value.nestLocation, processValue)]
         : [key, processValue(value)];
-    })
+    }),
   );
 
 export function getColValues(data = [], columns = []) {
@@ -286,12 +286,12 @@ export function processData(data, columns) {
   const dateColumns = columns?.filter((d) => d.colType === "date");
   // date comes in as categorical column, but we use that for the x axis, so filter that out also
   const categoricalColumns = columns?.filter(
-    (d) => d?.variableType?.[0] === "c" && d.colType !== "date"
+    (d) => d?.variableType?.[0] === "c" && d.colType !== "date",
   );
 
   // y axis columns are only numeric non date columns
   const yAxisColumns = columns?.filter(
-    (d) => d?.variableType?.[0] !== "c" && d.colType !== "date"
+    (d) => d?.variableType?.[0] !== "c" && d.colType !== "date",
   );
 
   const xAxisColumns = columns?.slice();
