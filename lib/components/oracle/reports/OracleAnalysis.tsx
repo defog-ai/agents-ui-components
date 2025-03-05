@@ -1,10 +1,9 @@
 import { EditorProvider } from "@tiptap/react";
-import { AnalysisParsed, OracleReportContext } from "../OracleReportContext";
 import {
-  analysisExtensions,
-  getReportAnalysis,
-  parseMDX,
-} from "../oracleUtils";
+  AnalysisParsed,
+  OracleReportContext,
+} from "../utils/OracleReportContext";
+import { analysisExtensions, getReportAnalysis, parseMDX } from "../utils";
 import { useContext, useEffect, useState } from "react";
 import { SpinningLoader } from "@ui-components";
 import ErrorBoundary from "../../common/ErrorBoundary";
@@ -45,12 +44,7 @@ export const OracleAnalysis = ({ analysisId }: OracleAnalysisProps) => {
         // @ts-ignore
         setAnalysisData({
           ...data,
-          ...parseMDX(
-            data.mdx,
-            data.analysis_json?.artifacts?.fetched_table_csv?.artifact_content,
-            data.analysis_json?.working?.generated_sql,
-            data.analysis_json?.generated_qn
-          ),
+          ...parseMDX(data.mdx),
         });
 
         setAnalysisStatus("done");

@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import { OracleReportContext } from "../../../OracleReportContext";
+import { OracleReportContext } from "../../../utils/OracleReportContext";
 import { useSyncExternalStore } from "react";
 import { MessageSquare, X } from "lucide-react";
 import { Button } from "@ui-components";
