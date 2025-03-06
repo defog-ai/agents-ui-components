@@ -422,7 +422,7 @@ export function OracleEmbed({
               localMonth.setMonth(localMonth.getMonth() - 1);
 
               // Add itemId to make ListReportResponseItem compatible with OracleHistoryItem
-              const reportWithItemId = {
+              const reportWithItemId: OracleHistoryItem = {
                 ...report,
                 itemId: report.report_id,
                 itemType: "report",

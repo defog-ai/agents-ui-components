@@ -220,13 +220,13 @@ function createAnalysisManager({
     existingData = null,
   }: {
     question: string;
-    existingData?: Analysis | null;
+    existingData?: AnalysisRowFromBackend | null;
   }): Promise<void> {
     didInit = true;
 
     // console.log("Analysis Manager init");
     // get analysis data
-    let fetchedAnalysis: Analysis | null = null;
+    let fetchedAnalysis: AnalysisRowFromBackend | null = null;
     let newAnalysisCreated = false;
 
     if (existingData) {
@@ -318,7 +318,7 @@ function createAnalysisManager({
         throw new Error("Failed to submit.");
       }
 
-      const newAnalysis: Analysis = await res.json();
+      const newAnalysis: AnalysisRowFromBackend = await res.json();
 
       console.log(newAnalysis);
       console.groupEnd();

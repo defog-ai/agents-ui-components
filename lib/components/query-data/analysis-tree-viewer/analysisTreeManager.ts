@@ -18,6 +18,9 @@ export interface AnalysisTreeItem {
   analysisId: string;
   createAnalysisRequestBody: CreateAnalysisRequestBody;
   directParentId: string | null;
+  /**
+   * The string timestamp from the backend is converted to an actual date in createAnalysisTreeFromFetchedAnalyses at the bottom of this file.
+   */
   timestamp: number;
   isRoot: boolean;
   isTemp: boolean;
@@ -106,7 +109,7 @@ export interface AnalysisTreeManager {
   updateAnalysis: (params: {
     analysisId: string;
     isRoot: boolean;
-    updateObj: Partial<AnalysisTreeItem>;
+    updateObj: Partial<Omit<AnalysisTreeItem, "analysisId" | "timestamp">>;
     emit?: boolean;
   }) => void;
   getMgrId: () => string;
@@ -156,6 +159,8 @@ export function AnalysisTreeManager(
 
   let analysisTree = validateAnalysisTree(initialTree) ? initialTree : {};
   let activeTabs: ActiveTabs = {};
+
+  console.log(analysisTree);
 
   /**
    * Flattens the analysis tree into a single object for easy access to any analysis by its ID.
@@ -394,7 +399,7 @@ export function AnalysisTreeManager(
   }: {
     analysisId: string;
     isRoot: boolean;
-    updateObj: Partial<Analysis>;
+    updateObj: Partial<Omit<AnalysisTreeItem, "analysisId" | "timestamp">>;
     emit?: boolean;
   }) {
     const newAnalysisTree = { ...analysisTree };
