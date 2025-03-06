@@ -24,7 +24,7 @@ import type {
   AnalysisTree,
   FlatAnalysisTree,
   NestedAnalysisTree,
-  AnalysisTreeNode,
+  NestedAnalysisTreeNode,
 } from "./analysisTreeManager";
 import { AnalysisManager } from "../analysis/analysisManager";
 import debounce from "lodash.debounce";
@@ -339,7 +339,7 @@ const useInitialScroll = (
   }, []);
 };
 
-const AnalysisTreeContent = ({
+export const AnalysisTreeContent = ({
   dbName,
   activeRootAnalysisId,
   nestedTree,
@@ -368,10 +368,10 @@ const AnalysisTreeContent = ({
     const isActive = analysisId === activeAnalysisId;
     return twMerge(
       "w-full mb-4 [&_.analysis-content]:min-h-96 shadow-md transition-opacity duration-200",
-      `analysis-${analysisId}`,
-      isActive
-        ? "ring-2 ring-blue-500 dark:ring-blue-400 bg-white dark:bg-gray-800 z-2 relative"
-        : "opacity-50 hover:opacity-75 bg-gray-50/80 dark:bg-gray-900/80 relative -z-0"
+      `analysis-${analysisId}`
+      // isActive
+      //   ? "border-2 border-blue-500 dark:border-blue-400 bg-white dark:bg-gray-800 z-2 relative"
+      //   : "opacity-50 hover:opacity-75 bg-gray-50/80 dark:bg-gray-900/80 relative -z-0"
     );
   };
 
@@ -425,7 +425,7 @@ const AnalysisTreeContent = ({
       />
 
       {nestedTree[activeRootAnalysisId].flatOrderedChildren.map(
-        (child: AnalysisTreeNode) => (
+        (child: NestedAnalysisTreeNode) => (
           <AnalysisAgent
             dbName={dbName}
             key={child.analysisId}
@@ -442,7 +442,7 @@ const AnalysisTreeContent = ({
             previousContextCreator={() => {
               return child.allParents
                 .reverse()
-                .map((parent: AnalysisTreeNode) => {
+                .map((parent: NestedAnalysisTreeNode) => {
                   const analysis = parent?.analysisManager?.analysis;
                   if (!analysis || !analysis?.data) return null;
 

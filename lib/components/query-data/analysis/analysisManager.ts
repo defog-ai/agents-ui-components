@@ -1,9 +1,10 @@
-import { createAnalysis, fetchAnalysis, parseData } from "@utils/utils";
 import setupBaseUrl from "../../utils/setupBaseUrl";
 import {
   ChartManager,
   createChartManager,
 } from "../../observable-charts/ChartManagerContext";
+import { createAnalysis, fetchAnalysis } from "../queryDataUtils";
+import { parseData } from "@agent";
 
 type Stage = "clarify" | "generate_analysis";
 
@@ -74,7 +75,7 @@ export interface AnalysisData {
   parsedOutput?: ParsedOutput;
 }
 
-export interface Analysis {
+export interface AnalysisRowFromBackend {
   analysis_id: string;
   timestamp: string;
   db_name: string;
@@ -90,11 +91,11 @@ export interface Analysis {
 export interface AnalysisManager {
   init: (params: {
     question: string;
-    existingData?: Analysis | null;
+    existingData?: AnalysisRowFromBackend | null;
   }) => Promise<void>;
-  analysis: Analysis | null;
+  analysis: AnalysisRowFromBackend | null;
   wasNewAnalysisCreated: boolean;
-  getAnalysis: () => Analysis | null;
+  getAnalysis: () => AnalysisRowFromBackend | null;
   subscribeToDataChanges: (callback: () => void) => () => void;
   getAnalysisBusy: () => boolean;
   subscribeToAnalysisBusyChanges: (
@@ -149,7 +150,7 @@ function createAnalysisManager({
   onAbortError = (...args: any[]) => {},
   createAnalysisRequestBody = {},
 }: AnalysisManagerConfig): AnalysisManager {
-  let analysis: Analysis | null = null;
+  let analysis: AnalysisRowFromBackend | null = null;
   let wasNewAnalysisCreated = false;
   let listeners: (() => void)[] = [];
   let destroyed = false;
@@ -177,7 +178,7 @@ function createAnalysisManager({
     apiEndpoint: apiEndpoint,
   });
 
-  function getAnalysis(): Analysis | null {
+  function getAnalysis(): AnalysisRowFromBackend | null {
     return analysis || null;
   }
 
@@ -196,7 +197,7 @@ function createAnalysisManager({
     onManagerDestroyed();
   }
 
-  function updateAnalysis(newAnalysis: Analysis | null): void {
+  function updateAnalysis(newAnalysis: AnalysisRowFromBackend | null): void {
     if (!newAnalysis) return;
 
     // reparse outputs

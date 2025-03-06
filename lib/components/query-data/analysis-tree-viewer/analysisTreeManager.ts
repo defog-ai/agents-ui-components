@@ -1,4 +1,7 @@
-import { AnalysisManager } from "../analysis/analysisManager.js";
+import {
+  AnalysisManager,
+  AnalysisRowFromBackend,
+} from "../analysis/analysisManager.js";
 
 export interface CreateAnalysisRequestBody {
   initialisation_details?: { [key: string]: any };
@@ -10,7 +13,7 @@ export interface CreateAnalysisRequestBody {
   sql_only?: boolean;
 }
 
-interface Analysis {
+export interface AnalysisTreeItem {
   analysisManager?: AnalysisManager;
   analysisId: string;
   createAnalysisRequestBody: CreateAnalysisRequestBody;
@@ -26,30 +29,33 @@ interface Analysis {
 }
 
 export type AnalysisTree = {
-  [analysisId: string]: { root: Analysis; analysisList: Analysis[] };
+  [analysisId: string]: {
+    root: AnalysisTreeItem;
+    analysisList: AnalysisTreeItem[];
+  };
 };
 
 type Listener = () => void;
 
-export type FlatAnalysisTree = { [analysisId: string]: Analysis };
+export type FlatAnalysisTree = { [analysisId: string]: AnalysisTreeItem };
 
 type Unsubscribe = () => void;
 
-export interface AnalysisTreeNode extends Analysis {
-  children: AnalysisTreeNode[];
-  parent: AnalysisTreeNode | null;
+export interface NestedAnalysisTreeNode extends AnalysisTreeItem {
+  children: NestedAnalysisTreeNode[];
+  parent: NestedAnalysisTreeNode | null;
   /**
    * Returns a flat list of all children of this node, ordered by depth first.
    */
-  flatOrderedChildren: AnalysisTreeNode[];
+  flatOrderedChildren: NestedAnalysisTreeNode[];
   /**
-   * Flat list of all parents of this node, going up the tree from this node.
+   * Flat list of all parents of this node, going *up* the tree from this node.
    */
-  allParents: AnalysisTreeNode[];
+  allParents: NestedAnalysisTreeNode[];
 }
 
 export interface NestedAnalysisTree {
-  [analysisId: string]: AnalysisTreeNode;
+  [analysisId: string]: NestedAnalysisTreeNode;
 }
 
 /**
@@ -91,7 +97,7 @@ export interface AnalysisTreeManager {
     sqlOnly?: boolean;
     isTemp?: boolean;
     activeTab?: "table" | "chart" | null;
-  }) => Promise<{ newAnalysis: Analysis }>;
+  }) => Promise<{ newAnalysis: AnalysisTreeItem }>;
   removeAnalysis: (params: {
     analysisId: string;
     isRoot: boolean;
@@ -100,7 +106,7 @@ export interface AnalysisTreeManager {
   updateAnalysis: (params: {
     analysisId: string;
     isRoot: boolean;
-    updateObj: Partial<Analysis>;
+    updateObj: Partial<AnalysisTreeItem>;
     emit?: boolean;
   }) => void;
   getMgrId: () => string;
@@ -198,13 +204,17 @@ export function AnalysisTreeManager(
     return analysisTree;
   }
 
-  function flatOrderedChildren(node: AnalysisTreeNode): AnalysisTreeNode[] {
+  function flatOrderedChildren(
+    node: NestedAnalysisTreeNode
+  ): NestedAnalysisTreeNode[] {
     return [...node.children, ...node.children.flatMap(flatOrderedChildren)];
   }
 
-  function getAllParents(node: AnalysisTreeNode): AnalysisTreeNode[] {
-    const parents: AnalysisTreeNode[] = [];
-    let current: AnalysisTreeNode | null = node;
+  function getAllParents(
+    node: NestedAnalysisTreeNode
+  ): NestedAnalysisTreeNode[] {
+    const parents: NestedAnalysisTreeNode[] = [];
+    let current: NestedAnalysisTreeNode | null = node;
     while (current) {
       parents.push(current);
       current = current.parent;
@@ -450,7 +460,7 @@ export function AnalysisTreeManager(
     activeTab?: "table" | "chart" | null;
   }) {
     // @ts-ignore
-    let newAnalysis: Analysis = {
+    let newAnalysis: AnalysisTreeItem = {
       analysisId: analysisId,
       isRoot: isRoot,
       rootAnalysisId: isRoot ? analysisId : rootAnalysisId,
@@ -551,7 +561,7 @@ export function AnalysisTreeManager(
  * @returns {boolean} If this analysis is valid or not
  */
 
-export function validateAnalysis(analysis: Analysis): boolean {
+export function validateAnalysis(analysis: AnalysisTreeItem): boolean {
   if (!analysis) return false;
 
   if (typeof analysis !== "object") return false;
@@ -587,6 +597,107 @@ export function validateAnalysis(analysis: Analysis): boolean {
  *
  * @returns {boolean} If this tree is valid or not
  */
+/**
+ * Creates an analysis tree from a flat list of analyses fetched from the API
+ * @param analyses - Array of AnalysisRowFromBackend from fetchAllAnalyses
+ * @returns {AnalysisTree} - The constructed analysis tree
+ */
+export function createAnalysisTreeFromFetchedAnalyses(
+  analyses: AnalysisRowFromBackend[]
+): AnalysisTree {
+  if (!analyses || !Array.isArray(analyses) || analyses.length === 0) {
+    return {};
+  }
+
+  const tree: AnalysisTree = {};
+
+  // First pass: Create entries for root analyses and organize them by root ID
+  const analysisById: { [id: string]: any } = {};
+  const rootAnalyses: { [id: string]: any } = {};
+
+  analyses.forEach((apiAnalysis) => {
+    // Store all analyses by ID for easy lookup
+    analysisById[apiAnalysis.analysis_id] = apiAnalysis;
+
+    // Convert API analysis to our internal format
+    const analysisObj: AnalysisTreeItem = {
+      analysisId: apiAnalysis.analysis_id,
+      createAnalysisRequestBody: {
+        initialisation_details: {
+          user_question: apiAnalysis.user_question,
+          is_root_analysis: !!apiAnalysis.is_root_analysis,
+          root_analysis_id: apiAnalysis.root_analysis_id,
+          direct_parent_id: apiAnalysis.direct_parent_id,
+        },
+        sql_only: apiAnalysis.data?.tool_name === "sql_aggregator",
+      },
+      directParentId: apiAnalysis.direct_parent_id || null,
+      timestamp: new Date(apiAnalysis.timestamp).getTime(),
+      isRoot: !!apiAnalysis.is_root_analysis,
+      isTemp: false, // Assuming fetched analyses are not temporary
+      dbName: apiAnalysis.db_name,
+      rootAnalysisId: apiAnalysis.is_root_analysis
+        ? apiAnalysis.analysis_id
+        : apiAnalysis.root_analysis_id,
+      sqlOnly: apiAnalysis.data?.tool_name === "sql_aggregator",
+      user_question: apiAnalysis.user_question || "",
+      activeTab: "table",
+      analysisManager: undefined, // Will be created when needed
+    };
+
+    // Identify and store root analyses separately
+    if (analysisObj.isRoot) {
+      rootAnalyses[analysisObj.analysisId] = analysisObj;
+
+      // Initialize the tree entry for this root analysis
+      tree[analysisObj.analysisId] = {
+        root: analysisObj,
+        analysisList: [analysisObj], // Start with just the root
+      };
+    }
+  });
+
+  // Second pass: Add non-root analyses to their respective root's analysisList
+  analyses.forEach((apiAnalysis) => {
+    if (!apiAnalysis.is_root_analysis && apiAnalysis.root_analysis_id) {
+      const analysisObj: AnalysisTreeItem = {
+        analysisId: apiAnalysis.analysis_id,
+        createAnalysisRequestBody: {
+          initialisation_details: {
+            user_question: apiAnalysis.user_question,
+            is_root_analysis: false,
+            root_analysis_id: apiAnalysis.root_analysis_id,
+            direct_parent_id: apiAnalysis.direct_parent_id,
+          },
+          sql_only: apiAnalysis.data?.tool_name === "sql_aggregator",
+        },
+        directParentId: apiAnalysis.direct_parent_id || null,
+        timestamp: new Date(apiAnalysis.timestamp).getTime(),
+        isRoot: false,
+        isTemp: false,
+        dbName: apiAnalysis.db_name,
+        rootAnalysisId: apiAnalysis.root_analysis_id,
+        sqlOnly: apiAnalysis.data?.tool_name === "sql_aggregator",
+        user_question: apiAnalysis.user_question || "",
+        activeTab: "table",
+        analysisManager: undefined,
+      };
+
+      // Add to the appropriate root's analysisList
+      if (tree[apiAnalysis.root_analysis_id]) {
+        tree[apiAnalysis.root_analysis_id].analysisList.push(analysisObj);
+      }
+    }
+  });
+
+  // Sort each analysisList by timestamp (newest first)
+  Object.keys(tree).forEach((rootId) => {
+    tree[rootId].analysisList.sort((a, b) => b.timestamp - a.timestamp);
+  });
+
+  return tree;
+}
+
 export function validateAnalysisTree(tree: AnalysisTree): boolean {
   if (!tree) return false;
 
