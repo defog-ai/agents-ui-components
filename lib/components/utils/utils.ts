@@ -517,7 +517,45 @@ export const uploadFile = async (
 
   if (!res.ok) {
     throw new Error(
-      "Failed to create new db name - are you sure your network is working?"
+      (await res.text()) ||
+        "Failed to create new db name - are you sure your network is working?"
+    );
+  }
+  const data = await res.json();
+  return { dbName: data.db_name, dbInfo: data.db_info };
+};
+
+export const uploadMultipleFilesAsDb = async (
+  apiEndpoint: string,
+  token: string,
+  files: {
+    fileName: string;
+    fileBase64: string;
+  }[]
+): Promise<{ dbName: string; dbInfo: DbInfo }> => {
+  const urlToConnect = setupBaseUrl({
+    protocol: "http",
+    path: "upload_multiple_files_as_db",
+    apiEndpoint: apiEndpoint,
+  });
+
+  const res = await fetch(urlToConnect, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      token: token,
+      files,
+    }),
+  }).catch((error) => {
+    throw error;
+  });
+
+  if (!res.ok) {
+    throw new Error(
+      (await res.text()) ||
+        "Failed to create new db name - are you sure your network is working?"
     );
   }
   const data = await res.json();
