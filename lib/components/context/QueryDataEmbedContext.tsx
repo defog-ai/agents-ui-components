@@ -1,5 +1,5 @@
 import { createContext } from "react";
-import { Analysis } from "../query-data/analysis/analysisManager";
+import { AnalysisRowFromBackend } from "../query-data/analysis/analysisManager";
 
 export interface QueryDataEmbedConfig {
   apiEndpoint: string | null;
@@ -8,7 +8,7 @@ export interface QueryDataEmbedConfig {
   hideSqlTab: boolean;
   hidePreviewTabs: boolean;
   hideRawAnalysis: boolean;
-  analysisDataCache: Record<string, Analysis>;
+  analysisDataCache: Record<string, AnalysisRowFromBackend>;
   updateConfig: (config: Partial<QueryDataEmbedConfig>) => void;
 }
 
