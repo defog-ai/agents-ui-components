@@ -45,6 +45,7 @@ export interface OracleSearchBarManager {
   setMode(newMode: Mode): void;
   setReportId(newReportId: string): void;
   setStatus(newStatus: Status): void;
+  setQuestion(newQuestion: string): void;
 }
 
 function createBlankDraft(): ReportDraft {
@@ -124,6 +125,10 @@ export function OracleSearchBarManager(): OracleSearchBarManager {
     setDraft({ ...draft, status: newStatus });
   }
 
+  function setQuestion(newQuestion: string) {
+    setDraft({ ...draft, userQuestion: newQuestion });
+  }
+
   return {
     getDraft,
     setDraft,
@@ -132,5 +137,6 @@ export function OracleSearchBarManager(): OracleSearchBarManager {
     setMode,
     setReportId,
     setStatus,
+    setQuestion,
   };
 }

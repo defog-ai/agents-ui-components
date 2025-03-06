@@ -160,8 +160,6 @@ export function AnalysisTreeManager(
   let analysisTree = validateAnalysisTree(initialTree) ? initialTree : {};
   let activeTabs: ActiveTabs = {};
 
-  console.log(analysisTree);
-
   /**
    * Flattens the analysis tree into a single object for easy access to any analysis by its ID.
    * Just a duplicate of the analysisTree but in a flat object
@@ -212,7 +210,15 @@ export function AnalysisTreeManager(
   function flatOrderedChildren(
     node: NestedAnalysisTreeNode
   ): NestedAnalysisTreeNode[] {
-    return [...node.children, ...node.children.flatMap(flatOrderedChildren)];
+    const arr = [];
+    if (node?.children?.length) {
+      for (const child of node.children) {
+        arr.push(child);
+        arr.push(...flatOrderedChildren(child));
+      }
+    }
+
+    return arr;
   }
 
   function getAllParents(

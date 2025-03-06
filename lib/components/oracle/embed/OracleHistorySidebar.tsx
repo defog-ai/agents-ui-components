@@ -100,7 +100,7 @@ export const OracleHistorySidebar: React.FC<OracleHistorySidebarProps> = ({
                         }}
                         className={twMerge(
                           "title hover:cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 history-item p-3 text-sm rounded-md transition-colors duration-200 mb-2 border border-transparent",
-                          itemId === selectedItemId
+                          String(itemId) === String(selectedItemId)
                             ? "font-medium bg-blue-50 dark:bg-gray-700 border-blue-200 dark:border-blue-800 shadow-sm text-blue-700 dark:text-blue-300"
                             : "text-gray-700 dark:text-gray-300 hover:border-gray-200 dark:hover:border-gray-700"
                         )}
