@@ -1,21 +1,7 @@
 import { Button, MessageManagerContext, SpinningLoader } from "@ui-components";
-import {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  useSyncExternalStore,
-} from "react";
-import { ClarificationItem, ClarificationObject } from "./ClarificationItem";
-import {
-  generateReport,
-  getClarifications,
-  ORACLE_REPORT_STATUS,
-} from "@oracle";
+import { useContext, useRef, useState, useSyncExternalStore } from "react";
+import { ClarificationItem } from "./ClarificationItem";
 import { OracleEmbedContext } from "../../embed/OracleEmbedContext";
-import { OracleSearchBar } from "../../embed/search-bar/OracleSearchBar";
 import { statusDescriptions } from "../../embed/search-bar/oracleSearchBarManager";
 
 /**
@@ -24,77 +10,22 @@ import { statusDescriptions } from "../../embed/search-bar/oracleSearchBarManage
  * We don't "create" a report until the user finally submits
  */
 export function OracleReportClarifications({
-  dbName,
-  onReportGenerated,
+  handleGenerateReport,
 }: {
-  dbName: string;
-  onReportGenerated?: (data: {
-    userQuestion: string;
-    reportId: string;
-    status: string;
-  }) => void;
+  handleGenerateReport: () => void;
 }) {
-  const { apiEndpoint, token, searchBarManager } =
-    useContext(OracleEmbedContext);
+  const { searchBarManager } = useContext(OracleEmbedContext);
 
   const [loading, setLoading] = useState<boolean>(false);
-  const [reportId, setReportId] = useState<string>("");
-  const [errorMessage, setErrorMessage] = useState<string>("");
   const loadingStatus = useRef<string>("");
-  const textAreaRef = useRef<HTMLTextAreaElement>(null);
-
-  const message = useContext(MessageManagerContext);
 
   const draft = useSyncExternalStore(
     searchBarManager.subscribeToDraftChanges,
     searchBarManager.getDraft
   );
 
-  const handleGenerateReport = useCallback(async () => {
-    try {
-      setLoading(true);
-      loadingStatus.current = "Submitting report for generation...";
-
-      // prepare either for success or a new error message
-      setErrorMessage("");
-
-      try {
-        // This will always error because of a 10ms timeout
-        await generateReport(
-          apiEndpoint,
-          token,
-          dbName,
-          reportId,
-          textAreaRef.current?.value || draft.userQuestion,
-          draft.clarifications?.filter((c) => c.answer && c.is_answered) || [],
-          // Add websearch parameter
-          draft.useWebsearch
-        );
-      } catch (error) {
-        message.success("Report submitted for generation");
-        onReportGenerated({
-          userQuestion: textAreaRef.current?.value || draft.userQuestion,
-          reportId: reportId,
-          status: ORACLE_REPORT_STATUS.THINKING,
-        });
-      }
-
-      // clear everything
-      searchBarManager.resetDraft();
-      loadingStatus.current = "";
-      textAreaRef.current.value = "";
-    } catch (error) {
-      setErrorMessage(`Error generating report: ${error}`);
-
-      // also use message for this error because user is usually scrolled down to the bottom when they click "generate"
-      message.error(`Error generating report: ${error}`);
-    } finally {
-      setLoading(false);
-    }
-  }, [draft, apiEndpoint, token, dbName, reportId, onReportGenerated, message]);
-
   return (
-    <div className="dark w-full overflow-auto flex flex-col items-start relative justify-center m-auto">
+    <div className="w-full overflow-auto flex flex-col items-start relative justify-center m-auto">
       <div className="text-lg dark:text-gray-200 font-light">
         {statusDescriptions[draft.status]}
       </div>

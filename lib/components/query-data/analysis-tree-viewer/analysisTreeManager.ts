@@ -690,9 +690,9 @@ export function createAnalysisTreeFromFetchedAnalyses(
     }
   });
 
-  // Sort each analysisList by timestamp (newest first)
+  // Sort each analysisList by timestamp (newest last)
   Object.keys(tree).forEach((rootId) => {
-    tree[rootId].analysisList.sort((a, b) => b.timestamp - a.timestamp);
+    tree[rootId].analysisList.sort((a, b) => a.timestamp - b.timestamp);
   });
 
   return tree;

@@ -33,6 +33,7 @@ import {
   AnalysisTreeManager,
   AnalysisTree,
   createAnalysisTreeFromFetchedAnalyses,
+  validateAnalysisTree,
 } from "../../../../lib/components/query-data/analysis-tree-viewer/analysisTreeManager";
 import { fetchAllAnalyses } from "../../../../lib/components/query-data/queryDataUtils";
 import ErrorBoundary from "../../../components/common/ErrorBoundary";
@@ -43,7 +44,7 @@ export interface OracleReportType extends ListReportResponseItem {
   /**
    * Always "report"
    */
-  itemType: string;
+  itemType: "report";
   /**
    * For a report, this is equal to report_id.
    */
@@ -55,7 +56,7 @@ export interface QueryDataTree {
   /**
    * Always "query-data"
    */
-  itemType: string;
+  itemType: "query-data";
   date_created: string;
   /**
    * For a query data tree, this is equal to rootAnalysisId.
@@ -128,8 +129,13 @@ const AnalysisTreeContentWrapper = ({
     [selectedItem]
   );
 
-  // Get the nested tree
-  const nestedTree = useMemo(() => treeManager.getNestedTree(), [treeManager]);
+  // Analysis data
+  const analysisTree = useSyncExternalStore(
+    treeManager.subscribeToDataChanges,
+    treeManager.getTree
+  );
+
+  const nestedTree = useMemo(() => treeManager.getNestedTree(), [analysisTree]);
 
   // Get active root analysis ID
   const activeRootId = useMemo(() => {
@@ -545,7 +551,7 @@ export function OracleEmbed({
     () => (
       <div>
         <SingleSelect
-          disabled={true}
+          disabled={hasUploadedDataFiles}
           label={
             !selectedItemId && hasUploadedDataFiles
               ? "Remove uploaded CSV/Excel files to select a database"
@@ -645,7 +651,7 @@ export function OracleEmbed({
           updateUrlWithItemId(reportId);
           setSelectedItemId(reportId);
         }}
-        onAnalysisGenerated={({
+        onNewAnalysisTree={({
           userQuestion,
           analysisTree,
           rootAnalysisId,
@@ -722,7 +728,7 @@ export function OracleEmbed({
     >
       <MessageManagerContext.Provider value={messageManager.current}>
         <MessageMonitor rootClassNames={"absolute left-0 right-0"} />
-        <div className="flex flex-row min-w-full min-h-full max-h-full overflow-hidden text-gray-600 bg-white dark:bg-gray-900">
+        <div className="flex flex-row min-w-full min-h-full max-h-full h-full text-gray-600 bg-white dark:bg-gray-900">
           <OracleHistorySidebar
             oracleHistory={oracleHistory}
             selectedDbName={selectedDbName}
@@ -730,9 +736,11 @@ export function OracleEmbed({
             selectedItemId={selectedItemId}
             updateUrlWithItemId={updateUrlWithItemId}
             dbSelector={dbSelector}
-            setSelectedItemId={setSelectedItemId}
+            setSelectedItem={(item) => {
+              setSelectedItemId(item?.itemId);
+            }}
           />
-          <div className="flex flex-col grow p-2 relative">
+          <div className="flex flex-col grow p-2 relative min-w-0 overflow-hidden">
             {/* Show OracleNewDb when the "Upload new" option is selected */}
             {selectedItemId === null &&
               selectedDbName === uploadNewDbOption && (
@@ -760,7 +768,7 @@ export function OracleEmbed({
             {selectedItemId &&
             selectedItem &&
             "analysisTree" in selectedItem ? (
-              <div className="p-4 flex flex-col h-full overflow-auto pb-48">
+              <div className="p-4 flex flex-col  overflow-y-auto pb-48">
                 <ErrorBoundary>
                   {Object.keys((selectedItem as QueryDataTree).analysisTree)
                     .length > 0 && (

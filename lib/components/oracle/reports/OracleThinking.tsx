@@ -155,7 +155,7 @@ export function OracleThinking({
   }, [apiEndpoint, token, reportId]);
 
   return (
-    <div className="relative p-2">
+    <div className="relative p-2 overflow-auto">
       <div className="flex flex-row w-full items-center mb-4 mt-4">
         <h1 className="text-xl font-bold grow dark:text-dark-text-primary">
           Details

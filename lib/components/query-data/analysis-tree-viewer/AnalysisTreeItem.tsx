@@ -74,7 +74,7 @@ export function AnalysisTreeItem({
           analysis &&
           analysis.children &&
           analysis.children.length > 0 && (
-            <div className="ml-1">
+            <div className="ml-2">
               {analysis.children.map((child) => (
                 <AnalysisTreeItem
                   key={child.analysisId}
