@@ -4,10 +4,13 @@ import {
   Dropdown,
   DropFilesHeadless,
   MenuItem,
+  MessageManagerContext,
+  SpinningLoader,
   TextArea,
   Toggle,
 } from "@ui-components";
 import {
+  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -37,25 +40,34 @@ import { twMerge } from "tailwind-merge";
 import {
   AnalysisTree,
   AnalysisTreeManager,
-} from "lib/components/query-data/analysis-tree-viewer/analysisTreeManager";
+} from "../../../../../lib/components/query-data/analysis-tree-viewer/analysisTreeManager";
+import { OracleHistoryItem } from "../OracleEmbed";
 
 const modeDisplayName = {
   "query-data": "Fast data analysis",
-  oracle: "Deep research",
+  report: "Deep research",
 };
 
 const modeIcons: Record<Mode, React.ReactNode> = {
   "query-data": (
     <Zap className="w-5 stroke-yellow-500 dark:stroke-yellow-600" />
   ),
-  oracle: <Telescope className="w-5 stroke-blue-500 dark:stroke-blue-400" />,
+  report: <Telescope className="w-5 stroke-blue-500 dark:stroke-blue-400" />,
 };
 
 const modeDescriptions: Record<Mode, string> = {
   "query-data":
     "Executes quick, direct SQL queries to retrieve specific data points with minimal processing",
-  oracle:
+  report:
     "Performs in-depth analysis, synthesizing multiple data sources to generate comprehensive insights and structured reports",
+};
+
+const itemTypeClasses = {
+  default:
+    "absolute bottom-1/2 left-1/2 -translate-x-1/2 translate-y-1/2 w-full px-4",
+  "query-data":
+    "absolute bottom-48 left-1/2 -translate-x-1/2 translate-y-full w-full px-4",
+  report: "h-0 opacity-0",
 };
 
 export function OracleSearchBar({
@@ -63,6 +75,9 @@ export function OracleSearchBar({
   analysisTree = null,
   onClarified,
   onReportGenerated,
+  onAnalysisGenerated,
+  rootClassNames = "",
+  selectedItem = null,
 }: {
   dbName: string;
   analysisTree?: AnalysisTree | null;
@@ -72,11 +87,22 @@ export function OracleSearchBar({
     reportId: string;
     status: string;
   }) => void;
+  onAnalysisGenerated?: (data: {
+    userQuestion: string;
+    analysisTree: AnalysisTree;
+    rootAnalysisId: string;
+    treeManager: AnalysisTreeManager;
+  }) => void;
+  rootClassNames?: string;
+  selectedItem: OracleHistoryItem;
 }) {
+  console.log(selectedItem);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [isDropping, setIsDropping] = useState<boolean>(false);
   const { searchBarManager, apiEndpoint, token } =
     useContext(OracleEmbedContext);
+
+  const message = useContext(MessageManagerContext);
 
   const [isMac, setIsMac] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
@@ -99,6 +125,49 @@ export function OracleSearchBar({
       return null;
     }
   }, [analysisTree]);
+
+  // Function to handle analysis creation when in query-data mode
+  const createNewAnalysis = useCallback(
+    async (question: string) => {
+      if (!onAnalysisGenerated) return;
+
+      try {
+        // Generate a new UUID for the analysis
+        const analysisId = crypto.randomUUID();
+
+        // Create a new analysis tree manager
+        const newAnalysisTreeManager = AnalysisTreeManager();
+
+        // Submit the question to create a new root analysis
+        await newAnalysisTreeManager.submit({
+          question,
+          dbName,
+          analysisId,
+          rootAnalysisId: analysisId,
+          isRoot: true,
+          directParentId: null,
+          sqlOnly: false,
+          isTemp: false,
+          activeTab: "table",
+        });
+
+        // Get the tree data
+        const treeData = newAnalysisTreeManager.getTree();
+
+        // Notify parent component about the new analysis
+        onAnalysisGenerated({
+          userQuestion: question,
+          analysisTree: treeData,
+          rootAnalysisId: analysisId,
+          treeManager: newAnalysisTreeManager,
+        });
+      } catch (error) {
+        console.error("Error creating new analysis:", error);
+        setErrorMessage("Failed to create analysis: " + error.message);
+      }
+    },
+    [dbName, onAnalysisGenerated]
+  );
 
   useEffect(() => {
     setIsMac(navigator.userAgent.toLowerCase().includes("mac"));
@@ -205,7 +274,12 @@ export function OracleSearchBar({
   }, [draft]);
 
   return (
-    <>
+    <div
+      className={twMerge(
+        "transition-all duration-1000 ease-in-out z-[10] *:transition-all *:duration-1000 *:ease-in-out",
+        itemTypeClasses[selectedItem?.itemType || "default"]
+      )}
+    >
       {errorMessage && (
         <div className="mb-4">
           <AlertBanner
@@ -218,7 +292,13 @@ export function OracleSearchBar({
       )}
 
       <DropFilesHeadless
-        rootClassNames="min-h-0 relative z-[2] rounded-2xl p-2 shadow-sm border bg-white dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700"
+        rootClassNames={twMerge(
+          "drop-drop min-h-0 relative z-[2] rounded-2xl p-2 border bg-white dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700",
+          selectedItem?.itemType === "query-data"
+            ? "shadow-custom border-gray-300 dark:border-gray-600"
+            : "",
+          rootClassNames
+        )}
         fileSelection={false}
         allowMultiple={true}
         onDragOver={(e) => {
@@ -232,148 +312,176 @@ export function OracleSearchBar({
           setIsDropping(false);
         }}
         onDrop={async (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          setIsDropping(false);
+          try {
+            e.preventDefault();
+            e.stopPropagation();
+            if (selectedItem.itemType === "query-data") return;
+            setIsDropping(false);
 
-          console.log("Drop event triggered");
+            console.log("Drop event triggered");
 
-          // Handle dropped files
-          const dataTransfer = e.dataTransfer;
-          if (!dataTransfer) {
-            console.error("No dataTransfer in drop event");
-            return;
-          }
-
-          // Log the number of files in both interfaces
-          console.log(
-            `Files in dataTransfer.files: ${dataTransfer.files ? dataTransfer.files.length : 0}`
-          );
-          console.log(
-            `Items in dataTransfer.items: ${dataTransfer.items ? dataTransfer.items.length : 0}`
-          );
-
-          // Array to collect all files for processing
-          const filesToProcess = [];
-
-          // Prefer DataTransfer.files as it's more widely supported
-          if (dataTransfer.files && dataTransfer.files.length > 0) {
-            console.log("Processing files from dataTransfer.files");
-            for (let i = 0; i < dataTransfer.files.length; i++) {
-              const file = dataTransfer.files[i];
-              console.log(`Checking file ${i}: ${file.name} (${file.type})`);
-
-              if (isValidFileType(file.type, true)) {
-                console.log(`File is valid: ${file.name}`);
-                filesToProcess.push(file);
-              } else {
-                console.warn(
-                  `Skipping invalid file type: ${file.type} (${file.name})`
-                );
-              }
+            // Handle dropped files
+            const dataTransfer = e.dataTransfer;
+            if (!dataTransfer) {
+              console.error("No dataTransfer in drop event");
+              return;
             }
-          }
-          // As a fallback, try DataTransfer.items
-          else if (dataTransfer.items && dataTransfer.items.length > 0) {
-            console.log("Processing files from dataTransfer.items");
-            for (let i = 0; i < dataTransfer.items.length; i++) {
-              const item = dataTransfer.items[i];
-              console.log(
-                `Checking item ${i}: kind=${item.kind}, type=${item.type}`
-              );
 
-              if (item.kind === "file" && isValidFileType(item.type, true)) {
-                const file = item.getAsFile();
-                if (file) {
-                  console.log(`Item converted to file: ${file.name}`);
+            // Log the number of files in both interfaces
+            console.log(
+              `Files in dataTransfer.files: ${dataTransfer.files ? dataTransfer.files.length : 0}`
+            );
+            console.log(
+              `Items in dataTransfer.items: ${dataTransfer.items ? dataTransfer.items.length : 0}`
+            );
+
+            // Array to collect all files for processing
+            const filesToProcess = [];
+
+            // Prefer DataTransfer.files as it's more widely supported
+            if (dataTransfer.files && dataTransfer.files.length > 0) {
+              console.log("Processing files from dataTransfer.files");
+              for (let i = 0; i < dataTransfer.files.length; i++) {
+                const file = dataTransfer.files[i];
+                console.log(`Checking file ${i}: ${file.name} (${file.type})`);
+
+                if (isValidFileType(file.type, draft.mode === "report")) {
+                  console.log(`File is valid: ${file.name}`);
                   filesToProcess.push(file);
+                } else {
+                  console.warn(
+                    `Skipping invalid file type: ${file.type} (${file.name})`
+                  );
                 }
               }
             }
-          }
+            // As a fallback, try DataTransfer.items
+            else if (dataTransfer.items && dataTransfer.items.length > 0) {
+              console.log("Processing files from dataTransfer.items");
+              for (let i = 0; i < dataTransfer.items.length; i++) {
+                const item = dataTransfer.items[i];
+                console.log(
+                  `Checking item ${i}: kind=${item.kind}, type=${item.type}`
+                );
 
-          console.log(`Total valid files to process: ${filesToProcess.length}`);
-
-          if (filesToProcess.length === 0) {
-            console.error("No valid files found");
-            throw new Error(
-              "No valid files found. Only CSV, Excel or PDF files are accepted."
-            );
-          }
-
-          // Process all collected files
-          for (const file of filesToProcess) {
-            try {
-              console.log(`Processing file: ${file.name}`);
-              const buf = await file.arrayBuffer();
-
-              if (file.type.endsWith("pdf")) {
-                console.log(`Adding PDF: ${file.name}`);
-                searchBarManager.setDraft((prev) => {
-                  const newPDFs = [
-                    ...prev.uploadedPDFs,
-                    {
-                      buf,
-                      fileName: file.name,
-                      size: file.size,
-                      type: file.type,
-                      isCsv: false,
-                      isPdf: true,
-                    },
-                  ];
-                  console.log(`Total PDFs after adding: ${newPDFs.length}`);
-                  return {
-                    ...prev,
-                    uploadedPDFs: newPDFs,
-                  };
-                });
-              } else {
-                console.log(`Adding data file: ${file.name}`);
-                searchBarManager.setDraft((prev) => {
-                  console.log(prev);
-                  const newDataFiles = [
-                    ...prev.uploadedDataFiles,
-                    {
-                      buf,
-                      fileName: file.name,
-                      size: file.size,
-                      type: file.type,
-                      isPdf: false,
-                      isCsv: true,
-                    },
-                  ];
-                  console.log(
-                    `Total data files after adding: ${newDataFiles.length}`
-                  );
-                  return {
-                    ...prev,
-                    uploadedDataFiles: newDataFiles,
-                  };
-                });
+                if (
+                  item.kind === "file" &&
+                  isValidFileType(item.type, draft.mode === "report")
+                ) {
+                  const file = item.getAsFile();
+                  if (file) {
+                    console.log(`Item converted to file: ${file.name}`);
+                    filesToProcess.push(file);
+                  }
+                }
               }
-            } catch (error) {
-              console.error(`Error processing file ${file.name}:`, error);
             }
-          }
 
-          // Reset database info since we've added new files
-          newDbName.current = null;
-          newDbInfo.current = null;
+            console.log(
+              `Total valid files to process: ${filesToProcess.length}`
+            );
+
+            if (filesToProcess.length === 0) {
+              console.error("No valid files found");
+              throw new Error(
+                draft.mode === "report"
+                  ? "Only CSV, Excel or PDF files are accepted."
+                  : "Only CSV or Excel files are accepted in fast analysis mode."
+              );
+            }
+
+            // Process all collected files
+            for (const file of filesToProcess) {
+              try {
+                console.log(`Processing file: ${file.name}`);
+                const buf = await file.arrayBuffer();
+
+                if (file.type.endsWith("pdf")) {
+                  console.log(`Adding PDF: ${file.name}`);
+                  searchBarManager.setDraft((prev) => {
+                    const newPDFs = [
+                      ...prev.uploadedPDFs,
+                      {
+                        buf,
+                        fileName: file.name,
+                        size: file.size,
+                        type: file.type,
+                        isCsv: false,
+                        isPdf: true,
+                      },
+                    ];
+                    console.log(`Total PDFs after adding: ${newPDFs.length}`);
+                    return {
+                      ...prev,
+                      uploadedPDFs: newPDFs,
+                    };
+                  });
+                } else {
+                  console.log(`Adding data file: ${file.name}`);
+                  searchBarManager.setDraft((prev) => {
+                    console.log(prev);
+                    const newDataFiles = [
+                      ...prev.uploadedDataFiles,
+                      {
+                        buf,
+                        fileName: file.name,
+                        size: file.size,
+                        type: file.type,
+                        isPdf: false,
+                        isCsv: true,
+                      },
+                    ];
+                    console.log(
+                      `Total data files after adding: ${newDataFiles.length}`
+                    );
+                    return {
+                      ...prev,
+                      uploadedDataFiles: newDataFiles,
+                    };
+                  });
+                }
+              } catch (error) {
+                console.error(`Error processing file ${file.name}:`, error);
+              }
+            }
+
+            // Reset database info since we've added new files
+            newDbName.current = null;
+            newDbInfo.current = null;
+          } catch (error) {
+            console.error("Error processing files:", error);
+            message.error(error.message);
+          }
         }}
       >
-        {draft.status !== "clarifications_received" && (
-          <div className="text-lg dark:text-gray-200 font-light mb-4">
-            {statusDescriptions[draft.status]}
-          </div>
-        )}
+        <div
+          className={twMerge(
+            "text-lg dark:text-gray-200 font-light mb-4",
+            selectedItem?.itemType === "query-data" || draft.status !== "blank"
+              ? "h-0 mb-0 overflow-hidden opacity-0"
+              : ""
+          )}
+        >
+          {statusDescriptions[draft.status]}
+        </div>
         <TextArea
+          label={
+            selectedItem?.itemType === "query-data"
+              ? "Ask a follow on question"
+              : ""
+          }
           prefix={UploadedFileIcons}
           ref={textAreaRef}
-          rootClassNames="w-full"
-          textAreaClassNames="border-0 outline-0 ring-0 shadow-none focus:ring-0 bg-gray-50"
+          rootClassNames="w-full py-2"
+          textAreaClassNames="border-0 outline-0 ring-0 focus:ring-0 bg-gray-50"
           suffix={
-            <div className="flex flex-col">
-              <div className="dark:text-gray-400 border-b dark:border-gray-700 pb-2">
+            // selectedItem?.itemType !== "query-data" && (
+            <div className={twMerge("flex flex-col")}>
+              <div
+                className={twMerge(
+                  "dark:text-gray-400 border-b dark:border-gray-700 pb-2"
+                )}
+              >
                 Press{" "}
                 {isMac ? (
                   <>
@@ -382,17 +490,41 @@ export function OracleSearchBar({
                 ) : (
                   "Ctrl + Enter"
                 )}{" "}
-                to start. Drop PDFs to add context to the report. Drop CSV or
-                Excel files to analyse them.
+                {selectedItem?.itemType ? "to submit " : "to start "}
+                {draft.mode === "report" &&
+                  selectedItem?.itemType !== "query-data" &&
+                  "Drop PDFs to add context to the report. "}
+                {selectedItem?.itemType !== "query-data"
+                  ? "Drop CSV or Excel files to analyse them."
+                  : ""}
               </div>
 
-              <div className="flex flex-row mt-2 gap-4 items-center">
+              <div
+                className={twMerge(
+                  "flex flex-row mt-2 gap-4 items-center"
+                  // selectedItem?.itemType === "query-data" &&
+                  //   "h-0 mt-0 overflow-hidden opacity-0"
+                )}
+              >
                 <Dropdown
+                  disabled={selectedItem?.itemType === "query-data"}
                   trigger={
                     <>
-                      {modeIcons[draft.mode]}
+                      {
+                        modeIcons[
+                          selectedItem?.itemType === "query-data"
+                            ? "query-data"
+                            : draft.mode
+                        ]
+                      }
                       <span className="whitespace-nowrap">
-                        {modeDisplayName[draft.mode]}
+                        {
+                          modeDisplayName[
+                            selectedItem?.itemType === "query-data"
+                              ? "query-data"
+                              : draft.mode
+                          ]
+                        }
                       </span>
                       <ChevronDown className="w-4 h-4" />
                     </>
@@ -400,9 +532,14 @@ export function OracleSearchBar({
                 >
                   {Object.entries(modeIcons).map(([key, icon]) => (
                     <MenuItem
+                      disabled={selectedItem?.itemType === "query-data"}
                       className="w-96"
                       onClick={() => searchBarManager.setMode(key as Mode)}
-                      active={draft.mode === key}
+                      active={
+                        (selectedItem?.itemType === "query-data" &&
+                          key === "query-data") ||
+                        draft.mode === key
+                      }
                     >
                       <div className="flex flex-col gap-2">
                         <span className="flex flex-row items-center gap-2">
@@ -416,7 +553,9 @@ export function OracleSearchBar({
                     </MenuItem>
                   ))}
                 </Dropdown>
-                {draft.mode === "oracle" ? (
+
+                {draft.mode === "report" &&
+                selectedItem?.itemType !== "query-data" ? (
                   <Toggle
                     // size="small"
                     // title="Use web search to enhance report"
@@ -436,12 +575,17 @@ export function OracleSearchBar({
                 ) : null}
               </div>
             </div>
+            // )
           }
           disabled={loading}
           placeholder={
-            isDropping
-              ? "Release to drop"
-              : "Type here or drop PDF, CSV or Excel files"
+            selectedItem?.itemType === "query-data"
+              ? "Type here"
+              : isDropping
+                ? "Release to drop"
+                : draft.mode === "report"
+                  ? "Type your question here or drop PDF, CSV or Excel files"
+                  : "Type your question here or drop CSV or Excel files"
           }
           autoResize={true}
           defaultRows={1}
@@ -464,6 +608,7 @@ export function OracleSearchBar({
                 searchBarManager.setDraft((prev) => ({
                   ...prev,
                   userQuestion: question,
+                  status: "getting_clarifications",
                 }));
 
                 // Handle PDF uploads if there are any by creating an array of the PDF's filename and its base64 encoded content
@@ -581,38 +726,50 @@ export function OracleSearchBar({
                 // prepare either for success or a new error message
                 setErrorMessage("");
 
-                const res = await getClarifications(
-                  apiEndpoint,
-                  token,
-                  dbName,
-                  question,
-                  pdfFiles,
-                  dataFiles
-                );
+                // If in query-data mode, create a new analysis instead of getting clarifications
+                if (draft.mode === "query-data") {
+                  // Create new analysis for fast data analysis mode
+                  await createNewAnalysis(question);
 
-                console.log("clarifications", res.clarifications);
+                  // Reset the search bar text
+                  if (textAreaRef.current) {
+                    textAreaRef.current.value = "";
+                  }
+                } else {
+                  // Oracle mode - get clarifications for deep research
+                  const res = await getClarifications(
+                    apiEndpoint,
+                    token,
+                    dbName,
+                    question,
+                    pdfFiles,
+                    dataFiles
+                  );
 
-                searchBarManager.setDraft((prev) => ({
-                  ...prev,
-                  status: "clarifications_received",
-                  clarifications: res.clarifications,
-                  reportId: res.report_id,
-                }));
+                  console.log("clarifications", res.clarifications);
 
-                // if the res has a db_name and db_info
-                // means a new db was created for the data files
-                if (res.new_db_name && res.new_db_info) {
-                  newDbName.current = res.new_db_name;
-                  newDbInfo.current = res.new_db_info;
-                  onClarified(newDbName.current);
+                  searchBarManager.setDraft((prev) => ({
+                    ...prev,
+                    status: "clarifications_received",
+                    clarifications: res.clarifications,
+                    reportId: res.report_id,
+                  }));
+
+                  // if the res has a db_name and db_info
+                  // means a new db was created for the data files
+                  if (res.new_db_name && res.new_db_info) {
+                    newDbName.current = res.new_db_name;
+                    newDbInfo.current = res.new_db_info;
+                    onClarified(newDbName.current);
+                  }
                 }
               } catch (e) {
                 console.log(e);
                 setErrorMessage(e.toString());
-                // If there's an error, allow the user to try again
-                setClarificationStarted(false);
               } finally {
                 setLoading(false);
+                // If there's an error, allow the user to try again
+                setClarificationStarted(false);
               }
             }
           }}
@@ -621,18 +778,30 @@ export function OracleSearchBar({
 
       <div
         className={twMerge(
-          "w-11/12 mx-auto my-0 h-0 relative z-[1] transition-all duration-200 ease-in-out overflow-auto",
-          !loading &&
-            draft.clarifications &&
-            draft.clarifications.length > 0 &&
-            "p-4 h-96 rounded-b-xl bg-blue-200 dark:bg-sky-900 border-t-0"
+          "w-11/12 mx-auto my-0 h-0 relative z-[1] overflow-auto rounded-b-xl border-0 border-gray-300 bg-gray-700  dark:bg-gray-700 dark:border-gray-600 border-t-0",
+          loading
+            ? "border h-8"
+            : draft.clarifications &&
+                draft.clarifications.length > 0 &&
+                !selectedItem
+              ? "border h-96"
+              : "h-0"
         )}
       >
-        <OracleReportClarifications
-          dbName={dbName}
-          onReportGenerated={onReportGenerated}
-        />
+        {loading ? (
+          <span className="text-xs text-gray-300 dark:text-gray-400 py-2 px-4">
+            <SpinningLoader classNames="w-4" />
+            {statusDescriptions[draft.status]}
+          </span>
+        ) : (
+          <div className={twMerge("py-2 px-4")}>
+            <OracleReportClarifications
+              dbName={dbName}
+              onReportGenerated={onReportGenerated}
+            />
+          </div>
+        )}
       </div>
-    </>
+    </div>
   );
 }
