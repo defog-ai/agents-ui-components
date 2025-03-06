@@ -10,6 +10,103 @@ dayjs.extend(isoWeek);
 
 import { mean } from "d3-array";
 import { isNumber } from "@utils/utils";
+import setupBaseUrl from "@utils/setupBaseUrl";
+import { AnalysisRowFromBackend } from "./analysis/analysisManager";
+
+export const fetchAllAnalyses = async (
+  apiEndpoint: string,
+  token: string,
+  dbName: string
+): Promise<AnalysisRowFromBackend[]> => {
+  const urlToConnect = setupBaseUrl({
+    protocol: "http",
+    path: "query-data/get_all_analyses",
+    apiEndpoint,
+  });
+  const response = await fetch(urlToConnect, {
+    method: "POST",
+    signal: AbortSignal.timeout(60000),
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      token: token,
+      db_name: dbName,
+    }),
+  });
+
+  if (!response.ok) {
+    return null;
+  }
+
+  const json = await response.json();
+  return json;
+};
+
+export const fetchAnalysis = async (
+  analysisId: string,
+  token: string,
+  apiEndpoint: string
+): Promise<AnalysisRowFromBackend | null> => {
+  const urlToConnect = setupBaseUrl({
+    protocol: "http",
+    path: "query-data/get_analysis",
+    apiEndpoint,
+  });
+  const response = await fetch(urlToConnect, {
+    method: "POST",
+    signal: AbortSignal.timeout(60000),
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      token: token,
+      analysis_id: analysisId,
+    }),
+  });
+
+  if (!response.ok) {
+    return null;
+  }
+
+  const json = await response.json();
+  return json;
+};
+
+export const createAnalysis = async (
+  token: string,
+  dbName: string,
+  apiEndpoint: string,
+  customId: string,
+  bodyData = {}
+): Promise<AnalysisRowFromBackend> => {
+  const urlToConnect = setupBaseUrl({
+    protocol: "http",
+    path: "query-data/create_analysis",
+    apiEndpoint: apiEndpoint,
+  });
+
+  const response = await fetch(urlToConnect, {
+    method: "POST",
+    signal: AbortSignal.timeout(60000),
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      custom_id: customId,
+      token: token,
+      db_name: dbName,
+      ...bodyData,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to create analysis");
+  }
+
+  const json = await response.json();
+  return json;
+};
 
 // Type definitions
 export type DateType = "year" | "month" | "week" | "date" | "datetime" | null;
@@ -233,16 +330,39 @@ function isExpontential(input: string): boolean {
   return regex.test(input);
 }
 
+<<<<<<<< HEAD:lib/components/query-data/queryDataUtils.ts
+========
+interface InferredColumnType {
+  colType: string;
+  numeric: boolean;
+  variableType: string;
+  mean: number;
+  simpleTypeOf: string;
+  isDate: boolean;
+  dateType: string;
+  parseFormat: string;
+  dateToUnix: any;
+}
+
+>>>>>>>> 76466db (make type names less confusing. move functions around to be more obvious.):lib/components/query-data/queryDataUtils.tsx
 export function inferColumnType(
   rows: any[],
   colIdx: number,
   colName: string
+<<<<<<<< HEAD:lib/components/query-data/queryDataUtils.ts
 ): ColumnTypeInference {
   // go through rows
   const res: ColumnTypeInference = {
     numeric: false,
     variableType: "quantitative",
   };
+========
+): InferredColumnType {
+  // go through rows
+  const res = {} as InferredColumnType;
+  res["numeric"] = false;
+  res["variableType"] = "quantitative";
+>>>>>>>> 76466db (make type names less confusing. move functions around to be more obvious.):lib/components/query-data/queryDataUtils.tsx
 
   if (
     colName.endsWith("_id") ||
@@ -325,8 +445,13 @@ export const mapToObject = <T>(
   parentNestLocation: string[] = [],
   processValue: (value: any) => T = (d: any) => d as T,
   // hook will allow you to do extra computation on every recursive call to this function
+<<<<<<<< HEAD:lib/components/query-data/queryDataUtils.ts
   hook: (key: string, value: any) => void = () => {}
 ): Record<string, any> =>
+========
+  hook = (key: string, value: any) => {}
+) =>
+>>>>>>>> 76466db (make type names less confusing. move functions around to be more obvious.):lib/components/query-data/queryDataUtils.tsx
   Object.fromEntries(
     Array.from(map.entries(), ([key, value]) => {
       // Create a copy of the value if it's an object, otherwise just use the value
@@ -342,6 +467,7 @@ export const mapToObject = <T>(
       }
 
       return value instanceof Map
+<<<<<<<< HEAD:lib/components/query-data/queryDataUtils.ts
         ? [key, mapToObject(value, [...parentNestLocation, key], processValue)]
         : [
             key,
@@ -349,6 +475,11 @@ export const mapToObject = <T>(
               ? processValue(valueWithNestLocation)
               : processValue(value),
           ];
+========
+        ? // @ts-ignore
+          [key, mapToObject(value, value.nestLocation, processValue)]
+        : [key, processValue(value)];
+>>>>>>>> 76466db (make type names less confusing. move functions around to be more obvious.):lib/components/query-data/queryDataUtils.tsx
     })
   );
 
@@ -569,7 +700,11 @@ export const reFormatData = (
     }
 
     for (let i = 0; i < rows.length; i++) {
+<<<<<<<< HEAD:lib/components/query-data/queryDataUtils.ts
       let row: Record<string, any> = {};
+========
+      let row = {} as any;
+>>>>>>>> 76466db (make type names less confusing. move functions around to be more obvious.):lib/components/query-data/queryDataUtils.tsx
       row["key"] = i;
       row["index"] = i;
       row.unixDateValues = {};
