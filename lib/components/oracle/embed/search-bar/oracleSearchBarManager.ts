@@ -10,7 +10,7 @@ interface UploadedFile {
   type: string;
 }
 
-export type Mode = "query-data" | "oracle";
+export type Mode = "query-data" | "report";
 
 type Status =
   | "blank"
@@ -63,7 +63,8 @@ function createBlankDraft(): ReportDraft {
 export const statusDescriptions: Record<Status, string> = {
   blank:
     "Add a spreadsheet or select a database, and start asking your questions!",
-  getting_clarifications: "Getting clarifying questions...",
+  getting_clarifications:
+    "Analyzing database and thinking if I need to ask clarifying questions. This can take 15-20 seconds...",
   clarifications_received: "Please answer these clarifying questions...",
   submitting: "Submitting for generation...",
 };
@@ -73,7 +74,6 @@ export function OracleSearchBarManager(): OracleSearchBarManager {
   let draftListeners: Listener[] = [];
 
   function alertDraftListeners() {
-    console.log("called alertDraftListeners");
     draftListeners.forEach((listener) => listener());
   }
 
@@ -82,7 +82,6 @@ export function OracleSearchBarManager(): OracleSearchBarManager {
   function setDraft(
     newDraftOrFn: ReportDraft | ((oldDraft: ReportDraft) => ReportDraft)
   ) {
-    console.log("called setDraft");
     if (typeof newDraftOrFn === "function") {
       draft = newDraftOrFn(draft);
     } else {
@@ -93,21 +92,17 @@ export function OracleSearchBarManager(): OracleSearchBarManager {
   }
 
   function getDraft() {
-    console.log("called getDraft");
     return draft;
   }
 
   function resetDraft() {
-    console.log("called resetDraft");
     setDraft(createBlankDraft());
   }
 
   function subscribeToDraftChanges(listener: Listener) {
-    console.log("called subscribeToDraftChanges");
     draftListeners.push(listener);
 
     return function unsubscribe() {
-      console.log("called unsub subscribeToDraftChanges");
       draftListeners = draftListeners.filter((l) => l !== listener);
     };
   }
