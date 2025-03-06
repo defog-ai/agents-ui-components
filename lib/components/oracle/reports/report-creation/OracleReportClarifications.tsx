@@ -94,7 +94,7 @@ export function OracleReportClarifications({
   }, [draft, apiEndpoint, token, dbName, reportId, onReportGenerated, message]);
 
   return (
-    <div className="w-full overflow-auto flex flex-col items-start justify-center m-auto">
+    <div className="dark w-full overflow-auto flex flex-col items-start relative justify-center m-auto">
       <div className="text-lg dark:text-gray-200 font-light">
         {statusDescriptions[draft.status]}
       </div>
@@ -137,7 +137,7 @@ export function OracleReportClarifications({
               ))}
             </div>
             <Button
-              className="bg-gray-600 text-white border-0 hover:bg-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600"
+              className="bg-gray-600 text-white border-0 hover:bg-gray-700 dark:bg-gray-600 dark:hover:bg-gray-600"
               onClick={handleGenerateReport}
             >
               {loading ? loadingStatus.current : "Generate"}
