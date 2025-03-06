@@ -17,7 +17,7 @@ const variantStyles = {
 };
 
 const disabledStyles =
-  "bg-gray-50 dark:bg-gray-700 text-gray-300 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-300 dark:hover:text-gray-200 cursor-not-allowed active:bg-gray-50 dark:active:bg-gray-700 active:text-gray-300 dark:active:text-gray-200 active:brightness-[100%] hover:active:brightness-[100%] active:[&:not(:hover)]:brightness-[100%]";
+  "bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500 dark:ring-gray-700 cursor-not-allowed hover:cursor-not-allowed";
 
 interface ButtonProps {
   id?: string;
