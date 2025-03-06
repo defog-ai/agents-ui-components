@@ -593,6 +593,7 @@ export function OracleEmbed({
   const nullState = useMemo(() => {
     return (
       <OracleSearchBar
+        uploadNewDbOption={uploadNewDbOption}
         key="search"
         selectedItem={selectedItem}
         // rootClassNames={twMerge(
