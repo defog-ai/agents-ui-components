@@ -74,10 +74,13 @@ const itemTypeClasses = {
     "absolute bottom-40 left-1/2 -translate-x-1/2 translate-y-full w-full px-4",
   report:
     "absolute -bottom-48 left-1/2 -translate-x-1/2 translate-y-full w-full px-4 opacity-0",
+  "new-db":
+    "absolute -bottom-48 left-1/2 -translate-x-1/2 translate-y-full w-full px-4 opacity-0",
 };
 
 export function OracleSearchBar({
   dbName,
+  uploadNewDbOption,
   analysisTree = null,
   onClarified,
   onReportGenerated,
@@ -86,6 +89,7 @@ export function OracleSearchBar({
   selectedItem = null,
 }: {
   dbName: string;
+  uploadNewDbOption: string;
   analysisTree?: AnalysisTree | null;
   onClarified: (newDbName?: string) => void;
   onReportGenerated?: (data: {
@@ -174,8 +178,6 @@ export function OracleSearchBar({
       setLoading(false);
     }
   }, [draft, apiEndpoint, token, dbName, onReportGenerated, message]);
-
-  console.log(draft);
 
   // Function to handle analysis creation when in query-data mode
   const createNewAnalysis = useCallback(
@@ -340,7 +342,10 @@ export function OracleSearchBar({
     <div
       className={twMerge(
         "transition-all duration-700 ease-in-out z-[10] *:transition-all *:duration-700 *:ease-in-out",
-        itemTypeClasses[selectedItem?.itemType || "default"]
+        itemTypeClasses[
+          selectedItem?.itemType ||
+            (dbName === uploadNewDbOption ? "new-db" : "default")
+        ]
       )}
     >
       {errorMessage && (
