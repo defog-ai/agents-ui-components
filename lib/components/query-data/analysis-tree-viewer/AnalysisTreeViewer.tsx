@@ -46,13 +46,19 @@ interface AnalysisDomRefs {
 }
 
 // Utility functions
-const scrollToAnalysis = (
+export const scrollToAnalysis = (
   id: string,
-  refs: React.RefObject<AnalysisDomRefs>,
+  refs?: React.RefObject<AnalysisDomRefs> | null,
   behavior: ScrollBehavior = "smooth"
 ) => {
-  if (!refs.current?.[id]?.ctr) return;
-  refs.current[id].ctr.scrollIntoView({
+  let el = refs && refs?.current?.[id]?.ctr;
+  if (!el) {
+    // try to find in document using the id
+    el = document.getElementById(id);
+    if (!el) return;
+  }
+
+  el.scrollIntoView({
     behavior,
     block: "start",
   });
