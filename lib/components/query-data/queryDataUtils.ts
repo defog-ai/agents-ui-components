@@ -756,8 +756,6 @@ export const getMostVisibleAnalysis = (
   let mostVisibleId = analysisIds[0]; // Default to first if none visible
   let mostVisibleElement = document.getElementById(mostVisibleId);
 
-  console.log(analysisIds);
-
   analysisIds.forEach((id) => {
     const element = document.getElementById(id);
     if (!element) return;
@@ -769,16 +767,13 @@ export const getMostVisibleAnalysis = (
     const visibleHeight =
       Math.min(rect.bottom, containerRect.bottom) -
       Math.max(rect.top, containerRect.top);
-    const visibility = Math.max(0, visibleHeight / containerRect.height);
 
-    if (visibility > maxVisibility) {
-      maxVisibility = visibility;
+    if (visibleHeight > maxVisibility) {
+      maxVisibility = visibleHeight;
       mostVisibleId = id;
       mostVisibleElement = element;
     }
   });
-
-  console.log(mostVisibleId, mostVisibleElement);
 
   return {
     id: mostVisibleId,

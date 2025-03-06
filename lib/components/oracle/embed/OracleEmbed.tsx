@@ -7,7 +7,9 @@ import {
 } from "@ui-components";
 import { OracleHistorySidebar } from "./OracleHistorySidebar";
 import {
+  SyntheticEvent,
   useCallback,
+  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -35,10 +37,14 @@ import {
   createAnalysisTreeFromFetchedAnalyses,
   validateAnalysisTree,
 } from "../../../../lib/components/query-data/analysis-tree-viewer/analysisTreeManager";
-import { fetchAllAnalyses } from "../../../../lib/components/query-data/queryDataUtils";
+import {
+  fetchAllAnalyses,
+  getMostVisibleAnalysis,
+} from "../../../../lib/components/query-data/queryDataUtils";
 import ErrorBoundary from "../../../components/common/ErrorBoundary";
 import { AnalysisTreeContent } from "../../../components/query-data/analysis-tree-viewer/AnalysisTreeViewer";
 import { QueryDataEmbedContext } from "../../../components/context/QueryDataEmbedContext";
+import debounce from "lodash.debounce";
 
 export interface OracleReportType extends ListReportResponseItem {
   /**
@@ -143,6 +149,8 @@ const AnalysisTreeContentWrapper = ({
     return Object.keys(nestedTree)[0] || null;
   }, [nestedTree]);
 
+  const { searchBarManager } = useContext(OracleEmbedContext);
+
   // Set active root analysis for the manager
   useEffect(() => {
     if (activeRootId) {
@@ -153,8 +161,10 @@ const AnalysisTreeContentWrapper = ({
 
   // Simple no-op function for follow-on questions
   const submitFollowOn = useCallback((question: string) => {
+    if (!question) return;
     console.log("Follow-on question:", question);
     // Additional implementation can be added here if needed
+    searchBarManager.setQuestion(question);
   }, []);
 
   if (!activeRootId) return null;
@@ -590,6 +600,22 @@ export function OracleEmbed({
     ]
   );
 
+  const setMostVisibleAnalysisAsActive = useCallback(() => {
+    if (selectedItem.itemType !== "query-data" || !selectedItem.treeManager)
+      return;
+
+    const allAnalyses = selectedItem.treeManager.getAll();
+    const { id: visibleAnalysisId, element } = getMostVisibleAnalysis(
+      Object.keys(allAnalyses)
+    );
+    if (!visibleAnalysisId) return;
+    if (visibleAnalysisId === selectedItem.treeManager.getActiveAnalysisId())
+      return;
+    const rootAnalysisId = allAnalyses[visibleAnalysisId].rootAnalysisId;
+    selectedItem.treeManager.setActiveAnalysisId(visibleAnalysisId);
+    selectedItem.treeManager.setActiveRootAnalysisId(rootAnalysisId);
+  }, [selectedItem]);
+
   const nullState = useMemo(() => {
     return (
       <OracleSearchBar
@@ -769,21 +795,25 @@ export function OracleEmbed({
             {selectedItemId &&
             selectedItem &&
             "analysisTree" in selectedItem ? (
-              <div className="p-4 flex flex-col  overflow-y-auto pb-48">
+              <div
+                className="p-4 space-y-4 max-h-full overflow-y-auto pb-48"
+                onScroll={debounce((e: SyntheticEvent) => {
+                  e.stopPropagation();
+                  setMostVisibleAnalysisAsActive();
+                }, 100)}
+              >
                 <ErrorBoundary>
                   {Object.keys((selectedItem as QueryDataTree).analysisTree)
                     .length > 0 && (
-                    <div className="flex-grow flex flex-col">
+                    <>
                       {/* Use AnalysisTreeContent to render the analysis */}
-                      <div className="flex-grow overflow-auto">
-                        <AnalysisTreeContentWrapper
-                          selectedItem={selectedItem as QueryDataTree}
-                          selectedDbName={selectedDbName}
-                          token={token}
-                          apiEndpoint={apiEndpoint}
-                        />
-                      </div>
-                    </div>
+                      <AnalysisTreeContentWrapper
+                        selectedItem={selectedItem as QueryDataTree}
+                        selectedDbName={selectedDbName}
+                        token={token}
+                        apiEndpoint={apiEndpoint}
+                      />
+                    </>
                   )}
                 </ErrorBoundary>
               </div>

@@ -81,7 +81,6 @@ const itemTypeClasses = {
 export function OracleSearchBar({
   dbName,
   uploadNewDbOption,
-  analysisTree = null,
   onClarified,
   onReportGenerated,
   onNewAnalysisTree,
@@ -90,7 +89,6 @@ export function OracleSearchBar({
 }: {
   dbName: string;
   uploadNewDbOption: string;
-  analysisTree?: AnalysisTree | null;
   onClarified: (newDbName?: string) => void;
   onReportGenerated?: (data: {
     userQuestion: string;
@@ -189,13 +187,13 @@ export function OracleSearchBar({
         const analysisId = crypto.randomUUID();
 
         if (selectedItem && selectedItem.itemType === "query-data") {
-          selectedItem.treeManager?.submit({
+          const { newAnalysis } = await selectedItem.treeManager?.submit({
             question,
             dbName,
             analysisId,
             rootAnalysisId: selectedItem.itemId,
             isRoot: false,
-            directParentId: selectedItem.itemId,
+            directParentId: selectedItem.treeManager.getActiveAnalysisId(),
             activeTab: "table",
           });
         } else {
@@ -240,6 +238,12 @@ export function OracleSearchBar({
 
   const [clarificationStarted, setClarificationStarted] =
     useState<boolean>(false);
+
+  useEffect(() => {
+    if (draft.userQuestion !== textAreaRef.current?.value) {
+      textAreaRef.current.value = draft.userQuestion;
+    }
+  }, [draft]);
 
   const UploadedFileIcons = useMemo(() => {
     return draft?.uploadedDataFiles?.length || draft?.uploadedPDFs?.length ? (
@@ -825,6 +829,7 @@ export function OracleSearchBar({
                   ...prev,
                   loading: false,
                   status: "clarifications_received",
+                  userQuestion: "",
                 }));
               } catch (e) {
                 console.log(e);

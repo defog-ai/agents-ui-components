@@ -362,16 +362,19 @@ export const AnalysisTreeContent = ({
 }) => {
   if (!activeRootAnalysisId || !nestedTree[activeRootAnalysisId]) return null;
 
-  const activeAnalysisId = analysisTreeManager.getActiveAnalysisId();
+  const activeAnalysisId = useSyncExternalStore(
+    analysisTreeManager.subscribeToActiveAnalysisIdChanges,
+    analysisTreeManager.getActiveAnalysisId
+  );
 
   const getAnalysisClasses = (analysisId: string) => {
     const isActive = analysisId === activeAnalysisId;
     return twMerge(
       "w-full mb-4 [&_.analysis-content]:min-h-96 shadow-md transition-opacity duration-200",
-      `analysis-${analysisId}`
-      // isActive
-      //   ? "border-2 border-blue-500 dark:border-blue-400 bg-white dark:bg-gray-800 z-2 relative"
-      //   : "opacity-50 hover:opacity-75 bg-gray-50/80 dark:bg-gray-900/80 relative -z-0"
+      `analysis-${analysisId}`,
+      isActive
+        ? "border-2 border-blue-500 dark:border-blue-400 bg-white dark:bg-gray-800 z-2 relative"
+        : "opacity-50 hover:opacity-75 bg-gray-50/80 dark:bg-gray-900/80 relative -z-0"
     );
   };
 
@@ -451,7 +454,7 @@ export const AnalysisTreeContent = ({
                     sql: analysis?.data?.sql,
                   };
                 })
-                .filter((d: any) => d);
+                .filter((d: any) => d && d.sql && d.question);
             }}
             onManagerCreated={(
               analysisManager: AnalysisManager,
