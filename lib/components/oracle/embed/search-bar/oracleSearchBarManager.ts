@@ -108,7 +108,12 @@ export function OracleSearchBarManager(): OracleSearchBarManager {
   }
 
   function setMode(newMode: Mode) {
-    setDraft({ ...draft, mode: newMode });
+    setDraft((prev) => ({
+      ...prev,
+      mode: newMode,
+      userQuestion: prev.userQuestion,
+      clarifications: null,
+    }));
   }
 
   function setReportId(newReportId: string) {

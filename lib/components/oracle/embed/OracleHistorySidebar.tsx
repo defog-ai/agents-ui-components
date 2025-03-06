@@ -9,6 +9,7 @@ import {
   OracleReportType,
   QueryDataTree,
 } from "./OracleEmbed";
+import { AnalysisTreeItem } from "../../../../lib/components/query-data/analysis-tree-viewer/AnalysisTreeItem";
 
 interface OracleHistorySidebarProps {
   oracleHistory: OracleHistory;
@@ -17,7 +18,7 @@ interface OracleHistorySidebarProps {
   selectedItemId: string | null;
   updateUrlWithItemId: (itemId: string | number | null) => void;
   dbSelector: React.ReactNode;
-  setSelectedItemId: (reportId: string | null) => void;
+  setSelectedItem: (item: OracleHistoryItem | null) => void;
 }
 
 export const OracleHistorySidebar: React.FC<OracleHistorySidebarProps> = ({
@@ -27,7 +28,7 @@ export const OracleHistorySidebar: React.FC<OracleHistorySidebarProps> = ({
   selectedItemId,
   updateUrlWithItemId,
   dbSelector,
-  setSelectedItemId,
+  setSelectedItem,
 }) => {
   return (
     <Sidebar
@@ -53,7 +54,7 @@ export const OracleHistorySidebar: React.FC<OracleHistorySidebarProps> = ({
             )}
             onClick={() => {
               updateUrlWithItemId(null);
-              setSelectedItemId(null);
+              setSelectedItem(null);
             }}
           >
             <div className="flex flex-row items-center gap-2">
@@ -89,12 +90,13 @@ export const OracleHistorySidebar: React.FC<OracleHistorySidebarProps> = ({
                             ?.root?.user_question) ||
                         "Untitled analysis";
 
+                    // if (isReport) {
                     return (
                       <div
                         key={itemId}
                         onClick={() => {
                           updateUrlWithItemId(itemId);
-                          setSelectedItemId(itemId);
+                          setSelectedItem(item);
                         }}
                         className={twMerge(
                           "title hover:cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 history-item p-3 text-sm rounded-md transition-colors duration-200 mb-2 border border-transparent",
@@ -140,6 +142,20 @@ export const OracleHistorySidebar: React.FC<OracleHistorySidebarProps> = ({
                         </div>
                       </div>
                     );
+                    // } else {
+                    //   const nestedTree = item.treeManager?.getNestedTree();
+
+                    //   return (
+                    //     <AnalysisTreeItem
+                    //       onClick={() => {
+                    //         updateUrlWithItemId(itemId);
+                    //         setSelectedItem(item);
+                    //       }}
+                    //       analysis={nestedTree[item.itemId]}
+                    //       activeAnalysisId={item.itemId}
+                    //     />
+                    //   );
+                    // }
                   })}
                 </div>
               );

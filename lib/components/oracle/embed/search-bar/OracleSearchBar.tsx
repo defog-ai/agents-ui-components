@@ -1,4 +1,8 @@
-import { getClarifications } from "@oracle";
+import {
+  generateReport,
+  getClarifications,
+  ORACLE_REPORT_STATUS,
+} from "@oracle";
 import {
   AlertBanner,
   Dropdown,
@@ -42,6 +46,7 @@ import {
   AnalysisTreeManager,
 } from "../../../../../lib/components/query-data/analysis-tree-viewer/analysisTreeManager";
 import { OracleHistoryItem } from "../OracleEmbed";
+import { OracleSearchBarModeHeader } from "./OracleSearchBarModeHeader";
 
 const modeDisplayName = {
   "query-data": "Fast data analysis",
@@ -66,8 +71,9 @@ const itemTypeClasses = {
   default:
     "absolute bottom-1/2 left-1/2 -translate-x-1/2 translate-y-1/2 w-full px-4",
   "query-data":
-    "absolute bottom-48 left-1/2 -translate-x-1/2 translate-y-full w-full px-4",
-  report: "h-0 opacity-0",
+    "absolute bottom-40 left-1/2 -translate-x-1/2 translate-y-full w-full px-4",
+  report:
+    "absolute -bottom-48 left-1/2 -translate-x-1/2 translate-y-full w-full px-4 opacity-0",
 };
 
 export function OracleSearchBar({
@@ -75,7 +81,7 @@ export function OracleSearchBar({
   analysisTree = null,
   onClarified,
   onReportGenerated,
-  onAnalysisGenerated,
+  onNewAnalysisTree,
   rootClassNames = "",
   selectedItem = null,
 }: {
@@ -87,7 +93,7 @@ export function OracleSearchBar({
     reportId: string;
     status: string;
   }) => void;
-  onAnalysisGenerated?: (data: {
+  onNewAnalysisTree?: (data: {
     userQuestion: string;
     analysisTree: AnalysisTree;
     rootAnalysisId: string;
@@ -96,7 +102,6 @@ export function OracleSearchBar({
   rootClassNames?: string;
   selectedItem: OracleHistoryItem;
 }) {
-  console.log(selectedItem);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [isDropping, setIsDropping] = useState<boolean>(false);
   const { searchBarManager, apiEndpoint, token } =
@@ -106,7 +111,6 @@ export function OracleSearchBar({
 
   const [isMac, setIsMac] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
-  const loadingStatus = useRef<string>("");
 
   const newDbName = useRef<string | null>(null);
   const newDbInfo = useRef<DbInfo | null>(null);
@@ -118,55 +122,114 @@ export function OracleSearchBar({
 
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
-  const analysisTreeManager = useMemo<AnalysisTreeManager | null>(() => {
-    if (analysisTree) {
-      return AnalysisTreeManager(analysisTree);
-    } else {
-      return null;
+  const handleGenerateReport = useCallback(async () => {
+    try {
+      if (!draft.reportId) {
+        throw new Error("No report ID");
+      }
+      if (!textAreaRef.current.value && !draft.userQuestion) {
+        throw new Error("No question!");
+      }
+
+      searchBarManager.setDraft((prev) => ({
+        ...prev,
+        status: "submitting",
+      }));
+
+      setLoading(true);
+
+      // prepare either for success or a new error message
+      setErrorMessage("");
+
+      try {
+        // This will always error because of a 10ms timeout
+        await generateReport(
+          apiEndpoint,
+          token,
+          dbName,
+          draft.reportId,
+          draft.userQuestion || textAreaRef.current?.value,
+          draft.clarifications?.filter((c) => c.answer && c.is_answered) || [],
+          // Add websearch parameter
+          draft.useWebsearch
+        );
+      } catch (error) {
+        message.success("Report submitted for generation");
+        onReportGenerated({
+          userQuestion: draft.userQuestion || textAreaRef.current?.value,
+          reportId: draft.reportId,
+          status: ORACLE_REPORT_STATUS.THINKING,
+        });
+      }
+
+      // clear everything
+      searchBarManager.resetDraft();
+      textAreaRef.current.value = "";
+    } catch (error) {
+      setErrorMessage(`Error generating report: ${error}`);
+
+      // also use message for this error because user is usually scrolled down to the bottom when they click "generate"
+      message.error(`Error generating report: ${error}`);
+    } finally {
+      setLoading(false);
     }
-  }, [analysisTree]);
+  }, [draft, apiEndpoint, token, dbName, onReportGenerated, message]);
+
+  console.log(draft);
 
   // Function to handle analysis creation when in query-data mode
   const createNewAnalysis = useCallback(
-    async (question: string) => {
-      if (!onAnalysisGenerated) return;
+    async (question: string, treeManager?: AnalysisTreeManager) => {
+      if (!onNewAnalysisTree) return;
 
       try {
         // Generate a new UUID for the analysis
         const analysisId = crypto.randomUUID();
 
-        // Create a new analysis tree manager
-        const newAnalysisTreeManager = AnalysisTreeManager();
+        if (selectedItem && selectedItem.itemType === "query-data") {
+          selectedItem.treeManager?.submit({
+            question,
+            dbName,
+            analysisId,
+            rootAnalysisId: selectedItem.itemId,
+            isRoot: false,
+            directParentId: selectedItem.itemId,
+            activeTab: "table",
+          });
+        } else {
+          // Create a new analysis tree manager
+          const newAnalysisTreeManager = treeManager || AnalysisTreeManager();
 
-        // Submit the question to create a new root analysis
-        await newAnalysisTreeManager.submit({
-          question,
-          dbName,
-          analysisId,
-          rootAnalysisId: analysisId,
-          isRoot: true,
-          directParentId: null,
-          sqlOnly: false,
-          isTemp: false,
-          activeTab: "table",
-        });
+          // Submit the question to create a new root analysis
+          await newAnalysisTreeManager.submit({
+            question,
+            dbName,
+            analysisId,
+            rootAnalysisId: analysisId,
+            isRoot: true,
+            directParentId: null,
+            sqlOnly: false,
+            isTemp: false,
+            activeTab: "table",
+          });
 
-        // Get the tree data
-        const treeData = newAnalysisTreeManager.getTree();
+          // Get the tree data
+          const treeData = newAnalysisTreeManager.getTree();
 
-        // Notify parent component about the new analysis
-        onAnalysisGenerated({
-          userQuestion: question,
-          analysisTree: treeData,
-          rootAnalysisId: analysisId,
-          treeManager: newAnalysisTreeManager,
-        });
+          // Notify parent component about the new analysis
+          onNewAnalysisTree({
+            userQuestion: question,
+            analysisTree: treeData,
+            rootAnalysisId: analysisId,
+            treeManager: newAnalysisTreeManager,
+          });
+        }
       } catch (error) {
         console.error("Error creating new analysis:", error);
         setErrorMessage("Failed to create analysis: " + error.message);
       }
     },
-    [dbName, onAnalysisGenerated]
+    [selectedItem, dbName, onNewAnalysisTree]
   );
 
   useEffect(() => {
@@ -276,7 +339,7 @@ export function OracleSearchBar({
   return (
     <div
       className={twMerge(
-        "transition-all duration-1000 ease-in-out z-[10] *:transition-all *:duration-1000 *:ease-in-out",
+        "transition-all duration-700 ease-in-out z-[10] *:transition-all *:duration-700 *:ease-in-out",
         itemTypeClasses[selectedItem?.itemType || "default"]
       )}
     >
@@ -315,7 +378,7 @@ export function OracleSearchBar({
           try {
             e.preventDefault();
             e.stopPropagation();
-            if (selectedItem.itemType === "query-data") return;
+            if (selectedItem?.itemType === "query-data") return;
             setIsDropping(false);
 
             console.log("Drop event triggered");
@@ -419,7 +482,6 @@ export function OracleSearchBar({
                 } else {
                   console.log(`Adding data file: ${file.name}`);
                   searchBarManager.setDraft((prev) => {
-                    console.log(prev);
                     const newDataFiles = [
                       ...prev.uploadedDataFiles,
                       {
@@ -454,22 +516,8 @@ export function OracleSearchBar({
           }
         }}
       >
-        <div
-          className={twMerge(
-            "text-lg dark:text-gray-200 font-light mb-4",
-            selectedItem?.itemType === "query-data" || draft.status !== "blank"
-              ? "h-0 mb-0 overflow-hidden opacity-0"
-              : ""
-          )}
-        >
-          {statusDescriptions[draft.status]}
-        </div>
+        <OracleSearchBarModeHeader selectedItem={selectedItem} />
         <TextArea
-          label={
-            selectedItem?.itemType === "query-data"
-              ? "Ask a follow on question"
-              : ""
-          }
           prefix={UploadedFileIcons}
           ref={textAreaRef}
           rootClassNames="w-full py-2"
@@ -477,11 +525,7 @@ export function OracleSearchBar({
           suffix={
             // selectedItem?.itemType !== "query-data" && (
             <div className={twMerge("flex flex-col")}>
-              <div
-                className={twMerge(
-                  "dark:text-gray-400 border-b dark:border-gray-700 pb-2"
-                )}
-              >
+              <div className={twMerge("dark:text-gray-400")}>
                 Press{" "}
                 {isMac ? (
                   <>
@@ -501,9 +545,9 @@ export function OracleSearchBar({
 
               <div
                 className={twMerge(
-                  "flex flex-row mt-2 gap-4 items-center"
-                  // selectedItem?.itemType === "query-data" &&
-                  //   "h-0 mt-0 overflow-hidden opacity-0"
+                  "flex flex-row mt-2 gap-4 items-center",
+                  selectedItem?.itemType === "query-data" &&
+                    "h-0 mt-0 overflow-hidden opacity-0"
                 )}
               >
                 <Dropdown
@@ -532,9 +576,13 @@ export function OracleSearchBar({
                 >
                   {Object.entries(modeIcons).map(([key, icon]) => (
                     <MenuItem
+                      key={key}
                       disabled={selectedItem?.itemType === "query-data"}
                       className="w-96"
-                      onClick={() => searchBarManager.setMode(key as Mode)}
+                      onClick={() => {
+                        searchBarManager.setMode(key as Mode);
+                        setClarificationStarted(false);
+                      }}
                       active={
                         (selectedItem?.itemType === "query-data" &&
                           key === "query-data") ||
@@ -563,7 +611,10 @@ export function OracleSearchBar({
                     offLabel="Use web search to enhance report"
                     defaultOn={draft.useWebsearch}
                     disabled={
-                      clarificationStarted || Boolean(draft.clarifications)
+                      clarificationStarted ||
+                      Boolean(
+                        draft.clarifications && draft.clarifications.length
+                      )
                     }
                     onToggle={(value) => {
                       searchBarManager.setDraft((prev) => ({
@@ -603,8 +654,7 @@ export function OracleSearchBar({
                 // Set clarification started flag immediately
                 setClarificationStarted(true);
                 setLoading(true);
-                loadingStatus.current =
-                  "Analyzing database and thinking if I need to ask clarifying questions. This can take 15-20 seconds...";
+
                 searchBarManager.setDraft((prev) => ({
                   ...prev,
                   userQuestion: question,
@@ -727,7 +777,11 @@ export function OracleSearchBar({
                 setErrorMessage("");
 
                 // If in query-data mode, create a new analysis instead of getting clarifications
-                if (draft.mode === "query-data") {
+                // of if we're in a query-data item itself, create analysis
+                if (
+                  draft.mode === "query-data" ||
+                  selectedItem?.itemType === "query-data"
+                ) {
                   // Create new analysis for fast data analysis mode
                   await createNewAnalysis(question);
 
@@ -746,8 +800,6 @@ export function OracleSearchBar({
                     dataFiles
                   );
 
-                  console.log("clarifications", res.clarifications);
-
                   searchBarManager.setDraft((prev) => ({
                     ...prev,
                     status: "clarifications_received",
@@ -763,9 +815,20 @@ export function OracleSearchBar({
                     onClarified(newDbName.current);
                   }
                 }
+
+                searchBarManager.setDraft((prev) => ({
+                  ...prev,
+                  loading: false,
+                  status: "clarifications_received",
+                }));
               } catch (e) {
                 console.log(e);
                 setErrorMessage(e.toString());
+                searchBarManager.setDraft((prev) => ({
+                  ...prev,
+                  loading: false,
+                  status: "blank",
+                }));
               } finally {
                 setLoading(false);
                 // If there's an error, allow the user to try again
@@ -778,26 +841,26 @@ export function OracleSearchBar({
 
       <div
         className={twMerge(
-          "w-11/12 mx-auto my-0 h-0 relative z-[1] overflow-auto rounded-b-xl border-0 border-gray-300 bg-gray-700  dark:bg-gray-700 dark:border-gray-600 border-t-0",
+          "w-11/12 mx-auto my-0 h-0 relative z-[1] overflow-auto rounded-b-xl border-blue-500  dark:bg-sky-900 dark:border-sky-600 border border-t-0 bg-sky-200",
           loading
-            ? "border h-8"
+            ? "h-8 border-none"
             : draft.clarifications &&
                 draft.clarifications.length > 0 &&
-                !selectedItem
-              ? "border h-96"
-              : "h-0"
+                !selectedItem &&
+                draft.mode !== "query-data"
+              ? "h-96"
+              : "h-0 border-none"
         )}
       >
         {loading ? (
-          <span className="text-xs text-gray-300 dark:text-gray-400 py-2 px-4">
+          <span className="text-xs text-gray-600 dark:text-gray-300 py-2 px-4">
             <SpinningLoader classNames="w-4" />
             {statusDescriptions[draft.status]}
           </span>
         ) : (
           <div className={twMerge("py-2 px-4")}>
             <OracleReportClarifications
-              dbName={dbName}
-              onReportGenerated={onReportGenerated}
+              handleGenerateReport={handleGenerateReport}
             />
           </div>
         )}
