@@ -37,6 +37,7 @@ import {
   arrayBufferToBase64,
   formatFileSize,
   isValidFileType,
+  raf,
 } from "@utils/utils";
 import { statusDescriptions, Mode } from "./oracleSearchBarManager";
 import { OracleReportClarifications } from "../../reports/report-creation/OracleReportClarifications";
@@ -47,6 +48,7 @@ import {
 } from "../../../../../lib/components/query-data/analysis-tree-viewer/analysisTreeManager";
 import { OracleHistoryItem } from "../OracleEmbed";
 import { OracleSearchBarModeHeader } from "./OracleSearchBarModeHeader";
+import { scrollToAnalysis } from "../../../../../lib/components/query-data/analysis-tree-viewer/AnalysisTreeViewer";
 
 const modeDisplayName = {
   "query-data": "Fast data analysis",
@@ -195,6 +197,10 @@ export function OracleSearchBar({
             isRoot: false,
             directParentId: selectedItem.treeManager.getActiveAnalysisId(),
             activeTab: "table",
+          });
+
+          raf(() => {
+            scrollToAnalysis(newAnalysis.analysisId);
           });
         } else {
           // Create a new analysis tree manager
