@@ -229,6 +229,10 @@ interface DropdownProps {
    * The class names of the trigger
    */
   triggerClassNames?: string;
+  /**
+   * Disable the trigger
+   */
+  disabled?: boolean;
 }
 
 /**
@@ -242,6 +246,7 @@ export function Dropdown({
   label = null,
   labelClassNames = "",
   triggerClassNames = "",
+  disabled = false,
 }: DropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -376,6 +381,7 @@ export function Dropdown({
         )}
 
         <Button
+          disabled={disabled}
           className={twMerge(
             "flex items-center gap-2 rounded-xl bg-transparent dark:bg-transparent",
             triggerClassNames
