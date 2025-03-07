@@ -10,6 +10,8 @@ import {
   QueryDataTree,
 } from "./OracleEmbed";
 import { AnalysisTreeItem } from "../../../../lib/components/query-data/analysis-tree-viewer/AnalysisTreeItem";
+import KeyboardShortcutIndicator from "../../core-ui/KeyboardShortcutIndicator";
+import { KEYMAP } from "../../../constants/keymap";
 
 interface OracleHistorySidebarProps {
   oracleHistory: OracleHistory;
@@ -60,6 +62,7 @@ export const OracleHistorySidebar: React.FC<OracleHistorySidebarProps> = ({
             <div className="flex flex-row items-center gap-2">
               <SquarePen size={18} />
               <span className="font-medium">New Report</span>
+              <KeyboardShortcutIndicator keyValue={KEYMAP.NEW_QUESTION} meta={true} />
             </div>
           </div>
         ) : (
