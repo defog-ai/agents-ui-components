@@ -353,7 +353,7 @@ export function Dropdown({
       // Check if the child is a MenuItem
       if (child.type === MenuItem) {
         // Clone the element with the closeDropdown prop
-        return React.cloneElement(child, { closeDropdown });
+        return React.cloneElement<MenuItemProps>(child, { closeDropdown });
       }
     }
     return child;

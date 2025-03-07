@@ -23,7 +23,7 @@ import { Button, Table } from "@ui-components";
 import { ChartContainer } from "../../../observable-charts/ChartContainer";
 import { AnalyseCSV } from "./AnalyseCSV";
 
-import type { Analysis } from "../analysisManager";
+import type { AnalysisRowFromBackend } from "../analysisManager";
 import type { AnalysisTreeManager } from "../../analysis-tree-viewer/analysisTreeManager";
 import { KeyboardShortcutIndicator } from "../../../core-ui/KeyboardShortcutIndicator";
 import { KEYMAP, matchesKey } from "../../../../constants/keymap";
@@ -76,7 +76,7 @@ export function AnalysisOutputsTable({
   analysisTreeManager = null,
 }: {
   dbName: string;
-  analysis?: Analysis | null;
+  analysis?: AnalysisRowFromBackend | null;
   analysisBusy?: boolean;
   handleReRun?: (...args: any) => void;
   analysisTreeManager?: AnalysisTreeManager;
