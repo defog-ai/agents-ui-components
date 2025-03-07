@@ -32,7 +32,7 @@ export default function ObservablePlot() {
       setDimensions((prev) =>
         width !== prev.width || height !== prev.height
           ? { width, height }
-          : prev
+          : prev,
       );
     }
   }, []);
