@@ -2,13 +2,6 @@ import { ClarificationObject } from "../../reports/report-creation/Clarification
 
 type QueryTaskType = "exploration" | "";
 
-interface UploadedFile {
-  buf: ArrayBuffer;
-  fileName: string;
-  size: number;
-  type: string;
-}
-
 export type Mode = "query-data" | "report";
 
 type Status =
@@ -26,11 +19,7 @@ interface ReportDraft {
   task_type?: QueryTaskType;
   clarifications?: ClarificationObject[];
   useWebsearch?: boolean;
-  uploadedPDFs?: UploadedFile[];
-  /**
-   * CSVs or Excel files. Once these are uploaded, they will be used as a "new db".
-   */
-  uploadedDataFiles?: UploadedFile[];
+  uploadedFiles?: File[];
 }
 
 type Listener = () => void;
@@ -55,8 +44,7 @@ function createBlankDraft(): ReportDraft {
     mode: "query-data",
     userQuestion: "",
     useWebsearch: true,
-    uploadedPDFs: [],
-    uploadedDataFiles: [],
+    uploadedFiles: [],
   };
 }
 
