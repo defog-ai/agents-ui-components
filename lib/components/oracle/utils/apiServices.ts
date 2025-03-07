@@ -610,44 +610,71 @@ export const generateReport = async (
 };
 
 /**
- * Upload files to the backend
+ * Upload files to the backend with progress tracking
  */
 export const uploadFiles = async (
   apiEndpoint: string,
   token: string,
   dbName: string,
-  pdfFiles: { file_name: string; base64_content: string }[],
-  dataFiles: { file_name: string; base64_content: string }[]
+  files: File[],
+  onProgress?: (progress: number) => void
 ): Promise<{
-  new_db_info?: DbInfo;
-  new_db_name?: string;
+  db_name?: string;
 }> => {
   if (!token) throw new Error("No token");
-  
-  const res = await fetch(
-    setupBaseUrl({
-      apiEndpoint,
-      protocol: "http",
-      path: "oracle/upload_files",
-    }),
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        db_name: dbName,
-        token,
-        pdf_files: pdfFiles,
-        data_files: dataFiles,
-      }),
-    }
-  );
 
-  if (!res.ok) {
-    throw new Error((await res.text()) || "Failed to upload files");
+  const formData = new FormData();
+  formData.append("db_name", dbName);
+  formData.append("token", token);
+  for (const file of files) {
+    // this will append all files to the "files" field
+    formData.append("files", file);
   }
 
-  const data = await res.json();
-  return data;
+  const url = setupBaseUrl({
+    apiEndpoint,
+    protocol: "http",
+    path: "upload_files",
+  });
+
+  // Use XMLHttpRequest to track progress
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    
+    // Add progress event listener
+    if (onProgress) {
+      xhr.upload.addEventListener("progress", (event) => {
+        if (event.lengthComputable) {
+          const progress = Math.round((event.loaded / event.total) * 100);
+          onProgress(progress);
+        }
+      });
+    }
+    
+    xhr.addEventListener("load", async () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          const data = JSON.parse(xhr.responseText);
+          resolve(data);
+        } catch (error) {
+          reject(new Error("Failed to parse response"));
+        }
+      } else {
+        reject(new Error(xhr.responseText || "Failed to upload files"));
+      }
+    });
+    
+    xhr.addEventListener("error", () => {
+      reject(new Error("Network error occurred"));
+    });
+    
+    xhr.addEventListener("abort", () => {
+      reject(new Error("Upload aborted"));
+    });
+    
+    xhr.open("POST", url);
+    xhr.send(formData);
+  });
 };
 
 /**

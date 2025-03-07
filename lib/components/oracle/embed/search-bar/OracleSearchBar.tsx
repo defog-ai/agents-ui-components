@@ -30,18 +30,12 @@ import {
   ChevronDown,
   Command,
   FileSpreadsheet,
-  FileText,
   Info,
   Telescope,
   XCircle,
   Zap,
 } from "lucide-react";
-import {
-  arrayBufferToBase64,
-  formatFileSize,
-  isValidFileType,
-  raf,
-} from "@utils/utils";
+import { formatFileSize, isValidFileType, raf } from "@utils/utils";
 import { statusDescriptions, Mode } from "./oracleSearchBarManager";
 import { OracleReportClarifications } from "../../reports/report-creation/OracleReportClarifications";
 import { twMerge } from "tailwind-merge";
@@ -52,7 +46,7 @@ import {
 import { OracleHistoryItem } from "../OracleEmbed";
 import { OracleSearchBarModeHeader } from "./OracleSearchBarModeHeader";
 import { scrollToAnalysis } from "../../../../../lib/components/query-data/analysis-tree-viewer/AnalysisTreeViewer";
-import { KEYMAP, matchesKey } from "../../../../../lib/constants/keymap";
+import { KEYMAP } from "../../../../../lib/constants/keymap";
 
 const modeDisplayName = {
   "query-data": "Fast data analysis",
@@ -71,6 +65,24 @@ const modeDescriptions: Record<Mode, string> = {
     "Executes quick, direct SQL queries to retrieve specific data points with minimal processing",
   report:
     "Performs in-depth analysis, synthesizing multiple data sources to generate comprehensive insights and structured reports",
+};
+
+// Upload Progress Bar Component
+const UploadProgressBar = ({ progress }: { progress: number }) => {
+  return (
+    <div className="w-full">
+      <div className="mb-1 flex justify-between text-xs text-gray-600 dark:text-gray-300">
+        <span>Uploading files...</span>
+        <span>{progress}%</span>
+      </div>
+      <div className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+        <div 
+          className="h-full bg-blue-500 transition-all duration-300 ease-out"
+          style={{ width: `${progress}%` }}
+        />
+      </div>
+    </div>
+  );
 };
 
 const itemTypeClasses = {
@@ -119,6 +131,7 @@ export function OracleSearchBar({
 
   const [isMac, setIsMac] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
 
   const newDbName = useRef<string | null>(null);
   const newDbInfo = useRef<DbInfo | null>(null);
@@ -311,10 +324,10 @@ export function OracleSearchBar({
   );
 
   const UploadedFileIcons = useMemo(() => {
-    return draft?.uploadedDataFiles?.length || draft?.uploadedPDFs?.length ? (
+    return draft?.uploadedFiles?.length ? (
       <div className="w-full">
         <div className="flex flex-wrap gap-2">
-          {draft?.uploadedDataFiles?.length ? (
+          {draft?.uploadedFiles?.length ? (
             <div className="flex flex-row items-center gap-2 w-full text-xs text-blue-600 dark:text-blue-400">
               <Info className="w-4 min-w-4" />
               <span>
@@ -325,15 +338,15 @@ export function OracleSearchBar({
           ) : (
             <></>
           )}
-          {draft.uploadedDataFiles.map((file, index) => (
+          {draft.uploadedFiles.map((file, index) => (
             <div
-              key={`${file.fileName}-${index}`}
+              key={`${file.name}-${index}`}
               className="flex items-center flex-wrap max-w-full overflow-hidden justify-between bg-gray-100 dark:bg-gray-700 rounded-lg px-3 py-2 text-sm"
             >
               <div className="flex items-center max-w-[85%]">
                 <FileSpreadsheet className="w-4 h-4 mr-2 flex-shrink-0 stroke-blue-500 dark:stroke-blue-400" />
-                <span className="truncate max-w-40" title={file.fileName}>
-                  {file.fileName}
+                <span className="truncate max-w-40" title={file.name}>
+                  {file.name}
                 </span>
               </div>
               <div className="flex items-center">
@@ -345,7 +358,7 @@ export function OracleSearchBar({
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
-                      const newDataFiles = draft.uploadedDataFiles?.filter(
+                      const newDataFiles = draft.uploadedFiles?.filter(
                         (_, i) => i !== index
                       );
 
@@ -356,43 +369,6 @@ export function OracleSearchBar({
 
                       newDbInfo.current = null;
                       newDbName.current = null;
-                    }}
-                    className="cursor-pointer ml-1 text-gray-500 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400"
-                  >
-                    <XCircle className="w-4 h-4" />
-                  </button>
-                }
-              </div>
-            </div>
-          ))}
-          {draft.uploadedPDFs.map((file, index) => (
-            <div
-              key={`${file.fileName}-${index}`}
-              className="flex items-center flex-wrap max-w-full overflow-hidden justify-between bg-gray-100 dark:bg-gray-700 rounded-lg px-3 py-2 text-sm"
-            >
-              <div className="flex items-center max-w-[85%]">
-                <FileText className="w-4 h-4 mr-2 flex-shrink-0 stroke-blue-500 dark:stroke-blue-400" />
-                <span className="truncate max-w-40" title={file.fileName}>
-                  {file.fileName}
-                </span>
-              </div>
-              <div className="flex items-center">
-                <span className="text-xs text-gray-500 dark:text-gray-400 mx-2">
-                  {formatFileSize(file.size)}
-                </span>
-                {
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      const newPdfs = draft.uploadedPDFs?.filter(
-                        (_, i) => i !== index
-                      );
-
-                      searchBarManager.setDraft((prev) => ({
-                        ...prev,
-                        uploadedPDFs: newPdfs,
-                      }));
                     }}
                     className="cursor-pointer ml-1 text-gray-500 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400"
                   >
@@ -527,59 +503,11 @@ export function OracleSearchBar({
               );
             }
 
-            // Process all collected files
-            for (const file of filesToProcess) {
-              try {
-                console.log(`Processing file: ${file.name}`);
-                const buf = await file.arrayBuffer();
-
-                if (file.type.endsWith("pdf")) {
-                  console.log(`Adding PDF: ${file.name}`);
-                  searchBarManager.setDraft((prev) => {
-                    const newPDFs = [
-                      ...prev.uploadedPDFs,
-                      {
-                        buf,
-                        fileName: file.name,
-                        size: file.size,
-                        type: file.type,
-                        isCsv: false,
-                        isPdf: true,
-                      },
-                    ];
-                    console.log(`Total PDFs after adding: ${newPDFs.length}`);
-                    return {
-                      ...prev,
-                      uploadedPDFs: newPDFs,
-                    };
-                  });
-                } else {
-                  console.log(`Adding data file: ${file.name}`);
-                  searchBarManager.setDraft((prev) => {
-                    const newDataFiles = [
-                      ...prev.uploadedDataFiles,
-                      {
-                        buf,
-                        fileName: file.name,
-                        size: file.size,
-                        type: file.type,
-                        isPdf: false,
-                        isCsv: true,
-                      },
-                    ];
-                    console.log(
-                      `Total data files after adding: ${newDataFiles.length}`
-                    );
-                    return {
-                      ...prev,
-                      uploadedDataFiles: newDataFiles,
-                    };
-                  });
-                }
-              } catch (error) {
-                console.error(`Error processing file ${file.name}:`, error);
-              }
-            }
+            // Update draft with processed files
+            searchBarManager.setDraft((prev) => ({
+              ...prev,
+              uploadedFiles: filesToProcess,
+            }));
 
             // Reset database info since we've added new files
             newDbName.current = null;
@@ -764,140 +692,6 @@ export function OracleSearchBar({
                   status: "getting_clarifications",
                 }));
 
-                // Handle PDF uploads if there are any by creating an array of the PDF's filename and its base64 encoded content
-                const pdfFiles = [];
-                console.log(
-                  "Processing uploaded PDFs:",
-                  draft.uploadedPDFs?.length || 0
-                );
-
-                if (draft.uploadedPDFs && draft.uploadedPDFs.length > 0) {
-                  console.log(
-                    "Found PDFs to process:",
-                    draft.uploadedPDFs.map((f) => f.fileName)
-                  );
-
-                  for (const pdfFile of draft.uploadedPDFs) {
-                    try {
-                      const fileName = pdfFile.fileName;
-                      console.log(
-                        "Processing PDF:",
-                        fileName,
-                        "Size:",
-                        pdfFile.size
-                      );
-
-                      console.log(
-                        "PDF buffer created, size:",
-                        pdfFile.buf.byteLength
-                      );
-
-                      // Convert ArrayBuffer to base64
-                      const base64String = arrayBufferToBase64(pdfFile.buf);
-                      console.log(
-                        "PDF converted to base64, length:",
-                        base64String.length
-                      );
-
-                      pdfFiles.push({
-                        file_name: fileName,
-                        base64_content: base64String,
-                      });
-                      console.log("PDF added to processing list");
-                    } catch (err) {
-                      console.error("Error processing PDF:", err);
-                      setErrorMessage(
-                        `Error processing PDF: ${pdfFile.fileName}`
-                      );
-                    }
-                  }
-
-                  console.log(
-                    "Finished processing PDFs, total processed:",
-                    pdfFiles.length
-                  );
-                } else {
-                  console.log("No PDFs to process");
-                }
-
-                // Suggest a question after files are dropped if text area is empty
-                if (
-                  (pdfFiles.length > 0 ||
-                    draft.uploadedDataFiles?.length > 0) &&
-                  textAreaRef.current &&
-                  !textAreaRef.current.value.trim()
-                ) {
-                  const fileNames = [
-                    ...(pdfFiles || []).map((f) => f.file_name),
-                    ...(draft.uploadedDataFiles || []).map((f) => f.fileName),
-                  ].join(", ");
-
-                  const defaultQuestion = `I've uploaded ${fileNames}. What would you like to know about this data?`;
-                  textAreaRef.current.value = defaultQuestion;
-                  textAreaRef.current.focus();
-
-                  searchBarManager.setDraft((prev) => ({
-                    ...prev,
-                    userQuestion: defaultQuestion,
-                  }));
-                }
-
-                // do the same for data files
-                const dataFiles = [];
-                console.log(
-                  "Processing uploaded data files:",
-                  dataFiles.length
-                );
-
-                if (draft.uploadedDataFiles?.length === 0) {
-                  console.log("No data files to process");
-                } else {
-                  console.log(
-                    "Found data files to process:",
-                    draft.uploadedDataFiles.map((f) => f.fileName)
-                  );
-
-                  for (const dataFile of draft.uploadedDataFiles) {
-                    try {
-                      const fileName = dataFile.fileName;
-                      console.log(
-                        "Processing data file:",
-                        fileName,
-                        "Size:",
-                        dataFile.size
-                      );
-
-                      console.log(
-                        "data file buffer created, size:",
-                        dataFile.buf.byteLength
-                      );
-
-                      // Convert ArrayBuffer to base64
-                      const base64String = arrayBufferToBase64(dataFile.buf);
-                      console.log(
-                        "data file converted to base64, length:",
-                        base64String.length
-                      );
-
-                      dataFiles.push({
-                        file_name: fileName,
-                        base64_content: base64String,
-                      });
-                      console.log("data file added to processing list");
-                    } catch (err) {
-                      console.error("Error processing data file:", err);
-                      setErrorMessage(
-                        `Error processing data file: ${dataFile.fileName}`
-                      );
-                    }
-                  }
-
-                  console.log(
-                    "Finished processing PDFs, total processed:",
-                    dataFiles.length
-                  );
-                }
-
                 // prepare either for success or a new error message
                 setErrorMessage("");
 
@@ -920,41 +714,36 @@ export function OracleSearchBar({
                   let newDbInfoFromUpload = null;
 
                   // Upload files first if there are any
-                  if (pdfFiles.length > 0 || dataFiles.length > 0) {
+                  if (draft.uploadedFiles?.length > 0) {
                     console.log("Uploading files first");
                     try {
+                      setUploadProgress(0);
                       const uploadResponse = await uploadFiles(
                         apiEndpoint,
                         token,
                         dbName,
-                        pdfFiles,
-                        dataFiles
+                        draft.uploadedFiles,
+                        (progress) => {
+                          setUploadProgress(progress);
+                        }
                       );
 
                       // If the upload creates a new database, save that info
-                      if (
-                        uploadResponse.new_db_name &&
-                        uploadResponse.new_db_info
-                      ) {
+                      if (uploadResponse.db_name !== dbName) {
                         console.log(
                           "New DB created from file upload:",
-                          uploadResponse.new_db_name
+                          uploadResponse.db_name
                         );
-                        newDbNameFromUpload = uploadResponse.new_db_name;
-                        newDbInfoFromUpload = uploadResponse.new_db_info;
+                        newDbNameFromUpload = uploadResponse.db_name;
 
                         // Update the dbName to use for clarifications
-                        newDbName.current = uploadResponse.new_db_name;
-                        newDbInfo.current = uploadResponse.new_db_info;
+                        newDbName.current = uploadResponse.db_name;
 
                         // Generate an automatic clarification question after file upload
                         // to understand what the user wants to analyze
                         if (question.trim() === "") {
-                          const fileNames = [
-                            ...(dataFiles || []),
-                            ...(pdfFiles || []),
-                          ]
-                            .map((f) => f.file_name)
+                          const fileNames = [...(draft.uploadedFiles || [])]
+                            .map((f) => f.name)
                             .join(", ");
 
                           // Set a default question about the uploaded files
@@ -1038,21 +827,28 @@ export function OracleSearchBar({
       <div
         className={twMerge(
           "w-11/12 mx-auto my-0 h-0 relative z-[1] overflow-auto rounded-b-xl border-blue-500  dark:bg-sky-900 dark:border-sky-600 border border-t-0 bg-sky-200",
-          loading
-            ? "h-8 border-none"
-            : draft.clarifications &&
-                draft.clarifications.length > 0 &&
-                !selectedItem &&
-                draft.mode !== "query-data"
-              ? "h-96"
-              : "h-0 border-none"
+          loading && draft.uploadedFiles?.length > 0 && uploadProgress > 0
+            ? "h-20 border"  // Increased height when showing upload progress
+            : loading
+              ? "h-8 border-none"
+              : draft.clarifications &&
+                  draft.clarifications.length > 0 &&
+                  !selectedItem &&
+                  draft.mode !== "query-data"
+                ? "h-96"
+                : "h-0 border-none"
         )}
       >
         {loading ? (
-          <span className="text-xs text-gray-600 dark:text-gray-300 py-2 px-4">
-            <SpinningLoader classNames="w-4" />
-            {statusDescriptions[draft.status]}
-          </span>
+          <div className="flex flex-col gap-2 py-2 px-4">
+            <span className="text-xs text-gray-600 dark:text-gray-300 flex items-center">
+              <SpinningLoader classNames="w-4 mr-1" />
+              {statusDescriptions[draft.status]}
+            </span>
+            {draft.uploadedFiles?.length > 0 && uploadProgress > 0 && (
+              <UploadProgressBar progress={uploadProgress} />
+            )}
+          </div>
         ) : (
           <div className={twMerge("py-2 px-4")}>
             <OracleReportClarifications

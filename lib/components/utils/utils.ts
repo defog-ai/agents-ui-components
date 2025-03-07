@@ -479,87 +479,70 @@ interface UserFile {
   columns: { title: string }[];
 }
 
-export function arrayBufferToBase64(buffer: ArrayBuffer): string {
-  var binary = "";
-  var bytes = new Uint8Array(buffer);
-  var len = bytes.byteLength;
-  for (var i = 0; i < len; i++) {
-    binary += String.fromCharCode(bytes[i]);
-  }
-  return window.btoa(binary);
-}
-
-export const uploadFile = async (
-  apiEndpoint: string,
-  token: string,
-  fileName: string,
-  fileBase64: string
-): Promise<{ dbName: string; dbInfo: DbInfo }> => {
-  const urlToConnect = setupBaseUrl({
-    protocol: "http",
-    path: "upload_file_as_db",
-    apiEndpoint: apiEndpoint,
-  });
-
-  const res = await fetch(urlToConnect, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      token: token,
-      file_name: fileName,
-      base64_content: fileBase64,
-    }),
-  }).catch((error) => {
-    throw error;
-  });
-
-  if (!res.ok) {
-    throw new Error(
-      (await res.text()) ||
-        "Failed to create new db name - are you sure your network is working?"
-    );
-  }
-  const data = await res.json();
-  return { dbName: data.db_name, dbInfo: data.db_info };
-};
-
+/**
+ * Uploads multiple files to create a database
+ */
 export const uploadMultipleFilesAsDb = async (
   apiEndpoint: string,
   token: string,
-  files: {
-    fileName: string;
-    fileBase64: string;
-  }[]
-): Promise<{ dbName: string; dbInfo: DbInfo }> => {
+  files: File[],
+  onProgress?: (progress: number) => void
+): Promise<{ dbName: string }> => {
+  console.time("utils:uploadMultipleFilesAsDb:setup");
   const urlToConnect = setupBaseUrl({
     protocol: "http",
-    path: "upload_multiple_files_as_db",
+    path: "upload_files",
     apiEndpoint: apiEndpoint,
   });
 
-  const res = await fetch(urlToConnect, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      token: token,
-      files,
-    }),
-  }).catch((error) => {
-    throw error;
-  });
-
-  if (!res.ok) {
-    throw new Error(
-      (await res.text()) ||
-        "Failed to create new db name - are you sure your network is working?"
-    );
+  const form = new FormData();
+  form.append("token", token);
+  for (const file of files) {
+    form.append("files", file);
   }
-  const data = await res.json();
-  return { dbName: data.db_name, dbInfo: data.db_info };
+  console.timeEnd("utils:uploadMultipleFilesAsDb:setup");
+  
+  console.time("utils:uploadMultipleFilesAsDb:fetchRequest");
+  
+  // Use XMLHttpRequest instead of fetch to track upload progress
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    
+    xhr.upload.addEventListener("progress", (event) => {
+      if (event.lengthComputable && onProgress) {
+        const progress = Math.round((event.loaded / event.total) * 100);
+        onProgress(progress);
+      }
+    });
+    
+    xhr.addEventListener("load", async () => {
+      console.timeEnd("utils:uploadMultipleFilesAsDb:fetchRequest");
+      console.time("utils:uploadMultipleFilesAsDb:processResponse");
+      
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          const data = JSON.parse(xhr.responseText);
+          console.timeEnd("utils:uploadMultipleFilesAsDb:processResponse");
+          resolve({ dbName: data.db_name });
+        } catch (error) {
+          reject(new Error("Failed to parse response"));
+        }
+      } else {
+        reject(new Error(xhr.responseText || "Failed to create new db name - are you sure your network is working?"));
+      }
+    });
+    
+    xhr.addEventListener("error", () => {
+      reject(new Error("Network error occurred"));
+    });
+    
+    xhr.addEventListener("abort", () => {
+      reject(new Error("Upload aborted"));
+    });
+    
+    xhr.open("POST", urlToConnect);
+    xhr.send(form);
+  });
 };
 
 export async function getMetadata(apiEndpoint, token, dbName) {

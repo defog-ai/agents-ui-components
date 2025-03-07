@@ -5,14 +5,30 @@ import {
   SpinningLoader,
 } from "@ui-components";
 import {
-  arrayBufferToBase64,
   FILE_TYPES,
   isValidFileType,
-  uploadFile,
   uploadMultipleFilesAsDb,
 } from "@utils/utils";
 import { useContext, useState } from "react";
 import { twMerge } from "tailwind-merge";
+
+// Upload Progress Bar Component
+const UploadProgressBar = ({ progress }: { progress: number }) => {
+  return (
+    <div className="absolute bottom-1/3 left-0 right-0 mx-auto w-3/4 max-w-md bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md">
+      <div className="mb-2 flex justify-between text-xs text-gray-600 dark:text-gray-300">
+        <span>Uploading files...</span>
+        <span>{progress}%</span>
+      </div>
+      <div className="w-full h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+        <div 
+          className="h-full bg-blue-500 transition-all duration-300 ease-out"
+          style={{ width: `${progress}%` }}
+        />
+      </div>
+    </div>
+  );
+};
 
 export const OracleNewDb = ({
   apiEndpoint,
@@ -26,21 +42,23 @@ export const OracleNewDb = ({
   const message = useContext(MessageManagerContext);
   const [loading, setLoading] = useState<boolean>(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
 
   return (
     <div className="min-w-full min-h-full">
       <DropFiles
         disabled={loading}
-        // rootClassNames={twMerge(loading ? "hidden" : "")}
-        acceptedFileTypes={Object.values(FILE_TYPES)}
+        acceptedFileTypes={[".csv", ".xls", ".xlsx"]}
         showIcon={true}
         allowMultiple={true}
         selectedFiles={selectedFiles}
         onRemoveFile={(index) => {
+          console.time("OracleNewDb:onRemoveFile");
           setSelectedFiles(selectedFiles.filter((_, i) => i !== index));
+          console.timeEnd("OracleNewDb:onRemoveFile");
         }}
         onFileSelect={async (ev) => {
-          // setLoading(true);
+          console.time("OracleNewDb:onFileSelect");
           ev.preventDefault();
           ev.stopPropagation();
           try {
@@ -58,9 +76,10 @@ export const OracleNewDb = ({
             console.error(e);
             message.error("Failed to parse the file");
           }
+          console.timeEnd("OracleNewDb:onFileSelect");
         }}
         onDrop={async (ev) => {
-          // setLoading(true);
+          console.time("OracleNewDb:onDrop");
           ev.preventDefault();
           ev.stopPropagation();
 
@@ -92,8 +111,14 @@ export const OracleNewDb = ({
             message.error(e.message || "Failed to parse the file");
             console.log(e.stack);
           }
+          console.timeEnd("OracleNewDb:onDrop");
         }}
       />
+      
+      {loading && uploadProgress > 0 && (
+        <UploadProgressBar progress={uploadProgress} />
+      )}
+      
       <Button
         className={twMerge(
           "absolute bottom-1/4 p-4 left-0 right-0 mx-auto w-fit rounded-full z-[10] shadow-md",
@@ -102,48 +127,30 @@ export const OracleNewDb = ({
         disabled={loading || selectedFiles.length === 0}
         variant="primary"
         onClick={async () => {
+          console.time("OracleNewDb:uploadFiles");
           try {
             setLoading(true);
-            const startTime = performance.now();
-            console.log(`[0ms] Starting file upload process`);
+            setUploadProgress(0);
             
-            const fileBufs = [];
-            for (let file of selectedFiles) {
-              const fileStartTime = performance.now();
-              console.log(`[${Math.round(fileStartTime - startTime)}ms] Processing file: ${file.name}, size: ${file.size} bytes`);
-              
-              const bufferStartTime = performance.now();
-              const buf = await file.arrayBuffer();
-              console.log(`[${Math.round(performance.now() - startTime)}ms] ArrayBuffer created for ${file.name}, took ${Math.round(performance.now() - bufferStartTime)}ms`);
-              
-              const base64StartTime = performance.now();
-              const base64Content = arrayBufferToBase64(buf);
-              console.log(`[${Math.round(performance.now() - startTime)}ms] Base64 conversion for ${file.name}, took ${Math.round(performance.now() - base64StartTime)}ms, size: ${base64Content.length} chars`);
-              
-              fileBufs.push({
-                file_name: file.name,
-                base64_content: base64Content,
-              });
-              console.log(`[${Math.round(performance.now() - startTime)}ms] Added ${file.name} to upload queue, total processing time: ${Math.round(performance.now() - fileStartTime)}ms`);
-            }
-
-            console.log(`[${Math.round(performance.now() - startTime)}ms] All files processed, starting API call to uploadMultipleFilesAsDb`);
-            const apiCallStartTime = performance.now();
-            const { dbName, dbInfo } = await uploadMultipleFilesAsDb(
+            console.time("OracleNewDb:uploadMultipleFilesAsDb");
+            const { dbName } = await uploadMultipleFilesAsDb(
               apiEndpoint,
               token,
-              fileBufs
+              selectedFiles,
+              (progress) => {
+                setUploadProgress(progress);
+              }
             );
-            console.log(`[${Math.round(performance.now() - startTime)}ms] API call completed, took ${Math.round(performance.now() - apiCallStartTime)}ms`);
-            
+            console.timeEnd("OracleNewDb:uploadMultipleFilesAsDb");
+
             message.success(`DB ${dbName} created successfully`);
             onDbCreated(dbName);
-            console.log(`[${Math.round(performance.now() - startTime)}ms] Total upload process completed`);
           } catch (e) {
             console.error(`Error during file upload:`, e);
             message.error(e.message || "Failed to upload files");
           } finally {
             setLoading(false);
+            console.timeEnd("OracleNewDb:uploadFiles");
           }
         }}
       >
@@ -151,7 +158,7 @@ export const OracleNewDb = ({
           loading ? (
             <>
               <SpinningLoader />
-              Uploading
+              {uploadProgress > 0 ? `Uploading (${uploadProgress}%)` : "Uploading"}
             </>
           ) : (
             "Click to upload"
