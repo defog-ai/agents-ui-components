@@ -1,4 +1,4 @@
-@import "./colors.scss";
+@use "./colors.scss" as colors;
 
 .sticky {
   position: sticky;
@@ -34,7 +34,7 @@ $code: "Fira Code", monospace !important;
     height: 100%;
     content: "...";
     font-weight: bold;
-    color: $light-orange;
+    color: colors.$light-orange;
     writing-mode: vertical-rl;
     display: flex;
     justify-content: center;
@@ -46,7 +46,7 @@ $code: "Fira Code", monospace !important;
 }
 
 .text-red {
-  color: $dark-red !important;
+  color: colors.$dark-red !important;
 }
 
 .text-bold {
@@ -59,7 +59,7 @@ $code: "Fira Code", monospace !important;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: $very-light-gray;
+  background: colors.$very-light-gray;
 }
 
 p {
@@ -101,7 +101,7 @@ p {
         display: block;
         height: 100%;
         width: 100%;
-        background-color: $dark-orange;
+        background-color: colors.$dark-orange;
         display: flex;
         align-items: center;
         justify-content: center;
