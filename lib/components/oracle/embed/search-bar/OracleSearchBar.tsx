@@ -109,7 +109,6 @@ export function OracleSearchBar({
   rootClassNames?: string;
   selectedItem: OracleHistoryItem;
 }) {
-  console.log("bleh");
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [isDropping, setIsDropping] = useState<boolean>(false);
   const { searchBarManager, apiEndpoint, token } =
