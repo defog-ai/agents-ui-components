@@ -87,6 +87,14 @@ interface SingleSelectProps {
    * If true, the select will allow creating new options.
    */
   allowCreateNewOption?: boolean;
+  /**
+   * If true, the select will add an "Other" option that allows custom input.
+   */
+  showOtherOption?: boolean;
+  /**
+   * The label for the Other option. Defaults to "Other...".
+   */
+  otherOptionLabel?: string;
 }
 
 /**
@@ -107,11 +115,15 @@ export function SingleSelect({
   size = "default",
   allowClear = true,
   allowCreateNewOption = true,
+  showOtherOption = false,
+  otherOptionLabel = "Other...",
 }: SingleSelectProps) {
   const [query, setQuery] = useState(null);
   const [open, setOpen] = useState(false);
   const [highlightIndex, setHighlightIndex] = useState(-1);
   const [dropdownStyle, setDropdownStyle] = useState({});
+  const [isOtherSelected, setIsOtherSelected] = useState(false);
+  const [customValue, setCustomValue] = useState("");
 
   const updatePosition = () => {
     if (ref.current) {
@@ -151,8 +163,14 @@ export function SingleSelect({
     }
   }, [open]);
   const ref = useRef(null);
+
+  // Process options, adding an "Other" option if showOtherOption is true
+  const processedOptions = showOtherOption 
+    ? [...options, { value: "__other__", label: otherOptionLabel }]
+    : options;
+    
   const [internalOptions, setInternalOptions] = useState(
-    options.map((d) => ({
+    processedOptions.map((d) => ({
       value: isNumber(d.value) ? +d.value : d.value,
       label: d.label,
       rawValue: d.value,
@@ -160,14 +178,18 @@ export function SingleSelect({
   );
 
   useEffect(() => {
+    const opts = showOtherOption 
+      ? [...options, { value: "__other__", label: otherOptionLabel }]
+      : options;
+      
     setInternalOptions(
-      options.map((d) => ({
+      opts.map((d) => ({
         value: isNumber(d.value) ? +d.value : d.value,
         label: d.label,
         rawValue: d.value,
       }))
     );
-  }, [options]);
+  }, [options, showOtherOption, otherOptionLabel]);
 
   const filteredOptions =
     query === null
@@ -273,23 +295,36 @@ export function SingleSelect({
         <input
           ref={ref}
           type="text"
-          placeholder={placeholder}
+          placeholder={isOtherSelected ? "Enter custom value..." : placeholder}
           className={twMerge(
             "w-full rounded-md border-0 pr-12 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 sm:text-sm sm:leading-6 ",
             inputSizeClasses[size] || inputSizeClasses["default"],
-            disabled
+            disabled && !isOtherSelected
               ? "bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500 dark:ring-gray-700 cursor-not-allowed hover:cursor-not-allowed"
               : "bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-inset focus:ring-blue-400 dark:focus:ring-blue-500 hover:ring-2 hover:ring-inset hover:ring-blue-400 dark:hover:ring-blue-500 hover:cursor-pointer"
           )}
           value={
             query !== null
               ? query
-              : typeof selectedOption?.label === "string"
-                ? selectedOption?.label
-                : selectedOption?.value || ""
+              : isOtherSelected && customValue
+                ? customValue
+                : typeof selectedOption?.label === "string"
+                  ? selectedOption?.label
+                  : selectedOption?.value || ""
           }
           onChange={(e) => {
             if (disabled) return;
+            if (isOtherSelected) {
+              setCustomValue(e.target.value);
+              if (onChange) {
+                const customOption = {
+                  value: e.target.value,
+                  label: e.target.value,
+                  rawValue: e.target.value,
+                };
+                onChange(e.target.value, customOption);
+              }
+            }
             setQuery(e.target.value);
             setOpen(true);
           }}
@@ -298,10 +333,16 @@ export function SingleSelect({
             setOpen(true);
           }}
           onBlur={() => {
-            setTimeout(() => setOpen(false), 200);
+            setTimeout(() => {
+              setOpen(false);
+              if (isOtherSelected && !customValue) {
+                setIsOtherSelected(false);
+                setSelectedOption(null);
+              }
+            }, 200);
             setQuery(null);
           }}
-          readOnly={disabled}
+          readOnly={disabled && !isOtherSelected}
           onKeyDown={(e) => {
             if (disabled) return;
             if (e.key === "ArrowDown") {
@@ -325,10 +366,33 @@ export function SingleSelect({
               e.preventDefault();
               if (open && filteredOptions.length > 0 && highlightIndex >= 0) {
                 const option = filteredOptions[highlightIndex];
-                setSelectedOption(option);
-                setQuery(null);
+                
+                if (option.value === "__other__" && showOtherOption) {
+                  setIsOtherSelected(true);
+                  setSelectedOption(option);
+                  setQuery("");
+                  // Keep dropdown open so user can enter custom value
+                  ref?.current?.focus();
+                } else {
+                  setIsOtherSelected(false);
+                  setSelectedOption(option);
+                  setQuery(null);
+                  setOpen(false);
+                  if (onChange) onChange(option.value, option);
+                }
+              } else if (isOtherSelected && query !== null) {
+                // Handle "Enter" when in custom input mode
+                setCustomValue(query);
                 setOpen(false);
-                if (onChange) onChange(option.value, option);
+                if (onChange) {
+                  const customOption = {
+                    value: query,
+                    label: query,
+                    rawValue: query,
+                  };
+                  onChange(query, customOption);
+                }
+                setQuery(null);
               }
             } else if (e.key === "Escape") {
               setOpen(false);
@@ -344,6 +408,8 @@ export function SingleSelect({
               ev.stopPropagation();
               setSelectedOption(null);
               setQuery(null);
+              setIsOtherSelected(false);
+              setCustomValue("");
               if (onChange) onChange(null, null);
             }}
           >
@@ -397,10 +463,23 @@ export function SingleSelect({
                 // change selected option on click
                 onMouseUp={(e) => {
                   e.preventDefault();
-                  setSelectedOption(option);
-                  setQuery(null);
-                  setOpen(false);
-                  if (onChange) onChange(option.value, option);
+                  if (option.value === "__other__" && showOtherOption) {
+                    setIsOtherSelected(true);
+                    setSelectedOption(option);
+                    // Keep the dropdown open for custom input
+                    setQuery("");
+                    setOpen(false);
+                    // Focus the input for immediate typing
+                    setTimeout(() => {
+                      ref?.current?.focus();
+                    }, 50);
+                  } else {
+                    setIsOtherSelected(false);
+                    setSelectedOption(option);
+                    setQuery(null);
+                    setOpen(false);
+                    if (onChange) onChange(option.value, option);
+                  }
                 }}
               >
                 {optionRenderer
