@@ -8,8 +8,13 @@ export default {
   },
   tags: ["autodocs"],
   argTypes: {
-    onChange: { action: "changed" }
-  }
+    onChange: { action: "changed" },
+  },
+  render: (args) => (
+    <div className="h-96 ">
+      <SingleSelect {...args} />
+    </div>
+  ),
 };
 
 export const Default = {
@@ -113,8 +118,8 @@ export const NoAllowCreateNewOption = {
 export const WithOtherOption = {
   args: {
     options: [
-      { value: "apple", label: "Apple" },
       { value: "banana", label: "Banana" },
+      { value: "apple", label: "Apple" },
       { value: "cherry", label: "Cherry" },
     ],
     showOtherOption: true,
