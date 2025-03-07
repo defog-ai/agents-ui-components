@@ -610,15 +610,54 @@ export const generateReport = async (
 };
 
 /**
+ * Upload files to the backend
+ */
+export const uploadFiles = async (
+  apiEndpoint: string,
+  token: string,
+  dbName: string,
+  pdfFiles: { file_name: string; base64_content: string }[],
+  dataFiles: { file_name: string; base64_content: string }[]
+): Promise<{
+  new_db_info?: DbInfo;
+  new_db_name?: string;
+}> => {
+  if (!token) throw new Error("No token");
+  
+  const res = await fetch(
+    setupBaseUrl({
+      apiEndpoint,
+      protocol: "http",
+      path: "oracle/upload_files",
+    }),
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        db_name: dbName,
+        token,
+        pdf_files: pdfFiles,
+        data_files: dataFiles,
+      }),
+    }
+  );
+
+  if (!res.ok) {
+    throw new Error((await res.text()) || "Failed to upload files");
+  }
+
+  const data = await res.json();
+  return data;
+};
+
+/**
  * Get clarifications for a question
  */
 export const getClarifications = async (
   apiEndpoint: string,
   token: string,
   dbName: string,
-  userQuestion: string,
-  pdfFiles: { file_name: string; base64_content: string }[],
-  dataFiles: { file_name: string; base64_content: string }[]
+  userQuestion: string
 ): Promise<{
   clarifications: ClarificationObject[];
   report_id: string;
@@ -639,8 +678,6 @@ export const getClarifications = async (
         db_name: dbName,
         token,
         user_question: userQuestion,
-        pdf_files: pdfFiles,
-        data_files: dataFiles,
       }),
     }
   );

@@ -104,23 +104,43 @@ export const OracleNewDb = ({
         onClick={async () => {
           try {
             setLoading(true);
+            const startTime = performance.now();
+            console.log(`[0ms] Starting file upload process`);
+            
             const fileBufs = [];
             for (let file of selectedFiles) {
+              const fileStartTime = performance.now();
+              console.log(`[${Math.round(fileStartTime - startTime)}ms] Processing file: ${file.name}, size: ${file.size} bytes`);
+              
+              const bufferStartTime = performance.now();
               const buf = await file.arrayBuffer();
+              console.log(`[${Math.round(performance.now() - startTime)}ms] ArrayBuffer created for ${file.name}, took ${Math.round(performance.now() - bufferStartTime)}ms`);
+              
+              const base64StartTime = performance.now();
+              const base64Content = arrayBufferToBase64(buf);
+              console.log(`[${Math.round(performance.now() - startTime)}ms] Base64 conversion for ${file.name}, took ${Math.round(performance.now() - base64StartTime)}ms, size: ${base64Content.length} chars`);
+              
               fileBufs.push({
                 file_name: file.name,
-                base64_content: arrayBufferToBase64(buf),
+                base64_content: base64Content,
               });
+              console.log(`[${Math.round(performance.now() - startTime)}ms] Added ${file.name} to upload queue, total processing time: ${Math.round(performance.now() - fileStartTime)}ms`);
             }
 
+            console.log(`[${Math.round(performance.now() - startTime)}ms] All files processed, starting API call to uploadMultipleFilesAsDb`);
+            const apiCallStartTime = performance.now();
             const { dbName, dbInfo } = await uploadMultipleFilesAsDb(
               apiEndpoint,
               token,
               fileBufs
             );
+            console.log(`[${Math.round(performance.now() - startTime)}ms] API call completed, took ${Math.round(performance.now() - apiCallStartTime)}ms`);
+            
             message.success(`DB ${dbName} created successfully`);
             onDbCreated(dbName);
+            console.log(`[${Math.round(performance.now() - startTime)}ms] Total upload process completed`);
           } catch (e) {
+            console.error(`Error during file upload:`, e);
             message.error(e.message || "Failed to upload files");
           } finally {
             setLoading(false);
