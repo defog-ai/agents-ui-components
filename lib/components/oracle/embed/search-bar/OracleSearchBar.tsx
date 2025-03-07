@@ -1,6 +1,7 @@
 import {
   generateReport,
   getClarifications,
+  uploadFiles,
   ORACLE_REPORT_STATUS,
 } from "@oracle";
 import {
@@ -819,6 +820,28 @@ export function OracleSearchBar({
                   console.log("No PDFs to process");
                 }
 
+                // Suggest a question after files are dropped if text area is empty
+                if (
+                  (pdfFiles.length > 0 ||
+                    draft.uploadedDataFiles?.length > 0) &&
+                  textAreaRef.current &&
+                  !textAreaRef.current.value.trim()
+                ) {
+                  const fileNames = [
+                    ...(pdfFiles || []).map((f) => f.file_name),
+                    ...(draft.uploadedDataFiles || []).map((f) => f.fileName),
+                  ].join(", ");
+
+                  const defaultQuestion = `I've uploaded ${fileNames}. What would you like to know about this data?`;
+                  textAreaRef.current.value = defaultQuestion;
+                  textAreaRef.current.focus();
+
+                  searchBarManager.setDraft((prev) => ({
+                    ...prev,
+                    userQuestion: defaultQuestion,
+                  }));
+                }
+
                 // do the same for data files
                 const dataFiles = [];
                 console.log(
@@ -892,14 +915,84 @@ export function OracleSearchBar({
                     textAreaRef.current.value = "";
                   }
                 } else {
-                  // Oracle mode - get clarifications for deep research
+                  // Oracle mode - upload files first if any, then get clarifications for deep research
+                  let newDbNameFromUpload = null;
+                  let newDbInfoFromUpload = null;
+
+                  // Upload files first if there are any
+                  if (pdfFiles.length > 0 || dataFiles.length > 0) {
+                    console.log("Uploading files first");
+                    try {
+                      const uploadResponse = await uploadFiles(
+                        apiEndpoint,
+                        token,
+                        dbName,
+                        pdfFiles,
+                        dataFiles
+                      );
+
+                      // If the upload creates a new database, save that info
+                      if (
+                        uploadResponse.new_db_name &&
+                        uploadResponse.new_db_info
+                      ) {
+                        console.log(
+                          "New DB created from file upload:",
+                          uploadResponse.new_db_name
+                        );
+                        newDbNameFromUpload = uploadResponse.new_db_name;
+                        newDbInfoFromUpload = uploadResponse.new_db_info;
+
+                        // Update the dbName to use for clarifications
+                        newDbName.current = uploadResponse.new_db_name;
+                        newDbInfo.current = uploadResponse.new_db_info;
+
+                        // Generate an automatic clarification question after file upload
+                        // to understand what the user wants to analyze
+                        if (question.trim() === "") {
+                          const fileNames = [
+                            ...(dataFiles || []),
+                            ...(pdfFiles || []),
+                          ]
+                            .map((f) => f.file_name)
+                            .join(", ");
+
+                          // Set a default question about the uploaded files
+                          const defaultQuestion = `I've uploaded ${fileNames}. What would you like to know about this data?`;
+
+                          // Update the textarea with the default question
+                          if (textAreaRef.current) {
+                            textAreaRef.current.value = defaultQuestion;
+                            textAreaRef.current.focus();
+                          }
+
+                          // Update the draft state with the default question
+                          searchBarManager.setDraft((prev) => ({
+                            ...prev,
+                            userQuestion: defaultQuestion,
+                          }));
+                        }
+                      }
+                    } catch (uploadError) {
+                      console.error("Error uploading files:", uploadError);
+                      throw new Error(
+                        `Failed to upload files: ${uploadError.message}`
+                      );
+                    }
+                  }
+
+                  // Now get clarifications with the possibly updated DB name
+                  const useDbName = newDbNameFromUpload || dbName;
+                  console.log(
+                    "Getting clarifications with DB name:",
+                    useDbName
+                  );
+
                   const res = await getClarifications(
                     apiEndpoint,
                     token,
-                    dbName,
-                    question,
-                    pdfFiles,
-                    dataFiles
+                    useDbName,
+                    question
                   );
 
                   searchBarManager.setDraft((prev) => ({
@@ -909,11 +1002,11 @@ export function OracleSearchBar({
                     reportId: res.report_id,
                   }));
 
-                  // if the res has a db_name and db_info
-                  // means a new db was created for the data files
-                  if (res.new_db_name && res.new_db_info) {
-                    newDbName.current = res.new_db_name;
-                    newDbInfo.current = res.new_db_info;
+                  // If we have a new DB name either from file upload or from clarifications
+                  if (newDbNameFromUpload || res.new_db_name) {
+                    // Prefer the upload response if it exists, otherwise use the clarification response
+                    newDbName.current = newDbNameFromUpload || res.new_db_name;
+                    newDbInfo.current = newDbInfoFromUpload || res.new_db_info;
                     onClarified(newDbName.current);
                   }
                 }
