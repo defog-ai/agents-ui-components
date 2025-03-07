@@ -24,8 +24,8 @@ export const KEYMAP = {
 
   // Oracle shortcuts
   FOCUS_ORACLE_SEARCH: "/", // Focus the main search bar
-  NEW_QUESTION: "k", // Start a new question (used with Command and shift (cmd + n and cmd+shift+n are bound to new window stuff in browers. cmd+q is quit. hence we go with cmd+k))
-  TOGGLE_MODE: "m", // Toggle between Fast and Deep Research modes (used with Command/Control)
+  NEW_QUESTION: "K", // Start a new question (used with Command and shift (cmd + n and cmd+shift+n are bound to new window stuff in browers. cmd+q is quit. hence we go with cmd+k))
+  TOGGLE_MODE: "M", // Toggle between Fast and Deep Research modes (used with Command/Control)
 } as const;
 
 // Type for all possible keymap values
