@@ -76,7 +76,7 @@ const UploadProgressBar = ({ progress }: { progress: number }) => {
         <span>{progress}%</span>
       </div>
       <div className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-        <div 
+        <div
           className="h-full bg-blue-500 transition-all duration-300 ease-out"
           style={{ width: `${progress}%` }}
         />
@@ -358,13 +358,13 @@ export function OracleSearchBar({
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
-                      const newDataFiles = draft.uploadedFiles?.filter(
+                      const newFiles = draft.uploadedFiles?.filter(
                         (_, i) => i !== index
                       );
 
                       searchBarManager.setDraft((prev) => ({
                         ...prev,
-                        uploadedDataFiles: newDataFiles,
+                        uploadedFiles: newFiles,
                       }));
 
                       newDbInfo.current = null;
@@ -828,7 +828,7 @@ export function OracleSearchBar({
         className={twMerge(
           "w-11/12 mx-auto my-0 h-0 relative z-[1] overflow-auto rounded-b-xl border-blue-500  dark:bg-sky-900 dark:border-sky-600 border border-t-0 bg-sky-200",
           loading && draft.uploadedFiles?.length > 0 && uploadProgress > 0
-            ? "h-20 border"  // Increased height when showing upload progress
+            ? "h-20 border" // Increased height when showing upload progress
             : loading
               ? "h-8 border-none"
               : draft.clarifications &&

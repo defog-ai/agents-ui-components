@@ -252,8 +252,8 @@ export function OracleEmbed({
     searchBarManager.current.getDraft
   );
 
-  const hasUploadedDataFiles = useMemo(() => {
-    return draft.uploadedDataFiles && draft.uploadedDataFiles.length > 0;
+  const hasUploadedFiles = useMemo(() => {
+    return draft.uploadedFiles && draft.uploadedFiles.length > 0;
   }, [draft]);
 
   // Function to update URL with item_id
@@ -578,15 +578,14 @@ export function OracleEmbed({
     () => (
       <div>
         <SingleSelect
-          disabled={hasUploadedDataFiles}
+          disabled={hasUploadedFiles}
           label={
-            !selectedItemId && hasUploadedDataFiles
+            !selectedItemId && hasUploadedFiles
               ? "Remove uploaded CSV/Excel files to select a database"
               : "Select Database"
           }
           rootClassNames="mb-2"
           value={selectedDbName}
-          // disabled={selectedItemId === null && hasUploadedDataFiles}
           allowClear={false}
           allowCreateNewOption={false}
           options={[
@@ -612,7 +611,7 @@ export function OracleEmbed({
       selectedDbName,
       selectedItemId,
       dbNames,
-      hasUploadedDataFiles,
+      hasUploadedFiles,
       updateUrlWithItemId,
     ]
   );
