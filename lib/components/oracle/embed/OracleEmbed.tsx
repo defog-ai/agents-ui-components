@@ -163,28 +163,9 @@ const AnalysisTreeContentWrapper = ({
   const submitFollowOn = useCallback(
     (question: string) => {
       if (!question) return;
-      console.log("Follow-on question:", question);
 
       // Set the question in the search bar
       searchBarManager.setQuestion(question);
-
-      // Focus the search bar
-      const textArea = document.querySelector("textarea");
-      if (textArea) {
-        textArea.focus();
-
-        // If the text area exists, dispatch a synthetic event when focused
-        textArea.addEventListener(
-          "focus",
-          () => {
-            // After focusing, update the textarea value
-            if (textArea instanceof HTMLTextAreaElement) {
-              textArea.value = question;
-            }
-          },
-          { once: true }
-        );
-      }
     },
     [searchBarManager]
   );
@@ -289,16 +270,17 @@ export function OracleEmbed({
       window.history.pushState({}, "", url.toString());
     }
   }, []);
-  
+
   // Listen for the new report custom event
   useEffect(() => {
     const handleNewReport = () => {
       updateUrlWithItemId(null);
       setSelectedItemId(null);
     };
-    
-    window.addEventListener('oracle:new-report', handleNewReport);
-    return () => window.removeEventListener('oracle:new-report', handleNewReport);
+
+    window.addEventListener("oracle:new-report", handleNewReport);
+    return () =>
+      window.removeEventListener("oracle:new-report", handleNewReport);
   }, [updateUrlWithItemId]);
 
   // Function to get item_id from URL - not as a callback to ensure it's actually checked

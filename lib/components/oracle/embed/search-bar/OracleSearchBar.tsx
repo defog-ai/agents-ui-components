@@ -251,6 +251,8 @@ export function OracleSearchBar({
   useEffect(() => {
     if (draft.userQuestion !== textAreaRef.current?.value) {
       textAreaRef.current.value = draft.userQuestion;
+      // also focus it
+      textAreaRef.current?.focus();
     }
   }, [draft]);
 
