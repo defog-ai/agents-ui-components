@@ -196,6 +196,7 @@ export function SingleSelect({
   if (
     allowCreateNewOption &&
     query !== "" &&
+    query !== null &&
     (filteredOptions.length === 0 ||
       !filteredOptions.find(
         (option) => option.label === (isNumber(query) ? +query : query)
