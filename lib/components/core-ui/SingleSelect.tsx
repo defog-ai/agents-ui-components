@@ -165,10 +165,10 @@ export function SingleSelect({
   const ref = useRef(null);
 
   // Process options, adding an "Other" option if showOtherOption is true
-  const processedOptions = showOtherOption 
+  const processedOptions = showOtherOption
     ? [...options, { value: "__other__", label: otherOptionLabel }]
     : options;
-    
+
   const [internalOptions, setInternalOptions] = useState(
     processedOptions.map((d) => ({
       value: isNumber(d.value) ? +d.value : d.value,
@@ -178,10 +178,10 @@ export function SingleSelect({
   );
 
   useEffect(() => {
-    const opts = showOtherOption 
+    const opts = showOtherOption
       ? [...options, { value: "__other__", label: otherOptionLabel }]
       : options;
-      
+
     setInternalOptions(
       opts.map((d) => ({
         value: isNumber(d.value) ? +d.value : d.value,
@@ -330,7 +330,9 @@ export function SingleSelect({
           }}
           onFocus={() => {
             if (disabled) return;
-            setOpen(true);
+            if (!isOtherSelected) {
+              setOpen(true);
+            }
           }}
           onBlur={() => {
             setTimeout(() => {
@@ -338,9 +340,9 @@ export function SingleSelect({
               if (isOtherSelected && !customValue) {
                 setIsOtherSelected(false);
                 setSelectedOption(null);
+                setQuery(null);
               }
             }, 200);
-            setQuery(null);
           }}
           readOnly={disabled && !isOtherSelected}
           onKeyDown={(e) => {
@@ -366,7 +368,7 @@ export function SingleSelect({
               e.preventDefault();
               if (open && filteredOptions.length > 0 && highlightIndex >= 0) {
                 const option = filteredOptions[highlightIndex];
-                
+
                 if (option.value === "__other__" && showOtherOption) {
                   setIsOtherSelected(true);
                   setSelectedOption(option);
