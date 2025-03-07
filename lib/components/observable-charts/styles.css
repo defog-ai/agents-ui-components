@@ -34,3 +34,7 @@
 .bg-dotted-yellow {
   @apply bg-[radial-gradient(theme(colors.yellow.200)_1px,transparent_1px)] [background-size:16px_16px] dark:bg-[radial-gradient(theme(colors.yellow.900)_1px,transparent_1px)];
 }
+
+kbd {
+  @apply rounded-md p-1 bg-white font-mono text-xs font-bold border border-b-2 border-gray-300 mr-1 flex items-center justify-center gap-1;
+}

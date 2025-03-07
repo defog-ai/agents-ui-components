@@ -46,7 +46,7 @@ const ChartOptionsHandle = ({ isOpen, onClick }) => (
       {/* Bottom-aligned shortcut */}
       <div className="absolute -translate-x-1/2 bottom-2 left-1/2">
         <KeyboardShortcutIndicator
-          shortcut={KEYMAP.TOGGLE_CHART_OPTIONS}
+          keyValue={KEYMAP.TOGGLE_CHART_OPTIONS}
           className="scale-75 opacity-75"
         />
       </div>

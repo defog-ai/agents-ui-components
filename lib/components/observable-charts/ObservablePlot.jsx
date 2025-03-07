@@ -32,7 +32,7 @@ export default function ObservablePlot() {
       setDimensions((prev) =>
         width !== prev.width || height !== prev.height
           ? { width, height }
-          : prev,
+          : prev
       );
     }
   }, []);
@@ -78,7 +78,7 @@ export default function ObservablePlot() {
         <Button
           onClick={() => setIsExportModalOpen(true)}
           variant="ghost"
-          className="flex items-center px-2.5 py-1.5 rounded-md border border-gray-200/50 
+          className="inline-flex items-center px-2.5 py-1.5 rounded-md border border-gray-200/50 
                 bg-white/95 hover:bg-gray-50/95 dark:bg-gray-800/95 dark:hover:bg-gray-700/95 
                 shadow-sm backdrop-blur-sm transition-all duration-200 
                 dark:border-gray-700/50 dark:hover:border-gray-600/50
@@ -87,9 +87,9 @@ export default function ObservablePlot() {
           title={`Download chart as PNG (${KEYMAP.SAVE_CHART})`}
         >
           <Download size={16} className="mr-1" />
-          <span className="mr-1">Save as PNG</span>
+          <span className="mr-1 whitespace-nowrap">Save as PNG</span>
           <KeyboardShortcutIndicator
-            shortcut={KEYMAP.SAVE_CHART}
+            keyValue={KEYMAP.SAVE_CHART}
             className="opacity-50 group-hover:opacity-100 transition-opacity ml-1 !py-0.5 !px-1.5"
           />
         </Button>
