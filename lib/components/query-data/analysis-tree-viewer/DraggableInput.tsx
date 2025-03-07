@@ -214,7 +214,7 @@ let DraggableInput = forwardRef(function DraggableInput(
                 }
               />
               <KeyboardShortcutIndicator
-                shortcut={KEYMAP.FOCUS_SEARCH}
+                keyValue={KEYMAP.FOCUS_SEARCH}
                 className="absolute -translate-y-1/2 opacity-50 pointer-events-none right-3 top-1/2"
               />
               <span
@@ -226,7 +226,7 @@ let DraggableInput = forwardRef(function DraggableInput(
                 <div className="flex items-center gap-2">
                   <SquarePen />
                   <KeyboardShortcutIndicator
-                    shortcut={KEYMAP.NEW_CONVERSATION}
+                    keyValue={KEYMAP.NEW_CONVERSATION}
                     className="opacity-50"
                   />
                 </div>

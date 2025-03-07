@@ -61,7 +61,7 @@ const AnalysisDrawerHandle = ({ isOpen, onClick }) => (
       {/* Bottom-aligned shortcut */}
       <div className="absolute -translate-x-1/2 bottom-2 left-1/2">
         <KeyboardShortcutIndicator
-          shortcut={KEYMAP.TOGGLE_ANALYSIS}
+          keyValue={KEYMAP.TOGGLE_ANALYSIS}
           className="scale-75"
         />
       </div>
@@ -338,13 +338,13 @@ export function AnalysisOutputsTable({
                   </span>
                   {tab.key === "table" && (
                     <KeyboardShortcutIndicator
-                      shortcut={KEYMAP.VIEW_TABLE}
+                      keyValue={KEYMAP.VIEW_TABLE}
                       className="opacity-50 px-1 py-0.5"
                     />
                   )}
                   {tab.key === "chart" && (
                     <KeyboardShortcutIndicator
-                      shortcut={KEYMAP.VIEW_CHART}
+                      keyValue={KEYMAP.VIEW_CHART}
                       className="opacity-50 px-1 py-0.5"
                     />
                   )}

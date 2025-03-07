@@ -664,7 +664,7 @@ export function Table({
           />
           <div className="absolute -translate-y-1/2 right-3 top-1/2">
             <KeyboardShortcutIndicator
-              shortcut={KEYMAP.TABLE_FOCUS_SEARCH}
+              keyValue={KEYMAP.TABLE_FOCUS_SEARCH}
               className="opacity-50"
             />
           </div>

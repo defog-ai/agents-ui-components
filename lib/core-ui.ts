@@ -37,6 +37,7 @@ export { NavBar } from "./components/core-ui/NavBar.tsx";
 export { ColorPicker } from "./components/core-ui/ColorPicker.jsx";
 export { Drawer } from "./components/core-ui/Drawer.jsx";
 export { Popconfirm } from "./components/core-ui/Popconfirm.jsx";
+export { KeyboardShortcutIndicator } from "./components/core-ui/KeyboardShortcutIndicator.tsx";
 export {
   Menu,
   MenuItem,

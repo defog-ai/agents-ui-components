@@ -82,7 +82,7 @@ export function PrimarySelection({ columns, showChartTypeOnly = false }) {
 
       chartManager.render();
     },
-    [chartManager, selectedColumns, selectedChart, columns],
+    [chartManager, selectedColumns, selectedChart, columns]
   );
 
   const handleAggregateChange = (value) => {
@@ -163,7 +163,7 @@ export function PrimarySelection({ columns, showChartTypeOnly = false }) {
             <div className="flex items-center justify-between">
               <label className="flex items-center gap-2 text-xs font-medium text-gray-700 dark:text-gray-300">
                 <KeyboardShortcutIndicator
-                  shortcut={KEYMAP.SET_X_AXIS}
+                  keyValue={KEYMAP.SET_X_AXIS}
                   className="px-1 py-0.5 text-xs font-bold text-gray-500"
                 />
                 <span className="flex items-center gap-2">Horizontal Axis</span>
@@ -189,7 +189,7 @@ export function PrimarySelection({ columns, showChartTypeOnly = false }) {
           <div className="space-y-1.5">
             <label className="flex items-center gap-2 text-xs font-medium text-gray-700 dark:text-gray-300">
               <KeyboardShortcutIndicator
-                shortcut={KEYMAP.SET_Y_AXIS}
+                keyValue={KEYMAP.SET_Y_AXIS}
                 className="px-1 py-0.5 text-xs font-bold text-gray-500"
               />
               <span className="flex items-center gap-2">Vertical Axis</span>
