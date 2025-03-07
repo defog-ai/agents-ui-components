@@ -27,7 +27,7 @@ export const useKeyDown = (
       const isMac = window.navigator.platform.includes("Mac");
 
       if (
-        keyboardEvent.key === key &&
+        keyboardEvent.key.toLowerCase() === key.toLowerCase() &&
         ((meta && (isMac ? keyboardEvent.metaKey : keyboardEvent.ctrlKey)) ||
           (!meta &&
             !(isMac ? keyboardEvent.metaKey : keyboardEvent.ctrlKey))) &&
