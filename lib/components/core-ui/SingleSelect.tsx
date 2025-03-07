@@ -28,7 +28,7 @@ const matchingValue = (option, value) => {
 type Option = {
   label: any;
   value: any;
-  rawValue: any;
+  rawValue?: any;
 };
 
 interface SingleSelectProps {
@@ -233,7 +233,7 @@ export function SingleSelect({
   }
 
   // find the option matching the default value
-  const [selectedOption, setSelectedOption] = useState(
+  const [selectedOption, setSelectedOption] = useState<Option | null>(
     internalOptions.find((option) => matchingValue(option, defaultValue)) ||
       null
   );

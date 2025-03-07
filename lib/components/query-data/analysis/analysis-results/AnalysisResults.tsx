@@ -12,8 +12,7 @@ import SQLFeedback from "./SQLFeedback";
 import { AnalysisFollowOn } from "./AnalysisFollowOn";
 import { CodeEditor } from "./CodeEditor";
 import type { AnalysisTreeManager } from "../../analysis-tree-viewer/analysisTreeManager";
-import type { Analysis, AnalysisData } from "../analysisManager";
-import React from "react";
+import { AnalysisRowFromBackend } from "../analysisManager";
 
 export function AnalysisResults({
   dbName,
@@ -24,7 +23,7 @@ export function AnalysisResults({
   analysisTreeManager = null,
 }: {
   dbName: string;
-  analysis: Analysis;
+  analysis: AnalysisRowFromBackend;
   analysisBusy?: boolean;
   handleReRun: (editedInputs: EditedInputs) => void;
   submitFollowOn: (...args: any[]) => void;
