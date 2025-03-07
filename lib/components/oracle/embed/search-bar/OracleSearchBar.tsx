@@ -13,6 +13,7 @@ import {
   TextArea,
   Toggle,
 } from "@ui-components";
+import { KeyboardShortcutIndicator } from "../../../../../lib/components/core-ui/KeyboardShortcutIndicator";
 import {
   useCallback,
   useContext,
@@ -22,6 +23,7 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
+import { useKeyDown } from "../../../../../lib/components/hooks/useKeyDown";
 import { OracleEmbedContext } from "../OracleEmbedContext";
 import {
   ChevronDown,
@@ -49,6 +51,7 @@ import {
 import { OracleHistoryItem } from "../OracleEmbed";
 import { OracleSearchBarModeHeader } from "./OracleSearchBarModeHeader";
 import { scrollToAnalysis } from "../../../../../lib/components/query-data/analysis-tree-viewer/AnalysisTreeViewer";
+import { KEYMAP, matchesKey } from "../../../../../lib/constants/keymap";
 
 const modeDisplayName = {
   "query-data": "Fast data analysis",
@@ -106,6 +109,7 @@ export function OracleSearchBar({
   rootClassNames?: string;
   selectedItem: OracleHistoryItem;
 }) {
+  console.log("bleh");
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [isDropping, setIsDropping] = useState<boolean>(false);
   const { searchBarManager, apiEndpoint, token } =
@@ -250,6 +254,58 @@ export function OracleSearchBar({
       textAreaRef.current.value = draft.userQuestion;
     }
   }, [draft]);
+
+  // Handle keyboard shortcuts using the useKeyDown hook
+
+  // Focus search with "/"
+  useKeyDown(
+    {
+      key: KEYMAP.FOCUS_ORACLE_SEARCH,
+      callback: () => {
+        textAreaRef.current?.focus();
+      },
+    },
+    [textAreaRef]
+  );
+
+  // New question with Cmd+Q (or Ctrl+Q on Windows)
+  useKeyDown(
+    {
+      key: KEYMAP.NEW_QUESTION,
+      meta: true,
+      callback: () => {
+        // Emulate the behavior of clicking "New Report" in the sidebar
+        if (selectedItem) {
+          // If there's a selected item, clear it to create a new report
+          window.dispatchEvent(new CustomEvent("oracle:new-report"));
+        }
+
+        // Reset the search bar and focus it
+        searchBarManager.resetDraft();
+        if (textAreaRef.current) {
+          textAreaRef.current.value = "";
+          textAreaRef.current.focus();
+        }
+      },
+    },
+    [searchBarManager, selectedItem, textAreaRef]
+  );
+
+  // Toggle mode with Cmd+M (or Ctrl+M on Windows)
+  useKeyDown(
+    {
+      key: KEYMAP.TOGGLE_MODE,
+      meta: true,
+      callback: () => {
+        if (!selectedItem?.itemType) {
+          // Toggle between fast and deep research modes
+          const newMode = draft.mode === "query-data" ? "report" : "query-data";
+          searchBarManager.setMode(newMode);
+        }
+      },
+    },
+    [draft.mode, searchBarManager, selectedItem]
+  );
 
   const UploadedFileIcons = useMemo(() => {
     return draft?.uploadedDataFiles?.length || draft?.uploadedPDFs?.length ? (
@@ -556,6 +612,33 @@ export function OracleSearchBar({
                 {selectedItem?.itemType !== "query-data"
                   ? "Drop CSV or Excel files to analyse them."
                   : ""}
+                <div className="flex gap-2 mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  <span className="flex items-center">
+                    <KeyboardShortcutIndicator
+                      keyValue={KEYMAP.FOCUS_ORACLE_SEARCH}
+                      className="mr-1"
+                      text="Focus search"
+                    />
+                  </span>
+                  <span className="flex items-center">
+                    <KeyboardShortcutIndicator
+                      keyValue={KEYMAP.NEW_QUESTION}
+                      className="mr-1"
+                      meta={true}
+                      text="New question"
+                    />
+                  </span>
+                  {!selectedItem?.itemType && (
+                    <span className="flex items-center">
+                      <KeyboardShortcutIndicator
+                        keyValue={KEYMAP.TOGGLE_MODE}
+                        className="mr-1"
+                        meta={true}
+                        text="Toggle mode"
+                      />
+                    </span>
+                  )}
+                </div>
               </div>
 
               <div

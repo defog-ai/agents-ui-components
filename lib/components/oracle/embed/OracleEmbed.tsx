@@ -159,13 +159,35 @@ const AnalysisTreeContentWrapper = ({
     }
   }, [treeManager, activeRootId]);
 
-  // Simple no-op function for follow-on questions
-  const submitFollowOn = useCallback((question: string) => {
-    if (!question) return;
-    console.log("Follow-on question:", question);
-    // Additional implementation can be added here if needed
-    searchBarManager.setQuestion(question);
-  }, []);
+  // Function for handling follow-on questions
+  const submitFollowOn = useCallback(
+    (question: string) => {
+      if (!question) return;
+      console.log("Follow-on question:", question);
+
+      // Set the question in the search bar
+      searchBarManager.setQuestion(question);
+
+      // Focus the search bar
+      const textArea = document.querySelector("textarea");
+      if (textArea) {
+        textArea.focus();
+
+        // If the text area exists, dispatch a synthetic event when focused
+        textArea.addEventListener(
+          "focus",
+          () => {
+            // After focusing, update the textarea value
+            if (textArea instanceof HTMLTextAreaElement) {
+              textArea.value = question;
+            }
+          },
+          { once: true }
+        );
+      }
+    },
+    [searchBarManager]
+  );
 
   if (!activeRootId) return null;
 
@@ -212,7 +234,7 @@ export function OracleEmbed({
   initialDbNames: string[];
 }) {
   const [dbNames, setDbNames] = useState<string[]>(initialDbNames);
-  const [selectedDbName, setSelectedDbName] = useState("Default DB");
+  const [selectedDbName, setSelectedDbName] = useState(null);
   const [oracleHistory, setOracleHistory] = useState<OracleHistory>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -267,6 +289,17 @@ export function OracleEmbed({
       window.history.pushState({}, "", url.toString());
     }
   }, []);
+  
+  // Listen for the new report custom event
+  useEffect(() => {
+    const handleNewReport = () => {
+      updateUrlWithItemId(null);
+      setSelectedItemId(null);
+    };
+    
+    window.addEventListener('oracle:new-report', handleNewReport);
+    return () => window.removeEventListener('oracle:new-report', handleNewReport);
+  }, [updateUrlWithItemId]);
 
   // Function to get item_id from URL - not as a callback to ensure it's actually checked
   function getItemIdFromUrl() {
@@ -305,8 +338,10 @@ export function OracleEmbed({
         let foundUrlItemIdDbName = null;
 
         // Set default DB (only if not found in URL)
-        if (dbNames.length && selectedDbName === "Default DB" && !urlItemId) {
+        if (dbNames.length && selectedDbName === null && !urlItemId) {
           setSelectedDbName(dbNames.length ? dbNames[0] : uploadNewDbOption);
+        } else {
+          setSelectedDbName(uploadNewDbOption);
         }
 
         const today = new Date();
