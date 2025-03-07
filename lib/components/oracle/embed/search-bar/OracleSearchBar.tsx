@@ -269,7 +269,7 @@ export function OracleSearchBar({
     [textAreaRef]
   );
 
-  // New question with Cmd+Q (or Ctrl+Q on Windows)
+  // New question with Cmd+K (or Ctrl+Q on Windows)
   useKeyDown(
     {
       key: KEYMAP.NEW_QUESTION,
@@ -298,7 +298,8 @@ export function OracleSearchBar({
       key: KEYMAP.TOGGLE_MODE,
       meta: true,
       callback: () => {
-        if (!selectedItem?.itemType) {
+        // only toggle if we're not in any item
+        if (!selectedItem) {
           // Toggle between fast and deep research modes
           const newMode = draft.mode === "query-data" ? "report" : "query-data";
           searchBarManager.setMode(newMode);
@@ -621,14 +622,16 @@ export function OracleSearchBar({
                       text="Focus search"
                     />
                   </span>
-                  <span className="flex items-center">
-                    <KeyboardShortcutIndicator
-                      keyValue={KEYMAP.NEW_QUESTION}
-                      className="mr-1"
-                      meta={true}
-                      text="New question"
-                    />
-                  </span>
+                  {selectedItem && (
+                    <span className="flex items-center">
+                      <KeyboardShortcutIndicator
+                        keyValue={KEYMAP.NEW_QUESTION}
+                        className="mr-1"
+                        meta={true}
+                        text="New question"
+                      />
+                    </span>
+                  )}
                   {!selectedItem?.itemType && (
                     <span className="flex items-center">
                       <KeyboardShortcutIndicator
