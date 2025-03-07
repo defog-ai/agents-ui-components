@@ -8,7 +8,7 @@ import { KeyboardShortcutIndicator } from "../../../../../lib/components/core-ui
 export const OracleSearchBarModeHeader = ({ selectedItem }) => {
   const { searchBarManager } = useContext(OracleEmbedContext);
   const [isMac, setIsMac] = useState(false);
-  
+
   useEffect(() => {
     setIsMac(navigator.userAgent.toLowerCase().includes("mac"));
   }, []);
@@ -29,8 +29,8 @@ export const OracleSearchBarModeHeader = ({ selectedItem }) => {
           ? "Ask a follow on question"
           : statusDescriptions[draft.status]}
       </div>
-      
-      {!selectedItem?.itemType && (
+
+      {/* {!selectedItem?.itemType && (
         <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
           <span className="mr-2">Current mode: {draft.mode === "query-data" ? "Fast analysis" : "Deep research"}</span>
           <KeyboardShortcutIndicator 
@@ -39,7 +39,7 @@ export const OracleSearchBarModeHeader = ({ selectedItem }) => {
             className="px-1"
           />
         </div>
-      )}
+      )} */}
     </div>
   );
 };
