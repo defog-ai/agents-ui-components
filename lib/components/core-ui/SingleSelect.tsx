@@ -28,6 +28,7 @@ const matchingValue = (option, value) => {
 type Option = {
   label: any;
   value: any;
+  rawValue: any;
 };
 
 interface SingleSelectProps {
@@ -279,6 +280,24 @@ export function SingleSelect({
     ref?.current?.blur?.();
   }, [selectedOption?.value, internalOptions, allowCreateNewOption]);
 
+  /**
+   * This is specifically to deal with the situation when:
+   * 1. use selects "other"
+   * 2. types in something which sets customValue
+   * 3. clicks away WITHOUT creating a new option or pressing enter
+   *
+   * in that case, we will reset back to the option that was selected before the user selected "other".
+   */
+  const optionSelectedBeforeClickingOther = useRef<Option | null>(null);
+
+  /**
+   * This is specifically to deal with when the user uses their keyboard to select other.
+   * This seems to behave differently from them using the mouse. The mouse click event is bound to the <li>
+   * but the keyUp event is bound to the input itself. this seems to trigger an extra blur event *after* set state.
+   * hence receiving the isOtherSelected as true, but having an empty customValue, leading to a reset.
+   */
+  const ignoreBlur = useRef(false);
+
   return (
     <div className={twMerge("agui-item agui-select", rootClassNames)}>
       {label && (
@@ -334,18 +353,36 @@ export function SingleSelect({
               setOpen(true);
             }
           }}
-          onBlur={() => {
+          onBlur={(e) => {
             setTimeout(() => {
+              if (ignoreBlur.current) {
+                ignoreBlur.current = false;
+                return;
+              }
+
               setOpen(false);
-              if (isOtherSelected && !customValue) {
+              if (isOtherSelected) {
                 setIsOtherSelected(false);
-                setSelectedOption(null);
+                setSelectedOption(
+                  optionSelectedBeforeClickingOther.current || null
+                );
+                optionSelectedBeforeClickingOther.current = null;
                 setQuery(null);
+                setCustomValue("");
+              } else if (!allowCreateNewOption) {
+                // if no allow create is allowed, clear the query
+                setQuery(null);
+                setCustomValue("");
+              } else if (!isOtherSelected && allowCreateNewOption && query) {
+                setQuery(null);
+                setCustomValue("");
               }
             }, 200);
           }}
           readOnly={disabled && !isOtherSelected}
-          onKeyDown={(e) => {
+          onKeyUp={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
             if (disabled) return;
             if (e.key === "ArrowDown") {
               e.preventDefault();
@@ -370,12 +407,18 @@ export function SingleSelect({
                 const option = filteredOptions[highlightIndex];
 
                 if (option.value === "__other__" && showOtherOption) {
+                  optionSelectedBeforeClickingOther.current = selectedOption;
                   setIsOtherSelected(true);
                   setSelectedOption(option);
+                  // Keep the dropdown open for custom input
                   setQuery("");
-                  // Keep dropdown open so user can enter custom value
-                  ref?.current?.focus();
+                  setOpen(false);
+                  ignoreBlur.current = true;
+                  setTimeout(() => {
+                    ref?.current?.focus();
+                  }, 50);
                 } else {
+                  optionSelectedBeforeClickingOther.current = option;
                   setIsOtherSelected(false);
                   setSelectedOption(option);
                   setQuery(null);
@@ -408,6 +451,7 @@ export function SingleSelect({
             onMouseUp={(ev) => {
               ev.preventDefault();
               ev.stopPropagation();
+              if (disabled) return;
               setSelectedOption(null);
               setQuery(null);
               setIsOtherSelected(false);
@@ -415,7 +459,14 @@ export function SingleSelect({
               if (onChange) onChange(null, null);
             }}
           >
-            <CircleX className="w-3.5 text-gray-300 hover:text-gray-500 dark:text-gray-400 dark:hover:text-gray-200" />
+            <CircleX
+              className={twMerge(
+                "w-3.5 text-gray-300 dark:text-gray-400 ",
+                disabled
+                  ? "bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500 dark:ring-gray-700 cursor-not-allowed hover:cursor-not-allowed"
+                  : "hover:text-gray-500 dark:hover:text-gray-200"
+              )}
+            />
           </button>
         )}
         <button
@@ -466,16 +517,17 @@ export function SingleSelect({
                 onMouseUp={(e) => {
                   e.preventDefault();
                   if (option.value === "__other__" && showOtherOption) {
+                    optionSelectedBeforeClickingOther.current = selectedOption;
                     setIsOtherSelected(true);
                     setSelectedOption(option);
                     // Keep the dropdown open for custom input
                     setQuery("");
                     setOpen(false);
-                    // Focus the input for immediate typing
                     setTimeout(() => {
                       ref?.current?.focus();
                     }, 50);
                   } else {
+                    optionSelectedBeforeClickingOther.current = option;
                     setIsOtherSelected(false);
                     setSelectedOption(option);
                     setQuery(null);
