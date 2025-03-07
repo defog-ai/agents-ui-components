@@ -1,4 +1,3 @@
-import { AnalysisManager } from "lib/components/query-data/analysis/analysisManager";
 import { ClarificationObject } from "../../reports/report-creation/ClarificationItem";
 
 type QueryTaskType = "exploration" | "";
