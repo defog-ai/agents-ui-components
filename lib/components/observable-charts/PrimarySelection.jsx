@@ -82,7 +82,7 @@ export function PrimarySelection({ columns, showChartTypeOnly = false }) {
 
       chartManager.render();
     },
-    [chartManager, selectedColumns, selectedChart, columns]
+    [chartManager, selectedColumns, selectedChart, columns],
   );
 
   const handleAggregateChange = (value) => {
