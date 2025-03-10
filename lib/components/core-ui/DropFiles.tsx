@@ -129,24 +129,31 @@ export function DropFiles({
             {selectedFiles.map((file, index) => (
               <div
                 key={`${file.name}-${index}`}
-                className="flex items-center justify-between bg-gray-100 dark:bg-gray-700 rounded-lg px-3 py-2 text-sm"
+                className="flex items-center justify-between bg-gray-100 dark:bg-gray-700 rounded-lg px-3 py-2 text-sm text-gray-500 dark:text-gray-400"
               >
                 <div className="flex items-center max-w-[85%]">
                   <File className="w-4 h-4 mr-2 flex-shrink-0" />
                   <span className="truncate">{file.name}</span>
                 </div>
                 <div className="flex items-center">
-                  <span className="text-xs text-gray-500 dark:text-gray-400 mx-2">
+                  <span className="text-xs mx-2">
                     {formatFileSize(file.size)}
                   </span>
                   {onRemoveFile && (
                     <button
                       type="button"
                       onClick={(e) => {
+                        if (disabled) return;
+
                         e.stopPropagation();
                         onRemoveFile(index);
                       }}
-                      className="ml-1 text-gray-500 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400"
+                      className={twMerge(
+                        "ml-1",
+                        !disabled
+                          ? "hover:text-red-500 dark:hover:text-red-400"
+                          : "text-gray-300 dark:text-gray-600 opacity-0"
+                      )}
                     >
                       <XCircle className="w-4 h-4" />
                     </button>
@@ -175,7 +182,10 @@ export function DropFiles({
         multiple={allowMultiple}
         aria-label=""
         accept={acceptedFileTypes.join(",")}
-        className="w-full h-full z-[1] opacity-0 absolute left-0 top-0 cursor-pointer"
+        className={twMerge(
+          "w-full h-full z-[1] opacity-0 absolute left-0 top-0",
+          disabled ? "cursor-not-allowed" : "cursor-pointer"
+        )}
         type="file"
         title="Click to select file"
         disabled={disabled}
