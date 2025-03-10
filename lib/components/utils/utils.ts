@@ -485,8 +485,7 @@ interface UserFile {
 export const uploadMultipleFilesAsDb = async (
   apiEndpoint: string,
   token: string,
-  files: File[],
-  onProgress?: (progress: number) => void
+  files: File[]
 ): Promise<{ dbName: string }> => {
   console.time("utils:uploadMultipleFilesAsDb:setup");
   const urlToConnect = setupBaseUrl({
@@ -501,24 +500,17 @@ export const uploadMultipleFilesAsDb = async (
     form.append("files", file);
   }
   console.timeEnd("utils:uploadMultipleFilesAsDb:setup");
-  
+
   console.time("utils:uploadMultipleFilesAsDb:fetchRequest");
-  
+
   // Use XMLHttpRequest instead of fetch to track upload progress
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
-    
-    xhr.upload.addEventListener("progress", (event) => {
-      if (event.lengthComputable && onProgress) {
-        const progress = Math.round((event.loaded / event.total) * 100);
-        onProgress(progress);
-      }
-    });
-    
+
     xhr.addEventListener("load", async () => {
       console.timeEnd("utils:uploadMultipleFilesAsDb:fetchRequest");
       console.time("utils:uploadMultipleFilesAsDb:processResponse");
-      
+
       if (xhr.status >= 200 && xhr.status < 300) {
         try {
           const data = JSON.parse(xhr.responseText);
@@ -528,18 +520,23 @@ export const uploadMultipleFilesAsDb = async (
           reject(new Error("Failed to parse response"));
         }
       } else {
-        reject(new Error(xhr.responseText || "Failed to create new db name - are you sure your network is working?"));
+        reject(
+          new Error(
+            xhr.responseText ||
+              "Failed to create new db name - are you sure your network is working?"
+          )
+        );
       }
     });
-    
+
     xhr.addEventListener("error", () => {
       reject(new Error("Network error occurred"));
     });
-    
+
     xhr.addEventListener("abort", () => {
       reject(new Error("Upload aborted"));
     });
-    
+
     xhr.open("POST", urlToConnect);
     xhr.send(form);
   });

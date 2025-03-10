@@ -12,24 +12,6 @@ import {
 import { useContext, useState } from "react";
 import { twMerge } from "tailwind-merge";
 
-// Upload Progress Bar Component
-const UploadProgressBar = ({ progress }: { progress: number }) => {
-  return (
-    <div className="absolute bottom-1/3 left-0 right-0 mx-auto w-3/4 max-w-md bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md">
-      <div className="mb-2 flex justify-between text-xs text-gray-600 dark:text-gray-300">
-        <span>Uploading files...</span>
-        <span>{progress}%</span>
-      </div>
-      <div className="w-full h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-        <div 
-          className="h-full bg-blue-500 transition-all duration-300 ease-out"
-          style={{ width: `${progress}%` }}
-        />
-      </div>
-    </div>
-  );
-};
-
 export const OracleNewDb = ({
   apiEndpoint,
   token,
@@ -42,7 +24,7 @@ export const OracleNewDb = ({
   const message = useContext(MessageManagerContext);
   const [loading, setLoading] = useState<boolean>(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const [loadingMessage, setLoadingMessage] = useState<string>("Uploading");
 
   return (
     <div className="min-w-full min-h-full">
@@ -114,11 +96,7 @@ export const OracleNewDb = ({
           console.timeEnd("OracleNewDb:onDrop");
         }}
       />
-      
-      {loading && uploadProgress > 0 && (
-        <UploadProgressBar progress={uploadProgress} />
-      )}
-      
+
       <Button
         className={twMerge(
           "absolute bottom-1/4 p-4 left-0 right-0 mx-auto w-fit rounded-full z-[10] shadow-md",
@@ -127,21 +105,21 @@ export const OracleNewDb = ({
         disabled={loading || selectedFiles.length === 0}
         variant="primary"
         onClick={async () => {
-          console.time("OracleNewDb:uploadFiles");
           try {
+            console.time("OracleNewDb:uploadFiles");
             setLoading(true);
-            setUploadProgress(0);
-            
-            console.time("OracleNewDb:uploadMultipleFilesAsDb");
+
+            const timeout = setTimeout(() => {
+              setLoadingMessage("Cleaning formatting niggles...");
+            }, 4000);
+
             const { dbName } = await uploadMultipleFilesAsDb(
               apiEndpoint,
               token,
-              selectedFiles,
-              (progress) => {
-                setUploadProgress(progress);
-              }
+              selectedFiles
             );
-            console.timeEnd("OracleNewDb:uploadMultipleFilesAsDb");
+
+            clearTimeout(timeout);
 
             message.success(`DB ${dbName} created successfully`);
             onDbCreated(dbName);
@@ -150,15 +128,16 @@ export const OracleNewDb = ({
             message.error(e.message || "Failed to upload files");
           } finally {
             setLoading(false);
+            setLoadingMessage("");
             console.timeEnd("OracleNewDb:uploadFiles");
           }
         }}
       >
-        {selectedFiles.length > 0 ? (
+        {selectedFiles.length ? (
           loading ? (
             <>
               <SpinningLoader />
-              {uploadProgress > 0 ? `Uploading (${uploadProgress}%)` : "Uploading"}
+              {loadingMessage}
             </>
           ) : (
             "Click to upload"
