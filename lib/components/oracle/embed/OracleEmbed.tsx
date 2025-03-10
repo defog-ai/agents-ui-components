@@ -750,6 +750,15 @@ export function OracleEmbed({
     selectedItem,
   ]);
 
+  const wasUploaded = useRef(false);
+
+  useEffect(() => {
+    if (wasUploaded.current) {
+      setSelectedDbName(dbNames[dbNames.length - 1]);
+    }
+    wasUploaded.current = false;
+  }, [dbNames]);
+
   if (error) {
     return (
       <div className="w-screen h-screen flex items-center justify-center bg-rose-50 text-rose-500">
@@ -802,7 +811,7 @@ export function OracleEmbed({
                       },
                     }));
                     setDbNames((prev) => [...prev, dbName]);
-                    setSelectedDbName(dbName);
+                    wasUploaded.current = true;
                   }}
                 />
               )}

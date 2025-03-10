@@ -12,6 +12,11 @@ import {
 import { useContext, useState } from "react";
 import { twMerge } from "tailwind-merge";
 
+const timeouts = [
+  { message: "Checking format...", time: 4000 },
+  { message: "Cleaning formatting niggles...", time: 10000 },
+];
+
 export const OracleNewDb = ({
   apiEndpoint,
   token,
@@ -109,9 +114,13 @@ export const OracleNewDb = ({
             console.time("OracleNewDb:uploadFiles");
             setLoading(true);
 
-            const timeout = setTimeout(() => {
-              setLoadingMessage("Cleaning formatting niggles...");
-            }, 4000);
+            const timeoutIds = timeouts.map(({ message, time }) => {
+              return setTimeout(() => {
+                setLoadingMessage(message);
+              }, time);
+            });
+
+            setLoadingMessage("Sending to servers");
 
             const { dbName } = await uploadMultipleFilesAsDb(
               apiEndpoint,
@@ -119,7 +128,7 @@ export const OracleNewDb = ({
               selectedFiles
             );
 
-            clearTimeout(timeout);
+            timeoutIds.forEach(clearTimeout);
 
             message.success(`DB ${dbName} created successfully`);
             onDbCreated(dbName);
