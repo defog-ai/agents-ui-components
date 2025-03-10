@@ -753,7 +753,7 @@ export function OracleEmbed({
   const wasUploaded = useRef(false);
 
   useEffect(() => {
-    if (wasUploaded.current) {
+    if (wasUploaded.current && dbNames.length) {
       setSelectedDbName(dbNames[dbNames.length - 1]);
     }
     wasUploaded.current = false;
