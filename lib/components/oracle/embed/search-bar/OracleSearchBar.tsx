@@ -804,7 +804,7 @@ export function OracleSearchBar({
                   ...prev,
                   loading: false,
                   status: "clarifications_received",
-                  userQuestion: "",
+                  userQuestion: question,
                 }));
               } catch (e) {
                 console.log(e);
