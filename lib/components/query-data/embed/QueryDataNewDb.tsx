@@ -20,7 +20,7 @@ const UploadProgressBar = ({ progress }: { progress: number }) => {
         <span>{progress}%</span>
       </div>
       <div className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-        <div 
+        <div
           className="h-full bg-blue-500 transition-all duration-300 ease-out"
           style={{ width: `${progress}%` }}
         />
@@ -50,14 +50,9 @@ export const QueryDataNewDb = ({
     }
 
     console.time("QueryDataNewDb:uploadMultipleFilesAsDb");
-    const { dbName } = await uploadMultipleFilesAsDb(
-      apiEndpoint, 
-      token, 
-      [file],
-      (progress) => {
-        setUploadProgress(progress);
-      }
-    );
+    const { dbName } = await uploadMultipleFilesAsDb(apiEndpoint, token, [
+      file,
+    ]);
     console.timeEnd("QueryDataNewDb:uploadMultipleFilesAsDb");
 
     message.success(`DB ${dbName} created successfully`);
@@ -127,7 +122,10 @@ export const QueryDataNewDb = ({
       {loading && (
         <div className="flex flex-col w-full h-full items-center justify-center gap-4 text-gray-600 dark:text-gray-300">
           <div className="text-xs flex gap-1">
-            <SpinningLoader /> {uploadProgress > 0 ? `Uploading your file (${uploadProgress}%)` : "Uploading your file"}
+            <SpinningLoader />{" "}
+            {uploadProgress > 0
+              ? `Uploading your file (${uploadProgress}%)`
+              : "Uploading your file"}
           </div>
           {uploadProgress > 0 && (
             <div className="w-3/4 max-w-md">
