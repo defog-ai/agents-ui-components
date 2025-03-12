@@ -27,6 +27,7 @@ interface ButtonProps {
   icon?: React.ReactNode;
   disabled?: boolean;
   variant?: "normal" | "primary" | "secondary" | "danger";
+  title?: string;
 }
 
 export function Button({
@@ -37,6 +38,7 @@ export function Button({
   icon = null,
   disabled = false,
   variant = "normal",
+  title = "",
 }: ButtonProps) {
   const variantStyle = useMemo(
     () => variantStyles[variant] || variantStyles.normal,
@@ -51,6 +53,7 @@ export function Button({
         if (disabled) return;
         onClick(ev);
       }}
+      title={title}
       className={twMerge(
         variantStyle,
         "agui-item agui-btn py-1 px-2 rounded-md text-sm flex flex-row items-center gap-1 active:brightness-[90%] justify-center",

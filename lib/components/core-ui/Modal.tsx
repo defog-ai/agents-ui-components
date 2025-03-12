@@ -22,7 +22,7 @@ interface ModalProps {
   /**
    * If true, the modal will have a footer.
    */
-  footer?: boolean;
+  footer?: boolean | React.ReactNode;
   /**
    * The title of the modal.
    */

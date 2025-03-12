@@ -44,61 +44,31 @@ export const CreateNewProject = ({
           setSelectedFiles(selectedFiles.filter((_, i) => i !== index));
           console.timeEnd("CreateNewProject:onRemoveFile");
         }}
-        onFileSelect={async (ev) => {
+        onFileSelect={async (ev, files) => {
           console.time("CreateNewProject:onFileSelect");
-          ev.preventDefault();
-          ev.stopPropagation();
           try {
-            // this is when the user selects a file from the file dialog
-            let files = ev.target.files;
-
-            for (let file of files) {
-              if (!file || !isValidFileType(file.type, true)) {
-                throw new Error("Only CSV or Excel files are accepted");
-              }
-            }
-
+            // Our component has already filtered valid files for us
             setSelectedFiles([...selectedFiles, ...files]);
           } catch (e) {
             console.error(e);
-            message.error("Failed to parse the file");
+            message.error("Failed to process the files");
           }
           console.timeEnd("CreateNewProject:onFileSelect");
         }}
-        onDrop={async (ev) => {
+        onDrop={async (ev, files) => {
           console.time("CreateNewProject:onDrop");
-          ev.preventDefault();
-          ev.stopPropagation();
-
           try {
-            let dataTransferObjects: DataTransferItemList =
-              ev?.dataTransfer?.items;
-
-            let files: File[] = [];
-
-            for (let dataTransferObject of dataTransferObjects) {
-              if (
-                !dataTransferObject ||
-                !dataTransferObject.kind ||
-                dataTransferObject.kind !== "file"
-              ) {
-                throw new Error("Invalid file");
-              }
-
-              if (!isValidFileType(dataTransferObject.type, true)) {
-                throw new Error("Only CSV or Excel files are accepted");
-              }
-
-              let file = dataTransferObject.getAsFile();
-
-              files.push(file);
-            }
+            // Our component has already filtered valid files for us
             setSelectedFiles([...selectedFiles, ...files]);
           } catch (e) {
-            message.error(e.message || "Failed to parse the file");
+            message.error(e.message || "Failed to process the files");
             console.log(e.stack);
           }
           console.timeEnd("CreateNewProject:onDrop");
+        }}
+        onInvalidFiles={(e, invalidFiles, errorMessage) => {
+          console.warn("Invalid files:", errorMessage, invalidFiles);
+          message.error("Only CSV or Excel files are accepted");
         }}
       />
 
