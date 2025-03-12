@@ -706,54 +706,43 @@ export function OracleSearchBar({
         />
       </DropFilesHeadless>
 
-      <div className="w-11/12 mx-auto my-0 flex flex-col">
-        <div
-          className={twMerge(
-            "relative z-[1] overflow-auto rounded-t-xl  border border-b-0 ",
-            loading && draft.uploadedFiles?.length > 0
-              ? "h-20 border" // Increased height when showing upload progress
-              : loading
-                ? "h-8 border-none"
-                : draft.clarifications &&
-                    draft.clarifications.length > 0 &&
-                    !selectedItem &&
-                    draft.mode !== "query-data"
-                  ? "h-96"
-                  : "h-0 border-none"
-          )}
-        >
-          {loading ? (
-            <div className="flex flex-col gap-2 py-2 px-4">
-              <span className="text-xs text-gray-600 dark:text-gray-300 flex items-center">
-                <SpinningLoader classNames="w-4 mr-1" />
-                {statusDescriptions[draft.status]}
-              </span>
+      {/* Clarification area */}
+      {!loading && 
+        draft.clarifications && 
+        draft.clarifications.length > 0 && 
+        !selectedItem && 
+        draft.mode !== "query-data" && (
+        <div className="w-11/12 mx-auto my-0 flex flex-col">
+          {/* Scrollable clarifications section */}
+          <div className="border border-blue-500 dark:border-sky-600 rounded-t-xl bg-sky-200 dark:bg-sky-900 border-b-0">
+            <div className="h-96 overflow-y-auto py-2 px-4">
+              <OracleReportClarifications />
             </div>
-          ) : (
-            draft.clarifications &&
-            draft.clarifications.length > 0 && (
-              <div className={twMerge("py-2 px-4 overflow-auto h-full")}>
-                <OracleReportClarifications />
-              </div>
-            )
-          )}
-        </div>
+          </div>
 
-        {!loading &&
-          draft.clarifications &&
-          draft.clarifications.length > 0 &&
-          !selectedItem &&
-          draft.mode !== "query-data" && (
-            <div className="rounded-b-xl border border-blue-500 dark:border-sky-600 bg-sky-200 dark:bg-sky-900 py-3 px-4 border-t-0">
-              <button
-                className="bg-gray-600 text-white border-0 hover:bg-gray-700 dark:bg-gray-600 dark:hover:bg-gray-600 text-base py-2 px-4 rounded"
-                onClick={handleGenerateReport}
-              >
-                Generate
-              </button>
-            </div>
-          )}
-      </div>
+          {/* Fixed Generate button section */}
+          <div className="border border-blue-500 dark:border-sky-600 rounded-b-xl bg-sky-200 dark:bg-sky-900 py-3 px-4 border-t-0">
+            <button
+              className="bg-gray-600 text-white border-0 hover:bg-gray-700 dark:bg-gray-600 dark:hover:bg-gray-600 text-base py-2 px-4 rounded"
+              onClick={handleGenerateReport}
+            >
+              Generate
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Loading state */}
+      {loading && (
+        <div className="w-11/12 mx-auto border border-blue-500 dark:border-sky-600 rounded-xl bg-sky-200 dark:bg-sky-900 overflow-hidden">
+          <div className="flex flex-col gap-2 py-2 px-4">
+            <span className="text-xs text-gray-600 dark:text-gray-300 flex items-center">
+              <SpinningLoader classNames="w-4 mr-1" />
+              {statusDescriptions[draft.status]}
+            </span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
