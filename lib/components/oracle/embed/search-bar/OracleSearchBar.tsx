@@ -272,11 +272,15 @@ export function OracleSearchBar({
 
   // Handle keyboard shortcuts using the useKeyDown hook
 
-  // Focus search with "/"
+  // Focus search with "cmd+/"
   useKeyDown(
     {
       key: KEYMAP.FOCUS_ORACLE_SEARCH,
-      callback: () => {
+      callback: (e) => {
+        // don't focus on report view or "upload new" view (browser does weird stuff if we focus off screen things)
+        if (dbName === uploadNewDbOption || selectedItem?.itemType === "report")
+          return;
+
         textAreaRef.current?.focus();
       },
     },
@@ -386,7 +390,7 @@ export function OracleSearchBar({
   return (
     <div
       className={twMerge(
-        "transition-all duration-700 ease-in-out z-[10] *:transition-all *:duration-700 *:ease-in-out",
+        "oracle-search transition-all duration-700 ease-in-out z-[10] *:transition-all *:duration-700 *:ease-in-out",
         itemTypeClasses[
           selectedItem?.itemType ||
             (dbName === uploadNewDbOption ? "new-db" : "default")
@@ -394,7 +398,7 @@ export function OracleSearchBar({
       )}
     >
       {errorMessage && (
-        <div className="mb-4">
+        <div className="mb-4 absolute -top-16">
           <AlertBanner
             type="error"
             message={errorMessage}
@@ -675,6 +679,8 @@ export function OracleSearchBar({
             style: { resize: "none" },
           }}
           onKeyDown={async (e) => {
+            // allow slash typing
+            e.stopPropagation();
             if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
               const question = e.currentTarget.value;
               if (!question) {
