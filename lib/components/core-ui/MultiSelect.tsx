@@ -304,7 +304,7 @@ export function MultiSelect(props: MultiSelectProps) {
       )}
     >
       {label && (
-        <label className="block text-xs mb-2 font-light text-gray-600 dark:text-gray-400">
+        <label className="block text-sm mb-2 font-medium text-gray-700 dark:text-gray-200">
           {label}
         </label>
       )}

@@ -25,14 +25,14 @@ export function OracleReportClarifications({
   );
 
   return (
-    <div className="w-full overflow-auto flex flex-col items-start relative justify-center m-auto">
+    <div className="w-full overflow-auto flex flex-col items-start relative justify-center m-auto antialiased">
       {/* <div className="text-lg dark:text-gray-200 font-light">
         {statusDescriptions[draft.status]}
       </div> */}
       {!loading && draft.clarifications && (
         <div className="my-4 w-full max-w-4xl">
           <div className="space-y-6">
-            <div className="space-y-2">
+            <div className="space-y-4">
               {draft.clarifications.map((obj, idx) => (
                 <ClarificationItem
                   {...obj}
@@ -68,7 +68,7 @@ export function OracleReportClarifications({
               ))}
             </div>
             <Button
-              className="bg-gray-600 text-white border-0 hover:bg-gray-700 dark:bg-gray-600 dark:hover:bg-gray-600"
+              className="bg-gray-600 text-white border-0 hover:bg-gray-700 dark:bg-gray-600 dark:hover:bg-gray-600 text-base py-2"
               onClick={handleGenerateReport}
             >
               {loading ? loadingStatus.current : "Generate"}
