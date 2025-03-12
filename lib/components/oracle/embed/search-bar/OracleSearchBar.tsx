@@ -272,7 +272,7 @@ export function OracleSearchBar({
 
   // Handle keyboard shortcuts using the useKeyDown hook
 
-  // Focus search with "cmd+/"
+  // Focus search with "/"
   useKeyDown(
     {
       key: KEYMAP.FOCUS_ORACLE_SEARCH,
