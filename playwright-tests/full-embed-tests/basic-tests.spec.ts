@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import {
-  selectDbName,
+  selectProjectName,
   setSqlOnly,
   askQuestionUsingSearchBar,
   fullyTestSQLOnlyQuestionForNonTempDb,
@@ -16,7 +16,7 @@ test("can select db name", async ({ page }) => {
     waitForRequest: "/get_db_names",
   });
 
-  await selectDbName(page);
+  await selectProjectName(page);
 });
 
 test("can ask one sql-only question, then follow-on question", async ({
@@ -27,7 +27,7 @@ test("can ask one sql-only question, then follow-on question", async ({
     waitForRequest: "/get_db_names",
   });
 
-  await selectDbName(page);
+  await selectProjectName(page);
 
   await setSqlOnly(page, true);
 
@@ -51,7 +51,7 @@ test("check history management. can store history in local storage, and can clea
     waitForRequest: "/get_db_names",
   });
 
-  await selectDbName(page);
+  await selectProjectName(page);
 
   await setSqlOnly(page, true);
 
@@ -77,7 +77,7 @@ test("check history management. can store history in local storage, and can clea
     { timeout: 10000 }
   );
 
-  await selectDbName(page);
+  await selectProjectName(page);
 
   // find items inside .sidebar which match the question and selectedFollowOnQuestion
   // and expect them to be visible
@@ -102,7 +102,7 @@ test("check history management. can store history in local storage, and can clea
   // page refresh to ensure that local storage was also deleted
   await page.reload();
 
-  await selectDbName(page);
+  await selectProjectName(page);
 
   // expect history to have disappeared
   // count of .history-items to be 0
@@ -120,7 +120,7 @@ test("can ask one advanced question with send email usage", async ({
     waitForRequest: "/get_db_names",
   });
 
-  await selectDbName(page);
+  await selectProjectName(page);
 
   await setSqlOnly(page, false);
 

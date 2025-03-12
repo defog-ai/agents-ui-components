@@ -11,7 +11,7 @@ import { SpinningLoader } from "@ui-components";
 import { getReportImage } from "../../utils";
 
 function OracleReportImage({ node }: NodeViewProps) {
-  const { apiEndpoint, images, dbName, reportId, token } =
+  const { apiEndpoint, images, projectName, reportId, token } =
     useContext(OracleReportContext);
 
   const { src, alt } = images[node.attrs.id as string] || {};
@@ -26,7 +26,7 @@ function OracleReportImage({ node }: NodeViewProps) {
         const encoded = await getReportImage(
           apiEndpoint,
           reportId,
-          dbName,
+          projectName,
           token,
           src
         );

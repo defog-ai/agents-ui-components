@@ -114,7 +114,7 @@ export interface AnalysisManagerConfig {
   rootAnalysisId?: string;
   apiEndpoint: string;
   token: string | null;
-  dbName: string;
+  projectName: string;
   metadata: ColumnMetadata[] | null;
   isTemp: boolean;
   sqlOnly?: boolean;
@@ -138,7 +138,7 @@ function createAnalysisManager({
   rootAnalysisId,
   apiEndpoint,
   token,
-  dbName,
+  projectName,
   metadata,
   isTemp,
   sqlOnly = false,
@@ -238,7 +238,7 @@ function createAnalysisManager({
         // create a new analysis
         fetchedAnalysis = await createAnalysis(
           token,
-          dbName,
+          projectName,
           apiEndpoint,
           analysisId,
           createAnalysisRequestBody
@@ -289,7 +289,7 @@ function createAnalysisManager({
         sql_only: sqlOnly,
         token: token,
         temp: isTemp,
-        db_name: dbName,
+        db_name: projectName,
         db_creds: null,
         previous_context: previousContextCreator(),
         root_analysis_id: rootAnalysisId,
@@ -342,7 +342,7 @@ function createAnalysisManager({
 
       const body = {
         token: token,
-        db_name: dbName,
+        db_name: projectName,
         analysis_id: analysisId,
         edited_inputs: editedInputs,
       };

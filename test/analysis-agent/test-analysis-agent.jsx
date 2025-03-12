@@ -4,9 +4,9 @@ import "../../lib/styles/index.scss";
 import { Setup } from "../../lib/components/context/Setup";
 import { AnalysisAgent } from "../../lib/agent.ts";
 
-const dbs = [
+const projects = [
   {
-    dbName: "Sales",
+    projectName: "Sales",
     name: "Sales",
     predefinedQuestions: [
       "Show me any 5 rows from the dataset",
@@ -16,7 +16,7 @@ const dbs = [
     sqlOnly: false,
   },
   {
-    dbName: "Manufacturing",
+    projectName: "Manufacturing",
     name: "Manufacturing",
     predefinedQuestions: ["Show me any 5 rows from the dataset"],
     isTemp: false,
@@ -24,9 +24,9 @@ const dbs = [
   },
 ];
 
-// a single analysis can only work with one db at a time
+// a single analysis can only work with one project at a time
 function QueryDataPage() {
-  const { dbName, metadata, isTemp } = dbs[0];
+  const { projectName, metadata, isTemp } = projects[0];
   const id = crypto.randomUUID();
   return (
     <Setup
@@ -39,7 +39,7 @@ function QueryDataPage() {
     >
       <AnalysisAgent
         analysisId={id}
-        dbName={dbName}
+        projectName={projectName}
         metadata={metadata}
         isTemp={isTemp}
         forceSqlOnly={false}

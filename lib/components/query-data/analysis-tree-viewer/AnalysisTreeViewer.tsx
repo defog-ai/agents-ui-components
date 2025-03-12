@@ -126,7 +126,7 @@ const createNewAnalysis = async (
   question: string,
   isRoot: boolean,
   rootAnalysisId: string | null,
-  dbName: string,
+  projectName: string,
   directParentId: string | null,
   sqlOnly: boolean,
   forceSqlOnly: boolean,
@@ -138,7 +138,7 @@ const createNewAnalysis = async (
     question,
     analysisId: newId,
     rootAnalysisId: isRoot ? newId : rootAnalysisId,
-    dbName,
+    projectName,
     isRoot,
     directParentId,
     sqlOnly: forceSqlOnly || sqlOnly,
@@ -157,7 +157,7 @@ const createNewAnalysis = async (
 
 const useAnalysisSubmit = (
   analysisTreeManager: AnalysisTreeManager,
-  dbName: string,
+  projectName: string,
   forceSqlOnly: boolean,
   sqlOnly: boolean,
   isTemp: boolean,
@@ -188,7 +188,7 @@ const useAnalysisSubmit = (
         if (Object.keys(allAnalyses).length > 0) {
           const res = await getQuestionType(
             token,
-            dbName,
+            projectName,
             apiEndpoint,
             question
           );
@@ -204,7 +204,7 @@ const useAnalysisSubmit = (
               question,
               isRoot,
               rootAnalysisId,
-              dbName,
+              projectName,
               directParentId,
               sqlOnly,
               forceSqlOnly,
@@ -229,7 +229,7 @@ const useAnalysisSubmit = (
           question,
           isRoot,
           rootAnalysisId,
-          dbName,
+          projectName,
           directParentId,
           sqlOnly,
           forceSqlOnly,
@@ -255,7 +255,7 @@ const useAnalysisSubmit = (
       forceSqlOnly,
       sqlOnly,
       isTemp,
-      dbName,
+      projectName,
       analysisDomRefs,
     ]
   );
@@ -346,7 +346,7 @@ const useInitialScroll = (
 };
 
 export const AnalysisTreeContent = ({
-  dbName,
+  projectName,
   activeRootAnalysisId,
   nestedTree,
   metadata,
@@ -356,7 +356,7 @@ export const AnalysisTreeContent = ({
   setLoading,
   submitFollowOn,
 }: {
-  dbName: string;
+  projectName: string;
   activeRootAnalysisId: string;
   nestedTree: NestedAnalysisTree;
   metadata: any;
@@ -388,7 +388,7 @@ export const AnalysisTreeContent = ({
     <>
       <AnalysisAgent
         key={activeRootAnalysisId}
-        dbName={dbName}
+        projectName={projectName}
         setGlobalLoading={setLoading}
         metadata={metadata}
         rootClassNames={getAnalysisClasses(activeRootAnalysisId)}
@@ -436,7 +436,7 @@ export const AnalysisTreeContent = ({
       {nestedTree[activeRootAnalysisId].flatOrderedChildren.map(
         (child: NestedAnalysisTreeNode) => (
           <AnalysisAgent
-            dbName={dbName}
+            projectName={projectName}
             key={child.analysisId}
             metadata={metadata}
             rootClassNames={getAnalysisClasses(child.analysisId)}
@@ -539,7 +539,7 @@ const QuickstartSection = ({
  */
 export function AnalysisTreeViewer({
   analysisTreeManager,
-  dbName,
+  projectName,
   isTemp = false,
   forceSqlOnly = false,
   metadata = null,
@@ -553,7 +553,7 @@ export function AnalysisTreeViewer({
   beforeTitle = null,
 }: {
   analysisTreeManager: AnalysisTreeManager;
-  dbName: string;
+  projectName: string;
   isTemp?: boolean;
   forceSqlOnly?: boolean;
   metadata?: any;
@@ -564,7 +564,7 @@ export function AnalysisTreeViewer({
   searchBarDraggable?: boolean;
   defaultSidebarOpen?: boolean;
   beforeTitle?: React.ReactNode;
-  onTreeChange?: (dbName: string, analysisTree: AnalysisTree) => void;
+  onTreeChange?: (projectName: string, analysisTree: AnalysisTree) => void;
 }) {
   const messageManager = useContext(MessageManagerContext);
   const { token, apiEndpoint } = useContext(QueryDataEmbedContext);
@@ -641,7 +641,7 @@ export function AnalysisTreeViewer({
 
   const handleSubmit = useAnalysisSubmit(
     analysisTreeManager,
-    dbName,
+    projectName,
     forceSqlOnly,
     sqlOnly,
     isTemp,
@@ -662,8 +662,8 @@ export function AnalysisTreeViewer({
 
   useEffect(() => {
     if (isTemp) return;
-    onTreeChange(dbName, analysisTree);
-  }, [onTreeChange, dbName, analysisTree, isTemp]);
+    onTreeChange(projectName, analysisTree);
+  }, [onTreeChange, projectName, analysisTree, isTemp]);
 
   useAnalysisRefs(allAnalyses, analysisDomRefs);
 
@@ -827,7 +827,7 @@ export function AnalysisTreeViewer({
             activeRootAnalysisId &&
             nestedTree[activeRootAnalysisId] && (
               <AnalysisTreeContent
-                dbName={dbName}
+                projectName={projectName}
                 activeRootAnalysisId={activeRootAnalysisId}
                 nestedTree={nestedTree}
                 metadata={metadata}

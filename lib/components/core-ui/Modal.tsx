@@ -81,7 +81,9 @@ export function Modal({
   footer = true,
   title = null,
   description = null,
-  closeIcon = <CircleX className="w-6 h-6 text-gray-300 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300" />,
+  closeIcon = (
+    <CircleX className="w-6 h-6 text-gray-300 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300" />
+  ),
   onOk = () => {},
   okLoading = false,
   okText = "Ok",

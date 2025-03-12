@@ -5,7 +5,7 @@ import {
   ReportData,
   ListReportResponse,
   ClarificationObject,
-  DbInfo,
+  ProjectDbInfo,
   SourceItem,
   OracleAnalysis,
 } from "./types";
@@ -19,7 +19,7 @@ export const generateNewAnalysis = async (
   reportId: string,
   analysisId: string,
   recommendationIdx: number,
-  dbName: string,
+  projectName: string,
   token: string,
   question: string,
   previousAnalysisIds: string[]
@@ -37,7 +37,7 @@ export const generateNewAnalysis = async (
         mode: "no-cors",
       },
       body: JSON.stringify({
-        db_name: dbName,
+        db_name: projectName,
         token: token,
         report_id: reportId,
         analysis_id: analysisId,
@@ -69,7 +69,7 @@ export const deleteAnalysis = async (
   reportId: string,
   analysisId: string,
   recommendationIdx: number | null,
-  dbName: string,
+  projectName: string,
   token: string
 ) => {
   const res = await fetch(
@@ -85,7 +85,7 @@ export const deleteAnalysis = async (
         mode: "no-cors",
       },
       body: JSON.stringify({
-        db_name: dbName,
+        db_name: projectName,
         token: token,
         report_id: reportId,
         analysis_id: analysisId,
@@ -111,7 +111,7 @@ export const deleteAnalysis = async (
 export const getReportAnalysisIds = async (
   apiEndpoint: string,
   reportId: string,
-  dbName: string,
+  projectName: string,
   token: string
 ): Promise<string[]> => {
   const res = await fetch(
@@ -128,7 +128,7 @@ export const getReportAnalysisIds = async (
         mode: "no-cors",
       },
       body: JSON.stringify({
-        db_name: dbName,
+        db_name: projectName,
         token: token,
         report_id: reportId,
       }),
@@ -154,7 +154,7 @@ export const getReportAnalysisIds = async (
 export const getReportAnalysis = async (
   apiEndpoint: string,
   reportId: string,
-  dbName: string,
+  projectName: string,
   token: string,
   analysisId: string
 ): Promise<{
@@ -177,7 +177,7 @@ export const getReportAnalysis = async (
         mode: "no-cors",
       },
       body: JSON.stringify({
-        db_name: dbName,
+        db_name: projectName,
         token: token,
         report_id: reportId,
         analysis_id: analysisId,
@@ -200,7 +200,7 @@ export const getReportAnalysis = async (
 export const getReportMDX = async (
   apiEndpoint: string,
   reportId: string,
-  dbName: string,
+  projectName: string,
   token: string
 ) => {
   const res = await fetch(
@@ -216,7 +216,7 @@ export const getReportMDX = async (
         mode: "no-cors",
       },
       body: JSON.stringify({
-        db_name: dbName,
+        db_name: projectName,
         token: token,
         report_id: reportId,
       }),
@@ -237,7 +237,7 @@ export const getReportMDX = async (
 export const updateReportMDX = async (
   apiEndpoint: string,
   reportId: string,
-  dbName: string,
+  projectName: string,
   token: string,
   tiptapMdx: string
 ) => {
@@ -254,7 +254,7 @@ export const updateReportMDX = async (
         mode: "no-cors",
       },
       body: JSON.stringify({
-        db_name: dbName,
+        db_name: projectName,
         token: token,
         report_id: reportId,
         tiptap_mdx: tiptapMdx,
@@ -273,7 +273,7 @@ export const updateReportMDX = async (
 export const getReportImage = async (
   apiEndpoint: string,
   reportId: string,
-  dbName: string,
+  projectName: string,
   token: string,
   imageFileName: string
 ) => {
@@ -291,7 +291,7 @@ export const getReportImage = async (
       },
       body: JSON.stringify({
         image_file_name: imageFileName,
-        db_name: dbName,
+        db_name: projectName,
         report_id: reportId,
         token: token,
       }),
@@ -317,7 +317,7 @@ export const getReportImage = async (
 export const getReportAnalysesMdx = async (
   apiEndpoint: string,
   reportId: string,
-  dbName: string,
+  projectName: string,
   token: string
 ) => {
   const res = await fetch(
@@ -333,7 +333,7 @@ export const getReportAnalysesMdx = async (
         mode: "no-cors",
       },
       body: JSON.stringify({
-        db_name: dbName,
+        db_name: projectName,
         token: token,
         report_id: reportId,
       }),
@@ -355,7 +355,7 @@ export const getReportAnalysesMdx = async (
 export const getReportComments = async (
   apiEndpoint: string,
   reportId: string,
-  dbName: string,
+  projectName: string,
   token: string
 ): Promise<OracleReportComment[]> => {
   const res = await fetch(
@@ -371,7 +371,7 @@ export const getReportComments = async (
         mode: "no-cors",
       },
       body: JSON.stringify({
-        db_name: dbName,
+        db_name: projectName,
         token: token,
         report_id: reportId,
       }),
@@ -393,7 +393,7 @@ export const getReportComments = async (
 export const updateReportComments = async (
   apiEndpoint: string,
   reportId: string,
-  dbName: string,
+  projectName: string,
   token: string,
   comments: OracleReportComment[]
 ) => {
@@ -410,7 +410,7 @@ export const updateReportComments = async (
         mode: "no-cors",
       },
       body: JSON.stringify({
-        db_name: dbName,
+        db_name: projectName,
         token: token,
         report_id: reportId,
         comments: comments,
@@ -429,7 +429,7 @@ export const updateReportComments = async (
 export const submitForRevision = async (
   apiEndpoint: string,
   reportId: string,
-  dbName: string,
+  projectName: string,
   token: string,
   generalComments: string,
   commentsWithRelevantText: {
@@ -450,7 +450,7 @@ export const submitForRevision = async (
         mode: "no-cors",
       },
       body: JSON.stringify({
-        db_name: dbName,
+        db_name: projectName,
         token: token,
         report_id: reportId,
         general_comments: generalComments,
@@ -474,13 +474,13 @@ export const submitForRevision = async (
 export async function fetchAndParseReportData(
   apiEndpoint: string,
   reportId: string,
-  dbName: string,
+  projectName: string,
   token: string
 ): Promise<ReportData> {
   const { mdx, analyses } = await getReportMDX(
     apiEndpoint,
     reportId,
-    dbName,
+    projectName,
     token
   );
 
@@ -488,7 +488,7 @@ export async function fetchAndParseReportData(
   let fetchedComments = await getReportComments(
     apiEndpoint,
     reportId,
-    dbName,
+    projectName,
     token
   );
 
@@ -505,7 +505,7 @@ export async function fetchAndParseReportData(
 export const fetchReports = async (
   apiEndpoint: string,
   token: string,
-  dbName: string
+  projectName: string
 ): Promise<ListReportResponse | null> => {
   try {
     const res = await fetch(
@@ -517,7 +517,7 @@ export const fetchReports = async (
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token, db_name: dbName }),
+        body: JSON.stringify({ token, db_name: projectName }),
       }
     );
 
@@ -538,7 +538,7 @@ export const deleteReport = async (
   apiEndpoint: string,
   reportId: string,
   token: string,
-  dbName: string
+  projectName: string
 ) => {
   try {
     const res = await fetch(
@@ -551,7 +551,7 @@ export const deleteReport = async (
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          db_name: dbName,
+          db_name: projectName,
           report_id: reportId,
           token,
         }),
@@ -571,7 +571,7 @@ export const deleteReport = async (
 export const generateReport = async (
   apiEndpoint: string,
   token: string,
-  dbName: string,
+  projectName: string,
   reportId: string,
   userQuestion: string,
   clarifications = [],
@@ -579,7 +579,7 @@ export const generateReport = async (
 ): Promise<void> => {
   if (!token) throw new Error("No token");
   if (!userQuestion) throw new Error("No user question");
-  if (!dbName) throw new Error("No db name");
+  if (!projectName) throw new Error("No project name");
 
   const res = await fetch(
     setupBaseUrl({
@@ -593,7 +593,7 @@ export const generateReport = async (
       // Using a longer timeout to ensure requests have time to reach the server
       signal: AbortSignal.timeout(5000),
       body: JSON.stringify({
-        db_name: dbName,
+        db_name: projectName,
         token,
         // jic text area has changed.
         // if it's been emptied, use the original question
@@ -610,85 +610,17 @@ export const generateReport = async (
 };
 
 /**
- * Upload files to the backend with progress tracking
- */
-export const uploadFiles = async (
-  apiEndpoint: string,
-  token: string,
-  dbName: string,
-  files: File[],
-  onProgress?: (progress: number) => void
-): Promise<{
-  db_name?: string;
-}> => {
-  if (!token) throw new Error("No token");
-
-  const formData = new FormData();
-  formData.append("db_name", dbName);
-  formData.append("token", token);
-  for (const file of files) {
-    // this will append all files to the "files" field
-    formData.append("files", file);
-  }
-
-  const url = setupBaseUrl({
-    apiEndpoint,
-    protocol: "http",
-    path: "upload_files",
-  });
-
-  // Use XMLHttpRequest to track progress
-  return new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    
-    // Add progress event listener
-    if (onProgress) {
-      xhr.upload.addEventListener("progress", (event) => {
-        if (event.lengthComputable) {
-          const progress = Math.round((event.loaded / event.total) * 100);
-          onProgress(progress);
-        }
-      });
-    }
-    
-    xhr.addEventListener("load", async () => {
-      if (xhr.status >= 200 && xhr.status < 300) {
-        try {
-          const data = JSON.parse(xhr.responseText);
-          resolve(data);
-        } catch (error) {
-          reject(new Error("Failed to parse response"));
-        }
-      } else {
-        reject(new Error(xhr.responseText || "Failed to upload files"));
-      }
-    });
-    
-    xhr.addEventListener("error", () => {
-      reject(new Error("Network error occurred"));
-    });
-    
-    xhr.addEventListener("abort", () => {
-      reject(new Error("Upload aborted"));
-    });
-    
-    xhr.open("POST", url);
-    xhr.send(formData);
-  });
-};
-
-/**
  * Get clarifications for a question
  */
 export const getClarifications = async (
   apiEndpoint: string,
   token: string,
-  dbName: string,
+  projectName: string,
   userQuestion: string
 ): Promise<{
   clarifications: ClarificationObject[];
   report_id: string;
-  new_db_info?: DbInfo;
+  new_db_info?: ProjectDbInfo;
   new_db_name?: string;
 }> => {
   if (!token) throw new Error("No token");
@@ -702,7 +634,7 @@ export const getClarifications = async (
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        db_name: dbName,
+        db_name: projectName,
         token,
         user_question: userQuestion,
       }),
@@ -723,7 +655,7 @@ export const getClarifications = async (
 export const getSources = async (
   apiEndpoint: string,
   token: string,
-  dbName: string,
+  projectName: string,
   userQuestion: string
 ): Promise<SourceItem[]> => {
   try {
@@ -739,7 +671,7 @@ export const getSources = async (
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          db_name: dbName,
+          db_name: projectName,
           token,
           user_question: userQuestion,
         }),

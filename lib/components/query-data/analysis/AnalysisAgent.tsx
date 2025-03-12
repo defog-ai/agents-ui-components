@@ -25,7 +25,7 @@ import { AnalysisResults } from "./analysis-results/AnalysisResults";
 interface Props {
   analysisId: string;
 
-  dbName: string;
+  projectName: string;
 
   /**
    * Root of this analysis. Is the same as analysisId if this is the root analysis.
@@ -138,7 +138,7 @@ interface Props {
  * Props:
  * - analysisId: string - Unique identifier for the analysis.
  * - rootAnalysisId: string - Root identifier for a series of analyses.
- * - dbName: string - Key name used for identification.
+ * - projectName: string - Key name used for identification.
  * - isTemp: boolean - Flag to indicate if the analysis is temporary.
  * - metadata: ColumnMetadata[] | null - Metadata associated with the analysis.
  * - sqlOnly: boolean - Indicates if the analysis is SQL-only.
@@ -162,7 +162,7 @@ interface Props {
 export const AnalysisAgent = ({
   analysisId,
   rootAnalysisId,
-  dbName,
+  projectName,
   isTemp = false,
   metadata = null,
   sqlOnly = false,
@@ -227,7 +227,7 @@ export const AnalysisAgent = ({
         rootAnalysisId,
         apiEndpoint,
         token,
-        dbName,
+        projectName,
         metadata,
         isTemp,
         sqlOnly,
@@ -466,7 +466,7 @@ export const AnalysisAgent = ({
                   <ErrorBoundary>
                     {analysis?.data?.parsedOutput && (
                       <AnalysisResults
-                        dbName={dbName}
+                        projectName={projectName}
                         analysis={analysis}
                         analysisBusy={analysisBusy}
                         handleReRun={async (editedInputs) => {

@@ -71,11 +71,11 @@ const AnalysisDrawerHandle = ({ isOpen, onClick }) => (
 
 // tabBarLeftContent: extra content for the tab bar on the left side
 export function AnalysisOutputsTable({
-  dbName,
+  projectName,
   analysis = null,
   analysisTreeManager = null,
 }: {
-  dbName: string;
+  projectName: string;
   analysis?: AnalysisRowFromBackend | null;
   analysisBusy?: boolean;
   handleReRun?: (...args: any) => void;
@@ -150,7 +150,7 @@ export function AnalysisOutputsTable({
       parsedOutputs?.csvString && (
         <AnalyseCSV
           analysisId={analysis.analysis_id}
-          dbName={dbName}
+          projectName={projectName}
           question={analysis?.data?.initial_question}
           data_csv={parsedOutputs?.csvString}
           sql={analysis?.data?.sql}
@@ -159,7 +159,7 @@ export function AnalysisOutputsTable({
         />
       )
     );
-  }, [analysis, dbName, apiEndpoint]);
+  }, [analysis, projectName, apiEndpoint]);
 
   const chartContainer = useMemo(() => {
     return (

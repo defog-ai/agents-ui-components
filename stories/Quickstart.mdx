@@ -97,7 +97,7 @@ import "@defogdotai/agents-ui-components/css";
   showAnalysisUnderstanding={true}
   dbs={[
     {
-      dbName: "Manufacturing",
+      projectName: "Manufacturing",
       name: "Manufacturing",
       predefinedQuestions: [
         "Show me any 5 rows from the dataset",
@@ -107,7 +107,7 @@ import "@defogdotai/agents-ui-components/css";
       sqlOnly: false,
     },
     {
-      dbName: "Sales",
+      projectName: "Sales",
       name: "Sales",
       predefinedQuestions: ["Show me any 5 rows from the dataset"],
       isTemp: false,
@@ -134,7 +134,7 @@ import "@defogdotai/agents-ui-components/css";
 
 const analysisTreeManager = new AnalysisTreeManager();
 
-const dbName = "Sales";
+const projectName = "Sales";
 const name = "Sales";
 const predefinedQuestions = [
   "Show me any 5 rows from the dataset",
@@ -155,7 +155,7 @@ const sqlOnly = false;
   // ... other props
 >
   <AnalysisTreeViewer
-    dbName={dbName}
+    projectName={projectName}
     // metadata has to be passed only if you're querying a csv/temp db
     metadata={metadata}
     // for csv
@@ -183,7 +183,7 @@ import * as Tree from "./agents/AnalysisTreeViewer.stories";
 import { Setup, AnalysisAgent } from "@defogdotai/agents-ui-components/agent";
 import "@defogdotai/agents-ui-components/css";
 
-const dbName = "Sales";
+const projectName = "Sales";
 const name = "Sales";
 const predefinedQuestions = [
   "Show me any 5 rows from the dataset",
@@ -207,7 +207,7 @@ const id = "your-analysis-id";
 >
   <AnalysisAgent
     analysisId={id}
-    dbName={dbName}
+    projectName={projectName}
     // metadata has to be passed only if you're querying a csv/temp db
     metadata={metadata}
     isTemp={isTemp}

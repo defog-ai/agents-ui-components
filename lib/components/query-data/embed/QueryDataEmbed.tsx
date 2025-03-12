@@ -1,6 +1,6 @@
 "use client";
 
-import { useContext, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   MessageManager,
   MessageManagerContext,
@@ -19,11 +19,11 @@ import {
   createQueryDataEmbedConfig,
   QueryDataEmbedContext,
 } from "../../context/QueryDataEmbedContext";
-import { QueryDataNewDb } from "./QueryDataNewDb";
 import ErrorBoundary from "../../../../lib/components/common/ErrorBoundary";
 import { AnalysisTreeViewer } from "../analysis-tree-viewer/AnalysisTreeViewer";
 import { getMetadata } from "@utils/utils";
 import { Tab, Tabs } from "../../../../lib/components/core-ui/Tabs";
+import { CreateNewProject } from "../../../../lib/components/common/CreateNewProject";
 
 interface EmbedProps {
   /**
@@ -56,26 +56,26 @@ interface EmbedProps {
   apiEndpoint: string;
 
   /**
-   * Initial db names.
+   * Initial project names.
    */
-  initialDbList: { name: string; predefinedQuestions: string[] }[];
+  initialProjectList: { name: string; predefinedQuestions: string[] }[];
   /**
    * Whether to allow addition to dashboards.
    */
   /**
-   * Callback for when the analysis tree changes for a particular Db. Will be called on addition or removal of analyses.
+   * Callback for when the analysis tree changes for a particular project. Will be called on addition or removal of analyses.
    */
-  onTreeChange: (dbName: string, tree: AnalysisTree) => void;
+  onTreeChange: (projectName: string, tree: AnalysisTree) => void;
   /**
    * An object of initial trees to populate the UI with.
    */
-  initialTrees: { [DbName: string]: {} };
+  initialTrees: { [ProjectName: string]: {} };
 }
 
 export function QueryDataEmbed({
   apiEndpoint,
   token,
-  initialDbList = [],
+  initialProjectList = [],
   initialTrees = {},
   hideRawAnalysis = false,
   hiddenCharts = [],
@@ -105,29 +105,31 @@ export function QueryDataEmbed({
    * We set this to a random string every time.
    * Just to prevent conflicts with uploaded files.
    */
-  const { current: newDbName } = useRef<string>(crypto.randomUUID().toString());
+  const { current: newProjectName } = useRef<string>(
+    crypto.randomUUID().toString()
+  );
 
-  const [dbList, setDbList] = useState<
+  const [projectList, setProjectList] = useState<
     {
       name: string;
       predefinedQuestions: string[];
       metadata?: any;
     }[]
-  >(initialDbList);
+  >(initialProjectList);
 
   const trees = useRef(
-    initialDbList.reduce((acc, db) => {
-      acc[db.name] = {
-        dbName: db.name,
-        predefinedQuestions: db.predefinedQuestions,
-        treeManager: AnalysisTreeManager(initialTrees[db.name] || {}),
+    initialProjectList.reduce((acc, project) => {
+      acc[project.name] = {
+        projectName: project.name,
+        predefinedQuestions: project.predefinedQuestions,
+        treeManager: AnalysisTreeManager(initialTrees[project.name] || {}),
       };
 
       return acc;
     }, {})
   );
 
-  const [selectedDb, setSelectedDb] = useState(null);
+  const [selectedProject, setSelectedProject] = useState(null);
 
   const { current: message } = useRef(MessageManager());
 
@@ -136,27 +138,27 @@ export function QueryDataEmbed({
   useEffect(() => {
     async function setupMetadata() {
       const fetchedMetadata = {};
-      for await (const db of dbList) {
-        if (db.name === newDbName) continue;
+      for await (const project of projectList) {
+        if (project.name === newProjectName) continue;
         try {
-          const metadata = await getMetadata(apiEndpoint, token, db.name);
-          fetchedMetadata[db.name] = metadata;
+          const metadata = await getMetadata(apiEndpoint, token, project.name);
+          fetchedMetadata[project.name] = metadata;
         } catch (error) {
           console.error(error);
-          fetchedMetadata[db.name] = null;
+          fetchedMetadata[project.name] = null;
         }
       }
 
-      const newDbList = dbList.map((d) => {
+      const newprojectList = projectList.map((d) => {
         return {
           ...d,
           metadata: fetchedMetadata[d.name],
         };
       });
 
-      setSelectedDb(newDbList[0]);
+      setSelectedProject(newprojectList[0]);
 
-      setDbList(newDbList);
+      setProjectList(newprojectList);
 
       setInitialised(true);
     }
@@ -165,52 +167,55 @@ export function QueryDataEmbed({
   }, []);
 
   const selector = useMemo(() => {
-    if (!selectedDb || !initialised) return null;
+    if (!selectedProject || !initialised) return null;
     return (
       <SingleSelect
         label="Select database"
         popupClassName="!max-w-full"
         rootClassNames="mb-2"
-        value={selectedDb?.name}
+        value={selectedProject?.name}
         allowClear={false}
         placeholder="Select Database"
         allowCreateNewOption={false}
         options={[
           {
-            value: newDbName,
+            value: newProjectName,
             label: "Upload new",
           },
         ].concat(
-          dbList.map((db) => ({
-            value: db.name,
-            label: db.name,
+          projectList.map((project) => ({
+            value: project.name,
+            label: project.name,
           }))
         )}
         onChange={(v: string) => {
-          const matchingDb = dbList.find((db) => db.name === v);
-          if (v === newDbName) {
+          const matchingProject = projectList.find(
+            (project) => project.name === v
+          );
+          if (v === newProjectName) {
             setModalOpen(true);
           } else {
-            setSelectedDb(matchingDb || dbList[0]);
+            setSelectedProject(matchingProject || projectList[0]);
           }
         }}
       />
     );
-  }, [selectedDb, dbList]);
+  }, [selectedProject, projectList]);
 
   const wasUploaded = useRef<string | null>(null);
 
   useEffect(() => {
     if (wasUploaded.current) {
-      setSelectedDb(
-        dbList.find((db) => db.name === wasUploaded.current) || dbList[0]
+      setSelectedProject(
+        projectList.find((project) => project.name === wasUploaded.current) ||
+          projectList[0]
       );
       wasUploaded.current = null;
     }
-  }, [dbList]);
+  }, [projectList]);
 
   const treeContent = useMemo(() => {
-    if (!selectedDb || !initialised) return null;
+    if (!selectedProject || !initialised) return null;
 
     return (
       <ErrorBoundary>
@@ -218,14 +223,14 @@ export function QueryDataEmbed({
           defaultSidebarOpen={true}
           beforeTitle={selector}
           searchBarDraggable={searchBarDraggable}
-          dbName={selectedDb.name}
-          metadata={selectedDb.metadata}
-          analysisTreeManager={trees.current[selectedDb.name].treeManager}
+          projectName={selectedProject.name}
+          metadata={selectedProject.metadata}
+          analysisTreeManager={trees.current[selectedProject.name].treeManager}
           autoScroll={true}
-          predefinedQuestions={selectedDb.predefinedQuestions || []}
-          onTreeChange={(dbName, tree) => {
+          predefinedQuestions={selectedProject.predefinedQuestions || []}
+          onTreeChange={(projectName, tree) => {
             try {
-              onTreeChange(dbName, tree);
+              onTreeChange(projectName, tree);
             } catch (e) {
               console.error(e);
             }
@@ -233,12 +238,12 @@ export function QueryDataEmbed({
         />
       </ErrorBoundary>
     );
-  }, [selectedDb, selector, initialised]);
+  }, [selectedProject, selector, initialised]);
 
   const dataStructureContent = useMemo(() => {
-    if (!selectedDb || !initialised) return null;
-    return <MetadataTabContent metadata={selectedDb.metadata} />;
-  }, [dbList, selectedDb, initialised, selector]);
+    if (!selectedProject || !initialised) return null;
+    return <MetadataTabContent metadata={selectedProject.metadata} />;
+  }, [projectList, selectedProject, initialised, selector]);
 
   const tabs = useMemo<Tab[]>(() => {
     return [
@@ -253,27 +258,27 @@ export function QueryDataEmbed({
     ];
   }, [treeContent, dataStructureContent]);
 
-  const newDbCreator = useMemo(() => {
+  const newProjectCreator = useMemo(() => {
     return (
-      <QueryDataNewDb
+      <CreateNewProject
         apiEndpoint={apiEndpoint}
         token={token}
-        onDbCreated={async (dbName) => {
+        onProjectCreated={async (projectName) => {
           try {
             trees.current = {
               ...trees.current,
-              [dbName]: {
-                dbName: dbName,
+              [projectName]: {
+                projectName: projectName,
                 treeManager: AnalysisTreeManager(),
               },
             };
 
-            const metadata = await getMetadata(apiEndpoint, token, dbName);
+            const metadata = await getMetadata(apiEndpoint, token, projectName);
 
-            setDbList((prev) => [
+            setProjectList((prev) => [
               ...prev,
               {
-                name: dbName,
+                name: projectName,
                 predefinedQuestions: [
                   "What are the tables available?",
                   "Show me 5 rows",
@@ -283,10 +288,11 @@ export function QueryDataEmbed({
             ]);
 
             message.success(
-              "Database uploaded successfully, access it by the name: " + dbName
+              "Database uploaded successfully, access it by the name: " +
+                projectName
             );
 
-            wasUploaded.current = dbName;
+            wasUploaded.current = projectName;
           } catch (error) {
             message.error(error);
           } finally {
@@ -295,7 +301,7 @@ export function QueryDataEmbed({
         }}
       />
     );
-  }, [dbList]);
+  }, [projectList]);
 
   return (
     <MessageManagerContext.Provider value={message}>
@@ -303,7 +309,7 @@ export function QueryDataEmbed({
       <QueryDataEmbedContext.Provider value={embedConfig}>
         <div className="relative w-full h-full p-2">
           {initialised ? (
-            dbList?.length ? (
+            projectList?.length ? (
               <Tabs
                 size="small"
                 tabs={tabs}
@@ -316,7 +322,7 @@ export function QueryDataEmbed({
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
-                {newDbCreator}
+                {newProjectCreator}
               </div>
             )
           ) : (
@@ -325,12 +331,13 @@ export function QueryDataEmbed({
             </div>
           )}
           <Modal
+            contentClassNames="h-full"
             title="Upload new database"
             open={modalOpen}
             footer={false}
             onCancel={() => setModalOpen(false)}
           >
-            {newDbCreator}
+            {newProjectCreator}
           </Modal>
         </div>
       </QueryDataEmbedContext.Provider>

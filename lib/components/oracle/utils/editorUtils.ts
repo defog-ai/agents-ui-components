@@ -63,25 +63,25 @@ const debouncedSendUpdates = debounce(
     apiEndpoint: string,
     editor: Editor,
     reportId: string,
-    dbName: string,
+    projectName: string,
     token: string,
     updatedComments: OracleReportComment[]
   ) => {
-    if (!reportId || !dbName) return;
+    if (!reportId || !projectName) return;
 
     try {
       await Promise.all([
         updateReportComments(
           apiEndpoint,
           reportId,
-          dbName,
+          projectName,
           token,
           updatedComments
         ),
         updateReportMDX(
           apiEndpoint,
           reportId,
-          dbName,
+          projectName,
           token,
           editor?.storage.markdown.getMarkdown()
         ),
@@ -98,7 +98,7 @@ export const sendCommentUpdates = (
   apiEndpoint: string,
   editor: Editor,
   reportId: string,
-  dbName: string,
+  projectName: string,
   token: string,
   newComments: OracleReportComment[]
 ) => {
@@ -107,7 +107,7 @@ export const sendCommentUpdates = (
     apiEndpoint,
     editor,
     reportId,
-    dbName,
+    projectName,
     token,
     newComments
   );
@@ -117,13 +117,13 @@ export const sendCommentUpdates = (
 export const commentManager = ({
   apiEndpoint,
   reportId,
-  dbName,
+  projectName,
   token,
   initialComments,
 }: {
   apiEndpoint: string;
   reportId: string;
-  dbName: string;
+  projectName: string;
   token: string;
   initialComments: OracleReportComment[];
 }): CommentManager => {
@@ -147,7 +147,14 @@ export const commentManager = ({
     updatedComments: OracleReportComment[]
   ) => {
     comments = updatedComments;
-    sendCommentUpdates(apiEndpoint, editor, reportId, dbName, token, comments);
+    sendCommentUpdates(
+      apiEndpoint,
+      editor,
+      reportId,
+      projectName,
+      token,
+      comments
+    );
     commentListeners.forEach((listener) => listener());
   };
 

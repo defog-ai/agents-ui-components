@@ -11,15 +11,15 @@ export const FILE_TYPES = {
  * Selects the first db name in the dropdown. Errors if no db names are found.
  *
  * @example
- * await selectDbName(page);
+ * await selectProjectName(page);
  */
-export async function selectDbName(page: Page) {
+export async function selectProjectName(page: Page) {
   // either we see the dropdown, or we have a selector with data-db-selected-db=true
-  const selectedDb = page.locator("[data-selected-db=true]");
+  const selectedProject = page.locator("[data-selected-db=true]");
   const dropdown = page.getByPlaceholder("Select an option");
   const tab = page.getByTestId("db-tab");
 
-  await dropdown.or(selectedDb).first().click();
+  await dropdown.or(selectedProject).first().click();
 
   // get number of keys by getting count of tabs
   const keyCount = await tab.count();
@@ -27,7 +27,7 @@ export async function selectDbName(page: Page) {
   expect(keyCount).toBeGreaterThan(0);
 
   // if there is no selected db, select the first one
-  if ((await selectedDb.count()) === 0) {
+  if ((await selectedProject.count()) === 0) {
     // select the first key
     // somehow .click() doesn't work here. dispatchEvent does.
     // relevant github issue:

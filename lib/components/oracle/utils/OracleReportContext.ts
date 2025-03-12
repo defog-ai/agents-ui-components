@@ -33,8 +33,8 @@ export interface OracleReportContext {
   apiEndpoint: string;
   /** User */
   user?: string | null;
-  /** DB name */
-  dbName: string;
+  /** Project name */
+  projectName: string;
   /** Report ID */
   reportId: string;
   /** Token */
@@ -90,7 +90,7 @@ export interface OracleReportContext {
 export const OracleReportContext = createContext<OracleReportContext>({
   apiEndpoint: "",
   user: null,
-  dbName: "",
+  projectName: "",
   reportId: "",
   token: "",
   multiTables: {},

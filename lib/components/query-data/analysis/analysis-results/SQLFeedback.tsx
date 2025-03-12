@@ -4,7 +4,7 @@ import CodeMirror, { EditorView } from "@uiw/react-codemirror";
 import { sql as codemirrorSql } from "@codemirror/lang-sql";
 import { QueryDataEmbedContext } from "@agent";
 
-const SQLFeedback = ({ dbName, question, sql }) => {
+const SQLFeedback = ({ projectName, question, sql }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const [userProvidedSql, setUserProvidedSql] = useState("\n\n\n\n\n\n\n");
@@ -21,7 +21,7 @@ const SQLFeedback = ({ dbName, question, sql }) => {
     const url = apiEndpoint + "/integration/update_golden_queries";
     const data = {
       token: token,
-      db_name: dbName,
+      db_name: projectName,
       golden_queries: [
         {
           question: question,
