@@ -49,7 +49,7 @@ export const ClarificationItem = ({
   }, []);
 
   return (
-    <div className="relative">
+    <div className="relative antialiased">
       {onDismiss && (
         <button
           onClick={onDismiss}
@@ -59,7 +59,7 @@ export const ClarificationItem = ({
           <X className="w-4 h-4 text-gray-600 dark:text-gray-400" />
         </button>
       )}
-      {component}
+      <div className="text-base font-medium">{component}</div>
     </div>
   );
 };

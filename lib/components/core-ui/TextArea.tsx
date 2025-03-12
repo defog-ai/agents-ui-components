@@ -112,7 +112,7 @@ let TextArea = forwardRef(function TextArea(
       {label && (
         <label
           htmlFor={name}
-          className="block mb-2 text-xs font-light text-gray-600 dark:text-gray-300"
+          className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-200"
         >
           {label}
         </label>
