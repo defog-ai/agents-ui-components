@@ -679,8 +679,10 @@ export function OracleSearchBar({
             style: { resize: "none" },
           }}
           onKeyDown={async (e) => {
-            // allow slash typing
-            e.stopPropagation();
+            // only do this for slash
+            if (e.key === "/") {
+              e.stopPropagation();
+            }
             if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
               const question = e.currentTarget.value;
               if (!question) {
