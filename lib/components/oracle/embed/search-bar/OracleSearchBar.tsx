@@ -38,6 +38,7 @@ import {
   formatFileSize,
   isValidFileType,
   createProjectFromFiles,
+  FILE_TYPES,
 } from "@utils/utils";
 import { statusDescriptions, Mode } from "./oracleSearchBarManager";
 import { OracleReportClarifications } from "../../reports/report-creation/OracleReportClarifications";
@@ -329,6 +330,7 @@ export function OracleSearchBar({
             : "",
           rootClassNames
         )}
+        acceptedFileTypes={[".csv", ".pdf", "xlsx", ".xls"]}
         fileSelection={false}
         allowMultiple={true}
         onDragOver={(e) => {
@@ -341,7 +343,10 @@ export function OracleSearchBar({
           e.stopPropagation();
           setIsDropping(false);
         }}
-        onDrop={async (e) => {
+        onInvalidFiles={(e, invalidFiles, errorStr) => {
+          message.error(errorStr);
+        }}
+        onDrop={async (e, files) => {
           try {
             e.preventDefault();
             e.stopPropagation();
@@ -355,39 +360,7 @@ export function OracleSearchBar({
               return;
             }
 
-            // Array to collect all files for processing
-            const filesToProcess = [];
-
-            // Prefer DataTransfer.files as it's more widely supported
-            if (dataTransfer.files && dataTransfer.files.length > 0) {
-              for (let i = 0; i < dataTransfer.files.length; i++) {
-                const file = dataTransfer.files[i];
-
-                if (isValidFileType(file.type, true)) {
-                  filesToProcess.push(file);
-                } else {
-                  console.warn(
-                    `Skipping invalid file type: ${file.type} (${file.name})`
-                  );
-                }
-              }
-            }
-            // As a fallback, try DataTransfer.items
-            else if (dataTransfer.items && dataTransfer.items.length > 0) {
-              for (let i = 0; i < dataTransfer.items.length; i++) {
-                const item = dataTransfer.items[i];
-
-                if (item.kind === "file" && isValidFileType(item.type, true)) {
-                  const file = item.getAsFile();
-                  if (file) {
-                    console.log(`Item converted to file: ${file.name}`);
-                    filesToProcess.push(file);
-                  }
-                }
-              }
-            }
-
-            if (filesToProcess.length === 0) {
+            if (files.length === 0) {
               console.error("No valid files found");
               throw new Error("Only CSV, Excel or PDF files are accepted.");
             }
@@ -395,7 +368,7 @@ export function OracleSearchBar({
             // Update draft with processed files
             searchBarManager.setDraft((prev) => ({
               ...prev,
-              uploadedFiles: [...prev.uploadedFiles, ...filesToProcess],
+              uploadedFiles: [...prev.uploadedFiles, ...files],
             }));
 
             // Reset database info since we've added new files
