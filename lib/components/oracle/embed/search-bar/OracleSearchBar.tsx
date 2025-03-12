@@ -408,6 +408,9 @@ export function OracleSearchBar({
       >
         <OracleSearchBarModeHeader selectedItem={selectedItem} />
         <TextArea
+          onChange={(e) => {
+            searchBarManager.setQuestion(e.target.value);
+          }}
           prefix={UploadedFileIcons}
           ref={textAreaRef}
           rootClassNames="w-full py-2"
@@ -549,9 +552,7 @@ export function OracleSearchBar({
               ? "Type here"
               : isDropping
                 ? "Release to drop"
-                : draft.mode === "report"
-                  ? "Type your question here or drop PDF, CSV or Excel files"
-                  : "Type your question here or drop CSV or Excel files"
+                : "Type your question here or drop PDF, CSV or Excel files"
           }
           autoResize={true}
           defaultRows={1}

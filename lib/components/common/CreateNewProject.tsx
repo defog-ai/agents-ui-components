@@ -16,11 +16,15 @@ const timeouts = [
 export const CreateNewProject = ({
   apiEndpoint,
   token,
+  onClick = null,
   onProjectCreated = (...args) => {},
+  children = null,
 }: {
   apiEndpoint: string;
   token: string;
+  onClick?: (selectedFiles: File[]) => Promise<void>;
   onProjectCreated?: (projectName: string, dbInfo: ProjectDbInfo) => void;
+  children?: React.ReactNode;
 }) => {
   const message = useContext(MessageManagerContext);
   const [loading, setLoading] = useState<boolean>(false);
@@ -31,7 +35,7 @@ export const CreateNewProject = ({
     <div className="w-full h-full">
       <DropFiles
         disabled={loading}
-        acceptedFileTypes={[".csv", ".xls", ".xlsx"]}
+        acceptedFileTypes={[".csv", ".xls", ".xlsx", ".pdf"]}
         showIcon={true}
         allowMultiple={true}
         selectedFiles={selectedFiles}
@@ -107,6 +111,11 @@ export const CreateNewProject = ({
         variant="primary"
         onClick={async () => {
           try {
+            if (onClick) {
+              await onClick(selectedFiles);
+              return;
+            }
+
             console.time("CreateNewProject:uploadFiles");
             setLoading(true);
 
@@ -138,18 +147,19 @@ export const CreateNewProject = ({
           }
         }}
       >
-        {selectedFiles.length ? (
-          loading ? (
-            <>
-              <SpinningLoader />
-              {loadingMessage}
-            </>
+        {children ||
+          (selectedFiles.length ? (
+            loading ? (
+              <>
+                <SpinningLoader />
+                {loadingMessage}
+              </>
+            ) : (
+              "Click to upload"
+            )
           ) : (
-            "Click to upload"
-          )
-        ) : (
-          "Select some files"
-        )}
+            "Select some files"
+          ))}
       </Button>
     </div>
   );
