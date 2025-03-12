@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { twMerge } from "tailwind-merge";
 import { ChevronDown, ChevronRight } from "lucide-react";
-import { Button } from "@ui-components";
+import { Button } from "./Button";
 
 /**
  * Props for the MenuItem component
