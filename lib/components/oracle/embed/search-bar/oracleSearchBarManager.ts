@@ -99,8 +99,6 @@ export function OracleSearchBarManager(): OracleSearchBarManager {
     setDraft((prev) => ({
       ...prev,
       mode: newMode,
-      userQuestion: prev.userQuestion,
-      clarifications: null,
     }));
   }
 

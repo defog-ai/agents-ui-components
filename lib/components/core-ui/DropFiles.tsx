@@ -187,7 +187,7 @@ export function DropFiles({
           disabled ? "cursor-not-allowed" : "cursor-pointer"
         )}
         type="file"
-        title="Click to select file"
+        title={disabled ? "" : "Click to select file"}
         disabled={disabled}
         onInput={(e) => {
           e.preventDefault();
