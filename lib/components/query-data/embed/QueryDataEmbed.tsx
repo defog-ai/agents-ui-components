@@ -21,10 +21,9 @@ import {
 } from "../../context/QueryDataEmbedContext";
 import { QueryDataNewDb } from "./QueryDataNewDb";
 import ErrorBoundary from "../../../../lib/components/common/ErrorBoundary";
-import { AnalysisTreeViewer } from "@agent";
+import { AnalysisTreeViewer } from "../analysis-tree-viewer/AnalysisTreeViewer";
 import { getMetadata } from "@utils/utils";
 import { Tab, Tabs } from "../../../../lib/components/core-ui/Tabs";
-import { twMerge } from "tailwind-merge";
 
 interface EmbedProps {
   /**
