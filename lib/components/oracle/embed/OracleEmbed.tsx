@@ -750,7 +750,10 @@ export function OracleEmbed({
               projectName: projectName,
               analysisId: analysisId,
               rootAnalysisId: analysisId,
-              treeManager: selectedItem?.treeManager,
+              treeManager:
+                selectedItem?.itemType === "query-data"
+                  ? selectedItem.treeManager
+                  : undefined,
             }).then(({ rootAnalysisId, analysisTree, treeManager }) => {
               const timestamp = oracleReportTimestamp();
 
@@ -793,6 +796,8 @@ export function OracleEmbed({
               messageManager.current.success("New analysis created");
             });
           } else {
+            if (selectedItem.itemType !== "query-data") return;
+
             return createNewFastAnalysis({
               question,
               projectName: selectedProjectName,

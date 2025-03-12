@@ -5,7 +5,6 @@ import {
   ReportData,
   ListReportResponse,
   ClarificationObject,
-  ProjectDbInfo,
   SourceItem,
   OracleAnalysis,
 } from "./types";
