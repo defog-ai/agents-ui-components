@@ -15,16 +15,16 @@ import { LoadingState, ErrorState, AnalysisPanel } from "./components";
 export function OracleReport({
   apiEndpoint,
   reportId,
-  dbName,
+  projectName,
   token,
   onReportParsed = () => {},
   onDelete = () => {},
 }: {
   apiEndpoint: string;
   reportId: string;
-  dbName: string;
+  projectName: string;
   token: string;
-  onDelete?: (reportId: string, dbName: string) => void;
+  onDelete?: (reportId: string, projectName: string) => void;
   onReportParsed?: (data: ReportData | null) => void;
 }) {
   const [tables, setTables] = useState<any>({});
@@ -45,14 +45,14 @@ export function OracleReport({
       return;
     }
 
-    const setup = async (reportId: string, dbName: string) => {
+    const setup = async (reportId: string, projectName: string) => {
       try {
         setLoading(true);
 
         const data = await fetchAndParseReportData(
           apiEndpoint,
           reportId,
-          dbName,
+          projectName,
           token
         );
 
@@ -70,8 +70,8 @@ export function OracleReport({
       }
     };
 
-    if (reportId && dbName) {
-      setup(reportId, dbName);
+    if (reportId && projectName) {
+      setup(reportId, projectName);
     }
   }, [reportId]);
 
@@ -102,12 +102,12 @@ export function OracleReport({
           recommendations: [],
         },
         reportId,
-        dbName,
+        projectName,
         token,
         commentManager: commentManager({
           apiEndpoint,
           reportId,
-          dbName,
+          projectName,
           token,
           initialComments: comments,
         }),

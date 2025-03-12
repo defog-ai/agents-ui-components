@@ -24,7 +24,7 @@ export interface AnalysisTreeItem {
   timestamp: number;
   isRoot: boolean;
   isTemp: boolean;
-  dbName: string;
+  projectName: string;
   rootAnalysisId: string;
   sqlOnly: boolean;
   user_question: string;
@@ -92,7 +92,7 @@ export interface AnalysisTreeManager {
   getActiveRootAnalysisId: () => string | null;
   submit: (params: {
     question: string;
-    dbName: string;
+    projectName: string;
     analysisId: string;
     rootAnalysisId: string | null;
     isRoot?: boolean;
@@ -451,7 +451,7 @@ export function AnalysisTreeManager(
 
   async function submit({
     question,
-    dbName,
+    projectName,
     analysisId,
     rootAnalysisId,
     isRoot = false,
@@ -461,7 +461,7 @@ export function AnalysisTreeManager(
     activeTab,
   }: {
     question: string;
-    dbName: string;
+    projectName: string;
     analysisId: string;
     rootAnalysisId: string;
     isRoot?: boolean;
@@ -477,7 +477,7 @@ export function AnalysisTreeManager(
       rootAnalysisId: isRoot ? analysisId : rootAnalysisId,
       user_question: question,
       isTemp,
-      dbName,
+      projectName,
       sqlOnly,
       timestamp: Date.now(),
       activeTab,
@@ -558,13 +558,13 @@ export function AnalysisTreeManager(
  * Validates an analysis object. This is to prevent UI crashes in case of illegal/abnormal analyses being stored in localStorage/passed down for some reason.
  *
  * An analysis should:
- * - Be an object with the following keys: analysisId, createAnalysisRequestBody, directParentId, isRoot, isTemp, dbName, rootAnalysisId, sqlOnly, userQuestion
+ * - Be an object with the following keys: analysisId, createAnalysisRequestBody, directParentId, isRoot, isTemp, projectName, rootAnalysisId, sqlOnly, userQuestion
  * - analysisId should be a string
  * - createAnalysisRequestBody should be an object
  * - directParentId should be a string or null
  * - isRoot should be a boolean
  * - isTemp should be a boolean
- * - dbName should be a string
+ * - projectName should be a string
  * - rootAnalysisId should be a string
  * - sqlOnly should be a boolean
  * - userQuestion should be a string
@@ -589,7 +589,7 @@ export function validateAnalysis(analysis: AnalysisTreeItem): boolean {
 
   if (typeof analysis.isRoot !== "boolean") return false;
   if (typeof analysis.isTemp !== "boolean") return false;
-  if (typeof analysis.dbName !== "string") return false;
+  if (typeof analysis.projectName !== "string") return false;
   if (typeof analysis.rootAnalysisId !== "string") return false;
   if (typeof analysis.sqlOnly !== "boolean") return false;
   if (typeof analysis.user_question !== "string") return false;
@@ -646,7 +646,7 @@ export function createAnalysisTreeFromFetchedAnalyses(
       timestamp: new Date(apiAnalysis.timestamp).getTime(),
       isRoot: !!apiAnalysis.is_root_analysis,
       isTemp: false, // Assuming fetched analyses are not temporary
-      dbName: apiAnalysis.db_name,
+      projectName: apiAnalysis.db_name,
       rootAnalysisId: apiAnalysis.is_root_analysis
         ? apiAnalysis.analysis_id
         : apiAnalysis.root_analysis_id,
@@ -686,7 +686,7 @@ export function createAnalysisTreeFromFetchedAnalyses(
         timestamp: new Date(apiAnalysis.timestamp).getTime(),
         isRoot: false,
         isTemp: false,
-        dbName: apiAnalysis.db_name,
+        projectName: apiAnalysis.db_name,
         rootAnalysisId: apiAnalysis.root_analysis_id,
         sqlOnly: apiAnalysis.data?.tool_name === "sql_aggregator",
         user_question: apiAnalysis.user_question || "",

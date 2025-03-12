@@ -2,11 +2,11 @@ import { OracleEmbed } from "@oracle";
 import ReactDOM from "react-dom/client";
 import "../../lib/styles/index.scss";
 import { useEffect, useState } from "react";
-import { getApidbNames } from "@utils/utils";
+import { getProjectNames } from "@utils/utils";
 import { SpinningLoader } from "@ui-components";
 
 function OracleEmbedTest() {
-  const [dbNames, setDbNames] = useState<string[]>([]);
+  const [projectNames, setProjectNames] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [useSystemTheme, setUseSystemTheme] = useState<boolean>(true);
   const [darkMode, setDarkMode] = useState<boolean>(
@@ -15,11 +15,11 @@ function OracleEmbedTest() {
 
   useEffect(() => {
     async function setup() {
-      const dbNames = await getApidbNames(
+      const projectNames = await getProjectNames(
         import.meta.env.VITE_API_ENDPOINT,
         import.meta.env.VITE_TOKEN
       );
-      setDbNames(dbNames);
+      setProjectNames(projectNames);
       setLoading(false);
     }
 
@@ -56,7 +56,7 @@ function OracleEmbedTest() {
         <OracleEmbed
           apiEndpoint={import.meta.env.VITE_API_ENDPOINT}
           token={import.meta.env.VITE_TOKEN}
-          initialDbNames={dbNames}
+          initialProjectNames={projectNames}
         />
       )}
     </div>

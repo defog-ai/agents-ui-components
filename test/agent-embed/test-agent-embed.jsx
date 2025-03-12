@@ -5,10 +5,10 @@ import { QueryDataEmbed } from "@agent";
 import { SpinningLoader } from "@ui-components";
 
 function QueryDataPage() {
-  const [apiDbNames, setApiDbNames] = useState(null);
+  const [apiProjectNames, setApiProjectNames] = useState(null);
   const [darkMode, setDarkMode] = useState(false);
 
-  const getApiDbNames = async (token) => {
+  const getApiProjectNames = async (token) => {
     const res = await fetch(
       (import.meta.env.VITE_API_ENDPOINT || "") + "/get_db_names",
       {
@@ -19,19 +19,19 @@ function QueryDataPage() {
         body: JSON.stringify({
           token: token,
         }),
-      },
+      }
     );
     if (!res.ok) {
       throw new Error(
-        "Failed to get db names - are you sure your network is working?",
+        "Failed to get project names - are you sure your network is working?"
       );
     }
     const data = await res.json();
-    setApiDbNames(data.db_names);
+    setApiProjectNames(data.db_names);
   };
 
   useEffect(() => {
-    getApiDbNames(import.meta.env.VITE_TOKEN);
+    getApiProjectNames(import.meta.env.VITE_TOKEN);
   }, []);
 
   useEffect(() => {
@@ -53,14 +53,14 @@ function QueryDataPage() {
     }
   }, []);
 
-  const dbList = useMemo(() => {
-    return !apiDbNames
+  const projectList = useMemo(() => {
+    return !apiProjectNames
       ? null
-      : apiDbNames.map((name) => ({
+      : apiProjectNames.map((name) => ({
           name,
           predefinedQuestions: ["show me any 5 rows"],
         }));
-  }, [apiDbNames]);
+  }, [apiProjectNames]);
 
   return (
     <StrictMode>
@@ -77,9 +77,9 @@ function QueryDataPage() {
         <div
           className={`h-screen ${darkMode ? "dark bg-gray-900" : "bg-white"}`}
         >
-          {dbList ? (
+          {projectList ? (
             <QueryDataEmbed
-              initialDbList={dbList}
+              initialProjectList={projectList}
               hiddenCharts={["boxplot", "histogram"]}
               token={import.meta.env.VITE_TOKEN}
               searchBarDraggable={false}
@@ -90,10 +90,9 @@ function QueryDataPage() {
                 "Show me any 5 rows from the dataset",
               ]}
               showAnalysisUnderstanding={true}
-              dbs={dbList}
               disableMessages={false}
               initialTrees={initialTrees}
-              onTreeChange={(dbName, tree) => {
+              onTreeChange={(projectName, tree) => {
                 try {
                   // save in local storage in an object called analysisTrees
                   let trees = localStorage.getItem("analysisTrees");
@@ -104,7 +103,7 @@ function QueryDataPage() {
                     trees = JSON.parse(trees);
                   }
 
-                  trees[dbName] = tree;
+                  trees[projectName] = tree;
                   localStorage.setItem("analysisTrees", JSON.stringify(trees));
                 } catch (e) {
                   console.error(e);

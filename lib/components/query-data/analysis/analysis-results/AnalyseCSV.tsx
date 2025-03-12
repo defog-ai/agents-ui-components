@@ -13,7 +13,7 @@ import { createWebsocketManager } from "../../../utils/websocket-manager";
 import { Sparkles } from "lucide-react";
 
 export function AnalyseCSV({
-  dbName,
+  projectName,
   analysisId,
   question,
   data_csv,
@@ -74,7 +74,7 @@ export function AnalyseCSV({
           question: question,
           data_csv: data_csv,
           sql: sql,
-          db_name: dbName,
+          db_name: projectName,
           token: token,
         });
       },

@@ -15,14 +15,14 @@ import type { AnalysisTreeManager } from "../../analysis-tree-viewer/analysisTre
 import { AnalysisRowFromBackend } from "../analysisManager";
 
 export function AnalysisResults({
-  dbName,
+  projectName,
   analysis,
   analysisBusy = false,
   handleReRun = (editedInputs: EditedInputs) => {},
   submitFollowOn = (followOnQuestion: string) => {},
   analysisTreeManager = null,
 }: {
-  dbName: string;
+  projectName: string;
   analysis: AnalysisRowFromBackend;
   analysisBusy?: boolean;
   handleReRun: (editedInputs: EditedInputs) => void;
@@ -115,7 +115,7 @@ export function AnalysisResults({
                     {/* SQL Feedback preserved as is */}
                     <div className="flex justify-between mt-auto">
                       <SQLFeedback
-                        dbName={dbName}
+                        projectName={projectName}
                         question={analysisData?.inputs?.question}
                         sql={analysisData?.sql}
                       />
@@ -144,20 +144,20 @@ export function AnalysisResults({
         content: (
           <div key={crypto.randomUUID()}>
             <AnalysisOutputsTable
-              dbName={dbName}
+              projectName={projectName}
               analysis={analysis}
               analysisTreeManager={analysisTreeManager}
             />
             {analysisData?.sql && (
               // get feedback from user if the sql is good or not
               <SQLFeedback
-                dbName={dbName}
+                projectName={projectName}
                 question={analysisData?.inputs?.question}
                 sql={analysisData?.sql}
               />
             )}
             <AnalysisFollowOn
-              dbName={dbName}
+              projectName={projectName}
               question={analysisData?.inputs?.question}
               submitFollowOn={submitFollowOn}
             />

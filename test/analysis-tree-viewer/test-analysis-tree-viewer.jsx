@@ -5,9 +5,9 @@ import { Setup } from "../../lib/components/context/Setup";
 import { AnalysisTreeViewer } from "../../lib/agent.ts";
 import { AnalysisTreeManager } from "../../lib/components/query-data/analysis-tree-viewer/analysisTreeManager.ts";
 
-const dbs = [
+const projects = [
   {
-    dbName: "Sales",
+    projectName: "Sales",
     name: "Sales",
     predefinedQuestions: [
       "Show me any 5 rows from the dataset",
@@ -15,7 +15,7 @@ const dbs = [
     ],
   },
   {
-    dbName: "Manufacturing",
+    projectName: "Manufacturing",
     name: "Manufacturing",
     predefinedQuestions: ["Show me any 5 rows from the dataset"],
   },
@@ -27,17 +27,22 @@ const dbs = [
   metadataFetchingError: false,
   analysisTreeManager: AnalysisTreeManager(
     {},
-    d.dbName + "_" + Math.floor(Math.random() * 1000),
+    d.projectName + "_" + Math.floor(Math.random() * 1000)
   ),
   // do this after so that sqlOnly, and isTemp can be overwritten if defined by the user
   ...d,
 }));
 
-// tree viewer can only work with one db at a time
+// tree viewer can only work with one project at a time
 
 function QueryDataPage() {
-  const { dbName, metadata, isTemp, analysisTreeManager, predefinedQuestions } =
-    dbs[0];
+  const {
+    projectName,
+    metadata,
+    isTemp,
+    analysisTreeManager,
+    predefinedQuestions,
+  } = projects[0];
   return (
     <Setup
       token={import.meta.env.VITE_TOKEN}
@@ -49,7 +54,7 @@ function QueryDataPage() {
     >
       <div className="h-screen">
         <AnalysisTreeViewer
-          dbName={dbName}
+          projectName={projectName}
           metadata={metadata}
           isTemp={isTemp}
           forceSqlOnly={false}

@@ -26,7 +26,7 @@ declare interface EditedInputs {
   hard_filters: string[];
 }
 
-declare type DbType =
+declare type ProjectDbType =
   | "postgres"
   | "redshift"
   | "snowflake"
@@ -34,7 +34,7 @@ declare type DbType =
   | "bigquery"
   | "sqlserver";
 
-declare interface DbCreds {
+declare interface ProjectDbCreds {
   postgres: {
     host: string;
     port: string;
@@ -80,10 +80,10 @@ declare type DbMetadata = Array<{
   column_description: string;
 }>;
 
-declare interface DbInfo {
+declare interface ProjectDbInfo {
   db_name?: string;
-  db_type?: DbType;
-  db_creds?: DbCreds[DbType];
+  db_type?: ProjectDbType;
+  db_creds?: ProjectDbCreds[ProjectDbType];
   can_connect?: boolean;
   metadata?: DbMetadata;
   selected_tables?: string[];

@@ -21,7 +21,7 @@ export function OracleAnalysisDrawerWithFollowOn({
 
   const ctr = useRef(null);
 
-  const { apiEndpoint, reportId, dbName, token } =
+  const { apiEndpoint, reportId, projectName, token } =
     useContext(OracleReportContext);
 
   const [analysisIds, setAnalysisIds] = useState<string[]>(initialAnalysisIds);
@@ -45,7 +45,7 @@ export function OracleAnalysisDrawerWithFollowOn({
                     reportId,
                     analysisId,
                     recommendationIdx,
-                    dbName,
+                    projectName,
                     token
                   );
 
@@ -78,7 +78,7 @@ export function OracleAnalysisDrawerWithFollowOn({
                 reportId,
                 analysisId,
                 recommendationIdx,
-                dbName,
+                projectName,
                 token,
                 e.currentTarget.value,
                 analysisIds

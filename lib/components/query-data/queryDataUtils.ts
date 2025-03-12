@@ -16,7 +16,7 @@ import { AnalysisRowFromBackend } from "./analysis/analysisManager";
 export const fetchAllAnalyses = async (
   apiEndpoint: string,
   token: string,
-  dbName: string
+  projectName: string
 ): Promise<AnalysisRowFromBackend[]> => {
   const urlToConnect = setupBaseUrl({
     protocol: "http",
@@ -31,7 +31,7 @@ export const fetchAllAnalyses = async (
     },
     body: JSON.stringify({
       token: token,
-      db_name: dbName,
+      db_name: projectName,
     }),
   });
 
@@ -75,7 +75,7 @@ export const fetchAnalysis = async (
 
 export const createAnalysis = async (
   token: string,
-  dbName: string,
+  projectName: string,
   apiEndpoint: string,
   customId: string,
   bodyData = {}
@@ -95,7 +95,7 @@ export const createAnalysis = async (
     body: JSON.stringify({
       custom_id: customId,
       token: token,
-      db_name: dbName,
+      db_name: projectName,
       ...bodyData,
     }),
   });

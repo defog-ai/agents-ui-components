@@ -42,23 +42,6 @@ export const isNullOrUndefined = function (val) {
   return val === null || val === undefined;
 };
 
-export const toolDisplayNames = {
-  data_fetcher_and_aggregator: "Fetch data from db",
-};
-
-export const easyToolInputTypes = {
-  DBColumn: "Column name",
-  DBColumnList: "List of column names",
-  "pandas.core.frame.DataFrame": "Dataframe",
-  str: "String",
-  int: "Integer",
-  float: "Float",
-  bool: "Boolean",
-  "list[str]": "List of strings",
-  list: "List",
-  DropdownSingleSelect: "String",
-};
-
 export const trimStringToLength = (str, length) => {
   if (str.length > length) {
     return str.substring(0, length) + "...";
@@ -407,7 +390,7 @@ export function getStepAnalysisFromLocalStorage(stepId) {
  */
 export async function getQuestionType(
   token: string | null,
-  dbName: string,
+  projectName: string,
   apiEndpoint: string | null,
   question: string
 ): Promise<{
@@ -428,7 +411,7 @@ export async function getQuestionType(
     },
     body: JSON.stringify({
       token,
-      db_name: dbName,
+      db_name: projectName,
       question,
     }),
   });
@@ -449,7 +432,7 @@ export const raf = (fn) => {
   }
 };
 
-export const getApidbNames = async (apiEndpoint: string, token: string) => {
+export const getProjectNames = async (apiEndpoint: string, token: string) => {
   const urlToConnect = setupBaseUrl({
     protocol: "http",
     path: "get_db_names",
@@ -482,12 +465,12 @@ interface UserFile {
 /**
  * Uploads multiple files to create a database
  */
-export const uploadMultipleFilesAsDb = async (
+export const createProjectFromFiles = async (
   apiEndpoint: string,
   token: string,
   files: File[]
-): Promise<{ dbName: string }> => {
-  console.time("utils:uploadMultipleFilesAsDb:setup");
+): Promise<{ projectName: string; dbInfo: ProjectDbInfo }> => {
+  console.time("utils:createProjectFromFiles:setup");
   const urlToConnect = setupBaseUrl({
     protocol: "http",
     path: "upload_files",
@@ -499,23 +482,23 @@ export const uploadMultipleFilesAsDb = async (
   for (const file of files) {
     form.append("files", file);
   }
-  console.timeEnd("utils:uploadMultipleFilesAsDb:setup");
+  console.timeEnd("utils:createProjectFromFiles:setup");
 
-  console.time("utils:uploadMultipleFilesAsDb:fetchRequest");
+  console.time("utils:createProjectFromFiles:fetchRequest");
 
   // Use XMLHttpRequest instead of fetch to track upload progress
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
 
     xhr.addEventListener("load", async () => {
-      console.timeEnd("utils:uploadMultipleFilesAsDb:fetchRequest");
-      console.time("utils:uploadMultipleFilesAsDb:processResponse");
+      console.timeEnd("utils:createProjectFromFiles:fetchRequest");
+      console.time("utils:createProjectFromFiles:processResponse");
 
       if (xhr.status >= 200 && xhr.status < 300) {
         try {
           const data = JSON.parse(xhr.responseText);
-          console.timeEnd("utils:uploadMultipleFilesAsDb:processResponse");
-          resolve({ dbName: data.db_name });
+          console.timeEnd("utils:createProjectFromFiles:processResponse");
+          resolve({ projectName: data.db_name, dbInfo: data.db_info });
         } catch (error) {
           reject(new Error("Failed to parse response"));
         }
@@ -542,7 +525,7 @@ export const uploadMultipleFilesAsDb = async (
   });
 };
 
-export async function getMetadata(apiEndpoint, token, dbName) {
+export async function getMetadata(apiEndpoint, token, projectName) {
   const urlToConnect = setupBaseUrl({
     protocol: "http",
     path: "integration/get_metadata",
@@ -557,7 +540,7 @@ export async function getMetadata(apiEndpoint, token, dbName) {
     },
     body: JSON.stringify({
       token: token,
-      db_name: dbName,
+      db_name: projectName,
     }),
   });
 

@@ -15,27 +15,27 @@ import { KEYMAP } from "../../../constants/keymap";
 
 interface OracleHistorySidebarProps {
   oracleHistory: OracleHistory;
-  selectedDbName: string;
-  uploadNewDbOption: string;
+  selectedProjectName: string;
+  uploadNewProjectOption: string;
   selectedItemId: string | null;
   updateUrlWithItemId: (itemId: string | number | null) => void;
-  dbSelector: React.ReactNode;
+  projectSelector: React.ReactNode;
   setSelectedItem: (item: OracleHistoryItem | null) => void;
 }
 
 export const OracleHistorySidebar: React.FC<OracleHistorySidebarProps> = ({
   oracleHistory,
-  selectedDbName,
-  uploadNewDbOption,
+  selectedProjectName,
+  uploadNewProjectOption,
   selectedItemId,
   updateUrlWithItemId,
-  dbSelector,
+  projectSelector,
   setSelectedItem,
 }) => {
   return (
     <Sidebar
       open={true}
-      beforeTitle={dbSelector}
+      beforeTitle={projectSelector}
       location="left"
       rootClassNames="absolute left-0 h-full shadow-lg lg:shadow-none lg:sticky top-0 bg-gray-50 dark:bg-gray-800 z-20 border-r border-gray-100 dark:border-gray-700"
       title={
@@ -46,7 +46,7 @@ export const OracleHistorySidebar: React.FC<OracleHistorySidebarProps> = ({
       contentClassNames="w-72 p-5 rounded-tl-lg relative sm:block min-h-96 max-h-full overflow-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent"
     >
       <div className="space-y-4">
-        {selectedDbName !== uploadNewDbOption ? (
+        {selectedProjectName !== uploadNewProjectOption ? (
           <div
             className={twMerge(
               "title hover:cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 history-item p-3 text-sm rounded-md transition-colors duration-200 mb-3 flex items-center border border-transparent",
@@ -62,15 +62,18 @@ export const OracleHistorySidebar: React.FC<OracleHistorySidebarProps> = ({
             <div className="flex flex-row items-center gap-2">
               <SquarePen size={18} />
               <span className="font-medium">New Report</span>
-              <KeyboardShortcutIndicator keyValue={KEYMAP.NEW_QUESTION} meta={true} />
+              <KeyboardShortcutIndicator
+                keyValue={KEYMAP.NEW_QUESTION}
+                meta={true}
+              />
             </div>
           </div>
         ) : (
           <p className="text-xs">Upload a new CSV/Excel file on the right</p>
         )}
-        {selectedDbName !== uploadNewDbOption &&
-          oracleHistory[selectedDbName] &&
-          Object.entries(oracleHistory[selectedDbName]).map(
+        {selectedProjectName !== uploadNewProjectOption &&
+          oracleHistory[selectedProjectName] &&
+          Object.entries(oracleHistory[selectedProjectName]).map(
             ([group, reports]) => {
               if (!reports || Object.keys(reports).length === 0) return null; // Skip empty groups
               return (

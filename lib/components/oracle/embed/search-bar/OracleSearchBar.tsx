@@ -1,7 +1,6 @@
 import {
   generateReport,
   getClarifications,
-  uploadFiles,
   ORACLE_REPORT_STATUS,
 } from "@oracle";
 import {
@@ -35,17 +34,16 @@ import {
   XCircle,
   Zap,
 } from "lucide-react";
-import { formatFileSize, isValidFileType, raf } from "@utils/utils";
+import {
+  formatFileSize,
+  isValidFileType,
+  createProjectFromFiles,
+} from "@utils/utils";
 import { statusDescriptions, Mode } from "./oracleSearchBarManager";
 import { OracleReportClarifications } from "../../reports/report-creation/OracleReportClarifications";
 import { twMerge } from "tailwind-merge";
-import {
-  AnalysisTree,
-  AnalysisTreeManager,
-} from "../../../../../lib/components/query-data/analysis-tree-viewer/analysisTreeManager";
 import { OracleHistoryItem } from "../OracleEmbed";
 import { OracleSearchBarModeHeader } from "./OracleSearchBarModeHeader";
-import { scrollToAnalysis } from "../../../../../lib/components/query-data/analysis-tree-viewer/AnalysisTreeViewer";
 import { KEYMAP } from "../../../../../lib/constants/keymap";
 
 const modeDisplayName = {
@@ -67,24 +65,6 @@ const modeDescriptions: Record<Mode, string> = {
     "Performs in-depth analysis, synthesizing multiple data sources to generate comprehensive insights and structured reports",
 };
 
-// Upload Progress Bar Component
-const UploadProgressBar = ({ progress }: { progress: number }) => {
-  return (
-    <div className="w-full">
-      <div className="mb-1 flex justify-between text-xs text-gray-600 dark:text-gray-300">
-        <span>Uploading files...</span>
-        <span>{progress}%</span>
-      </div>
-      <div className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-        <div
-          className="h-full bg-blue-500 transition-all duration-300 ease-out"
-          style={{ width: `${progress}%` }}
-        />
-      </div>
-    </div>
-  );
-};
-
 const itemTypeClasses = {
   default:
     "absolute bottom-1/2 left-1/2 -translate-x-1/2 translate-y-1/2 w-full px-4",
@@ -92,32 +72,27 @@ const itemTypeClasses = {
     "absolute bottom-40 left-1/2 -translate-x-1/2 translate-y-full w-full px-4",
   report:
     "absolute -bottom-48 left-1/2 -translate-x-1/2 translate-y-full w-full px-4 opacity-0",
-  "new-db":
+  "new-project":
     "absolute -bottom-48 left-1/2 -translate-x-1/2 translate-y-full w-full px-4 opacity-0",
 };
 
 export function OracleSearchBar({
-  dbName,
-  uploadNewDbOption,
-  onClarified,
+  projectName,
+  uploadNewProjectOption,
   onReportGenerated,
-  onNewAnalysisTree,
+  onNewProjectCreated,
+  createNewFastAnalysis,
   rootClassNames = "",
   selectedItem = null,
 }: {
-  dbName: string;
-  uploadNewDbOption: string;
-  onClarified: (newDbName?: string) => void;
+  projectName: string;
+  uploadNewProjectOption: string;
+  onNewProjectCreated: (newProjectName?: string) => void;
+  createNewFastAnalysis: (question: string, newProjectName?: string) => void;
   onReportGenerated?: (data: {
     userQuestion: string;
     reportId: string;
     status: string;
-  }) => void;
-  onNewAnalysisTree?: (data: {
-    userQuestion: string;
-    analysisTree: AnalysisTree;
-    rootAnalysisId: string;
-    treeManager: AnalysisTreeManager;
   }) => void;
   rootClassNames?: string;
   selectedItem: OracleHistoryItem;
@@ -131,10 +106,8 @@ export function OracleSearchBar({
 
   const [isMac, setIsMac] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
-  const [uploadProgress, setUploadProgress] = useState<number>(0);
 
-  const newDbName = useRef<string | null>(null);
-  const newDbInfo = useRef<DbInfo | null>(null);
+  const newProjectName = useRef<string | null>(null);
 
   const draft = useSyncExternalStore(
     searchBarManager.subscribeToDraftChanges,
@@ -167,7 +140,7 @@ export function OracleSearchBar({
         await generateReport(
           apiEndpoint,
           token,
-          dbName,
+          projectName,
           draft.reportId,
           draft.userQuestion || textAreaRef.current?.value,
           draft.clarifications?.filter((c) => c.answer && c.is_answered) || [],
@@ -194,66 +167,7 @@ export function OracleSearchBar({
     } finally {
       setLoading(false);
     }
-  }, [draft, apiEndpoint, token, dbName, onReportGenerated, message]);
-
-  // Function to handle analysis creation when in query-data mode
-  const createNewAnalysis = useCallback(
-    async (question: string, treeManager?: AnalysisTreeManager) => {
-      if (!onNewAnalysisTree) return;
-
-      try {
-        // Generate a new UUID for the analysis
-        const analysisId = crypto.randomUUID();
-
-        if (selectedItem && selectedItem.itemType === "query-data") {
-          const { newAnalysis } = await selectedItem.treeManager?.submit({
-            question,
-            dbName,
-            analysisId,
-            rootAnalysisId: selectedItem.itemId,
-            isRoot: false,
-            directParentId: selectedItem.treeManager.getActiveAnalysisId(),
-            activeTab: "table",
-          });
-
-          raf(() => {
-            scrollToAnalysis(newAnalysis.analysisId);
-          });
-        } else {
-          // Create a new analysis tree manager
-          const newAnalysisTreeManager = treeManager || AnalysisTreeManager();
-
-          // Submit the question to create a new root analysis
-          await newAnalysisTreeManager.submit({
-            question,
-            dbName,
-            analysisId,
-            rootAnalysisId: analysisId,
-            isRoot: true,
-            directParentId: null,
-            sqlOnly: false,
-            isTemp: false,
-            activeTab: "table",
-          });
-
-          // Get the tree data
-          const treeData = newAnalysisTreeManager.getTree();
-
-          // Notify parent component about the new analysis
-          onNewAnalysisTree({
-            userQuestion: question,
-            analysisTree: treeData,
-            rootAnalysisId: analysisId,
-            treeManager: newAnalysisTreeManager,
-          });
-        }
-      } catch (error) {
-        console.error("Error creating new analysis:", error);
-        setErrorMessage("Failed to create analysis: " + error.message);
-      }
-    },
-    [selectedItem, dbName, onNewAnalysisTree]
-  );
+  }, [draft, apiEndpoint, token, projectName, onReportGenerated, message]);
 
   useEffect(() => {
     setIsMac(navigator.userAgent.toLowerCase().includes("mac"));
@@ -278,7 +192,10 @@ export function OracleSearchBar({
       key: KEYMAP.FOCUS_ORACLE_SEARCH,
       callback: (e) => {
         // don't focus on report view or "upload new" view (browser does weird stuff if we focus off screen things)
-        if (dbName === uploadNewDbOption || selectedItem?.itemType === "report")
+        if (
+          projectName === uploadNewProjectOption ||
+          selectedItem?.itemType === "report"
+        )
           return;
 
         textAreaRef.current?.focus();
@@ -334,10 +251,7 @@ export function OracleSearchBar({
           {draft?.uploadedFiles?.length ? (
             <div className="flex flex-row items-center gap-2 w-full text-xs text-blue-600 dark:text-blue-400">
               <Info className="w-4 min-w-4" />
-              <span>
-                A new database will be created using your uploaded csv/excel
-                files
-              </span>
+              <span>A new project will be created using your files</span>
             </div>
           ) : (
             <></>
@@ -371,8 +285,7 @@ export function OracleSearchBar({
                         uploadedFiles: newFiles,
                       }));
 
-                      newDbInfo.current = null;
-                      newDbName.current = null;
+                      newProjectName.current = null;
                     }}
                     className="cursor-pointer ml-1 text-gray-500 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400"
                   >
@@ -393,7 +306,7 @@ export function OracleSearchBar({
         "oracle-search transition-all duration-700 ease-in-out z-[10] *:transition-all *:duration-700 *:ease-in-out",
         itemTypeClasses[
           selectedItem?.itemType ||
-            (dbName === uploadNewDbOption ? "new-db" : "default")
+            (projectName === uploadNewProjectOption ? "new-project" : "default")
         ]
       )}
     >
@@ -435,8 +348,6 @@ export function OracleSearchBar({
             if (selectedItem?.itemType === "query-data") return;
             setIsDropping(false);
 
-            console.log("Drop event triggered");
-
             // Handle dropped files
             const dataTransfer = e.dataTransfer;
             if (!dataTransfer) {
@@ -444,26 +355,15 @@ export function OracleSearchBar({
               return;
             }
 
-            // Log the number of files in both interfaces
-            console.log(
-              `Files in dataTransfer.files: ${dataTransfer.files ? dataTransfer.files.length : 0}`
-            );
-            console.log(
-              `Items in dataTransfer.items: ${dataTransfer.items ? dataTransfer.items.length : 0}`
-            );
-
             // Array to collect all files for processing
             const filesToProcess = [];
 
             // Prefer DataTransfer.files as it's more widely supported
             if (dataTransfer.files && dataTransfer.files.length > 0) {
-              console.log("Processing files from dataTransfer.files");
               for (let i = 0; i < dataTransfer.files.length; i++) {
                 const file = dataTransfer.files[i];
-                console.log(`Checking file ${i}: ${file.name} (${file.type})`);
 
-                if (isValidFileType(file.type, draft.mode === "report")) {
-                  console.log(`File is valid: ${file.name}`);
+                if (isValidFileType(file.type, true)) {
                   filesToProcess.push(file);
                 } else {
                   console.warn(
@@ -474,17 +374,10 @@ export function OracleSearchBar({
             }
             // As a fallback, try DataTransfer.items
             else if (dataTransfer.items && dataTransfer.items.length > 0) {
-              console.log("Processing files from dataTransfer.items");
               for (let i = 0; i < dataTransfer.items.length; i++) {
                 const item = dataTransfer.items[i];
-                console.log(
-                  `Checking item ${i}: kind=${item.kind}, type=${item.type}`
-                );
 
-                if (
-                  item.kind === "file" &&
-                  isValidFileType(item.type, draft.mode === "report")
-                ) {
+                if (item.kind === "file" && isValidFileType(item.type, true)) {
                   const file = item.getAsFile();
                   if (file) {
                     console.log(`Item converted to file: ${file.name}`);
@@ -494,28 +387,19 @@ export function OracleSearchBar({
               }
             }
 
-            console.log(
-              `Total valid files to process: ${filesToProcess.length}`
-            );
-
             if (filesToProcess.length === 0) {
               console.error("No valid files found");
-              throw new Error(
-                draft.mode === "report"
-                  ? "Only CSV, Excel or PDF files are accepted."
-                  : "Only CSV or Excel files are accepted in fast analysis mode."
-              );
+              throw new Error("Only CSV, Excel or PDF files are accepted.");
             }
 
             // Update draft with processed files
             searchBarManager.setDraft((prev) => ({
               ...prev,
-              uploadedFiles: filesToProcess,
+              uploadedFiles: [...prev.uploadedFiles, ...filesToProcess],
             }));
 
             // Reset database info since we've added new files
-            newDbName.current = null;
-            newDbInfo.current = null;
+            newProjectName.current = null;
           } catch (error) {
             console.error("Error processing files:", error);
             message.error(error.message);
@@ -539,14 +423,10 @@ export function OracleSearchBar({
                   </>
                 ) : (
                   "Ctrl + Enter"
-                )}{" "}
-                {selectedItem?.itemType ? "to submit " : "to start "}
-                {draft.mode === "report" &&
-                  selectedItem?.itemType !== "query-data" &&
-                  "Drop PDFs to add context to the report. "}
-                {selectedItem?.itemType !== "query-data"
-                  ? "Drop CSV or Excel files to analyse them."
-                  : ""}
+                )}
+                {selectedItem?.itemType
+                  ? " to submit. "
+                  : " to start. Drop CSV or Excel files to analyse them. Drop PDFs to add context to the report. "}
                 <div className="flex gap-2 mt-1 text-xs text-gray-500 dark:text-gray-400">
                   <span className="flex items-center">
                     <KeyboardShortcutIndicator
@@ -703,92 +583,92 @@ export function OracleSearchBar({
                 // prepare either for success or a new error message
                 setErrorMessage("");
 
+                // Upload files first if there are any
+                if (draft.uploadedFiles?.length > 0) {
+                  console.log("Uploading files first");
+                  try {
+                    const uploadResponse = await createProjectFromFiles(
+                      apiEndpoint,
+                      token,
+                      draft.uploadedFiles
+                    );
+
+                    // If the upload creates a new project, save that info
+                    if (uploadResponse.projectName !== projectName) {
+                      console.log(
+                        "New project created from file upload:",
+                        uploadResponse.projectName
+                      );
+
+                      // Update the projectName to use for clarifications
+                      newProjectName.current = uploadResponse.projectName;
+
+                      // Generate an automatic clarification question after file upload
+                      // to understand what the user wants to analyze
+                      if (question.trim() === "") {
+                        const fileNames = [...(draft.uploadedFiles || [])]
+                          .map((f) => f.name)
+                          .join(", ");
+
+                        // Set a default question about the uploaded files
+                        const defaultQuestion = `I've uploaded ${fileNames}. What would you like to know about this data?`;
+
+                        // Update the textarea with the default question
+                        if (textAreaRef.current) {
+                          textAreaRef.current.value = defaultQuestion;
+                          textAreaRef.current.focus();
+                        }
+
+                        // Update the draft state with the default question
+                        searchBarManager.setDraft((prev) => ({
+                          ...prev,
+                          userQuestion: defaultQuestion,
+                        }));
+                      }
+
+                      onNewProjectCreated(newProjectName.current);
+                    }
+                  } catch (uploadError) {
+                    console.error("Error uploading files:", uploadError);
+                    throw new Error(
+                      `Failed to upload files: ${uploadError.message}`
+                    );
+                  }
+                }
+
+                // Now get clarifications with the possibly updated project name
+                const useProjectName = newProjectName.current || projectName;
+
                 // If in query-data mode, create a new analysis instead of getting clarifications
                 // of if we're in a query-data item itself, create analysis
                 if (
                   draft.mode === "query-data" ||
                   selectedItem?.itemType === "query-data"
                 ) {
+                  console.log(
+                    "Starting fast analysis with project name:",
+                    useProjectName
+                  );
+
+                  searchBarManager.resetDraft();
+
                   // Create new analysis for fast data analysis mode
-                  await createNewAnalysis(question);
+                  createNewFastAnalysis(question, newProjectName.current);
 
                   // Reset the search bar text
                   if (textAreaRef.current) {
                     textAreaRef.current.value = "";
                   }
                 } else {
-                  // Oracle mode - upload files first if any, then get clarifications for deep research
-                  let newDbNameFromUpload = null;
-                  let newDbInfoFromUpload = null;
-
-                  // Upload files first if there are any
-                  if (draft.uploadedFiles?.length > 0) {
-                    console.log("Uploading files first");
-                    try {
-                      setUploadProgress(0);
-                      const uploadResponse = await uploadFiles(
-                        apiEndpoint,
-                        token,
-                        dbName,
-                        draft.uploadedFiles,
-                        (progress) => {
-                          setUploadProgress(progress);
-                        }
-                      );
-
-                      // If the upload creates a new database, save that info
-                      if (uploadResponse.db_name !== dbName) {
-                        console.log(
-                          "New DB created from file upload:",
-                          uploadResponse.db_name
-                        );
-                        newDbNameFromUpload = uploadResponse.db_name;
-
-                        // Update the dbName to use for clarifications
-                        newDbName.current = uploadResponse.db_name;
-
-                        // Generate an automatic clarification question after file upload
-                        // to understand what the user wants to analyze
-                        if (question.trim() === "") {
-                          const fileNames = [...(draft.uploadedFiles || [])]
-                            .map((f) => f.name)
-                            .join(", ");
-
-                          // Set a default question about the uploaded files
-                          const defaultQuestion = `I've uploaded ${fileNames}. What would you like to know about this data?`;
-
-                          // Update the textarea with the default question
-                          if (textAreaRef.current) {
-                            textAreaRef.current.value = defaultQuestion;
-                            textAreaRef.current.focus();
-                          }
-
-                          // Update the draft state with the default question
-                          searchBarManager.setDraft((prev) => ({
-                            ...prev,
-                            userQuestion: defaultQuestion,
-                          }));
-                        }
-                      }
-                    } catch (uploadError) {
-                      console.error("Error uploading files:", uploadError);
-                      throw new Error(
-                        `Failed to upload files: ${uploadError.message}`
-                      );
-                    }
-                  }
-
-                  // Now get clarifications with the possibly updated DB name
-                  const useDbName = newDbNameFromUpload || dbName;
                   console.log(
-                    "Getting clarifications with DB name:",
-                    useDbName
+                    "Getting clarifications with project name:",
+                    useProjectName
                   );
 
                   const res = await getClarifications(
                     apiEndpoint,
                     token,
-                    useDbName,
+                    useProjectName,
                     question
                   );
 
@@ -799,21 +679,13 @@ export function OracleSearchBar({
                     reportId: res.report_id,
                   }));
 
-                  // If we have a new DB name either from file upload or from clarifications
-                  if (newDbNameFromUpload || res.new_db_name) {
-                    // Prefer the upload response if it exists, otherwise use the clarification response
-                    newDbName.current = newDbNameFromUpload || res.new_db_name;
-                    newDbInfo.current = newDbInfoFromUpload || res.new_db_info;
-                    onClarified(newDbName.current);
-                  }
+                  searchBarManager.setDraft((prev) => ({
+                    ...prev,
+                    loading: false,
+                    status: "clarifications_received",
+                    userQuestion: question,
+                  }));
                 }
-
-                searchBarManager.setDraft((prev) => ({
-                  ...prev,
-                  loading: false,
-                  status: "clarifications_received",
-                  userQuestion: question,
-                }));
               } catch (e) {
                 console.log(e);
                 setErrorMessage(e.toString());
@@ -826,6 +698,7 @@ export function OracleSearchBar({
                 setLoading(false);
                 // If there's an error, allow the user to try again
                 setClarificationStarted(false);
+                newProjectName.current = null;
               }
             }
           }}
@@ -835,7 +708,7 @@ export function OracleSearchBar({
       <div
         className={twMerge(
           "w-11/12 mx-auto my-0 h-0 relative z-[1] overflow-auto rounded-b-xl border-blue-500  dark:bg-sky-900 dark:border-sky-600 border border-t-0 bg-sky-200",
-          loading && draft.uploadedFiles?.length > 0 && uploadProgress > 0
+          loading && draft.uploadedFiles?.length > 0
             ? "h-20 border" // Increased height when showing upload progress
             : loading
               ? "h-8 border-none"
@@ -853,9 +726,6 @@ export function OracleSearchBar({
               <SpinningLoader classNames="w-4 mr-1" />
               {statusDescriptions[draft.status]}
             </span>
-            {draft.uploadedFiles?.length > 0 && uploadProgress > 0 && (
-              <UploadProgressBar progress={uploadProgress} />
-            )}
           </div>
         ) : (
           <div className={twMerge("py-2 px-4")}>

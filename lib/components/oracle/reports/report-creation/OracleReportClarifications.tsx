@@ -26,9 +26,9 @@ export function OracleReportClarifications({
 
   return (
     <div className="w-full overflow-auto flex flex-col items-start relative justify-center m-auto">
-      <div className="text-lg dark:text-gray-200 font-light">
+      {/* <div className="text-lg dark:text-gray-200 font-light">
         {statusDescriptions[draft.status]}
-      </div>
+      </div> */}
       {!loading && draft.clarifications && (
         <div className="my-4 w-full max-w-4xl">
           <div className="space-y-6">

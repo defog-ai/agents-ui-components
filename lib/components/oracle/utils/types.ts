@@ -49,10 +49,6 @@ export interface ClarificationObject {
   onDismiss?: () => void;
 }
 
-export interface DbInfo {
-  // Define properties for database info
-}
-
 export interface SourceItem {
   link: string;
   position: number;

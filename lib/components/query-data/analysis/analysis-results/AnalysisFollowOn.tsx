@@ -3,7 +3,7 @@ import setupBaseUrl from "../../../utils/setupBaseUrl";
 import { QueryDataEmbedContext } from "@agent";
 
 export const AnalysisFollowOn = ({
-  dbName,
+  projectName,
   question,
   submitFollowOn = (followOnQuestion: string) => {},
 }) => {
@@ -22,7 +22,7 @@ export const AnalysisFollowOn = ({
       // send data to the server
       const data = {
         user_question: question,
-        db_name: dbName,
+        db_name: projectName,
         token: token,
       };
 

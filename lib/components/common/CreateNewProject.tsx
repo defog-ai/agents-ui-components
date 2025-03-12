@@ -4,11 +4,7 @@ import {
   MessageManagerContext,
   SpinningLoader,
 } from "@ui-components";
-import {
-  FILE_TYPES,
-  isValidFileType,
-  uploadMultipleFilesAsDb,
-} from "@utils/utils";
+import { isValidFileType, createProjectFromFiles } from "@utils/utils";
 import { useContext, useState } from "react";
 import { twMerge } from "tailwind-merge";
 
@@ -17,14 +13,14 @@ const timeouts = [
   { message: "Cleaning formatting niggles...", time: 10000 },
 ];
 
-export const OracleNewDb = ({
+export const CreateNewProject = ({
   apiEndpoint,
   token,
-  onDbCreated = (...args) => {},
+  onProjectCreated = (...args) => {},
 }: {
   apiEndpoint: string;
   token: string;
-  onDbCreated?: (dbName: string) => void;
+  onProjectCreated?: (projectName: string, dbInfo: ProjectDbInfo) => void;
 }) => {
   const message = useContext(MessageManagerContext);
   const [loading, setLoading] = useState<boolean>(false);
@@ -32,7 +28,7 @@ export const OracleNewDb = ({
   const [loadingMessage, setLoadingMessage] = useState<string>("Uploading");
 
   return (
-    <div className="min-w-full min-h-full">
+    <div className="w-full h-full">
       <DropFiles
         disabled={loading}
         acceptedFileTypes={[".csv", ".xls", ".xlsx"]}
@@ -40,12 +36,12 @@ export const OracleNewDb = ({
         allowMultiple={true}
         selectedFiles={selectedFiles}
         onRemoveFile={(index) => {
-          console.time("OracleNewDb:onRemoveFile");
+          console.time("CreateNewProject:onRemoveFile");
           setSelectedFiles(selectedFiles.filter((_, i) => i !== index));
-          console.timeEnd("OracleNewDb:onRemoveFile");
+          console.timeEnd("CreateNewProject:onRemoveFile");
         }}
         onFileSelect={async (ev) => {
-          console.time("OracleNewDb:onFileSelect");
+          console.time("CreateNewProject:onFileSelect");
           ev.preventDefault();
           ev.stopPropagation();
           try {
@@ -53,7 +49,7 @@ export const OracleNewDb = ({
             let files = ev.target.files;
 
             for (let file of files) {
-              if (!file || !isValidFileType(file.type)) {
+              if (!file || !isValidFileType(file.type, true)) {
                 throw new Error("Only CSV or Excel files are accepted");
               }
             }
@@ -63,10 +59,10 @@ export const OracleNewDb = ({
             console.error(e);
             message.error("Failed to parse the file");
           }
-          console.timeEnd("OracleNewDb:onFileSelect");
+          console.timeEnd("CreateNewProject:onFileSelect");
         }}
         onDrop={async (ev) => {
-          console.time("OracleNewDb:onDrop");
+          console.time("CreateNewProject:onDrop");
           ev.preventDefault();
           ev.stopPropagation();
 
@@ -85,7 +81,7 @@ export const OracleNewDb = ({
                 throw new Error("Invalid file");
               }
 
-              if (!isValidFileType(dataTransferObject.type)) {
+              if (!isValidFileType(dataTransferObject.type, true)) {
                 throw new Error("Only CSV or Excel files are accepted");
               }
 
@@ -98,7 +94,7 @@ export const OracleNewDb = ({
             message.error(e.message || "Failed to parse the file");
             console.log(e.stack);
           }
-          console.timeEnd("OracleNewDb:onDrop");
+          console.timeEnd("CreateNewProject:onDrop");
         }}
       />
 
@@ -111,7 +107,7 @@ export const OracleNewDb = ({
         variant="primary"
         onClick={async () => {
           try {
-            console.time("OracleNewDb:uploadFiles");
+            console.time("CreateNewProject:uploadFiles");
             setLoading(true);
 
             const timeoutIds = timeouts.map(({ message, time }) => {
@@ -122,7 +118,7 @@ export const OracleNewDb = ({
 
             setLoadingMessage("Sending to servers");
 
-            const { dbName } = await uploadMultipleFilesAsDb(
+            const { projectName, dbInfo } = await createProjectFromFiles(
               apiEndpoint,
               token,
               selectedFiles
@@ -130,15 +126,15 @@ export const OracleNewDb = ({
 
             timeoutIds.forEach(clearTimeout);
 
-            message.success(`DB ${dbName} created successfully`);
-            onDbCreated(dbName);
+            message.success(`Project ${projectName} created successfully`);
+            onProjectCreated(projectName, dbInfo);
           } catch (e) {
             console.error(`Error during file upload:`, e);
             message.error(e.message || "Failed to upload files");
           } finally {
             setLoading(false);
             setLoadingMessage("");
-            console.timeEnd("OracleNewDb:uploadFiles");
+            console.timeEnd("CreateNewProject:uploadFiles");
           }
         }}
       >

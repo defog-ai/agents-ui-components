@@ -20,14 +20,14 @@ import { OracleCommentsSidebar } from "./tiptap-extensions/comments/OracleCommen
 export const OracleNav = ({
   onDelete = () => {},
 }: {
-  onDelete: (reportId: string, dbName: string) => void;
+  onDelete: (reportId: string, projectName: string) => void;
 }) => {
   const [reviseModalOpen, setReviseModalOpen] = useState<boolean>(false);
   const [showCommentsSidebar, setShowCommentsSidebar] =
     useState<boolean>(false);
 
   const message = useContext(MessageManagerContext);
-  const { apiEndpoint, reportId, dbName, token, commentManager } =
+  const { apiEndpoint, reportId, projectName, token, commentManager } =
     useContext(OracleReportContext);
 
   const generalCommentsRef = useRef<HTMLTextAreaElement>(null);
@@ -288,7 +288,7 @@ export const OracleNav = ({
         <Modal
           open={deleteModalOpen}
           onOk={() => {
-            onDelete(reportId, dbName);
+            onDelete(reportId, projectName);
             setDeleteModalOpen(false);
           }}
           onCancel={() => setDeleteModalOpen(false)}
@@ -347,7 +347,7 @@ export const OracleNav = ({
             submitForRevision(
               apiEndpoint,
               reportId,
-              dbName,
+              projectName,
               token,
               generalCommentsRef.current?.value,
               comments.map((comment) => ({

@@ -26,7 +26,7 @@ import {
   ListReportResponseItem,
 } from "@oracle";
 import { twMerge } from "tailwind-merge";
-import { OracleNewDb } from "./OracleNewDb";
+import { CreateNewProject } from "../../common/CreateNewProject";
 import { OracleThinking } from "../reports/OracleThinking";
 import { OracleEmbedContext } from "./OracleEmbedContext";
 import { OracleSearchBarManager } from "./search-bar/oracleSearchBarManager";
@@ -35,16 +35,19 @@ import {
   AnalysisTreeManager,
   AnalysisTree,
   createAnalysisTreeFromFetchedAnalyses,
-  validateAnalysisTree,
 } from "../../../../lib/components/query-data/analysis-tree-viewer/analysisTreeManager";
 import {
   fetchAllAnalyses,
   getMostVisibleAnalysis,
 } from "../../../../lib/components/query-data/queryDataUtils";
 import ErrorBoundary from "../../../components/common/ErrorBoundary";
-import { AnalysisTreeContent } from "../../../components/query-data/analysis-tree-viewer/AnalysisTreeViewer";
+import {
+  AnalysisTreeContent,
+  scrollToAnalysis,
+} from "../../../components/query-data/analysis-tree-viewer/AnalysisTreeViewer";
 import { QueryDataEmbedContext } from "../../../components/context/QueryDataEmbedContext";
 import debounce from "lodash.debounce";
+import { raf } from "@utils/utils";
 
 export interface OracleReportType extends ListReportResponseItem {
   /**
@@ -82,24 +85,25 @@ export type groups =
   | "Earlier";
 
 export interface OracleHistory {
-  [dbName: string]: Record<groups, OracleHistoryItem[]>;
+  [projectName: string]: Record<groups, OracleHistoryItem[]>;
 }
 
 const findItemGroupInHistory = (
-  dbName: string,
+  projectName: string,
   itemId: string,
   history: OracleHistory
 ) => {
   // default to Today
-  if (!dbName || !itemId || !history || !history[dbName]) return "Today";
+  if (!projectName || !itemId || !history || !history[projectName])
+    return "Today";
 
-  const groups = Object.keys(history[dbName]) as groups[];
+  const groups = Object.keys(history[projectName]) as groups[];
 
   for (const group of groups) {
     if (
-      history[dbName][group] &&
-      Array.isArray(history[dbName][group]) &&
-      history[dbName][group].some(
+      history[projectName][group] &&
+      Array.isArray(history[projectName][group]) &&
+      history[projectName][group].some(
         (item) => String(item?.itemId) === String(itemId)
       )
     ) {
@@ -114,12 +118,12 @@ const findItemGroupInHistory = (
 // Wrapper component for AnalysisTreeContent to avoid conditional hooks
 const AnalysisTreeContentWrapper = ({
   selectedItem,
-  selectedDbName,
+  selectedProjectName,
   token,
   apiEndpoint,
 }: {
   selectedItem: QueryDataTree;
-  selectedDbName: string;
+  selectedProjectName: string;
   token: string;
   apiEndpoint: string;
 }) => {
@@ -186,7 +190,7 @@ const AnalysisTreeContentWrapper = ({
       }}
     >
       <AnalysisTreeContent
-        dbName={selectedDbName}
+        projectName={selectedProjectName}
         activeRootAnalysisId={activeRootId}
         nestedTree={nestedTree}
         metadata={null}
@@ -202,20 +206,21 @@ const AnalysisTreeContentWrapper = ({
 
 /**
  * Renders an Oracle report in an embedded mode.
- * This has a sidebar to select db names, and a report selector which shows a list of already generated reports.
+ * This has a sidebar to select project names, and a report selector which shows a list of already generated reports.
  * Has a button to start a new report.
  */
 export function OracleEmbed({
   apiEndpoint,
   token,
-  initialDbNames = [],
+  initialProjectNames = [],
 }: {
   apiEndpoint: string;
   token: string;
-  initialDbNames: string[];
+  initialProjectNames: string[];
 }) {
-  const [dbNames, setDbNames] = useState<string[]>(initialDbNames);
-  const [selectedDbName, setSelectedDbName] = useState(null);
+  const [projectNames, setProjectNames] =
+    useState<string[]>(initialProjectNames);
+  const [selectedProjectName, setSelectedProjectName] = useState(null);
   const [oracleHistory, setOracleHistory] = useState<OracleHistory>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -223,27 +228,27 @@ export function OracleEmbed({
   const searchBarManager = useRef(OracleSearchBarManager());
 
   const selectedItem = useMemo(() => {
-    if (!selectedItemId || !oracleHistory[selectedDbName]) return null;
+    if (!selectedItemId || !oracleHistory[selectedProjectName]) return null;
 
     const group = findItemGroupInHistory(
-      selectedDbName,
+      selectedProjectName,
       selectedItemId,
       oracleHistory
     );
-    if (!oracleHistory[selectedDbName][group]) return null;
+    if (!oracleHistory[selectedProjectName][group]) return null;
 
     // Use string comparison for safety
-    return oracleHistory[selectedDbName][group].find(
+    return oracleHistory[selectedProjectName][group].find(
       (r) => String(r.itemId) === String(selectedItemId)
     );
-  }, [selectedItemId, oracleHistory, selectedDbName]);
+  }, [selectedItemId, oracleHistory, selectedProjectName]);
 
   const messageManager = useRef(MessageManager());
   /**
    * We set this to a random string every time.
    * Just to prevent conflicts with uploaded files.
    */
-  const { current: uploadNewDbOption } = useRef<string>(
+  const { current: uploadNewProjectOption } = useRef<string>(
     crypto.randomUUID().toString()
   );
 
@@ -317,13 +322,15 @@ export function OracleEmbed({
 
         // Track if we've found the report from URL
         let foundUrlItemId = false;
-        let foundUrlItemIdDbName = null;
+        let foundUrlItemIdProjectName = null;
 
-        // Set default DB (only if not found in URL)
-        if (dbNames.length && selectedDbName === null && !urlItemId) {
-          setSelectedDbName(dbNames.length ? dbNames[0] : uploadNewDbOption);
+        // Set default project (only if not found in URL)
+        if (projectNames.length && selectedProjectName === null && !urlItemId) {
+          setSelectedProjectName(
+            projectNames.length ? projectNames[0] : uploadNewProjectOption
+          );
         } else {
-          setSelectedDbName(uploadNewDbOption);
+          setSelectedProjectName(uploadNewProjectOption);
         }
 
         const today = new Date();
@@ -334,8 +341,8 @@ export function OracleEmbed({
         const month = new Date(today);
         month.setMonth(month.getMonth() - 1);
 
-        for (const dbName of dbNames) {
-          histories[dbName] = {
+        for (const projectName of projectNames) {
+          histories[projectName] = {
             Today: [],
             Yesterday: [],
             "Past week": [],
@@ -344,9 +351,13 @@ export function OracleEmbed({
           };
 
           try {
-            const reports = await fetchReports(apiEndpoint, token, dbName);
-            // Fetch analyses for this database
-            const analyses = await fetchAllAnalyses(apiEndpoint, token, dbName);
+            const reports = await fetchReports(apiEndpoint, token, projectName);
+            // Fetch analyses for this project
+            const analyses = await fetchAllAnalyses(
+              apiEndpoint,
+              token,
+              projectName
+            );
 
             // Process the analyses and create trees from them if they exist
             if (analyses && analyses.length > 0) {
@@ -376,7 +387,7 @@ export function OracleEmbed({
                   String(rootAnalysis.analysis_id) === String(urlItemId)
                 ) {
                   foundUrlItemId = true;
-                  foundUrlItemIdDbName = dbName;
+                  foundUrlItemIdProjectName = projectName;
                 }
 
                 // Create a QueryDataTree item to add to history
@@ -400,24 +411,24 @@ export function OracleEmbed({
 
                 // Add to appropriate date group in history
                 if (date.toDateString() === localToday.toDateString()) {
-                  histories[dbName]["Today"].push(queryDataTree);
+                  histories[projectName]["Today"].push(queryDataTree);
                 } else if (
                   date.toDateString() === localYesterday.toDateString()
                 ) {
-                  histories[dbName]["Yesterday"].push(queryDataTree);
+                  histories[projectName]["Yesterday"].push(queryDataTree);
                 } else if (date >= localWeek) {
-                  histories[dbName]["Past week"].push(queryDataTree);
+                  histories[projectName]["Past week"].push(queryDataTree);
                 } else if (date >= localMonth) {
-                  histories[dbName]["Past month"].push(queryDataTree);
+                  histories[projectName]["Past month"].push(queryDataTree);
                 } else {
-                  histories[dbName]["Earlier"].push(queryDataTree);
+                  histories[projectName]["Earlier"].push(queryDataTree);
                 }
               }
             }
 
             if (!reports) throw new Error("Failed to get reports");
 
-            // Check for URL item ID in this database
+            // Check for URL item ID in this project
             if (urlItemId && !foundUrlItemId) {
               // Look for a match
               const reportMatch = reports.find(
@@ -425,7 +436,7 @@ export function OracleEmbed({
               );
               if (reportMatch) {
                 foundUrlItemId = true;
-                foundUrlItemIdDbName = dbName;
+                foundUrlItemIdProjectName = projectName;
               }
             }
 
@@ -457,23 +468,23 @@ export function OracleEmbed({
 
               // Compare dates using local timezone
               if (date.toDateString() === localToday.toDateString()) {
-                histories[dbName]["Today"].push(reportWithItemId);
+                histories[projectName]["Today"].push(reportWithItemId);
               } else if (
                 date.toDateString() === localYesterday.toDateString()
               ) {
-                histories[dbName]["Yesterday"].push(reportWithItemId);
+                histories[projectName]["Yesterday"].push(reportWithItemId);
               } else if (date >= localWeek) {
-                histories[dbName]["Past week"].push(reportWithItemId);
+                histories[projectName]["Past week"].push(reportWithItemId);
               } else if (date >= localMonth) {
-                histories[dbName]["Past month"].push(reportWithItemId);
+                histories[projectName]["Past month"].push(reportWithItemId);
               } else {
-                histories[dbName]["Earlier"].push(reportWithItemId);
+                histories[projectName]["Earlier"].push(reportWithItemId);
               }
             });
 
             // sort all items (reports and analyses) within each group in the history
             // by date created in reverse chronological order
-            Object.entries(histories[dbName]).forEach(([group, items]) => {
+            Object.entries(histories[projectName]).forEach(([group, items]) => {
               items.sort((a, b) => {
                 // Handle both reports (with date_created + "Z") and analyses (with date_created already as timestamp)
                 const dateA =
@@ -490,7 +501,7 @@ export function OracleEmbed({
               });
             });
           } catch (error) {
-            setError("Failed to fetch reports for db name " + dbName);
+            setError("Failed to fetch reports for project name " + projectName);
             break;
           }
         }
@@ -499,9 +510,9 @@ export function OracleEmbed({
         setOracleHistory(histories);
 
         // If we found the URL item (report or analysis), select it
-        if (urlItemId && foundUrlItemId && foundUrlItemIdDbName) {
-          // First select the DB
-          setSelectedDbName(foundUrlItemIdDbName);
+        if (urlItemId && foundUrlItemId && foundUrlItemIdProjectName) {
+          // First select the project
+          setSelectedProjectName(foundUrlItemIdProjectName);
 
           // Then wait a moment and select the item ID
           // This delay is important to avoid race conditions
@@ -521,11 +532,11 @@ export function OracleEmbed({
     }
 
     setup();
-  }, [dbNames, apiEndpoint, token]);
+  }, [projectNames, apiEndpoint, token]);
 
   const onReportDelete = useCallback(async () => {
     const reportGroup = findItemGroupInHistory(
-      selectedDbName,
+      selectedProjectName,
       selectedItemId,
       oracleHistory
     );
@@ -534,7 +545,7 @@ export function OracleEmbed({
       apiEndpoint,
       selectedItemId,
       token,
-      selectedDbName
+      selectedProjectName
     );
 
     if (!deleteSucess) {
@@ -545,7 +556,7 @@ export function OracleEmbed({
 
       // remove the report from the history
       setOracleHistory((prev) => {
-        const newReportList = prev[selectedDbName][reportGroup].filter(
+        const newReportList = prev[selectedProjectName][reportGroup].filter(
           (item) => {
             // Check if this is a report or an analysis item
             return "report_id" in item
@@ -556,14 +567,14 @@ export function OracleEmbed({
 
         const newHistory = {
           ...prev,
-          [selectedDbName]: {
-            ...prev[selectedDbName],
+          [selectedProjectName]: {
+            ...prev[selectedProjectName],
             [reportGroup]: newReportList,
           },
         };
         // if no reports left in group, remove group
         if (newReportList.length === 0) {
-          delete newHistory[selectedDbName][reportGroup];
+          delete newHistory[selectedProjectName][reportGroup];
         }
         return newHistory;
       });
@@ -572,49 +583,126 @@ export function OracleEmbed({
       updateUrlWithItemId(null);
       setSelectedItemId(null);
     }
-  }, [apiEndpoint, token, selectedItemId, selectedDbName, updateUrlWithItemId]);
+  }, [
+    apiEndpoint,
+    token,
+    selectedItemId,
+    selectedProjectName,
+    updateUrlWithItemId,
+  ]);
 
-  const dbSelector = useMemo(
-    () => (
+  // Function to handle analysis creation when in query-data mode
+  const createNewFastAnalysis = useCallback(async function ({
+    question,
+    projectName,
+    analysisId,
+    rootAnalysisId,
+    treeManager = null,
+  }: {
+    question: string;
+    projectName: string;
+    analysisId: string;
+    rootAnalysisId: string;
+    treeManager?: AnalysisTreeManager;
+  }): Promise<{
+    rootAnalysisId: string;
+    analysisTree: AnalysisTree;
+    treeManager: AnalysisTreeManager;
+  }> {
+    try {
+      if (treeManager) {
+        // means that the tree exists and this is a new follow on analysis
+        const { newAnalysis } = await treeManager.submit({
+          question,
+          projectName: projectName,
+          analysisId,
+          rootAnalysisId: rootAnalysisId,
+          isRoot: false,
+          directParentId: treeManager.getActiveAnalysisId(),
+          activeTab: "table",
+        });
+
+        raf(() => {
+          scrollToAnalysis(newAnalysis.analysisId);
+        });
+
+        return {
+          rootAnalysisId: rootAnalysisId,
+          analysisTree: treeManager?.getTree() || {},
+          treeManager: treeManager || AnalysisTreeManager(),
+        };
+      } else {
+        // Start a fresh tree
+        const newAnalysisTreeManager = AnalysisTreeManager();
+
+        // Submit the question to create a new root analysis
+        await newAnalysisTreeManager.submit({
+          question,
+          projectName: projectName,
+          analysisId,
+          // this is a new root so this is the same as analysisId
+          rootAnalysisId: analysisId,
+          isRoot: true,
+          directParentId: null,
+          sqlOnly: false,
+          isTemp: false,
+          activeTab: "table",
+        });
+
+        return {
+          rootAnalysisId: analysisId,
+          analysisTree: newAnalysisTreeManager.getTree(),
+          treeManager: newAnalysisTreeManager,
+        };
+      }
+    } catch (error) {
+      console.error("Error creating new analysis:", error);
+      messageManager.current.error(
+        "Failed to create analysis: " + error.message
+      );
+    }
+  }, []);
+
+  const projectSelector = useMemo(() => {
+    return (
       <div>
         <SingleSelect
           disabled={hasUploadedFiles}
           label={
             !selectedItemId && hasUploadedFiles
-              ? "Remove uploaded CSV/Excel files to select a database"
-              : "Select Database"
+              ? "Remove uploaded CSV/Excel files to select a project"
+              : "Select project"
           }
           rootClassNames="mb-2"
-          value={selectedDbName}
+          value={selectedProjectName}
           allowClear={false}
           allowCreateNewOption={false}
           options={[
             {
-              value: uploadNewDbOption,
+              value: uploadNewProjectOption,
               label: "Upload new",
             },
           ].concat(
-            dbNames.map((dbName) => ({
-              value: dbName,
-              label: dbName,
+            projectNames.map((projectName) => ({
+              value: projectName,
+              label: projectName,
             }))
           )}
           onChange={(v: string) => {
-            setSelectedDbName(v);
+            setSelectedProjectName(v);
             updateUrlWithItemId(null);
             setSelectedItemId(null);
           }}
         />
       </div>
-    ),
-    [
-      selectedDbName,
-      selectedItemId,
-      dbNames,
-      hasUploadedFiles,
-      updateUrlWithItemId,
-    ]
-  );
+    );
+  }, [
+    selectedProjectName,
+    selectedItemId,
+    projectNames,
+    hasUploadedFiles,
+    updateUrlWithItemId,
+  ]);
 
   const setMostVisibleAnalysisAsActive = useCallback(() => {
     if (selectedItem.itemType !== "query-data" || !selectedItem.treeManager)
@@ -635,31 +723,83 @@ export function OracleEmbed({
   const nullState = useMemo(() => {
     return (
       <OracleSearchBar
-        uploadNewDbOption={uploadNewDbOption}
+        uploadNewProjectOption={uploadNewProjectOption}
         key="search"
         selectedItem={selectedItem}
-        // rootClassNames={twMerge(
-        //   "transition-all duration-300 ease-in-out max-w-full z-[100]"
-        // )}
-        dbName={selectedDbName}
-        onClarified={(newDbName) => {
-          if (newDbName) {
-            messageManager.current.success(
-              `A new database was created using your uploaded csv/excel files: ${newDbName}`
-            );
-            setDbNames((prev) => [...prev, newDbName]);
-            setSelectedDbName(newDbName);
-            setSelectedItemId(null);
-            setOracleHistory((prev) => ({
-              ...prev,
-              [newDbName]: {
-                Today: [],
-                Yesterday: [],
-                "Past week": [],
-                "Past month": [],
-                Earlier: [],
-              },
-            }));
+        projectName={selectedProjectName}
+        onNewProjectCreated={(newProjectName: string) => {
+          setProjectNames((prev) => [...prev, newProjectName]);
+          setSelectedItemId(null);
+          setOracleHistory((prev) => ({
+            ...prev,
+            [newProjectName]: {
+              Today: [],
+              Yesterday: [],
+              "Past week": [],
+              "Past month": [],
+              Earlier: [],
+            },
+          }));
+        }}
+        createNewFastAnalysis={(question, projectName) => {
+          const analysisId = crypto.randomUUID() as string;
+          if (projectNames.indexOf(projectName) === -1) {
+            // means a new project was created
+            createNewFastAnalysis({
+              question,
+              projectName: projectName,
+              analysisId: analysisId,
+              rootAnalysisId: analysisId,
+              treeManager: selectedItem?.treeManager,
+            }).then(({ rootAnalysisId, analysisTree, treeManager }) => {
+              const timestamp = oracleReportTimestamp();
+
+              // Create a new QueryDataTree item
+              const newQueryDataTree: QueryDataTree = {
+                date_created: timestamp,
+                itemId: rootAnalysisId,
+                analysisTree: analysisTree,
+                treeManager: treeManager,
+                itemType: "query-data",
+              };
+
+              // Add the new analysis to the history
+              setOracleHistory((prev) => {
+                let newHistory: OracleHistory = { ...prev };
+
+                newHistory = {
+                  ...prev,
+                  [projectName]: {
+                    ...prev[projectName],
+                    Today: [
+                      newQueryDataTree,
+                      ...(prev?.[projectName]?.["Today"] || []),
+                    ],
+                    Yesterday: prev?.[projectName]?.["Yesterday"] || [],
+                    "Past week": prev?.[projectName]?.["Past week"] || [],
+                    "Past month": prev?.[projectName]?.["Past month"] || [],
+                    Earlier: prev?.[projectName]?.["Earlier"] || [],
+                  },
+                };
+
+                return newHistory;
+              });
+
+              // Update URL and selected report ID
+              updateUrlWithItemId(rootAnalysisId);
+              setSelectedItemId(rootAnalysisId);
+              setSelectedProjectName(projectName);
+
+              messageManager.current.success("New analysis created");
+            });
+          } else {
+            return createNewFastAnalysis({
+              question,
+              projectName: selectedProjectName,
+              analysisId: analysisId,
+              rootAnalysisId: selectedItem.itemId,
+              treeManager: selectedItem.treeManager,
+            });
           }
         }}
         onReportGenerated={({ userQuestion, reportId, status }) => {
@@ -668,8 +808,8 @@ export function OracleEmbed({
 
             newHistory = {
               ...prev,
-              [selectedDbName]: {
-                ...prev[selectedDbName],
+              [selectedProjectName]: {
+                ...prev[selectedProjectName],
                 Today: [
                   {
                     report_id: reportId,
@@ -679,12 +819,12 @@ export function OracleEmbed({
                     itemId: reportId,
                     itemType: "report",
                   },
-                  ...(prev?.[selectedDbName]?.["Today"] || []),
+                  ...(prev?.[selectedProjectName]?.["Today"] || []),
                 ],
-                Yesterday: prev?.[selectedDbName]?.["Yesterday"] || [],
-                "Past week": prev?.[selectedDbName]?.["Past week"] || [],
-                "Past month": prev?.[selectedDbName]?.["Past month"] || [],
-                Earlier: prev?.[selectedDbName]?.["Earlier"] || [],
+                Yesterday: prev?.[selectedProjectName]?.["Yesterday"] || [],
+                "Past week": prev?.[selectedProjectName]?.["Past week"] || [],
+                "Past month": prev?.[selectedProjectName]?.["Past month"] || [],
+                Earlier: prev?.[selectedProjectName]?.["Earlier"] || [],
               },
             };
 
@@ -694,70 +834,22 @@ export function OracleEmbed({
           updateUrlWithItemId(reportId);
           setSelectedItemId(reportId);
         }}
-        onNewAnalysisTree={({
-          userQuestion,
-          analysisTree,
-          rootAnalysisId,
-          treeManager,
-        }) => {
-          const timestamp = oracleReportTimestamp();
-
-          // Create a new QueryDataTree item
-          const newQueryDataTree: QueryDataTree = {
-            date_created: timestamp,
-            itemId: rootAnalysisId,
-            analysisTree: analysisTree,
-            treeManager: treeManager,
-            itemType: "query-data",
-          };
-
-          // Add the new analysis to the history
-          setOracleHistory((prev) => {
-            let newHistory: OracleHistory = { ...prev };
-
-            newHistory = {
-              ...prev,
-              [selectedDbName]: {
-                ...prev[selectedDbName],
-                Today: [
-                  newQueryDataTree,
-                  ...(prev?.[selectedDbName]?.["Today"] || []),
-                ],
-                Yesterday: prev?.[selectedDbName]?.["Yesterday"] || [],
-                "Past week": prev?.[selectedDbName]?.["Past week"] || [],
-                "Past month": prev?.[selectedDbName]?.["Past month"] || [],
-                Earlier: prev?.[selectedDbName]?.["Earlier"] || [],
-              },
-            };
-
-            return newHistory;
-          });
-
-          // Update URL and selected report ID
-          updateUrlWithItemId(rootAnalysisId);
-          setSelectedItemId(rootAnalysisId);
-
-          messageManager.current.success("New analysis created");
-        }}
       />
     );
   }, [
     messageManager,
-    selectedDbName,
+    selectedProjectName,
     updateUrlWithItemId,
     token,
     apiEndpoint,
     selectedItem,
   ]);
 
-  const wasUploaded = useRef(false);
-
   useEffect(() => {
-    if (wasUploaded.current && dbNames.length) {
-      setSelectedDbName(dbNames[dbNames.length - 1]);
+    if (projectNames.length) {
+      setSelectedProjectName(projectNames[projectNames.length - 1]);
     }
-    wasUploaded.current = false;
-  }, [dbNames]);
+  }, [projectNames]);
 
   if (error) {
     return (
@@ -783,26 +875,26 @@ export function OracleEmbed({
         <div className="flex flex-row min-w-full min-h-full max-h-full h-full text-gray-600 bg-white dark:bg-gray-900">
           <OracleHistorySidebar
             oracleHistory={oracleHistory}
-            selectedDbName={selectedDbName}
-            uploadNewDbOption={uploadNewDbOption}
+            selectedProjectName={selectedProjectName}
+            uploadNewProjectOption={uploadNewProjectOption}
             selectedItemId={selectedItemId}
             updateUrlWithItemId={updateUrlWithItemId}
-            dbSelector={dbSelector}
+            projectSelector={projectSelector}
             setSelectedItem={(item) => {
               setSelectedItemId(item?.itemId);
             }}
           />
           <div className="flex flex-col grow p-2 relative min-w-0 overflow-hidden">
-            {/* Show OracleNewDb when the "Upload new" option is selected */}
+            {/* Show CreateNewProject when the "Upload new" option is selected */}
             {selectedItemId === null &&
-              selectedDbName === uploadNewDbOption && (
-                <OracleNewDb
+              selectedProjectName === uploadNewProjectOption && (
+                <CreateNewProject
                   apiEndpoint={apiEndpoint}
                   token={token}
-                  onDbCreated={(dbName) => {
+                  onProjectCreated={(projectName) => {
                     setOracleHistory((prev) => ({
                       ...prev,
-                      [dbName]: {
+                      [projectName]: {
                         Today: [],
                         Yesterday: [],
                         "Past week": [],
@@ -810,8 +902,7 @@ export function OracleEmbed({
                         Earlier: [],
                       },
                     }));
-                    setDbNames((prev) => [...prev, dbName]);
-                    wasUploaded.current = true;
+                    setProjectNames((prev) => [...prev, projectName]);
                   }}
                 />
               )}
@@ -834,7 +925,7 @@ export function OracleEmbed({
                       {/* Use AnalysisTreeContent to render the analysis */}
                       <AnalysisTreeContentWrapper
                         selectedItem={selectedItem as QueryDataTree}
-                        selectedDbName={selectedDbName}
+                        selectedProjectName={selectedProjectName}
                         token={token}
                         apiEndpoint={apiEndpoint}
                       />
@@ -851,24 +942,24 @@ export function OracleEmbed({
                 key={selectedItemId}
                 reportId={selectedItemId}
                 apiEndpoint={apiEndpoint}
-                dbName={selectedDbName}
+                projectName={selectedProjectName}
                 token={token}
                 onDelete={onReportDelete}
                 onReportParsed={(data: ReportData) => {
                   // find the group of this report in histories
                   const group = findItemGroupInHistory(
-                    selectedDbName,
+                    selectedProjectName,
                     selectedItemId,
                     oracleHistory
                   );
 
                   setOracleHistory((prev) => {
-                    const prevReports = prev[selectedDbName][group];
+                    const prevReports = prev[selectedProjectName][group];
                     // if report is found, update it
                     return {
                       ...prev,
-                      [selectedDbName]: {
-                        ...prev[selectedDbName],
+                      [selectedProjectName]: {
+                        ...prev[selectedProjectName],
                         [group]: prevReports.map((r) => {
                           if (
                             "report_id" in r &&
@@ -894,24 +985,26 @@ export function OracleEmbed({
                 reportId={selectedItemId}
                 onDelete={onReportDelete}
                 onStreamClosed={(thinkingSteps, hadError) => {
-                  // Safety check - make sure the DB and report still exist
+                  // Safety check - make sure the project and report still exist
                   if (
-                    !selectedDbName ||
+                    !selectedProjectName ||
                     !selectedItemId ||
-                    !oracleHistory[selectedDbName]
+                    !oracleHistory[selectedProjectName]
                   ) {
-                    console.warn("Stream closed but DB or report data missing");
+                    console.warn(
+                      "Stream closed but project or report data missing"
+                    );
                     return;
                   }
 
                   const reportGroup = findItemGroupInHistory(
-                    selectedDbName,
+                    selectedProjectName,
                     selectedItemId,
                     oracleHistory
                   );
 
                   // Safety check - make sure the report group exists
-                  if (!oracleHistory[selectedDbName][reportGroup]) {
+                  if (!oracleHistory[selectedProjectName][reportGroup]) {
                     console.warn(
                       "Stream closed but report group missing:",
                       reportGroup
@@ -926,17 +1019,20 @@ export function OracleEmbed({
 
                       // Extra safety check
                       if (
-                        newHistory[selectedDbName] &&
-                        newHistory[selectedDbName][reportGroup] &&
-                        Array.isArray(newHistory[selectedDbName][reportGroup])
+                        newHistory[selectedProjectName] &&
+                        newHistory[selectedProjectName][reportGroup] &&
+                        Array.isArray(
+                          newHistory[selectedProjectName][reportGroup]
+                        )
                       ) {
-                        newHistory[selectedDbName][reportGroup] = newHistory[
-                          selectedDbName
-                        ][reportGroup].filter((r) => {
-                          return "report_id" in r
-                            ? r.report_id !== selectedItemId
-                            : r.itemId !== selectedItemId;
-                        });
+                        newHistory[selectedProjectName][reportGroup] =
+                          newHistory[selectedProjectName][reportGroup].filter(
+                            (r) => {
+                              return "report_id" in r
+                                ? r.report_id !== selectedItemId
+                                : r.itemId !== selectedItemId;
+                            }
+                          );
                       }
 
                       return newHistory;
@@ -951,21 +1047,24 @@ export function OracleEmbed({
 
                       // Extra safety check
                       if (
-                        newHistory[selectedDbName] &&
-                        newHistory[selectedDbName][reportGroup] &&
-                        Array.isArray(newHistory[selectedDbName][reportGroup])
+                        newHistory[selectedProjectName] &&
+                        newHistory[selectedProjectName][reportGroup] &&
+                        Array.isArray(
+                          newHistory[selectedProjectName][reportGroup]
+                        )
                       ) {
-                        newHistory[selectedDbName][reportGroup] = newHistory[
-                          selectedDbName
-                        ][reportGroup].map((r) => {
-                          if (r.itemId === selectedItemId) {
-                            return {
-                              ...r,
-                              status: ORACLE_REPORT_STATUS.DONE,
-                            };
-                          }
-                          return r;
-                        });
+                        newHistory[selectedProjectName][reportGroup] =
+                          newHistory[selectedProjectName][reportGroup].map(
+                            (r) => {
+                              if (r.itemId === selectedItemId) {
+                                return {
+                                  ...r,
+                                  status: ORACLE_REPORT_STATUS.DONE,
+                                };
+                              }
+                              return r;
+                            }
+                          );
                       }
 
                       return newHistory;
