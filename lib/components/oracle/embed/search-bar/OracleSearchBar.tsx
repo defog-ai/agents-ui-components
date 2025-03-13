@@ -330,7 +330,7 @@ export function OracleSearchBar({
             : "",
           rootClassNames
         )}
-        acceptedFileTypes={[".csv", ".pdf", "xlsx", ".xls"]}
+        acceptedFileTypes={[".csv", ".pdf", ".xlsx", ".xls"]}
         fileSelection={false}
         allowMultiple={true}
         onDragOver={(e) => {
@@ -680,30 +680,30 @@ export function OracleSearchBar({
       </DropFilesHeadless>
 
       {/* Clarification area */}
-      {!loading && 
-        draft.clarifications && 
-        draft.clarifications.length > 0 && 
-        !selectedItem && 
+      {!loading &&
+        draft.clarifications &&
+        draft.clarifications.length > 0 &&
+        !selectedItem &&
         draft.mode !== "query-data" && (
-        <div className="w-11/12 mx-auto my-0 flex flex-col">
-          {/* Scrollable clarifications section */}
-          <div className="border border-blue-500 dark:border-sky-600 rounded-t-xl bg-sky-200 dark:bg-sky-900 border-b-0">
-            <div className="h-96 overflow-y-auto py-2 px-4">
-              <OracleReportClarifications />
+          <div className="w-11/12 mx-auto my-0 flex flex-col">
+            {/* Scrollable clarifications section */}
+            <div className="border border-blue-500 dark:border-sky-600 rounded-t-xl bg-sky-200 dark:bg-sky-900 border-b-0">
+              <div className="h-96 overflow-y-auto py-2 px-4">
+                <OracleReportClarifications />
+              </div>
+            </div>
+
+            {/* Fixed Generate button section */}
+            <div className="border border-blue-500 dark:border-sky-600 rounded-b-xl bg-sky-200 dark:bg-sky-900 py-3 px-4 border-t-0">
+              <button
+                className="bg-gray-600 text-white border-0 hover:bg-gray-700 dark:bg-gray-600 dark:hover:bg-gray-600 text-base py-2 px-4 rounded"
+                onClick={handleGenerateReport}
+              >
+                Generate
+              </button>
             </div>
           </div>
-
-          {/* Fixed Generate button section */}
-          <div className="border border-blue-500 dark:border-sky-600 rounded-b-xl bg-sky-200 dark:bg-sky-900 py-3 px-4 border-t-0">
-            <button
-              className="bg-gray-600 text-white border-0 hover:bg-gray-700 dark:bg-gray-600 dark:hover:bg-gray-600 text-base py-2 px-4 rounded"
-              onClick={handleGenerateReport}
-            >
-              Generate
-            </button>
-          </div>
-        </div>
-      )}
+        )}
 
       {/* Loading state */}
       {loading && (
