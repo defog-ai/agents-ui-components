@@ -692,6 +692,7 @@ export function OracleEmbed({
             setSelectedProjectName(v);
             updateUrlWithItemId(null);
             setSelectedItemId(null);
+            searchBarManager.current.resetDraft();
           }}
         />
       </div>

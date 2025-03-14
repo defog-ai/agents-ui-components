@@ -574,6 +574,11 @@ export function OracleSearchBar({
                         uploadResponse.projectName
                       );
 
+                      message.success(
+                        "New project created from file upload: " +
+                          uploadResponse.projectName
+                      );
+
                       // Update the projectName to use for clarifications
                       newProjectName.current = uploadResponse.projectName;
 
@@ -648,26 +653,18 @@ export function OracleSearchBar({
 
                   searchBarManager.setDraft((prev) => ({
                     ...prev,
+                    loading: false,
+                    userQuestion: question,
                     status: "clarifications_received",
                     clarifications: res.clarifications,
                     reportId: res.report_id,
-                  }));
-
-                  searchBarManager.setDraft((prev) => ({
-                    ...prev,
-                    loading: false,
-                    status: "clarifications_received",
-                    userQuestion: question,
+                    uploadedFiles: [],
                   }));
                 }
               } catch (e) {
                 console.log(e);
                 setErrorMessage(e.toString());
-                searchBarManager.setDraft((prev) => ({
-                  ...prev,
-                  loading: false,
-                  status: "blank",
-                }));
+                searchBarManager.resetDraft();
               } finally {
                 setLoading(false);
                 // If there's an error, allow the user to try again
