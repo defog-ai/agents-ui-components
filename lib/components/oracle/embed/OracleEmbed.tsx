@@ -743,8 +743,10 @@ export function OracleEmbed({
         }}
         createNewFastAnalysis={(question, projectName) => {
           const analysisId = crypto.randomUUID() as string;
-          if (projectNames.indexOf(projectName) === -1) {
-            // means a new project was created
+
+          // either a new project was created
+          // or we are on the "new report" screen
+          if (projectNames.indexOf(projectName) === -1 || !selectedItem) {
             createNewFastAnalysis({
               question,
               projectName: projectName,
@@ -796,11 +798,11 @@ export function OracleEmbed({
               messageManager.current.success("New analysis created");
             });
           } else {
-            if (selectedItem.itemType !== "query-data") return;
+            if (selectedItem?.itemType !== "query-data") return;
 
             return createNewFastAnalysis({
               question,
-              projectName: selectedProjectName,
+              projectName: projectName,
               analysisId: analysisId,
               rootAnalysisId: selectedItem.itemId,
               treeManager: selectedItem.treeManager,

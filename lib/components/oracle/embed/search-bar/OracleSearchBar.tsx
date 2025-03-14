@@ -627,7 +627,7 @@ export function OracleSearchBar({
                   searchBarManager.resetDraft();
 
                   // Create new analysis for fast data analysis mode
-                  createNewFastAnalysis(question, newProjectName.current);
+                  createNewFastAnalysis(question, useProjectName);
 
                   // Reset the search bar text
                   if (textAreaRef.current) {
