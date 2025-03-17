@@ -41,7 +41,7 @@ export function PdfCitationsContent({ analysis }: PdfCitationsContentProps) {
         <div className="flex items-center gap-2 mb-2 pb-2 border-b dark:border-gray-600">
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5 text-red-500 dark:text-red-400 flex-shrink-0"
+            className="h-5 w-5 text-blue-500 dark:text-blue-400 flex-shrink-0"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -75,7 +75,7 @@ export function PdfCitationsContent({ analysis }: PdfCitationsContentProps) {
                     <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 flex flex-wrap items-center">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
-                        className="h-3 w-3 mr-1 flex-shrink-0"
+                        className="h-3 w-3 mr-1 flex-shrink-0 text-blue-500 dark:text-blue-400"
                         viewBox="0 0 24 24"
                         fill="none"
                         stroke="currentColor"

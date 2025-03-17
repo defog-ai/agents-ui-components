@@ -468,7 +468,8 @@ interface UserFile {
 export const createProjectFromFiles = async (
   apiEndpoint: string,
   token: string,
-  files: File[]
+  files: File[],
+  dbName?: string
 ): Promise<{ projectName: string; dbInfo: ProjectDbInfo }> => {
   console.time("utils:createProjectFromFiles:setup");
   const urlToConnect = setupBaseUrl({
@@ -479,6 +480,10 @@ export const createProjectFromFiles = async (
 
   const form = new FormData();
   form.append("token", token);
+  // Include db_name if provided
+  if (dbName) {
+    form.append("db_name", dbName);
+  }
   for (const file of files) {
     form.append("files", file);
   }

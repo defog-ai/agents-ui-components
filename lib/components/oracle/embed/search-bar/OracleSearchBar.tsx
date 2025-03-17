@@ -1,6 +1,8 @@
 import {
   generateReport,
   getClarifications,
+  getTablesAndFiles,
+  PdfFileInfo,
   ORACLE_REPORT_STATUS,
 } from "@oracle";
 import {
@@ -28,6 +30,8 @@ import { OracleEmbedContext } from "../OracleEmbedContext";
 import {
   ChevronDown,
   Command,
+  Database,
+  File,
   FileSpreadsheet,
   Info,
   Telescope,
@@ -107,6 +111,9 @@ export function OracleSearchBar({
 
   const [isMac, setIsMac] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
+  const [availableTables, setAvailableTables] = useState<string[]>([]);
+  const [availablePdfFiles, setAvailablePdfFiles] = useState<PdfFileInfo[]>([]);
+  const [isLoadingResources, setIsLoadingResources] = useState<boolean>(false);
 
   const newProjectName = useRef<string | null>(null);
 
@@ -173,6 +180,32 @@ export function OracleSearchBar({
   useEffect(() => {
     setIsMac(navigator.userAgent.toLowerCase().includes("mac"));
   }, []);
+  
+  // Fetch available tables and PDF files when the component mounts or project changes
+  useEffect(() => {
+    const fetchTablesAndFiles = async () => {
+      if (!projectName || projectName === uploadNewProjectOption || !token) {
+        // Reset the tables and files if we're on the upload new project option
+        setAvailableTables([]);
+        setAvailablePdfFiles([]);
+        return;
+      }
+      
+      try {
+        setIsLoadingResources(true);
+        const result = await getTablesAndFiles(apiEndpoint, token, projectName);
+        setAvailableTables(result.tables);
+        setAvailablePdfFiles(result.pdf_files);
+      } catch (error) {
+        console.error("Error fetching tables and files:", error);
+        // Don't show error message to user, just log it
+      } finally {
+        setIsLoadingResources(false);
+      }
+    };
+    
+    fetchTablesAndFiles();
+  }, [projectName, apiEndpoint, token, uploadNewProjectOption]);
 
   const [clarificationStarted, setClarificationStarted] =
     useState<boolean>(false);
@@ -245,61 +278,75 @@ export function OracleSearchBar({
     [draft.mode, searchBarManager, selectedItem]
   );
 
+  // We no longer need to display uploaded files since they're immediately uploaded
   const UploadedFileIcons = useMemo(() => {
-    return draft?.uploadedFiles?.length ? (
-      <div className="w-full">
-        <div className="flex flex-wrap gap-2">
-          {draft?.uploadedFiles?.length ? (
-            <div className="flex flex-row items-center gap-2 w-full text-xs text-blue-600 dark:text-blue-400">
-              <Info className="w-4 min-w-4" />
-              <span>A new project will be created using your files</span>
-            </div>
-          ) : (
-            <></>
-          )}
-          {draft.uploadedFiles.map((file, index) => (
-            <div
-              key={`${file.name}-${index}`}
-              className="flex items-center flex-wrap max-w-full overflow-hidden justify-between bg-gray-100 dark:bg-gray-700 rounded-lg px-3 py-2 text-sm"
-            >
-              <div className="flex items-center max-w-[85%]">
-                <FileSpreadsheet className="w-4 h-4 mr-2 flex-shrink-0 stroke-blue-500 dark:stroke-blue-400" />
-                <span className="truncate max-w-40" title={file.name}>
-                  {file.name}
-                </span>
-              </div>
-              <div className="flex items-center">
-                <span className="text-xs text-gray-500 dark:text-gray-400 mx-2">
-                  {formatFileSize(file.size)}
-                </span>
-                {
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      const newFiles = draft.uploadedFiles?.filter(
-                        (_, i) => i !== index
-                      );
+    return null; // Files are uploaded immediately so we don't need to show them in the search bar
+  }, []);
 
-                      searchBarManager.setDraft((prev) => ({
-                        ...prev,
-                        uploadedFiles: newFiles,
-                      }));
+  // Create a component to display available tables and PDF files
+  const ResourcesDisplay = useMemo(() => {
+    if ((availableTables.length === 0 && availablePdfFiles.length === 0) || 
+        selectedItem?.itemType === "query-data" || 
+        selectedItem?.itemType === "report") {
+      return null;
+    }
 
-                      newProjectName.current = null;
-                    }}
-                    className="cursor-pointer ml-1 text-gray-500 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400"
-                  >
-                    <XCircle className="w-4 h-4" />
-                  </button>
-                }
+    return (
+      <div className="mb-3">
+        <div className="p-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm max-h-96 overflow-y-auto custom-scrollbar">
+          <div className="flex flex-col gap-2">
+            {/* Tables section */}
+            {availableTables.length > 0 && (
+              <div>
+                <div className="font-medium mb-1 flex items-center">
+                  <Database className="w-4 h-4 mr-2 text-blue-500" />
+                  <span>Available Tables</span>
+                </div>
+                <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto pr-1 custom-scrollbar">
+                  {availableTables.map((table) => (
+                    <div 
+                      key={table} 
+                      className="bg-white dark:bg-gray-700 px-2 py-1 rounded border border-gray-200 dark:border-gray-600 text-xs flex items-center"
+                    >
+                      {table}
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
+            )}
+            
+            {/* PDF files section */}
+            {availablePdfFiles.length > 0 && (
+              <div>
+                <div className="font-medium mb-1 flex items-center">
+                  <File className="w-4 h-4 mr-2 text-blue-500" />
+                  <span>Available PDF Files</span>
+                </div>
+                <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto pr-1 custom-scrollbar">
+                  {availablePdfFiles.map((file) => (
+                    <div 
+                      key={file.file_id} 
+                      className="bg-white dark:bg-gray-700 px-2 py-1 rounded border border-gray-200 dark:border-gray-600 text-xs flex items-center"
+                      title={file.file_id}
+                    >
+                      {file.file_name}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {isLoadingResources && (
+              <div className="flex items-center justify-center p-1">
+                <SpinningLoader classNames="w-4 h-4 mr-2" />
+                <span className="text-xs text-gray-500">Loading resources...</span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
-    ) : null;
-  }, [draft]);
+    );
+  }, [availableTables, availablePdfFiles, isLoadingResources, selectedItem]);
 
   return (
     <div
@@ -321,6 +368,9 @@ export function OracleSearchBar({
           />
         </div>
       )}
+      
+      {/* Display available tables and PDF files */}
+      {ResourcesDisplay}
 
       <DropFilesHeadless
         rootClassNames={twMerge(
@@ -365,17 +415,62 @@ export function OracleSearchBar({
               throw new Error("Only CSV, Excel or PDF files are accepted.");
             }
 
-            // Update draft with processed files
-            searchBarManager.setDraft((prev) => ({
-              ...prev,
-              uploadedFiles: [...prev.uploadedFiles, ...files],
-            }));
+            // Set loading state for file upload
+            setLoading(true);
+            message.info("Uploading files...");
 
-            // Reset database info since we've added new files
-            newProjectName.current = null;
+            try {
+              // Immediately upload the files
+              const uploadResponse = await createProjectFromFiles(
+                apiEndpoint,
+                token,
+                files,
+                projectName // Pass current project name
+              );
+
+              // If the upload creates a new project, save that info
+              if (uploadResponse.projectName !== projectName) {
+                console.log(
+                  "New project created from file upload:",
+                  uploadResponse.projectName
+                );
+
+                message.success(
+                  "New project created from file upload: " +
+                    uploadResponse.projectName
+                );
+
+                // Update the projectName to use
+                newProjectName.current = uploadResponse.projectName;
+                
+                // Notify parent component about the new project
+                onNewProjectCreated(newProjectName.current);
+                
+                // Fetch the updated tables and files
+                const result = await getTablesAndFiles(apiEndpoint, token, newProjectName.current);
+                setAvailableTables(result.tables);
+                setAvailablePdfFiles(result.pdf_files);
+              } else {
+                // If project stays the same, still refresh the tables and files
+                const result = await getTablesAndFiles(apiEndpoint, token, projectName);
+                setAvailableTables(result.tables);
+                setAvailablePdfFiles(result.pdf_files);
+              }
+            } catch (uploadError) {
+              console.error("Error uploading files:", uploadError);
+              throw new Error(
+                `Failed to upload files: ${uploadError.message}`
+              );
+            } finally {
+              setLoading(false);
+            }
+
+            // We no longer need to update draft with files
+            // since they're uploaded immediately
           } catch (error) {
             console.error("Error processing files:", error);
             message.error(error.message);
+            setLoading(false);
           }
         }}
       >
@@ -557,61 +652,26 @@ export function OracleSearchBar({
                 // prepare either for success or a new error message
                 setErrorMessage("");
 
-                // Upload files first if there are any
+                // NOTE: Files are now uploaded immediately on drop, so this block
+                // is unlikely to execute since draft.uploadedFiles should be empty.
+                // Keeping a simplified version for backward compatibility.
                 if (draft.uploadedFiles?.length > 0) {
-                  console.log("Uploading files first");
+                  console.log("Uploading remaining files before submitting question");
                   try {
-                    const uploadResponse = await createProjectFromFiles(
+                    await createProjectFromFiles(
                       apiEndpoint,
                       token,
-                      draft.uploadedFiles
+                      draft.uploadedFiles,
+                      projectName // Pass current project name
                     );
-
-                    // If the upload creates a new project, save that info
-                    if (uploadResponse.projectName !== projectName) {
-                      console.log(
-                        "New project created from file upload:",
-                        uploadResponse.projectName
-                      );
-
-                      message.success(
-                        "New project created from file upload: " +
-                          uploadResponse.projectName
-                      );
-
-                      // Update the projectName to use for clarifications
-                      newProjectName.current = uploadResponse.projectName;
-
-                      // Generate an automatic clarification question after file upload
-                      // to understand what the user wants to analyze
-                      if (question.trim() === "") {
-                        const fileNames = [...(draft.uploadedFiles || [])]
-                          .map((f) => f.name)
-                          .join(", ");
-
-                        // Set a default question about the uploaded files
-                        const defaultQuestion = `I've uploaded ${fileNames}. What would you like to know about this data?`;
-
-                        // Update the textarea with the default question
-                        if (textAreaRef.current) {
-                          textAreaRef.current.value = defaultQuestion;
-                          textAreaRef.current.focus();
-                        }
-
-                        // Update the draft state with the default question
-                        searchBarManager.setDraft((prev) => ({
-                          ...prev,
-                          userQuestion: defaultQuestion,
-                        }));
-                      }
-
-                      onNewProjectCreated(newProjectName.current);
-                    }
+                    
+                    // Refresh tables and files
+                    const result = await getTablesAndFiles(apiEndpoint, token, projectName);
+                    setAvailableTables(result.tables);
+                    setAvailablePdfFiles(result.pdf_files);
                   } catch (uploadError) {
                     console.error("Error uploading files:", uploadError);
-                    throw new Error(
-                      `Failed to upload files: ${uploadError.message}`
-                    );
+                    throw new Error(`Failed to upload files: ${uploadError.message}`);
                   }
                 }
 

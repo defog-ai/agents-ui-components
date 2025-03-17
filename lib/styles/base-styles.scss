@@ -116,6 +116,50 @@ p {
   padding-left: 0px !important;
 }
 
+/* Custom scrollbar style for all scrollable areas */
+.custom-scrollbar {
+  /* Custom scrollbars for webkit browsers */
+  &::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: #cdcdcd;
+    border-radius: 3px;
+    
+    &:hover {
+      background: #999;
+    }
+  }
+  
+  /* For Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: #cdcdcd #f1f1f1;
+  
+  /* Dark mode scrollbars */
+  @media (prefers-color-scheme: dark) {
+    &::-webkit-scrollbar-track {
+      background: #2d3748;
+    }
+    
+    &::-webkit-scrollbar-thumb {
+      background: #4a5568;
+      
+      &:hover {
+        background: #718096;
+      }
+    }
+    
+    scrollbar-color: #4a5568 #2d3748;
+  }
+}
+
 /* Table scrollbar and scroll indicators */
 .scrollbar-container {
   /* Custom scrollbars for webkit browsers */

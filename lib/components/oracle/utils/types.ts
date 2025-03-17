@@ -1,6 +1,12 @@
 // types.ts
 import { Editor } from "@tiptap/core";
 
+// File and Resource Types
+export interface PdfFileInfo {
+  file_id: string;
+  file_name: string;
+}
+
 // Analysis Types
 export interface OracleAnalysis {
   analysis_id: string;

@@ -257,9 +257,8 @@ export function OracleEmbed({
     searchBarManager.current.getDraft
   );
 
-  const hasUploadedFiles = useMemo(() => {
-    return draft.uploadedFiles && draft.uploadedFiles.length > 0;
-  }, [draft]);
+  // Since we're now uploading files immediately, we don't need to disable project switching
+  const hasUploadedFiles = false;
 
   // Function to update URL with item_id
   const updateUrlWithItemId = useCallback((itemId: string | number | null) => {
@@ -668,11 +667,7 @@ export function OracleEmbed({
       <div>
         <SingleSelect
           disabled={hasUploadedFiles}
-          label={
-            !selectedItemId && hasUploadedFiles
-              ? "Remove uploaded CSV/Excel files to select a project"
-              : "Select project"
-          }
+          label="Select project"
           rootClassNames="mb-2"
           value={selectedProjectName}
           allowClear={false}
