@@ -299,14 +299,14 @@ export function OracleSearchBar({
             {availableTables.length > 0 && (
               <div>
                 <div className="font-medium mb-1 flex items-center">
-                  <Database className="w-4 h-4 mr-2 text-blue-500" />
-                  <span>Available Tables</span>
+                  <Database className="w-4 h-4 mr-2 text-blue-500 dark:text-blue-400" />
+                  <span className="text-gray-900 dark:text-gray-100">Available Tables</span>
                 </div>
                 <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto pr-1 custom-scrollbar">
                   {availableTables.map((table) => (
                     <div 
                       key={table} 
-                      className="bg-white dark:bg-gray-700 px-2 py-1 rounded border border-gray-200 dark:border-gray-600 text-xs flex items-center"
+                      className="bg-white dark:bg-gray-700 px-2 py-1 rounded border border-gray-200 dark:border-gray-600 text-xs text-gray-900 dark:text-gray-200 flex items-center"
                     >
                       {table}
                     </div>
@@ -319,14 +319,14 @@ export function OracleSearchBar({
             {availablePdfFiles.length > 0 && (
               <div>
                 <div className="font-medium mb-1 flex items-center">
-                  <File className="w-4 h-4 mr-2 text-blue-500" />
-                  <span>Available PDF Files</span>
+                  <File className="w-4 h-4 mr-2 text-blue-500 dark:text-blue-400" />
+                  <span className="text-gray-900 dark:text-gray-100">Available PDF Files</span>
                 </div>
                 <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto pr-1 custom-scrollbar">
                   {availablePdfFiles.map((file) => (
                     <div 
                       key={file.file_id} 
-                      className="bg-white dark:bg-gray-700 px-2 py-1 rounded border border-gray-200 dark:border-gray-600 text-xs flex items-center"
+                      className="bg-white dark:bg-gray-700 px-2 py-1 rounded border border-gray-200 dark:border-gray-600 text-xs text-gray-900 dark:text-gray-200 flex items-center"
                       title={file.file_id}
                     >
                       {file.file_name}
