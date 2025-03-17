@@ -7,6 +7,7 @@ import {
   ClarificationObject,
   SourceItem,
   OracleAnalysis,
+  PdfFileInfo,
 } from "./types";
 import { parseMDX } from "./mdxParser";
 
@@ -684,5 +685,52 @@ export const getSources = async (
   } catch (e) {
     console.error(e);
     return [];
+  }
+};
+
+/**
+ * Get available tables and PDF files for a project
+ */
+
+export const getTablesAndFiles = async (
+  apiEndpoint: string,
+  token: string,
+  projectName: string
+): Promise<{
+  tables: string[];
+  pdf_files: PdfFileInfo[];
+}> => {
+  try {
+    if (!token) throw new Error("No token");
+    if (!projectName) throw new Error("No project name");
+
+    const res = await fetch(
+      setupBaseUrl({
+        apiEndpoint,
+        protocol: "http",
+        path: "integration/get_tables_and_files",
+      }),
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          token,
+          db_name: projectName,
+        }),
+      }
+    );
+
+    if (!res.ok) throw new Error("Failed to get tables and files");
+    const data = await res.json();
+    return {
+      tables: data.tables || [],
+      pdf_files: data.pdf_files || [],
+    };
+  } catch (e) {
+    console.error("Error fetching tables and files:", e);
+    return {
+      tables: [],
+      pdf_files: [],
+    };
   }
 };
