@@ -603,9 +603,9 @@ export function OracleSearchBar({
                     
                     {/* Tooltip that shows when needed */}
                     {showSubmitHint && (
-                      <div className="absolute -left-32 -top-10 z-40 px-3 py-2 text-sm font-medium bg-white text-gray-800 dark:bg-gray-800 dark:text-gray-200 rounded-md border border-gray-300 dark:border-gray-700 shadow-md whitespace-nowrap">
+                      <div className="absolute -top-10 right-0 z-40 px-3 py-2 text-sm font-medium bg-white text-gray-800 dark:bg-gray-800 dark:text-gray-200 rounded-md border border-gray-300 dark:border-gray-700 shadow-md whitespace-nowrap">
                         Press {isMac ? "⌘+Enter" : "Ctrl+Enter"} to submit
-                        <div className="absolute w-3 h-3 bg-white dark:bg-gray-800 border-r border-b border-gray-300 dark:border-gray-700 transform rotate-45 -bottom-1.5 left-1/2 -ml-1.5"></div>
+                        <div className="absolute w-3 h-3 bg-white dark:bg-gray-800 border-r border-b border-gray-300 dark:border-gray-700 transform rotate-45 -bottom-1.5 right-4"></div>
                       </div>
                     )}
                   </div>
