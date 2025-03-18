@@ -240,13 +240,20 @@ export function OracleSearchBar({
       callback: () => {
         // only toggle if we're not in any item
         if (!selectedItem) {
-          // Toggle between fast and deep research modes
+          // Toggle between fast and deep research modes with animation
           const newMode = draft.mode === "query-data" ? "report" : "query-data";
+
+          // Apply transition class to the TextArea
+          if (textAreaRef.current) {
+            textAreaRef.current.style.transition =
+              "height 0.3s ease-in-out, opacity 0.3s ease-in-out";
+          }
+
           searchBarManager.setMode(newMode);
         }
       },
     },
-    [draft.mode, searchBarManager, selectedItem]
+    [draft.mode, searchBarManager, selectedItem, textAreaRef]
   );
 
   // We no longer need to display uploaded files since they're immediately uploaded
@@ -466,7 +473,10 @@ export function OracleSearchBar({
           }}
           prefix={UploadedFileIcons}
           ref={textAreaRef}
-          rootClassNames="w-full py-2"
+          rootClassNames={twMerge(
+            "w-full py-2 transition-all duration-300 ease-in-out",
+            draft.mode === "report" ? "h-32" : "h-20"
+          )}
           textAreaClassNames="border-0 outline-0 ring-0 focus:ring-0 bg-gray-50"
           suffix={
             // selectedItem?.itemType !== "query-data" && (
@@ -637,6 +647,12 @@ export function OracleSearchBar({
                       )
                     }
                     onToggle={(value) => {
+                      // Apply transition to the TextArea during toggle
+                      if (textAreaRef.current) {
+                        textAreaRef.current.style.transition =
+                          "height 0.3s ease-in-out, opacity 0.3s ease-in-out";
+                      }
+
                       searchBarManager.setMode(value ? "report" : "query-data");
                       setClarificationStarted(false);
                     }}
@@ -645,13 +661,13 @@ export function OracleSearchBar({
                     // Show both labels simultaneously
                     showBothLabels={true}
                     onLabel={
-                      <span className="flex items-center gap-1">
+                      <span className="flex items-center gap-1 transition-all duration-300 ease-in-out">
                         {modeIcons["report"]}
                         <span className="whitespace-nowrap">Deep Research</span>
                       </span>
                     }
                     offLabel={
-                      <span className="flex items-center gap-1">
+                      <span className="flex items-center gap-1 transition-all duration-300 ease-in-out">
                         {modeIcons["query-data"]}
                         <span className="whitespace-nowrap">Fast Analysis</span>
                       </span>
@@ -696,7 +712,10 @@ export function OracleSearchBar({
           autoResize={true}
           defaultRows={1}
           textAreaHtmlProps={{
-            style: { resize: "none" },
+            style: {
+              resize: "none",
+              transition: "height 0.3s ease-in-out, opacity 0.3s ease-in-out",
+            },
           }}
           onKeyDown={async (e) => {
             // only do this for slash
