@@ -175,7 +175,7 @@ export function DropFilesHeadless({
   return (
     <div
       className={twMerge(
-        "relative min-h-full min-w-full bg-transparent",
+        "relative min-w-full bg-transparent",
         rootClassNames
       )}
       onDrop={handleDrop}

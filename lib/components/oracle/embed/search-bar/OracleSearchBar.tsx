@@ -360,7 +360,7 @@ export function OracleSearchBar({
 
       <DropFilesHeadless
         rootClassNames={twMerge(
-          "drop-drop min-h-0 relative z-[2] rounded-2xl p-2 border bg-white dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700",
+          "drop-drop min-h-0 relative z-[2] rounded-2xl p-2 border bg-white dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 overflow-visible",
           selectedItem?.itemType === "query-data"
             ? "shadow-custom border-gray-300 dark:border-gray-600"
             : "",
@@ -475,9 +475,9 @@ export function OracleSearchBar({
           ref={textAreaRef}
           rootClassNames={twMerge(
             "w-full py-2 transition-all duration-300 ease-in-out",
-            draft.mode === "report" ? "h-32" : "h-20"
+            draft.mode === "report" ? "min-h-[8rem]" : "min-h-[5rem]"
           )}
-          textAreaClassNames="border-0 outline-0 ring-0 focus:ring-0 bg-gray-50"
+          textAreaClassNames="border-0 outline-0 ring-0 focus:ring-0 bg-gray-50 w-full"
           suffix={
             // selectedItem?.itemType !== "query-data" && (
             <div className={twMerge("flex flex-col")}>
@@ -858,7 +858,7 @@ export function OracleSearchBar({
         draft.mode !== "query-data" && (
           <div className="w-11/12 mx-auto my-0 flex flex-col z-[20] relative">
             {/* Scrollable clarifications section */}
-            <div className="border border-blue-500 dark:border-sky-600 rounded-t-xl bg-sky-200 dark:bg-sky-900 border-b-0 mt-10">
+            <div className="border border-blue-500 dark:border-sky-600 rounded-t-xl bg-sky-200 dark:bg-sky-900 border-b-0 mt-4">
               <div className="h-96 overflow-y-auto py-2 px-4">
                 <OracleReportClarifications />
               </div>
@@ -878,7 +878,7 @@ export function OracleSearchBar({
 
       {/* Loading state */}
       {loading && (
-        <div className="w-11/12 mx-auto border border-blue-500 dark:border-sky-600 rounded-xl bg-sky-200 dark:bg-sky-900 overflow-hidden mt-10">
+        <div className="w-11/12 mx-auto border border-blue-500 dark:border-sky-600 rounded-xl bg-sky-200 dark:bg-sky-900 overflow-hidden mt-4">
           <div className="flex flex-col gap-2 py-2 px-4">
             <span className="text-xs text-gray-600 dark:text-gray-300 flex items-center">
               <SpinningLoader classNames="w-4 mr-1" />
