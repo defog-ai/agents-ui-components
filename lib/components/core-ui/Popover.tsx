@@ -17,7 +17,7 @@ export function Popover({ content, children, open }) {
   }, [open]);
 
   return (
-    <HeadlessPopover className="relative" as="div" open={open !== undefined ? open : undefined}>
+    <HeadlessPopover className="relative" as="div">
       <PopoverButton as="div" className="cursor-pointer">
         {children}
       </PopoverButton>
@@ -25,7 +25,9 @@ export function Popover({ content, children, open }) {
       {(open !== undefined ? open : isOpen) && (
         <PopoverPanel
           static
-          className={twMerge("absolute z-40 p-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200")}
+          className={twMerge(
+            "absolute z-40 p-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200"
+          )}
         >
           {content}
         </PopoverPanel>
