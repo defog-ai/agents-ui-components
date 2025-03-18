@@ -11,6 +11,7 @@ import {
   DropFilesHeadless,
   MenuItem,
   MessageManagerContext,
+  Popover,
   SpinningLoader,
   TextArea,
   Toggle,
@@ -107,6 +108,8 @@ export function OracleSearchBar({
   const [availableTables, setAvailableTables] = useState<string[]>([]);
   const [availablePdfFiles, setAvailablePdfFiles] = useState<PdfFileInfo[]>([]);
   const [isLoadingResources, setIsLoadingResources] = useState<boolean>(false);
+  const [showSubmitHint, setShowSubmitHint] = useState<boolean>(false);
+  const [hasShownSubmitHint, setHasShownSubmitHint] = useState<boolean>(false);
 
   const newProjectName = useRef<string | null>(null);
 
@@ -508,93 +511,104 @@ export function OracleSearchBar({
                       ? " to submit. "
                       : " to start. Drop CSV or Excel files to analyse them. Drop PDFs to add context to the report. "}
                   </div>
-                  <button
-                    onClick={async () => {
-                      if (!textAreaRef.current?.value) {
-                        setErrorMessage("Please enter a question");
-                        return;
-                      }
-                      
-                      // Simulate cmd+enter keypress by running the same logic
-                      try {
-                        setClarificationStarted(true);
-                        setLoading(true);
-
-                        searchBarManager.setDraft((prev) => ({
-                          ...prev,
-                          userQuestion: textAreaRef.current.value,
-                          status: "getting_clarifications",
-                        }));
-
-                        setErrorMessage("");
-
-                        if (draft.uploadedFiles?.length > 0) {
+                  <div className="relative">
+                    {/* Regular button */}
+                    <button
+                        onClick={async () => {
+                          if (!textAreaRef.current?.value) {
+                            setErrorMessage("Please enter a question");
+                            return;
+                          }
+                          
+                          // Simulate cmd+enter keypress by running the same logic
                           try {
-                            await createProjectFromFiles(
-                              apiEndpoint,
-                              token,
-                              draft.uploadedFiles,
-                              projectName
-                            );
+                            setClarificationStarted(true);
+                            setLoading(true);
 
-                            const result = await getTablesAndFiles(
-                              apiEndpoint,
-                              token,
-                              projectName
-                            );
-                            setAvailableTables(result.tables);
-                            setAvailablePdfFiles(result.pdf_files);
-                          } catch (uploadError) {
-                            throw new Error(
-                              `Failed to upload files: ${uploadError.message}`
-                            );
+                            searchBarManager.setDraft((prev) => ({
+                              ...prev,
+                              userQuestion: textAreaRef.current.value,
+                              status: "getting_clarifications",
+                            }));
+
+                            setErrorMessage("");
+
+                            if (draft.uploadedFiles?.length > 0) {
+                              try {
+                                await createProjectFromFiles(
+                                  apiEndpoint,
+                                  token,
+                                  draft.uploadedFiles,
+                                  projectName
+                                );
+
+                                const result = await getTablesAndFiles(
+                                  apiEndpoint,
+                                  token,
+                                  projectName
+                                );
+                                setAvailableTables(result.tables);
+                                setAvailablePdfFiles(result.pdf_files);
+                              } catch (uploadError) {
+                                throw new Error(
+                                  `Failed to upload files: ${uploadError.message}`
+                                );
+                              }
+                            }
+
+                            const useProjectName = newProjectName.current || projectName;
+
+                            if (
+                              draft.mode === "query-data" ||
+                              selectedItem?.itemType === "query-data"
+                            ) {
+                              searchBarManager.resetDraft();
+                              createNewFastAnalysis(textAreaRef.current.value, useProjectName);
+                              if (textAreaRef.current) {
+                                textAreaRef.current.value = "";
+                              }
+                            } else {
+                              const res = await getClarifications(
+                                apiEndpoint,
+                                token,
+                                useProjectName,
+                                textAreaRef.current.value
+                              );
+
+                              searchBarManager.setDraft((prev) => ({
+                                ...prev,
+                                loading: false,
+                                userQuestion: textAreaRef.current.value,
+                                status: "clarifications_received",
+                                clarifications: res.clarifications,
+                                reportId: res.report_id,
+                                uploadedFiles: [],
+                              }));
+                            }
+                          } catch (e) {
+                            console.log(e);
+                            setErrorMessage(e.toString());
+                            searchBarManager.resetDraft();
+                          } finally {
+                            setLoading(false);
+                            setClarificationStarted(false);
+                            newProjectName.current = null;
                           }
-                        }
-
-                        const useProjectName = newProjectName.current || projectName;
-
-                        if (
-                          draft.mode === "query-data" ||
-                          selectedItem?.itemType === "query-data"
-                        ) {
-                          searchBarManager.resetDraft();
-                          createNewFastAnalysis(textAreaRef.current.value, useProjectName);
-                          if (textAreaRef.current) {
-                            textAreaRef.current.value = "";
-                          }
-                        } else {
-                          const res = await getClarifications(
-                            apiEndpoint,
-                            token,
-                            useProjectName,
-                            textAreaRef.current.value
-                          );
-
-                          searchBarManager.setDraft((prev) => ({
-                            ...prev,
-                            loading: false,
-                            userQuestion: textAreaRef.current.value,
-                            status: "clarifications_received",
-                            clarifications: res.clarifications,
-                            reportId: res.report_id,
-                            uploadedFiles: [],
-                          }));
-                        }
-                      } catch (e) {
-                        console.log(e);
-                        setErrorMessage(e.toString());
-                        searchBarManager.resetDraft();
-                      } finally {
-                        setLoading(false);
-                        setClarificationStarted(false);
-                        newProjectName.current = null;
-                      }
-                    }}
-                    disabled={loading}
-                    className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Submit
-                  </button>
+                        }}
+                        disabled={loading}
+                        className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Submit
+                      </button>
+                    
+                    {/* Tooltip that shows when needed */}
+                    {showSubmitHint && (
+                      <div className="absolute -left-32 -top-10 z-40 px-3 py-2 text-sm font-medium bg-white text-gray-800 dark:bg-gray-800 dark:text-gray-200 rounded-md border border-gray-300 dark:border-gray-700 shadow-md whitespace-nowrap">
+                        Press {isMac ? "⌘+Enter" : "Ctrl+Enter"} to submit
+                        <div className="absolute w-3 h-3 bg-white dark:bg-gray-800 border-r border-b border-gray-300 dark:border-gray-700 transform rotate-45 -bottom-1.5 left-1/2 -ml-1.5"></div>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div className="flex gap-2 mt-1 text-xs text-gray-500 dark:text-gray-400">
                   <span className="flex items-center">
@@ -713,6 +727,16 @@ export function OracleSearchBar({
             // only do this for slash
             if (e.key === "/") {
               e.stopPropagation();
+            }
+            // Show hint when normal Enter is pressed (not with modifiers)
+            if (e.key === "Enter" && !e.metaKey && !e.ctrlKey && !e.shiftKey && !hasShownSubmitHint) {
+              e.stopPropagation();
+              setShowSubmitHint(true);
+              setHasShownSubmitHint(true);
+              // Auto-hide after 3 seconds
+              setTimeout(() => {
+                setShowSubmitHint(false);
+              }, 3000);
             }
             if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
               const question = e.currentTarget.value;
