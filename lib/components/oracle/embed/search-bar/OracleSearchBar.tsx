@@ -337,7 +337,7 @@ export function OracleSearchBar({
   return (
     <div
       className={twMerge(
-        "oracle-search transition-all duration-700 ease-in-out z-[10] *:transition-all *:duration-700 *:ease-in-out",
+        "oracle-search transition-all duration-700 ease-in-out z-[30] *:transition-all *:duration-700 *:ease-in-out",
         itemTypeClasses[
           selectedItem?.itemType ||
             (projectName === uploadNewProjectOption ? "new-project" : "default")
@@ -632,7 +632,7 @@ export function OracleSearchBar({
 
               <div
                 className={twMerge(
-                  "flex flex-row mt-2 gap-4 items-center",
+                  "flex flex-row mt-8 gap-4 items-center",
                   selectedItem?.itemType === "query-data" &&
                     "h-0 mt-0 overflow-hidden opacity-0"
                 )}
@@ -856,9 +856,9 @@ export function OracleSearchBar({
         draft.clarifications.length > 0 &&
         !selectedItem &&
         draft.mode !== "query-data" && (
-          <div className="w-11/12 mx-auto my-0 flex flex-col">
+          <div className="w-11/12 mx-auto my-0 flex flex-col z-[20] relative">
             {/* Scrollable clarifications section */}
-            <div className="border border-blue-500 dark:border-sky-600 rounded-t-xl bg-sky-200 dark:bg-sky-900 border-b-0">
+            <div className="border border-blue-500 dark:border-sky-600 rounded-t-xl bg-sky-200 dark:bg-sky-900 border-b-0 mt-10">
               <div className="h-96 overflow-y-auto py-2 px-4">
                 <OracleReportClarifications />
               </div>
@@ -878,7 +878,7 @@ export function OracleSearchBar({
 
       {/* Loading state */}
       {loading && (
-        <div className="w-11/12 mx-auto border border-blue-500 dark:border-sky-600 rounded-xl bg-sky-200 dark:bg-sky-900 overflow-hidden">
+        <div className="w-11/12 mx-auto border border-blue-500 dark:border-sky-600 rounded-xl bg-sky-200 dark:bg-sky-900 overflow-hidden mt-10">
           <div className="flex flex-col gap-2 py-2 px-4">
             <span className="text-xs text-gray-600 dark:text-gray-300 flex items-center">
               <SpinningLoader classNames="w-4 mr-1" />

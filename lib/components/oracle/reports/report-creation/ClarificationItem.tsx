@@ -49,11 +49,11 @@ export const ClarificationItem = ({
   }, []);
 
   return (
-    <div className="relative antialiased will-change-auto">
+    <div className="relative antialiased will-change-auto z-[25]">
       {onDismiss && (
         <button
           onClick={onDismiss}
-          className="absolute -right-2 -top-2 p-1 rounded-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 transition-colors will-change-auto"
+          className="absolute -right-2 -top-2 p-1 rounded-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 transition-colors will-change-auto z-[26]"
           title="Dismiss"
         >
           <X className="w-4 h-4 text-gray-600 dark:text-gray-400" />
