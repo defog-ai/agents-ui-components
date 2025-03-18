@@ -18,7 +18,7 @@ export function OracleReportClarifications() {
   );
 
   return (
-    <div className="w-full flex flex-col items-start relative justify-center m-auto antialiased">
+    <div className="w-full flex flex-col items-start relative justify-center m-auto antialiased z-[25]">
       {draft.clarifications && (
         <div className="w-full max-w-4xl">
           <div className="space-y-4">
