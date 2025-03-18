@@ -49,7 +49,7 @@ export const ClarificationItem = ({
   }, []);
 
   return (
-    <div className="relative antialiased will-change-auto z-[25]">
+    <div className="relative antialiased will-change-auto">
       {onDismiss && (
         <button
           onClick={onDismiss}
