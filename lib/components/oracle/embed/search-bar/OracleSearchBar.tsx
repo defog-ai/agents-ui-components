@@ -7,11 +7,8 @@ import {
 } from "@oracle";
 import {
   AlertBanner,
-  Dropdown,
   DropFilesHeadless,
-  MenuItem,
   MessageManagerContext,
-  Popover,
   SpinningLoader,
   TextArea,
   Toggle,
@@ -28,23 +25,8 @@ import {
 } from "react";
 import { useKeyDown } from "../../../../../lib/components/hooks/useKeyDown";
 import { OracleEmbedContext } from "../OracleEmbedContext";
-import {
-  ChevronDown,
-  Command,
-  Database,
-  File,
-  FileSpreadsheet,
-  Info,
-  Telescope,
-  XCircle,
-  Zap,
-} from "lucide-react";
-import {
-  formatFileSize,
-  isValidFileType,
-  createProjectFromFiles,
-  FILE_TYPES,
-} from "@utils/utils";
+import { Command, File, FileSpreadsheet, Telescope, Zap } from "lucide-react";
+import { createProjectFromFiles } from "@utils/utils";
 import { statusDescriptions, Mode } from "./oracleSearchBarManager";
 import { OracleReportClarifications } from "../../reports/report-creation/OracleReportClarifications";
 import { twMerge } from "tailwind-merge";
@@ -52,16 +34,9 @@ import { OracleHistoryItem } from "../OracleEmbed";
 import { OracleSearchBarModeHeader } from "./OracleSearchBarModeHeader";
 import { KEYMAP } from "../../../../../lib/constants/keymap";
 
-const modeDisplayName = {
-  "query-data": "Fast data analysis",
-  report: "Deep research",
-};
-
 const modeIcons: Record<Mode, React.ReactNode> = {
-  "query-data": (
-    <Zap className="w-5 stroke-yellow-500 dark:stroke-yellow-600" />
-  ),
-  report: <Telescope className="w-5 stroke-blue-500 dark:stroke-blue-400" />,
+  "query-data": <Zap className="w-5 stroke-yellow-500" />,
+  report: <Telescope className="w-5 stroke-fuchsia-300" />,
 };
 
 const itemTypeClasses = {
@@ -297,7 +272,7 @@ export function OracleSearchBar({
             {availableTables.length > 0 && (
               <div>
                 <div className="font-medium mb-1 flex items-center">
-                  <Database className="w-4 h-4 mr-2 text-blue-500 dark:text-blue-400" />
+                  <FileSpreadsheet className="w-4 h-4 mr-2 text-blue-500 dark:text-blue-400" />
                   <span className="text-gray-900 dark:text-gray-100">
                     Available Tables
                   </span>
@@ -514,93 +489,97 @@ export function OracleSearchBar({
                   <div className="relative">
                     {/* Regular button */}
                     <button
-                        onClick={async () => {
-                          if (!textAreaRef.current?.value) {
-                            setErrorMessage("Please enter a question");
-                            return;
+                      onClick={async () => {
+                        if (!textAreaRef.current?.value) {
+                          setErrorMessage("Please enter a question");
+                          return;
+                        }
+
+                        // Simulate cmd+enter keypress by running the same logic
+                        try {
+                          setClarificationStarted(true);
+                          setLoading(true);
+
+                          searchBarManager.setDraft((prev) => ({
+                            ...prev,
+                            userQuestion: textAreaRef.current.value,
+                            status: "getting_clarifications",
+                          }));
+
+                          setErrorMessage("");
+
+                          if (draft.uploadedFiles?.length > 0) {
+                            try {
+                              await createProjectFromFiles(
+                                apiEndpoint,
+                                token,
+                                draft.uploadedFiles,
+                                projectName
+                              );
+
+                              const result = await getTablesAndFiles(
+                                apiEndpoint,
+                                token,
+                                projectName
+                              );
+                              setAvailableTables(result.tables);
+                              setAvailablePdfFiles(result.pdf_files);
+                            } catch (uploadError) {
+                              throw new Error(
+                                `Failed to upload files: ${uploadError.message}`
+                              );
+                            }
                           }
-                          
-                          // Simulate cmd+enter keypress by running the same logic
-                          try {
-                            setClarificationStarted(true);
-                            setLoading(true);
+
+                          const useProjectName =
+                            newProjectName.current || projectName;
+
+                          if (
+                            draft.mode === "query-data" ||
+                            selectedItem?.itemType === "query-data"
+                          ) {
+                            searchBarManager.resetDraft();
+                            createNewFastAnalysis(
+                              textAreaRef.current.value,
+                              useProjectName
+                            );
+                            if (textAreaRef.current) {
+                              textAreaRef.current.value = "";
+                            }
+                          } else {
+                            const res = await getClarifications(
+                              apiEndpoint,
+                              token,
+                              useProjectName,
+                              textAreaRef.current.value
+                            );
 
                             searchBarManager.setDraft((prev) => ({
                               ...prev,
+                              loading: false,
                               userQuestion: textAreaRef.current.value,
-                              status: "getting_clarifications",
+                              status: "clarifications_received",
+                              clarifications: res.clarifications,
+                              reportId: res.report_id,
+                              uploadedFiles: [],
                             }));
-
-                            setErrorMessage("");
-
-                            if (draft.uploadedFiles?.length > 0) {
-                              try {
-                                await createProjectFromFiles(
-                                  apiEndpoint,
-                                  token,
-                                  draft.uploadedFiles,
-                                  projectName
-                                );
-
-                                const result = await getTablesAndFiles(
-                                  apiEndpoint,
-                                  token,
-                                  projectName
-                                );
-                                setAvailableTables(result.tables);
-                                setAvailablePdfFiles(result.pdf_files);
-                              } catch (uploadError) {
-                                throw new Error(
-                                  `Failed to upload files: ${uploadError.message}`
-                                );
-                              }
-                            }
-
-                            const useProjectName = newProjectName.current || projectName;
-
-                            if (
-                              draft.mode === "query-data" ||
-                              selectedItem?.itemType === "query-data"
-                            ) {
-                              searchBarManager.resetDraft();
-                              createNewFastAnalysis(textAreaRef.current.value, useProjectName);
-                              if (textAreaRef.current) {
-                                textAreaRef.current.value = "";
-                              }
-                            } else {
-                              const res = await getClarifications(
-                                apiEndpoint,
-                                token,
-                                useProjectName,
-                                textAreaRef.current.value
-                              );
-
-                              searchBarManager.setDraft((prev) => ({
-                                ...prev,
-                                loading: false,
-                                userQuestion: textAreaRef.current.value,
-                                status: "clarifications_received",
-                                clarifications: res.clarifications,
-                                reportId: res.report_id,
-                                uploadedFiles: [],
-                              }));
-                            }
-                          } catch (e) {
-                            console.log(e);
-                            setErrorMessage(e.toString());
-                            searchBarManager.resetDraft();
-                          } finally {
-                            setLoading(false);
-                            setClarificationStarted(false);
-                            newProjectName.current = null;
                           }
-                        }}
-                        disabled={loading}
-                        className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        Submit
-                      </button>
-                    
+                        } catch (e) {
+                          console.log(e);
+                          setErrorMessage(e.toString());
+                          searchBarManager.resetDraft();
+                        } finally {
+                          setLoading(false);
+                          setClarificationStarted(false);
+                          newProjectName.current = null;
+                        }
+                      }}
+                      disabled={loading}
+                      className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Submit
+                    </button>
+
                     {/* Tooltip that shows when needed */}
                     {showSubmitHint && (
                       <div className="absolute -top-10 right-0 z-40 px-3 py-2 text-sm font-medium bg-white text-gray-800 dark:bg-gray-800 dark:text-gray-200 rounded-md border border-gray-300 dark:border-gray-700 shadow-md whitespace-nowrap">
@@ -668,19 +647,15 @@ export function OracleSearchBar({
                     onLabel={
                       <span className="flex items-center gap-1">
                         {modeIcons["report"]}
-                        <span className="whitespace-nowrap">Deep research</span>
+                        <span className="whitespace-nowrap">Deep Research</span>
                       </span>
                     }
                     offLabel={
                       <span className="flex items-center gap-1">
                         {modeIcons["query-data"]}
-                        <span className="whitespace-nowrap">
-                          Fast data analysis
-                        </span>
+                        <span className="whitespace-nowrap">Fast Analysis</span>
                       </span>
                     }
-                    rootClassNames="min-w-[320px]"
-                    toggleClassNames="min-w-[320px]"
                   />
                 </div>
 
@@ -729,7 +704,13 @@ export function OracleSearchBar({
               e.stopPropagation();
             }
             // Show hint when normal Enter is pressed (not with modifiers)
-            if (e.key === "Enter" && !e.metaKey && !e.ctrlKey && !e.shiftKey && !hasShownSubmitHint) {
+            if (
+              e.key === "Enter" &&
+              !e.metaKey &&
+              !e.ctrlKey &&
+              !e.shiftKey &&
+              !hasShownSubmitHint
+            ) {
               e.stopPropagation();
               setShowSubmitHint(true);
               setHasShownSubmitHint(true);
