@@ -63,13 +63,6 @@ const modeIcons: Record<Mode, React.ReactNode> = {
   report: <Telescope className="w-5 stroke-blue-500 dark:stroke-blue-400" />,
 };
 
-const modeDescriptions: Record<Mode, string> = {
-  "query-data":
-    "Executes quick, direct SQL queries to retrieve specific data points with minimal processing",
-  report:
-    "Performs in-depth analysis, synthesizing multiple data sources to generate comprehensive insights and structured reports",
-};
-
 const itemTypeClasses = {
   default:
     "absolute bottom-1/2 left-1/2 -translate-x-1/2 translate-y-1/2 w-full px-4",
@@ -180,7 +173,7 @@ export function OracleSearchBar({
   useEffect(() => {
     setIsMac(navigator.userAgent.toLowerCase().includes("mac"));
   }, []);
-  
+
   // Fetch available tables and PDF files when the component mounts or project changes
   useEffect(() => {
     const fetchTablesAndFiles = async () => {
@@ -190,7 +183,7 @@ export function OracleSearchBar({
         setAvailablePdfFiles([]);
         return;
       }
-      
+
       try {
         setIsLoadingResources(true);
         const result = await getTablesAndFiles(apiEndpoint, token, projectName);
@@ -203,7 +196,7 @@ export function OracleSearchBar({
         setIsLoadingResources(false);
       }
     };
-    
+
     fetchTablesAndFiles();
   }, [projectName, apiEndpoint, token, uploadNewProjectOption]);
 
@@ -285,9 +278,11 @@ export function OracleSearchBar({
 
   // Create a component to display available tables and PDF files
   const ResourcesDisplay = useMemo(() => {
-    if ((availableTables.length === 0 && availablePdfFiles.length === 0) || 
-        selectedItem?.itemType === "query-data" || 
-        selectedItem?.itemType === "report") {
+    if (
+      (availableTables.length === 0 && availablePdfFiles.length === 0) ||
+      selectedItem?.itemType === "query-data" ||
+      selectedItem?.itemType === "report"
+    ) {
       return null;
     }
 
@@ -300,12 +295,14 @@ export function OracleSearchBar({
               <div>
                 <div className="font-medium mb-1 flex items-center">
                   <Database className="w-4 h-4 mr-2 text-blue-500 dark:text-blue-400" />
-                  <span className="text-gray-900 dark:text-gray-100">Available Tables</span>
+                  <span className="text-gray-900 dark:text-gray-100">
+                    Available Tables
+                  </span>
                 </div>
                 <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto pr-1 custom-scrollbar">
                   {availableTables.map((table) => (
-                    <div 
-                      key={table} 
+                    <div
+                      key={table}
                       className="bg-white dark:bg-gray-700 px-2 py-1 rounded border border-gray-200 dark:border-gray-600 text-xs text-gray-900 dark:text-gray-200 flex items-center"
                     >
                       {table}
@@ -314,18 +311,20 @@ export function OracleSearchBar({
                 </div>
               </div>
             )}
-            
+
             {/* PDF files section */}
             {availablePdfFiles.length > 0 && (
               <div>
                 <div className="font-medium mb-1 flex items-center">
                   <File className="w-4 h-4 mr-2 text-blue-500 dark:text-blue-400" />
-                  <span className="text-gray-900 dark:text-gray-100">Available PDF Files</span>
+                  <span className="text-gray-900 dark:text-gray-100">
+                    Available PDF Files
+                  </span>
                 </div>
                 <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto pr-1 custom-scrollbar">
                   {availablePdfFiles.map((file) => (
-                    <div 
-                      key={file.file_id} 
+                    <div
+                      key={file.file_id}
                       className="bg-white dark:bg-gray-700 px-2 py-1 rounded border border-gray-200 dark:border-gray-600 text-xs text-gray-900 dark:text-gray-200 flex items-center"
                       title={file.file_id}
                     >
@@ -335,11 +334,13 @@ export function OracleSearchBar({
                 </div>
               </div>
             )}
-            
+
             {isLoadingResources && (
               <div className="flex items-center justify-center p-1">
                 <SpinningLoader classNames="w-4 h-4 mr-2" />
-                <span className="text-xs text-gray-500">Loading resources...</span>
+                <span className="text-xs text-gray-500">
+                  Loading resources...
+                </span>
               </div>
             )}
           </div>
@@ -368,7 +369,7 @@ export function OracleSearchBar({
           />
         </div>
       )}
-      
+
       {/* Display available tables and PDF files */}
       {ResourcesDisplay}
 
@@ -442,25 +443,31 @@ export function OracleSearchBar({
 
                 // Update the projectName to use
                 newProjectName.current = uploadResponse.projectName;
-                
+
                 // Notify parent component about the new project
                 onNewProjectCreated(newProjectName.current);
-                
+
                 // Fetch the updated tables and files
-                const result = await getTablesAndFiles(apiEndpoint, token, newProjectName.current);
+                const result = await getTablesAndFiles(
+                  apiEndpoint,
+                  token,
+                  newProjectName.current
+                );
                 setAvailableTables(result.tables);
                 setAvailablePdfFiles(result.pdf_files);
               } else {
                 // If project stays the same, still refresh the tables and files
-                const result = await getTablesAndFiles(apiEndpoint, token, projectName);
+                const result = await getTablesAndFiles(
+                  apiEndpoint,
+                  token,
+                  projectName
+                );
                 setAvailableTables(result.tables);
                 setAvailablePdfFiles(result.pdf_files);
               }
             } catch (uploadError) {
               console.error("Error uploading files:", uploadError);
-              throw new Error(
-                `Failed to upload files: ${uploadError.message}`
-              );
+              throw new Error(`Failed to upload files: ${uploadError.message}`);
             } finally {
               setLoading(false);
             }
@@ -536,63 +543,45 @@ export function OracleSearchBar({
                     "h-0 mt-0 overflow-hidden opacity-0"
                 )}
               >
-                <Dropdown
-                  disabled={selectedItem?.itemType === "query-data"}
-                  trigger={
-                    <>
-                      {
-                        modeIcons[
-                          selectedItem?.itemType === "query-data"
-                            ? "query-data"
-                            : draft.mode
-                        ]
-                      }
-                      <span className="whitespace-nowrap">
-                        {
-                          modeDisplayName[
-                            selectedItem?.itemType === "query-data"
-                              ? "query-data"
-                              : draft.mode
-                          ]
-                        }
+                <div className="flex items-center gap-3">
+                  <Toggle
+                    disabled={
+                      selectedItem?.itemType === "query-data" ||
+                      clarificationStarted ||
+                      Boolean(
+                        draft.clarifications && draft.clarifications.length
+                      )
+                    }
+                    onToggle={(value) => {
+                      searchBarManager.setMode(value ? "report" : "query-data");
+                      setClarificationStarted(false);
+                    }}
+                    // Use checked prop to make it controlled
+                    checked={draft.mode === "report"}
+                    // Show both labels simultaneously
+                    showBothLabels={true}
+                    onLabel={
+                      <span className="flex items-center gap-1">
+                        {modeIcons["report"]}
+                        <span className="whitespace-nowrap">Deep research</span>
                       </span>
-                      <ChevronDown className="w-4 h-4" />
-                    </>
-                  }
-                >
-                  {Object.entries(modeIcons).map(([key, icon]) => (
-                    <MenuItem
-                      key={key}
-                      disabled={selectedItem?.itemType === "query-data"}
-                      className="w-96"
-                      onClick={() => {
-                        searchBarManager.setMode(key as Mode);
-                        setClarificationStarted(false);
-                      }}
-                      active={
-                        (selectedItem?.itemType === "query-data" &&
-                          key === "query-data") ||
-                        draft.mode === key
-                      }
-                    >
-                      <div className="flex flex-col gap-2">
-                        <span className="flex flex-row items-center gap-2">
-                          {icon}
-                          {modeDisplayName[key]}
+                    }
+                    offLabel={
+                      <span className="flex items-center gap-1">
+                        {modeIcons["query-data"]}
+                        <span className="whitespace-nowrap">
+                          Fast data analysis
                         </span>
-                        <span className="text-xs text-gray-400">
-                          {modeDescriptions[key]}
-                        </span>
-                      </div>
-                    </MenuItem>
-                  ))}
-                </Dropdown>
+                      </span>
+                    }
+                    rootClassNames="min-w-[320px]"
+                    toggleClassNames="min-w-[320px]"
+                  />
+                </div>
 
                 {draft.mode === "report" &&
                 selectedItem?.itemType !== "query-data" ? (
                   <Toggle
-                    // size="small"
-                    // title="Use web search to enhance report"
                     onLabel="Use web search to enhance report"
                     offLabel="Use web search to enhance report"
                     defaultOn={draft.useWebsearch}
@@ -620,7 +609,9 @@ export function OracleSearchBar({
               ? "Type here"
               : isDropping
                 ? "Release to drop"
-                : "Type your question here or drop PDF, CSV or Excel files"
+                : draft.mode === "report"
+                  ? "I will start a Deep Research process on your data tables, any PDF files you have uploaded, and the web. For best results:\n- include the kind of analysis you want done\n- your desired areas of focus\n- any concrete sources you want me to look at"
+                  : "Type your question here or drop PDF, CSV or Excel files"
           }
           autoResize={true}
           defaultRows={1}
@@ -656,7 +647,9 @@ export function OracleSearchBar({
                 // is unlikely to execute since draft.uploadedFiles should be empty.
                 // Keeping a simplified version for backward compatibility.
                 if (draft.uploadedFiles?.length > 0) {
-                  console.log("Uploading remaining files before submitting question");
+                  console.log(
+                    "Uploading remaining files before submitting question"
+                  );
                   try {
                     await createProjectFromFiles(
                       apiEndpoint,
@@ -664,14 +657,20 @@ export function OracleSearchBar({
                       draft.uploadedFiles,
                       projectName // Pass current project name
                     );
-                    
+
                     // Refresh tables and files
-                    const result = await getTablesAndFiles(apiEndpoint, token, projectName);
+                    const result = await getTablesAndFiles(
+                      apiEndpoint,
+                      token,
+                      projectName
+                    );
                     setAvailableTables(result.tables);
                     setAvailablePdfFiles(result.pdf_files);
                   } catch (uploadError) {
                     console.error("Error uploading files:", uploadError);
-                    throw new Error(`Failed to upload files: ${uploadError.message}`);
+                    throw new Error(
+                      `Failed to upload files: ${uploadError.message}`
+                    );
                   }
                 }
 
