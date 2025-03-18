@@ -494,17 +494,108 @@ export function OracleSearchBar({
             // selectedItem?.itemType !== "query-data" && (
             <div className={twMerge("flex flex-col")}>
               <div className={twMerge("dark:text-gray-400")}>
-                Press{" "}
-                {isMac ? (
-                  <>
-                    <Command className="inline align-middle w-2.5" />+ Enter
-                  </>
-                ) : (
-                  "Ctrl + Enter"
-                )}
-                {selectedItem?.itemType
-                  ? " to submit. "
-                  : " to start. Drop CSV or Excel files to analyse them. Drop PDFs to add context to the report. "}
+                <div className="flex items-center justify-between">
+                  <div>
+                    Press{" "}
+                    {isMac ? (
+                      <>
+                        <Command className="inline align-middle w-2.5" />+ Enter
+                      </>
+                    ) : (
+                      "Ctrl + Enter"
+                    )}
+                    {selectedItem?.itemType
+                      ? " to submit. "
+                      : " to start. Drop CSV or Excel files to analyse them. Drop PDFs to add context to the report. "}
+                  </div>
+                  <button
+                    onClick={async () => {
+                      if (!textAreaRef.current?.value) {
+                        setErrorMessage("Please enter a question");
+                        return;
+                      }
+                      
+                      // Simulate cmd+enter keypress by running the same logic
+                      try {
+                        setClarificationStarted(true);
+                        setLoading(true);
+
+                        searchBarManager.setDraft((prev) => ({
+                          ...prev,
+                          userQuestion: textAreaRef.current.value,
+                          status: "getting_clarifications",
+                        }));
+
+                        setErrorMessage("");
+
+                        if (draft.uploadedFiles?.length > 0) {
+                          try {
+                            await createProjectFromFiles(
+                              apiEndpoint,
+                              token,
+                              draft.uploadedFiles,
+                              projectName
+                            );
+
+                            const result = await getTablesAndFiles(
+                              apiEndpoint,
+                              token,
+                              projectName
+                            );
+                            setAvailableTables(result.tables);
+                            setAvailablePdfFiles(result.pdf_files);
+                          } catch (uploadError) {
+                            throw new Error(
+                              `Failed to upload files: ${uploadError.message}`
+                            );
+                          }
+                        }
+
+                        const useProjectName = newProjectName.current || projectName;
+
+                        if (
+                          draft.mode === "query-data" ||
+                          selectedItem?.itemType === "query-data"
+                        ) {
+                          searchBarManager.resetDraft();
+                          createNewFastAnalysis(textAreaRef.current.value, useProjectName);
+                          if (textAreaRef.current) {
+                            textAreaRef.current.value = "";
+                          }
+                        } else {
+                          const res = await getClarifications(
+                            apiEndpoint,
+                            token,
+                            useProjectName,
+                            textAreaRef.current.value
+                          );
+
+                          searchBarManager.setDraft((prev) => ({
+                            ...prev,
+                            loading: false,
+                            userQuestion: textAreaRef.current.value,
+                            status: "clarifications_received",
+                            clarifications: res.clarifications,
+                            reportId: res.report_id,
+                            uploadedFiles: [],
+                          }));
+                        }
+                      } catch (e) {
+                        console.log(e);
+                        setErrorMessage(e.toString());
+                        searchBarManager.resetDraft();
+                      } finally {
+                        setLoading(false);
+                        setClarificationStarted(false);
+                        newProjectName.current = null;
+                      }
+                    }}
+                    disabled={loading}
+                    className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Submit
+                  </button>
+                </div>
                 <div className="flex gap-2 mt-1 text-xs text-gray-500 dark:text-gray-400">
                   <span className="flex items-center">
                     <KeyboardShortcutIndicator
