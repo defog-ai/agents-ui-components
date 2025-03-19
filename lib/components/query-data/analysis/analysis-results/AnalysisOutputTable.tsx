@@ -29,7 +29,10 @@ import { Button, Table } from "@ui-components";
 import { ChartContainer } from "../../../observable-charts/ChartContainer";
 import { AnalyseCSV } from "./AnalyseCSV";
 
-import type { AnalysisRowFromBackend } from "../analysisManager";
+import type {
+  AnalysisRowFromBackend,
+  AnalysisManager,
+} from "../analysisManager";
 import type { AnalysisTreeManager } from "../../analysis-tree-viewer/analysisTreeManager";
 import { KeyboardShortcutIndicator } from "../../../core-ui/KeyboardShortcutIndicator";
 import { KEYMAP, matchesKey } from "../../../../constants/keymap";
@@ -80,12 +83,14 @@ const AnalysisDrawerHandle = ({ isOpen, onClick }) => (
 export function AnalysisOutputsTable({
   projectName,
   analysis = null,
+  analysisManager,
   analysisTreeManager = null,
 }: {
   projectName: string;
   analysis?: AnalysisRowFromBackend | null;
   analysisBusy?: boolean;
   handleReRun?: (...args: any) => void;
+  analysisManager: AnalysisManager;
   analysisTreeManager?: AnalysisTreeManager;
 }) {
   const { apiEndpoint, token } = useContext(QueryDataEmbedContext);
@@ -281,7 +286,10 @@ export function AnalysisOutputsTable({
           {
             component: renderContent(
               <ErrorBoundary>
-                <AnalysisCitations analysis={analysis} />
+                <AnalysisCitations
+                  analysis={analysis}
+                  analysisManager={analysisManager}
+                />
               </ErrorBoundary>
             ),
             key: "pdf",

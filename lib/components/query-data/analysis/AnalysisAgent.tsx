@@ -439,6 +439,7 @@ export const AnalysisAgent = ({
                   <ErrorBoundary>
                     {analysis?.data?.parsedOutput && (
                       <AnalysisResults
+                        analysisManager={analysisManager}
                         projectName={projectName}
                         analysis={analysis}
                         analysisBusy={analysisBusy}
