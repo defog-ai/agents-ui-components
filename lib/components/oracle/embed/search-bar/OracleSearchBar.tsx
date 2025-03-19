@@ -243,7 +243,10 @@ export function OracleSearchBar({
           // Toggle between fast and deep research modes with animation
           const newMode = draft.mode === "query-data" ? "report" : "query-data";
 
-          // Pre-adjust the textarea height before changing mode
+          // Change the mode state immediately for UI toggling
+          searchBarManager.setMode(newMode);
+          
+          // Now handle the textarea height transition separately
           if (textAreaRef.current) {
             // Apply smooth transition
             textAreaRef.current.style.transition = "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)";
@@ -265,14 +268,9 @@ export function OracleSearchBar({
               }, 5);
             }
             
-            // Force a reflow before changing the mode
+            // Force a reflow to ensure transitions apply correctly
             textAreaRef.current.offsetHeight;
           }
-
-          // Small delay to ensure height changes first
-          setTimeout(() => {
-            searchBarManager.setMode(newMode);
-          }, newMode === "report" ? 10 : 400); // Longer delay for shrinking to avoid janky transition
         }
       },
     },
@@ -671,7 +669,11 @@ export function OracleSearchBar({
                       )
                     }
                     onToggle={(value) => {
-                      // Pre-adjust textarea height before changing mode
+                      // Change the mode state immediately for UI toggling
+                      searchBarManager.setMode(value ? "report" : "query-data");
+                      setClarificationStarted(false);
+                      
+                      // Now handle the textarea height transition separately
                       if (textAreaRef.current) {
                         // Apply smooth transition
                         textAreaRef.current.style.transition = "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)";
@@ -693,15 +695,9 @@ export function OracleSearchBar({
                           }, 5);
                         }
                         
-                        // Force a reflow before changing the mode
+                        // Force a reflow to ensure transitions apply correctly
                         textAreaRef.current.offsetHeight;
                       }
-
-                      // Small delay to ensure height changes first
-                      setTimeout(() => {
-                        searchBarManager.setMode(value ? "report" : "query-data");
-                        setClarificationStarted(false);
-                      }, value ? 10 : 400); // Longer delay for shrinking to avoid janky transition
                     }}
                     // Use checked prop to make it controlled
                     checked={draft.mode === "report"}

@@ -9,6 +9,14 @@ import React, {
 import { twMerge } from "tailwind-merge";
 
 function setHeight(el) {
+  // If there's already an explicit height set during a mode transition,
+  // don't interfere with it
+  if (el.style.height && el.style.transition && 
+      el.style.transition.includes("cubic-bezier") &&
+      el.style.transition !== "none") {
+    return;
+  }
+  
   // Store original transition to restore it later
   const originalTransition = el.style.transition;
   
