@@ -81,7 +81,7 @@ export function AnalysisCitations({
     );
   }
 
-  if (error) {
+  if (error || !Array.isArray(pdfSearchResults)) {
     return (
       <div className="mt-4 text-xs h-40 flex items-center justify-center bg-red-100 border-red-500 text-red-800 dark:bg-red-800/30 dark:border-red-500 dark:text-red-200">
         <div className="text-sm">{error}</div>
