@@ -359,22 +359,7 @@ function createAnalysisManager({
         !newAnalysis?.data?.pdf_search_results &&
         analysis
       ) {
-        // Fetch PDF search results without blocking
-        // Make sure apiEndpoint doesn't end with a slash
-        fetchPDFSearchResults(analysis.analysis_id, apiEndpoint, token)
-          .then((results) => {
-            if (analysis && analysis.data) {
-              analysis.data.pdf_search_results = results;
-              emitDataChange();
-            }
-          })
-          .catch((error) => {
-            console.error("Error fetching PDF search results:", error);
-            if (analysis && analysis.data) {
-              analysis.data.pdf_search_results = `Error: ${error instanceof Error ? error.message : "Unknown error"}`;
-              emitDataChange();
-            }
-          });
+        getPdfSearchResults();
       }
     } catch (e) {
       console.log(e);
@@ -420,32 +405,7 @@ function createAnalysisManager({
         !data?.data?.pdf_search_results &&
         data.analysis_id
       ) {
-        // Fetch PDF search results without blocking
-        // Make sure apiEndpoint doesn't end with a slash
-        fetchPDFSearchResults(data.analysis_id, apiEndpoint, token)
-          .then((results) => {
-            if (analysis && analysis.data) {
-              updateAnalysis({
-                ...analysis,
-                data: {
-                  ...analysis.data,
-                  pdf_search_results: results,
-                },
-              });
-            }
-          })
-          .catch((error) => {
-            console.error("Error fetching PDF search results:", error);
-            if (analysis && analysis.data) {
-              updateAnalysis({
-                ...analysis,
-                data: {
-                  ...analysis.data,
-                  pdf_search_results: `Error: ${error instanceof Error ? error.message : "Unknown error"}`,
-                },
-              });
-            }
-          });
+        getPdfSearchResults();
       }
 
       updateAnalysis(data);
@@ -477,6 +437,35 @@ function createAnalysisManager({
         (l) => l !== callback
       );
     };
+  }
+
+  function getPdfSearchResults() {
+    // Fetch PDF search results without blocking
+    // Make sure apiEndpoint doesn't end with a slash
+    fetchPDFSearchResults(analysis.analysis_id, apiEndpoint, token)
+      .then((results) => {
+        if (analysis && analysis.data) {
+          updateAnalysis({
+            ...analysis,
+            data: {
+              ...analysis.data,
+              pdf_search_results: results,
+            },
+          });
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching PDF search results:", error);
+        if (analysis && analysis.data) {
+          updateAnalysis({
+            ...analysis,
+            data: {
+              ...analysis.data,
+              pdf_search_results: `Error: ${error instanceof Error ? error.message : "Unknown error"}`,
+            },
+          });
+        }
+      });
   }
 
   function emitBusyChange(): void {
