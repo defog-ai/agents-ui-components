@@ -134,6 +134,7 @@ export interface AnalysisManager {
   destroy: () => void;
   setOnNewDataCallback: (callback: (data: AnalysisData) => void) => void;
   didInit: boolean;
+  isGettingPdfSearchResults: () => boolean;
 }
 
 export interface AnalysisManagerConfig {
@@ -186,6 +187,7 @@ function createAnalysisManager({
   let _onNewData = onNewData;
   let analysisBusy = false;
   let analysisBusyListeners: ((busy: boolean) => void)[] = [];
+  let gettingPdfSearchResults = false;
 
   const clarifyEndpoint = setupBaseUrl({
     protocol: "http",
@@ -440,6 +442,8 @@ function createAnalysisManager({
   }
 
   function getPdfSearchResults() {
+    gettingPdfSearchResults = true;
+
     // Fetch PDF search results without blocking
     // Make sure apiEndpoint doesn't end with a slash
     fetchPDFSearchResults(analysis.analysis_id, apiEndpoint, token)
@@ -465,6 +469,9 @@ function createAnalysisManager({
             },
           });
         }
+      })
+      .finally(() => {
+        gettingPdfSearchResults = false;
       });
   }
 
@@ -499,6 +506,9 @@ function createAnalysisManager({
     reRun,
     destroy,
     setOnNewDataCallback,
+    isGettingPdfSearchResults() {
+      return gettingPdfSearchResults;
+    },
   };
 }
 

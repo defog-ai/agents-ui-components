@@ -3,6 +3,7 @@ import {
   AnalysisRowFromBackend,
   PDFSearchResults,
   Citation,
+  AnalysisManager,
 } from "../analysisManager";
 import { fetchPDFSearchResults } from "../../queryDataUtils";
 import { QueryDataEmbedContext } from "@agent";
@@ -10,10 +11,14 @@ import { SpinningLoader } from "@ui-components";
 
 export function AnalysisCitations({
   analysis,
+  analysisManager,
 }: {
   analysis: AnalysisRowFromBackend;
+  analysisManager: AnalysisManager;
 }) {
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(
+    true || analysis.data?.pdf_search_results
+  );
 
   const [pdfSearchResults, setPdfSearchResults] = useState<
     PDFSearchResults | string
@@ -25,7 +30,13 @@ export function AnalysisCitations({
 
   // Function to fetch PDF search results if not already present
   const fetchCitationsIfNeeded = async () => {
-    if (!analysis.analysis_id || !analysis.data?.sql) return;
+    if (
+      !analysis.analysis_id ||
+      !analysis.data?.sql ||
+      !analysisManager ||
+      analysisManager.isGettingPdfSearchResults()
+    )
+      return;
 
     try {
       setLoading(true);
@@ -63,8 +74,12 @@ export function AnalysisCitations({
         setError(null);
       }
       setLoading(false);
-    } else if (analysis.data?.sql && !pdfSearchResults) {
-      // If we have SQL but no PDF search results yet, fetch them
+    } else if (
+      analysis.data?.sql &&
+      !pdfSearchResults &&
+      !analysisManager.isGettingPdfSearchResults()
+    ) {
+      // If we have SQL but no PDF search results yet, and are not already fetching them, fetch them here
       fetchCitationsIfNeeded();
     } else if (!analysis.data?.pdf_search_results) {
       setLoading(true);

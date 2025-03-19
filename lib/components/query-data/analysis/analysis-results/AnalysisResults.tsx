@@ -13,18 +13,20 @@ import SQLFeedback from "./SQLFeedback";
 import { AnalysisFollowOn } from "./AnalysisFollowOn";
 import { CodeEditor } from "./CodeEditor";
 import type { AnalysisTreeManager } from "../../analysis-tree-viewer/analysisTreeManager";
-import { AnalysisRowFromBackend } from "../analysisManager";
+import { AnalysisManager, AnalysisRowFromBackend } from "../analysisManager";
 
 export function AnalysisResults({
   projectName,
   analysis,
   analysisBusy = false,
+  analysisManager,
   handleReRun = (editedInputs: EditedInputs) => {},
   submitFollowOn = (followOnQuestion: string) => {},
   analysisTreeManager = null,
 }: {
   projectName: string;
   analysis: AnalysisRowFromBackend;
+  analysisManager: AnalysisManager;
   analysisBusy?: boolean;
   handleReRun: (editedInputs: EditedInputs) => void;
   submitFollowOn: (...args: any[]) => void;
@@ -147,6 +149,7 @@ export function AnalysisResults({
             <AnalysisOutputsTable
               projectName={projectName}
               analysis={analysis}
+              analysisManager={analysisManager}
               analysisTreeManager={analysisTreeManager}
             />
             {analysisData?.sql && (
@@ -163,7 +166,12 @@ export function AnalysisResults({
               submitFollowOn={submitFollowOn}
             />
             {/* PDF Citations */}
-            {analysisData?.sql && <AnalysisCitations analysis={analysis} />}
+            {analysisData?.sql && (
+              <AnalysisCitations
+                analysis={analysis}
+                analysisManager={analysisManager}
+              />
+            )}
           </div>
         ),
         // ) : analysisData?.error ? (
