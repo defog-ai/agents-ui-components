@@ -475,7 +475,7 @@ export function OracleSearchBar({
             "w-full py-2 transition-all duration-300 ease-in-out",
             draft.mode === "report" ? "min-h-[8rem]" : "min-h-[5rem]"
           )}
-          textAreaClassNames="border-0 outline-0 ring-0 focus:ring-0 bg-gray-50 w-full"
+          textAreaClassNames="border-0 outline-0 ring-0 focus:ring-0 bg-gray-50 w-full max-h-60"
           suffix={
             // selectedItem?.itemType !== "query-data" && (
             <div className={twMerge("flex flex-col")}>
@@ -712,7 +712,6 @@ export function OracleSearchBar({
           textAreaHtmlProps={{
             style: {
               resize: "none",
-              transition: "height 0.3s ease-in-out, opacity 0.3s ease-in-out",
             },
           }}
           onKeyDown={async (e) => {
