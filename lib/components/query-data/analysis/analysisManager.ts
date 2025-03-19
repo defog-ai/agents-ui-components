@@ -398,6 +398,8 @@ function createAnalysisManager({
 
       const data = await res.json();
 
+      updateAnalysis(data);
+
       // If rerun was successful and has SQL but no PDF search results, fetch them
       if (
         data?.data?.sql &&
@@ -407,8 +409,6 @@ function createAnalysisManager({
       ) {
         getPdfSearchResults();
       }
-
-      updateAnalysis(data);
     } catch (e) {
       throw new Error(e instanceof Error ? e.message : "Unknown error");
     } finally {
