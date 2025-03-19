@@ -26,7 +26,7 @@ export function AnalysisCitations({
 
   useEffect(() => {
     if (pdfSearchResults || analysis.data?.pdf_search_results) {
-      // Check if the result is an error message (string that starts with "Error:")
+      // Check if the result is an error message
       if (typeof analysis.data.pdf_search_results === "string") {
         setError(analysis.data.pdf_search_results);
         setPdfSearchResults(null);
