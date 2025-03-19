@@ -22,8 +22,8 @@ function setHeight(el: HTMLTextAreaElement) {
     const lineHeight = window.getComputedStyle(el).lineHeight;
 
     el.style.height = "0px";
-    // use vibe-based 1.2 multiplier
-    el.style.height = placeholderLines * (parseInt(lineHeight) * 1.2) + "px";
+    // use vibe-based 15px addition
+    el.style.height = placeholderLines * parseInt(lineHeight) + 15 + "px";
   }
 }
 
