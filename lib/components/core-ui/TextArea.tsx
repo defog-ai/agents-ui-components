@@ -1,16 +1,30 @@
 import { CircleAlert, TriangleAlert } from "lucide-react";
-import React, {
-  forwardRef,
-  Ref,
-  TextareaHTMLAttributes,
-  useEffect,
-  useRef,
-} from "react";
+import React, { forwardRef, Ref, useEffect, useRef } from "react";
 import { twMerge } from "tailwind-merge";
 
-function setHeight(el) {
-  el.style.height = "auto";
-  el.style.height = el.scrollHeight + "px";
+function setHeight(el: HTMLTextAreaElement) {
+  if (el.value) {
+    // no animation if there's some text. just set the height.
+    el.style.height = "auto";
+    el.style.height = el.scrollHeight + "px";
+  } else {
+    // if we're just changing without text, then we will set the height depending on
+    // the placeholder's estimated height
+    // but we can't animate from height:auto to a specific value
+    // so we will first figure out the height of the placeholder
+    // then animate from height = 0 to the estimated height
+
+    // find the number of lines in the placeholder
+    // (always at least 1 line)
+    const placeholderLines = el.placeholder.split("\n").length || 1;
+
+    // find the line height from computed styles
+    const lineHeight = window.getComputedStyle(el).lineHeight;
+
+    el.style.height = "0px";
+    // use vibe-based 1.2 multiplier
+    el.style.height = placeholderLines * (parseInt(lineHeight) * 1.2) + "px";
+  }
 }
 
 const textAreaSizeClasses = {
