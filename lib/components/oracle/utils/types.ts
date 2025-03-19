@@ -39,10 +39,22 @@ export interface ListReportResponseItem {
 
 export type ListReportResponse = ListReportResponseItem[];
 
+export interface CitationItem {
+  text: string;
+  citations?: {
+    cited_text: string;
+    document_title: string;
+    end_page_number?: number;
+    start_page_number?: number;
+    type: string;
+  }[];
+}
+
 export interface ReportData {
   parsed: ReturnType<any> | null;
   analyses: OracleAnalysis[];
   comments: OracleReportComment[];
+  report_with_citations?: CitationItem[];
 }
 
 export interface ClarificationObject {

@@ -6,3 +6,4 @@ export * from './AnalysisPanel';
 export * from './SqlAnalysisContent';
 export * from './WebSearchContent';
 export * from './PdfCitationsContent';
+export * from './ReportCitationsContent';
