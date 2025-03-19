@@ -112,6 +112,12 @@ let TextArea = forwardRef(function TextArea(
 
       // For smoother transitions on initial render and mode changes
       if (textArea.style.transition && textArea.style.transition !== "none") {
+        // If the textarea already has an explicit height, respect it during transitions
+        if (textArea.style.height) {
+          // Let the explicit height from the mode toggle handle the transition
+          return;
+        }
+        
         // Handle initial mode-specific height adjustment
         // Adjust this timeout to allow CSS transitions to complete first
         setTimeout(() => {
@@ -120,7 +126,7 @@ let TextArea = forwardRef(function TextArea(
           const scrollHeight = textArea.scrollHeight;
           
           // Only adjust if needed to prevent unnecessary reflows
-          if (Math.abs(parseInt(textArea.style.height) - scrollHeight) > 10) {
+          if (Math.abs(parseInt(textArea.style.height || "0") - scrollHeight) > 10) {
             // Make height adjustment with gentle transition
             textArea.style.height = scrollHeight + "px";
           }

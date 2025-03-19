@@ -251,6 +251,18 @@ export function OracleSearchBar({
             // If switching to report mode, pre-expand the textarea
             if (newMode === "report") {
               textAreaRef.current.style.minHeight = "8rem";
+            } else {
+              // First let the transition handle the height shrinkage smoothly
+              // before actually changing the min-height
+              const currentHeight = textAreaRef.current.offsetHeight;
+              // Allow content to define height during transition
+              textAreaRef.current.style.height = currentHeight + "px";
+              
+              // Smoothly transition to the smaller height
+              setTimeout(() => {
+                textAreaRef.current.style.height = "5rem";
+                textAreaRef.current.style.minHeight = "5rem";
+              }, 5);
             }
             
             // Force a reflow before changing the mode
@@ -260,7 +272,7 @@ export function OracleSearchBar({
           // Small delay to ensure height changes first
           setTimeout(() => {
             searchBarManager.setMode(newMode);
-          }, 10);
+          }, newMode === "report" ? 10 : 400); // Longer delay for shrinking to avoid janky transition
         }
       },
     },
@@ -667,6 +679,18 @@ export function OracleSearchBar({
                         // If switching to report mode, pre-expand the textarea
                         if (value) {
                           textAreaRef.current.style.minHeight = "8rem";
+                        } else {
+                          // First let the transition handle the height shrinkage smoothly
+                          // before actually changing the min-height
+                          const currentHeight = textAreaRef.current.offsetHeight;
+                          // Allow content to define height during transition
+                          textAreaRef.current.style.height = currentHeight + "px";
+                          
+                          // Smoothly transition to the smaller height
+                          setTimeout(() => {
+                            textAreaRef.current.style.height = "5rem";
+                            textAreaRef.current.style.minHeight = "5rem";
+                          }, 5);
                         }
                         
                         // Force a reflow before changing the mode
@@ -677,7 +701,7 @@ export function OracleSearchBar({
                       setTimeout(() => {
                         searchBarManager.setMode(value ? "report" : "query-data");
                         setClarificationStarted(false);
-                      }, 10);
+                      }, value ? 10 : 400); // Longer delay for shrinking to avoid janky transition
                     }}
                     // Use checked prop to make it controlled
                     checked={draft.mode === "report"}
