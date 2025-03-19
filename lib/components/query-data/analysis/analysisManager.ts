@@ -134,7 +134,7 @@ export interface AnalysisManager {
   destroy: () => void;
   setOnNewDataCallback: (callback: (data: AnalysisData) => void) => void;
   didInit: boolean;
-  isGettingPdfSearchResults: () => boolean;
+  getPdfSearchResults: () => void;
 }
 
 export interface AnalysisManagerConfig {
@@ -442,6 +442,8 @@ function createAnalysisManager({
   }
 
   function getPdfSearchResults() {
+    if (gettingPdfSearchResults) return;
+
     gettingPdfSearchResults = true;
 
     // Fetch PDF search results without blocking
@@ -506,9 +508,7 @@ function createAnalysisManager({
     reRun,
     destroy,
     setOnNewDataCallback,
-    isGettingPdfSearchResults() {
-      return gettingPdfSearchResults;
-    },
+    getPdfSearchResults,
   };
 }
 

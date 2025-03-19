@@ -16,52 +16,13 @@ export function AnalysisCitations({
   analysis: AnalysisRowFromBackend;
   analysisManager: AnalysisManager;
 }) {
-  const [loading, setLoading] = useState(
-    true || analysis.data?.pdf_search_results
-  );
+  const [loading, setLoading] = useState(true);
 
   const [pdfSearchResults, setPdfSearchResults] = useState<
     PDFSearchResults | string
   >(analysis?.data?.pdf_search_results);
 
   const [error, setError] = useState<string | null>(null);
-
-  const { apiEndpoint, token } = useContext(QueryDataEmbedContext);
-
-  // Function to fetch PDF search results if not already present
-  const fetchCitationsIfNeeded = async () => {
-    if (
-      !analysis.analysis_id ||
-      !analysis.data?.sql ||
-      !analysisManager ||
-      analysisManager.isGettingPdfSearchResults()
-    )
-      return;
-
-    try {
-      setLoading(true);
-      const results = await fetchPDFSearchResults(
-        analysis.analysis_id,
-        apiEndpoint,
-        token
-      );
-
-      if (typeof results === "string") {
-        setError(results);
-        setPdfSearchResults(null);
-      } else {
-        setPdfSearchResults(results);
-        setError(null);
-      }
-    } catch (err) {
-      setError(
-        `Error: ${err instanceof Error ? err.message : "Unknown error"}`
-      );
-      setPdfSearchResults(null);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   useEffect(() => {
     if (pdfSearchResults || analysis.data?.pdf_search_results) {
@@ -74,13 +35,9 @@ export function AnalysisCitations({
         setError(null);
       }
       setLoading(false);
-    } else if (
-      analysis.data?.sql &&
-      !pdfSearchResults &&
-      !analysisManager.isGettingPdfSearchResults()
-    ) {
-      // If we have SQL but no PDF search results yet, and are not already fetching them, fetch them here
-      fetchCitationsIfNeeded();
+    } else if (analysis.data?.sql && !pdfSearchResults) {
+      // fetch them here
+      analysisManager.getPdfSearchResults();
     } else if (!analysis.data?.pdf_search_results) {
       setLoading(true);
       setPdfSearchResults(null);
