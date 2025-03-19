@@ -477,7 +477,7 @@ export async function fetchAndParseReportData(
   projectName: string,
   token: string
 ): Promise<ReportData> {
-  const { mdx, analyses } = await getReportMDX(
+  const { mdx, analyses, report_with_citations } = await getReportMDX(
     apiEndpoint,
     reportId,
     projectName,
@@ -496,6 +496,7 @@ export async function fetchAndParseReportData(
     parsed,
     analyses: analyses,
     comments: fetchedComments,
+    report_with_citations: report_with_citations,
   };
 }
 

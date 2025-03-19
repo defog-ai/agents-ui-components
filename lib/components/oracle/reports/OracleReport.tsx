@@ -9,8 +9,9 @@ import {
   fetchAndParseReportData,
   OracleAnalysis,
   ReportData,
+  CitationItem
 } from "@oracle";
-import { LoadingState, ErrorState, AnalysisPanel } from "./components";
+import { LoadingState, ErrorState, AnalysisPanel, ReportCitationsContent } from "./components";
 
 export function OracleReport({
   apiEndpoint,
@@ -31,6 +32,7 @@ export function OracleReport({
   const [analyses, setAnalyses] = useState<OracleAnalysis[]>([]);
   const [comments, setComments] = useState<OracleReportComment[]>([]);
   const [mdx, setMDX] = useState<string | null>(null);
+  const [reportWithCitations, setReportWithCitations] = useState<CitationItem[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -60,6 +62,7 @@ export function OracleReport({
         data.parsed.tables && setTables(data.parsed.tables);
         data.analyses && setAnalyses(data.analyses);
         data.comments && setComments(data.comments);
+        data.report_with_citations && setReportWithCitations(data.report_with_citations);
 
         onReportParsed && onReportParsed(data);
       } catch (e: any) {
@@ -115,19 +118,26 @@ export function OracleReport({
     >
       <div className="flex flex-col lg:flex-row gap-4 relative overflow-auto">
         <div className="flex-1 relative oracle-report-ctr">
-          <EditorProvider
-            extensions={extensions}
-            content={mdx}
-            immediatelyRender={false}
-            editable={false}
-            slotBefore={<OracleNav onDelete={onDelete} />}
-            editorProps={{
-              attributes: {
-                class:
-                  "max-w-none sm:max-w-2xl lg:max-w-3xl xl:max-w-4xl 2xl:max-w-5xl oracle-report-tiptap relative prose prose-base dark:prose-invert mx-auto py-2 px-4 sm:px-6 md:px-10 mb-12 md:mb-0 focus:outline-none *:cursor-default",
-              },
-            }}
-          />
+          {reportWithCitations && reportWithCitations.length > 0 ? (
+            <div className="max-w-none sm:max-w-2xl lg:max-w-3xl xl:max-w-4xl 2xl:max-w-5xl mx-auto py-2 px-4 sm:px-6 md:px-10 mb-12 md:mb-0">
+              <OracleNav onDelete={onDelete} />
+              <ReportCitationsContent citations={reportWithCitations} />
+            </div>
+          ) : (
+            <EditorProvider
+              extensions={extensions}
+              content={mdx}
+              immediatelyRender={false}
+              editable={false}
+              slotBefore={<OracleNav onDelete={onDelete} />}
+              editorProps={{
+                attributes: {
+                  class:
+                    "max-w-none sm:max-w-2xl lg:max-w-3xl xl:max-w-4xl 2xl:max-w-5xl oracle-report-tiptap relative prose prose-base dark:prose-invert mx-auto py-2 px-4 sm:px-6 md:px-10 mb-12 md:mb-0 focus:outline-none *:cursor-default",
+                },
+              }}
+            />
+          )}
         </div>
 
         {/* Analysis panel */}
