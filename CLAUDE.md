@@ -6,7 +6,7 @@ This library works along with a backend which lets the user do two things:
 
 ### "query-data"
 
-Executes quick, direct SQL queries to retrieve specific data points with minimal processing. Also called an "analysis" (note that this is not the same as oracle analysis). File useful files here are analysisManager.js and analysisTreeManager.js. Analysis can have follow on analyses, called "children", and hence can be put into trees. That is what anlaysisTreeManager.js is for. analysisManager handles a single analysis and it's whole workflow.
+Executes quick, direct SQL queries to retrieve specific data points with minimal processing. Also called an "analysis" (note that this is not the same as oracle analysis). File useful files here are analysisManager.js and analysisTreeManager.js. Analysis can have follow on analyses, called "children", and hence can be put into trees. That is what analysisTreeManager.js is for. analysisManager handles a single analysis and it's whole workflow.
 
 ### reports
 

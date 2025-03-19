@@ -152,7 +152,7 @@ The `generate_analysis` [function](https://github.com/defog-ai/defog-self-hosted
 
 - First prepares an "analysis_execution_cache" via a `prepare_cache` function. This cache stores things like api key, user question, server url etc that our tools can readily use if needed.
 - Eventually the above cache is also used for storing outputs of previous steps (if a step depends on a parent's step's output, it can get that output from this object).
-- It will then figure out if there are steps in this analysis that have already been generated. It does this by fetching the latest data for this anlaysis from the db and checking the `gen_steps` column.
+- It will then figure out if there are steps in this analysis that have already been generated. It does this by fetching the latest data for this analysis from the db and checking the `gen_steps` column.
 - Then constructs a giant payload to send to the defog servers. [Code here.](https://github.com/defog-ai/defog-self-hosted/blob/main/backend/agents/planner_executor/planner_executor_agent.py#L613-L633)
 - Once we receive the step's yaml from the backend, we parse it. Then finally we [call the `run_step` function](https://github.com/defog-ai/defog-self-hosted/blob/main/backend/agents/planner_executor/planner_executor_agent.py#L652-L660).
 
