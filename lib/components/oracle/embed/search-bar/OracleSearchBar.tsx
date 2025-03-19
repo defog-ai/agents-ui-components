@@ -42,12 +42,10 @@ const modeIcons: Record<Mode, React.ReactNode> = {
 const itemTypeClasses = {
   default:
     "absolute bottom-1/2 left-1/2 -translate-x-1/2 translate-y-1/2 w-full px-4",
-  "query-data":
-    "absolute bottom-40 left-1/2 -translate-x-1/2 translate-y-full w-full px-4",
-  report:
-    "absolute -bottom-48 left-1/2 -translate-x-1/2 translate-y-full w-full px-4 opacity-0",
+  "query-data": "absolute bottom-2 left-1/2 -translate-x-1/2 w-full px-4",
+  report: "absolute -bottom-48 left-1/2 -translate-x-1/2 w-full px-4 opacity-0",
   "new-project":
-    "absolute -bottom-48 left-1/2 -translate-x-1/2 translate-y-full w-full px-4 opacity-0",
+    "absolute -bottom-48 left-1/2 -translate-x-1/2 w-full px-4 opacity-0",
 };
 
 export function OracleSearchBar({
