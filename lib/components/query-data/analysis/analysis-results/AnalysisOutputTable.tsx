@@ -9,7 +9,13 @@ import {
 import { MessageManagerContext } from "@ui-components";
 import { roundColumns } from "../../queryDataUtils";
 
-import { Download, ChartBarIcon, TableIcon, Sparkles } from "lucide-react";
+import {
+  Download,
+  ChartBarIcon,
+  TableIcon,
+  Sparkles,
+  File,
+} from "lucide-react";
 import ErrorBoundary from "../../../common/ErrorBoundary";
 
 import "prismjs";
@@ -28,9 +34,10 @@ import type { AnalysisTreeManager } from "../../analysis-tree-viewer/analysisTre
 import { KeyboardShortcutIndicator } from "../../../core-ui/KeyboardShortcutIndicator";
 import { KEYMAP, matchesKey } from "../../../../constants/keymap";
 import { QueryDataEmbedContext } from "@agent";
+import { AnalysisCitations } from "./AnalysisCitations";
 
 interface TabItem {
-  key: "table" | "chart";
+  key: "table" | "chart" | "pdf";
   tabLabel: string;
   icon?: React.ReactNode;
   component: React.ReactNode;
@@ -82,7 +89,7 @@ export function AnalysisOutputsTable({
   analysisTreeManager?: AnalysisTreeManager;
 }) {
   const { apiEndpoint, token } = useContext(QueryDataEmbedContext);
-  const tableChartRef = useRef(null);
+  const ctrRef = useRef(null);
   const [sqlQuery, setSqlQuery] = useState(analysis?.data?.sql);
   const [csvLoading, setCsvLoading] = useState(false);
   const [isAnalysisVisible, setIsAnalysisVisible] = useState(true);
@@ -262,14 +269,26 @@ export function AnalysisOutputsTable({
       });
 
       if (parsedOutputs?.data) {
-        tabs.push({
-          component: renderContent(
-            <ErrorBoundary>{chartContainer}</ErrorBoundary>
-          ),
-          key: "chart",
-          tabLabel: "Chart",
-          icon: <ChartBarIcon className="w-4 h-4 mb-0.5 mr-1 inline" />,
-        });
+        tabs.push(
+          {
+            component: renderContent(
+              <ErrorBoundary>{chartContainer}</ErrorBoundary>
+            ),
+            key: "chart",
+            tabLabel: "Chart",
+            icon: <ChartBarIcon className="w-4 h-4 mb-0.5 mr-1 inline" />,
+          },
+          {
+            component: renderContent(
+              <ErrorBoundary>
+                <AnalysisCitations analysis={analysis} />
+              </ErrorBoundary>
+            ),
+            key: "pdf",
+            tabLabel: "From your PDFs",
+            icon: <File className="w-4 h-4 mb-0.5 mr-1 inline" />,
+          }
+        );
       }
     }
 
@@ -312,7 +331,7 @@ export function AnalysisOutputsTable({
   }, [activeTab, analysisId, analysisTreeManager]);
 
   return (
-    <div className="table-chart-ctr" ref={tableChartRef}>
+    <div className="table-chart-ctr" ref={ctrRef}>
       <div className="flex flex-col w-full">
         <div className="border-b border-gray-200">
           <div className="flex items-center justify-between">

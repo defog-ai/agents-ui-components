@@ -2,6 +2,7 @@ import { useCallback, useContext, useMemo, useRef } from "react";
 import { AnalysisOutputsTable } from "./AnalysisOutputTable";
 import { AnalysisError } from "./AnalysisError";
 import { AnalysisInputs } from "./AnalysisInputs";
+import { AnalysisCitations } from "./AnalysisCitations";
 import AgentLoader from "../../../common/AgentLoader";
 import ErrorBoundary from "../../../common/ErrorBoundary";
 import { Tabs } from "../../../core-ui/Tabs";
@@ -161,6 +162,8 @@ export function AnalysisResults({
               question={analysisData?.inputs?.question}
               submitFollowOn={submitFollowOn}
             />
+            {/* PDF Citations */}
+            {analysisData?.sql && <AnalysisCitations analysis={analysis} />}
           </div>
         ),
         // ) : analysisData?.error ? (

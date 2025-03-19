@@ -3,7 +3,11 @@ import {
   ChartManager,
   createChartManager,
 } from "../../observable-charts/ChartManagerContext";
-import { createAnalysis, fetchAnalysis } from "../queryDataUtils";
+import {
+  createAnalysis,
+  fetchAnalysis,
+  fetchPDFSearchResults,
+} from "../queryDataUtils";
 import { parseData } from "@agent";
 
 type Stage = "clarify" | "generate_analysis";
@@ -50,6 +54,28 @@ function parseOutput(csvString: string): ParsedOutput {
   return parsedOutput;
 }
 
+export interface PlainText {
+  text: string;
+  type: "text";
+}
+
+export interface Citation {
+  cited_text: string;
+  document_index: number;
+  document_title: string;
+  end_page_number: number;
+  start_page_number: number;
+  type: string;
+}
+
+export interface CitedText {
+  citations: Citation[];
+  text: string;
+  type: "text";
+}
+
+export type PDFSearchResults = (PlainText | CitedText)[];
+
 export interface Inputs {
   question: string;
   hard_filters: string[];
@@ -73,6 +99,7 @@ export interface AnalysisData {
   sql?: string;
   output?: string;
   parsedOutput?: ParsedOutput;
+  pdf_search_results?: PDFSearchResults | string;
 }
 
 export interface AnalysisRowFromBackend {
@@ -324,6 +351,31 @@ function createAnalysisManager({
       console.groupEnd();
 
       updateAnalysis(newAnalysis);
+
+      // If analysis is successful and has SQL but no PDF search results yet, fetch them
+      if (
+        newAnalysis?.data?.sql &&
+        !newAnalysis?.data?.error &&
+        !newAnalysis?.data?.pdf_search_results &&
+        analysis
+      ) {
+        // Fetch PDF search results without blocking
+        // Make sure apiEndpoint doesn't end with a slash
+        fetchPDFSearchResults(analysis.analysis_id, apiEndpoint, token)
+          .then((results) => {
+            if (analysis && analysis.data) {
+              analysis.data.pdf_search_results = results;
+              emitDataChange();
+            }
+          })
+          .catch((error) => {
+            console.error("Error fetching PDF search results:", error);
+            if (analysis && analysis.data) {
+              analysis.data.pdf_search_results = `Error: ${error instanceof Error ? error.message : "Unknown error"}`;
+              emitDataChange();
+            }
+          });
+      }
     } catch (e) {
       console.log(e);
       onAbortError(e);
@@ -362,6 +414,31 @@ function createAnalysisManager({
       const data = await res.json();
 
       updateAnalysis(data);
+
+      // If rerun was successful and has SQL but no PDF search results, fetch them
+      if (
+        data?.data?.sql &&
+        !data?.data?.error &&
+        !data?.data?.pdf_search_results &&
+        data.analysis_id
+      ) {
+        // Fetch PDF search results without blocking
+        // Make sure apiEndpoint doesn't end with a slash
+        fetchPDFSearchResults(data.analysis_id, apiEndpoint, token)
+          .then((results) => {
+            if (analysis && analysis.data) {
+              analysis.data.pdf_search_results = results;
+              emitDataChange();
+            }
+          })
+          .catch((error) => {
+            console.error("Error fetching PDF search results:", error);
+            if (analysis && analysis.data) {
+              analysis.data.pdf_search_results = `Error: ${error instanceof Error ? error.message : "Unknown error"}`;
+              emitDataChange();
+            }
+          });
+      }
     } catch (e) {
       throw new Error(e instanceof Error ? e.message : "Unknown error");
     } finally {
