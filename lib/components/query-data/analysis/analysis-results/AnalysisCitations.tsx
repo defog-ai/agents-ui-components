@@ -6,6 +6,7 @@ import {
 } from "../analysisManager";
 import { fetchPDFSearchResults } from "../../queryDataUtils";
 import { QueryDataEmbedContext } from "@agent";
+import { SpinningLoader } from "@ui-components";
 
 export function AnalysisCitations({
   analysis,
@@ -13,10 +14,13 @@ export function AnalysisCitations({
   analysis: AnalysisRowFromBackend;
 }) {
   const [loading, setLoading] = useState(true);
-  const [pdfSearchResults, setPdfSearchResults] =
-    useState<PDFSearchResults | null>(null);
+
+  const [pdfSearchResults, setPdfSearchResults] = useState<
+    PDFSearchResults | string
+  >(analysis?.data?.pdf_search_results);
+
   const [error, setError] = useState<string | null>(null);
-  const [hasFetchedInitially, setHasFetchedInitially] = useState(false);
+
   const { apiEndpoint, token } = useContext(QueryDataEmbedContext);
 
   // Function to fetch PDF search results if not already present
@@ -31,11 +35,11 @@ export function AnalysisCitations({
         token
       );
 
-      if (typeof results === "string" && results.startsWith("Error:")) {
+      if (typeof results === "string") {
         setError(results);
         setPdfSearchResults(null);
       } else {
-        setPdfSearchResults(results as PDFSearchResults);
+        setPdfSearchResults(results);
         setError(null);
       }
     } catch (err) {
@@ -45,28 +49,21 @@ export function AnalysisCitations({
       setPdfSearchResults(null);
     } finally {
       setLoading(false);
-      setHasFetchedInitially(true);
     }
   };
 
   useEffect(() => {
-    if (analysis.data?.pdf_search_results) {
+    if (pdfSearchResults || analysis.data?.pdf_search_results) {
       // Check if the result is an error message (string that starts with "Error:")
-      if (
-        typeof analysis.data.pdf_search_results === "string" &&
-        analysis.data.pdf_search_results.startsWith("Error:")
-      ) {
+      if (typeof analysis.data.pdf_search_results === "string") {
         setError(analysis.data.pdf_search_results);
         setPdfSearchResults(null);
       } else {
-        setPdfSearchResults(
-          analysis.data.pdf_search_results as PDFSearchResults
-        );
+        setPdfSearchResults(analysis.data.pdf_search_results);
         setError(null);
       }
       setLoading(false);
-      setHasFetchedInitially(true);
-    } else if (analysis.data?.sql && !hasFetchedInitially) {
+    } else if (analysis.data?.sql && !pdfSearchResults) {
       // If we have SQL but no PDF search results yet, fetch them
       fetchCitationsIfNeeded();
     } else if (!analysis.data?.pdf_search_results) {
@@ -74,52 +71,35 @@ export function AnalysisCitations({
       setPdfSearchResults(null);
       setError(null);
     }
-  }, [
-    analysis.data?.pdf_search_results,
-    analysis.data?.sql,
-    hasFetchedInitially,
-  ]);
+  }, [analysis]);
 
   if (loading) {
     return (
-      <div className="mt-4">
-        <h3 className="text-xs font-medium text-gray-400 uppercase mb-2">
-          Citations
-        </h3>
-        <div className="text-sm text-gray-600 italic">
-          Loading citations from PDF documents...
-        </div>
+      <div className="mt-4 text-xs h-40 flex items-center justify-center bg-gray-50 border-gray-500 text-gray-600 dark:bg-gray-800/30 dark:border-gray-500 dark:text-gray-200">
+        <SpinningLoader classNames="mr-2" /> Searching in your PDFs..
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="mt-4">
-        <h3 className="text-xs font-medium text-gray-400 uppercase mb-2">
-          Citations
-        </h3>
-        <div className="text-sm text-red-500">{error}</div>
+      <div className="mt-4 text-xs h-40 flex items-center justify-center bg-red-100 border-red-500 text-red-800 dark:bg-red-800/30 dark:border-red-500 dark:text-red-200">
+        <div className="text-sm">{error}</div>
       </div>
     );
   }
 
   if (!pdfSearchResults || pdfSearchResults.length === 0) {
     return (
-      <div className="mt-4">
-        <h3 className="text-xs font-medium text-gray-400 uppercase mb-2">
-          Citations
-        </h3>
-        <div className="text-sm text-gray-600 italic">
-          No relevant citations found in PDF documents.
-        </div>
+      <div className="mt-4 text-xs h-40 flex items-center justify-center bg-gray-100 border-gray-500 text-gray-600 dark:bg-gray-800/30 dark:border-gray-500 dark:text-gray-200">
+        No relevant citations found in PDF documents.
       </div>
     );
   }
 
   return (
     <div className="mt-4 max-h-[600px] overflow-auto">
-      <h3 className="text-xs font-medium text-gray-400 uppercase mb-2">
+      <h3 className="text-sm uppercase font-semibold mb-2 text-gray-600 dark:text-gray-200">
         Citations
       </h3>
       <div className="space-y-4">
@@ -134,10 +114,10 @@ export function AnalysisCitations({
               return (
                 <div
                   key={index}
-                  className="p-3 bg-gray-50 rounded-md border border-gray-200"
+                  className="p-3 bg-gray-50 rounded-md border border-gray-200 dark:bg-gray-700 dark:border-gray-600"
                 >
-                  <p className="text-sm mb-2">{item.text}</p>
-                  <div className="text-xs text-gray-500 mt-1">
+                  <p className="text-sm mb-2 dark:text-gray-200">{item.text}</p>
+                  <div className="text-xs text-gray-500 mt-1 dark:text-gray-400">
                     {item.citations.map(
                       (citation: Citation, citIndex: number) => (
                         <div key={citIndex} className="mt-1">
@@ -159,7 +139,7 @@ export function AnalysisCitations({
               // This is a PlainText
               return (
                 <div key={index} className="text-sm">
-                  <p>{item.text}</p>
+                  <p className="dark:text-gray-200">{item.text}</p>
                 </div>
               );
             }

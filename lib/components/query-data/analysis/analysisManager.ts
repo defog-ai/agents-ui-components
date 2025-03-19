@@ -413,8 +413,6 @@ function createAnalysisManager({
 
       const data = await res.json();
 
-      updateAnalysis(data);
-
       // If rerun was successful and has SQL but no PDF search results, fetch them
       if (
         data?.data?.sql &&
@@ -427,18 +425,30 @@ function createAnalysisManager({
         fetchPDFSearchResults(data.analysis_id, apiEndpoint, token)
           .then((results) => {
             if (analysis && analysis.data) {
-              analysis.data.pdf_search_results = results;
-              emitDataChange();
+              updateAnalysis({
+                ...analysis,
+                data: {
+                  ...analysis.data,
+                  pdf_search_results: results,
+                },
+              });
             }
           })
           .catch((error) => {
             console.error("Error fetching PDF search results:", error);
             if (analysis && analysis.data) {
-              analysis.data.pdf_search_results = `Error: ${error instanceof Error ? error.message : "Unknown error"}`;
-              emitDataChange();
+              updateAnalysis({
+                ...analysis,
+                data: {
+                  ...analysis.data,
+                  pdf_search_results: `Error: ${error instanceof Error ? error.message : "Unknown error"}`,
+                },
+              });
             }
           });
       }
+
+      updateAnalysis(data);
     } catch (e) {
       throw new Error(e instanceof Error ? e.message : "Unknown error");
     } finally {

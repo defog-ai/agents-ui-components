@@ -319,7 +319,7 @@ export function roundColumns(data: any[], columns: ColumnInfo[]): any[] {
         }
       } catch (e) {
         // set to null
-        console.log(e);
+
         roundedData[i][colName] = x;
       }
     });
@@ -803,8 +803,6 @@ export const fetchPDFSearchResults = async (
       apiEndpoint,
     });
 
-    console.log("PDF search endpoint:", pdfSearchEndpoint);
-
     const response = await fetch(pdfSearchEndpoint, {
       method: "POST",
       headers: {
@@ -816,8 +814,6 @@ export const fetchPDFSearchResults = async (
       }),
     });
 
-    console.log("PDF search response status:", response.status);
-
     if (!response.ok) {
       const errorText = await response.text();
       console.error("Error fetching PDF search results:", errorText);
@@ -825,7 +821,6 @@ export const fetchPDFSearchResults = async (
     }
 
     const data = await response.json();
-    console.log("PDF search response data:", data);
 
     if (data.success) {
       return data.pdf_results;
@@ -834,6 +829,6 @@ export const fetchPDFSearchResults = async (
     }
   } catch (error) {
     console.error("Error fetching PDF search results:", error);
-    return `Error: ${error instanceof Error ? error.message : "Unknown error"}`;
+    return `Error: ${error.message || "Error fetching PDF search results"}`;
   }
 };
