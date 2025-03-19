@@ -11,7 +11,10 @@ dayjs.extend(isoWeek);
 import { mean } from "d3-array";
 import { isNumber } from "@utils/utils";
 import setupBaseUrl from "@utils/setupBaseUrl";
-import { AnalysisRowFromBackend } from "./analysis/analysisManager";
+import {
+  AnalysisRowFromBackend,
+  PDFSearchResults,
+} from "./analysis/analysisManager";
 
 export const fetchAllAnalyses = async (
   apiEndpoint: string,
@@ -779,4 +782,58 @@ export const getMostVisibleAnalysis = (
     id: mostVisibleId,
     element: mostVisibleElement,
   };
+};
+
+/**
+ * Fetches PDF search results for a specific analysis
+ * @param {string} analysisId - Analysis ID to fetch PDF search results for
+ * @param {string} apiEndpoint - API endpoint to connect to
+ * @param {string} token - Authentication token
+ * @returns {Promise<PDFSearchResults | string>} PDF search results or error message
+ */
+export const fetchPDFSearchResults = async (
+  analysisId: string,
+  apiEndpoint: string,
+  token: string
+): Promise<PDFSearchResults | string> => {
+  try {
+    const pdfSearchEndpoint = setupBaseUrl({
+      protocol: "http",
+      path: "query-data/pdf_search",
+      apiEndpoint,
+    });
+
+    console.log("PDF search endpoint:", pdfSearchEndpoint);
+
+    const response = await fetch(pdfSearchEndpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        analysis_id: analysisId,
+        token,
+      }),
+    });
+
+    console.log("PDF search response status:", response.status);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Error fetching PDF search results:", errorText);
+      return `Error: ${errorText}`;
+    }
+
+    const data = await response.json();
+    console.log("PDF search response data:", data);
+
+    if (data.success) {
+      return data.pdf_results;
+    } else {
+      return `Error: ${data.error_message || "Unknown error"}`;
+    }
+  } catch (error) {
+    console.error("Error fetching PDF search results:", error);
+    return `Error: ${error instanceof Error ? error.message : "Unknown error"}`;
+  }
 };
