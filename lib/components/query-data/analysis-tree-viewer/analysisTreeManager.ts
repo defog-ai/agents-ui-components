@@ -3,6 +3,8 @@ import {
   AnalysisRowFromBackend,
 } from "../analysis/analysisManager.js";
 
+type TabTypes = "table" | "chart" | "pdf";
+
 export interface CreateAnalysisRequestBody {
   initialisation_details?: { [key: string]: any };
   direct_parent_id?: string | null;
@@ -66,7 +68,7 @@ export interface NestedAnalysisTree {
  * These are not in the main object to prevent rerendering.
  */
 export interface ActiveTabs {
-  [analysisId: string]: "table" | "chart" | null;
+  [analysisId: string]: TabTypes | null;
 }
 
 export interface AnalysisTreeManager {
@@ -75,8 +77,8 @@ export interface AnalysisTreeManager {
   getNestedTree: () => NestedAnalysisTree;
   getAll: () => FlatAnalysisTree;
   subscribeToActiveAnalysisIdChanges: (listener: Listener) => Unsubscribe;
-  getActiveTab: (analysisId: string) => "table" | "chart";
-  setActiveTab: (analysisId: string, tab: "table" | "chart") => void;
+  getActiveTab: (analysisId: string) => TabTypes;
+  setActiveTab: (analysisId: string, tab: TabTypes) => void;
   /**
    * Subscribe to changes in the active tab in StepResultsTable.
    * This is a little different from other subscription methods. It also takes in analysisId as a parameter.
@@ -338,7 +340,7 @@ export function AnalysisTreeManager(
     };
   }
 
-  function setActiveTab(analysisId: string, tab: "table" | "chart") {
+  function setActiveTab(analysisId: string, tab: TabTypes) {
     activeTabs[analysisId] = tab;
     emitActiveTabChange(analysisId);
   }
@@ -361,7 +363,7 @@ export function AnalysisTreeManager(
     return activeRootAnalysisId;
   }
 
-  function getActiveTab(analysisId: string): "table" | "chart" {
+  function getActiveTab(analysisId: string): TabTypes {
     return activeTabs[analysisId] || "table";
   }
 
