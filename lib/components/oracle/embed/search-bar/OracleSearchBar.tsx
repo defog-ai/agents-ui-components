@@ -243,13 +243,24 @@ export function OracleSearchBar({
           // Toggle between fast and deep research modes with animation
           const newMode = draft.mode === "query-data" ? "report" : "query-data";
 
-          // Apply transition class to the TextArea
+          // Pre-adjust the textarea height before changing mode
           if (textAreaRef.current) {
-            textAreaRef.current.style.transition =
-              "height 0.3s ease-in-out, opacity 0.3s ease-in-out";
+            // Apply smooth transition
+            textAreaRef.current.style.transition = "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)";
+            
+            // If switching to report mode, pre-expand the textarea
+            if (newMode === "report") {
+              textAreaRef.current.style.minHeight = "8rem";
+            }
+            
+            // Force a reflow before changing the mode
+            textAreaRef.current.offsetHeight;
           }
 
-          searchBarManager.setMode(newMode);
+          // Small delay to ensure height changes first
+          setTimeout(() => {
+            searchBarManager.setMode(newMode);
+          }, 10);
         }
       },
     },
@@ -360,10 +371,11 @@ export function OracleSearchBar({
 
       <DropFilesHeadless
         rootClassNames={twMerge(
-          "drop-drop min-h-0 relative z-[2] rounded-2xl p-2 border bg-white dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 overflow-visible",
+          "drop-drop min-h-0 relative z-[2] rounded-2xl p-2 border bg-white dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 overflow-visible transition-all duration-300 ease-in-out",
           selectedItem?.itemType === "query-data"
             ? "shadow-custom border-gray-300 dark:border-gray-600"
             : "",
+          draft.mode === "report" ? "pb-10" : "pb-2",
           rootClassNames
         )}
         acceptedFileTypes={[".csv", ".pdf", ".xlsx", ".xls"]}
@@ -474,7 +486,7 @@ export function OracleSearchBar({
           prefix={UploadedFileIcons}
           ref={textAreaRef}
           rootClassNames={twMerge(
-            "w-full py-2 transition-all duration-300 ease-in-out",
+            "w-full py-2 transition-all duration-400 cubic-bezier(0.4, 0, 0.2, 1)",
             draft.mode === "report" ? "min-h-[8rem]" : "min-h-[5rem]"
           )}
           textAreaClassNames="border-0 outline-0 ring-0 focus:ring-0 bg-gray-50 w-full"
@@ -647,14 +659,25 @@ export function OracleSearchBar({
                       )
                     }
                     onToggle={(value) => {
-                      // Apply transition to the TextArea during toggle
+                      // Pre-adjust textarea height before changing mode
                       if (textAreaRef.current) {
-                        textAreaRef.current.style.transition =
-                          "height 0.3s ease-in-out, opacity 0.3s ease-in-out";
+                        // Apply smooth transition
+                        textAreaRef.current.style.transition = "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)";
+                        
+                        // If switching to report mode, pre-expand the textarea
+                        if (value) {
+                          textAreaRef.current.style.minHeight = "8rem";
+                        }
+                        
+                        // Force a reflow before changing the mode
+                        textAreaRef.current.offsetHeight;
                       }
 
-                      searchBarManager.setMode(value ? "report" : "query-data");
-                      setClarificationStarted(false);
+                      // Small delay to ensure height changes first
+                      setTimeout(() => {
+                        searchBarManager.setMode(value ? "report" : "query-data");
+                        setClarificationStarted(false);
+                      }, 10);
                     }}
                     // Use checked prop to make it controlled
                     checked={draft.mode === "report"}
@@ -706,7 +729,7 @@ export function OracleSearchBar({
               : isDropping
                 ? "Release to drop"
                 : draft.mode === "report"
-                  ? "I will start a Deep Research process on your data tables, any PDF files you have uploaded, and the web. For best results:\n- include the kind of analysis you want done\n- your desired areas of focus\n- any concrete sources you want me to look at"
+                  ? "I will start a Deep Research process on your data tables, PDF files, and the web.\n\nFor best results, include:\n- The type of analysis you need\n- Your specific areas of focus\n- Any particular sources to examine"
                   : "Type your question here or drop PDF, CSV or Excel files"
           }
           autoResize={true}
@@ -714,7 +737,8 @@ export function OracleSearchBar({
           textAreaHtmlProps={{
             style: {
               resize: "none",
-              transition: "height 0.3s ease-in-out, opacity 0.3s ease-in-out",
+              transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+              minHeight: draft.mode === "report" ? "8rem" : "5rem",
             },
           }}
           onKeyDown={async (e) => {

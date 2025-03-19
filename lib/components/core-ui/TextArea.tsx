@@ -9,8 +9,20 @@ import React, {
 import { twMerge } from "tailwind-merge";
 
 function setHeight(el) {
+  // Store original transition to restore it later
+  const originalTransition = el.style.transition;
+  
+  // Temporarily remove transition to avoid jumpy behavior
+  el.style.transition = "none";
+  
   el.style.height = "auto";
   el.style.height = el.scrollHeight + "px";
+  
+  // Force a reflow to ensure the transition removal takes effect
+  el.offsetHeight;
+  
+  // Restore original transition
+  el.style.transition = originalTransition;
 }
 
 const textAreaSizeClasses = {
@@ -98,7 +110,29 @@ let TextArea = forwardRef(function TextArea(
       const textArea = rootRef.current.querySelector("textarea");
       if (!textArea) return;
 
-      setHeight(textArea);
+      // For smoother transitions on initial render and mode changes
+      if (textArea.style.transition && textArea.style.transition !== "none") {
+        // Handle initial mode-specific height adjustment
+        // Adjust this timeout to allow CSS transitions to complete first
+        setTimeout(() => {
+          // Apply careful height adjustment without disrupting ongoing transitions
+          const originalTransition = textArea.style.transition;
+          const scrollHeight = textArea.scrollHeight;
+          
+          // Only adjust if needed to prevent unnecessary reflows
+          if (Math.abs(parseInt(textArea.style.height) - scrollHeight) > 10) {
+            // Make height adjustment with gentle transition
+            textArea.style.height = scrollHeight + "px";
+          }
+          
+          // Schedule another check after transition completes
+          setTimeout(() => {
+            setHeight(textArea);
+          }, 400); 
+        }, 50);
+      } else {
+        setHeight(textArea);
+      }
     }
   });
   return (
