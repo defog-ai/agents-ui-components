@@ -121,7 +121,10 @@ export function OracleReport({
           {reportWithCitations && reportWithCitations.length > 0 ? (
             <div className="max-w-none sm:max-w-2xl lg:max-w-3xl xl:max-w-4xl 2xl:max-w-5xl mx-auto py-2 px-4 sm:px-6 md:px-10 mb-12 md:mb-0">
               <OracleNav onDelete={onDelete} />
-              <ReportCitationsContent citations={reportWithCitations} />
+              <ReportCitationsContent 
+                citations={reportWithCitations} 
+                setSelectedAnalysisIndex={setSelectedAnalysisIndex}
+              />
             </div>
           ) : (
             <EditorProvider

@@ -26,7 +26,7 @@ export function AnalysisPanel({
     analyses.length > 0 ? analyses[selectedAnalysisIndex] || null : null;
 
   return (
-    <div className="w-full lg:w-[600px] xl:w-[650px] 2xl:w-[800px] lg:sticky lg:top-4 self-start max-h-[calc(100vh-1rem)] flex flex-col border dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-gray-800 mt-4 lg:mt-0">
+    <div className="analysis-panel w-full lg:w-[600px] xl:w-[650px] 2xl:w-[800px] lg:sticky lg:top-4 self-start max-h-[calc(100vh-1rem)] flex flex-col border dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-gray-800 mt-4 lg:mt-0">
       {/* Header with view mode toggle */}
       <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 border-b dark:border-gray-700">
         <h3 className="text-sm font-medium text-gray-700 dark:text-gray-200">

@@ -1,14 +1,78 @@
 import { CitationItem } from "@oracle";
 import { marked } from "marked";
+import { useContext, useEffect, useState } from "react";
+import { OracleReportContext } from "../../utils/OracleReportContext";
 
 interface ReportCitationsContentProps {
   citations: CitationItem[];
+  setSelectedAnalysisIndex?: (index: number) => void;
 }
 
-export function ReportCitationsContent({ citations }: ReportCitationsContentProps) {
+export function ReportCitationsContent({
+  citations,
+  setSelectedAnalysisIndex,
+}: ReportCitationsContentProps) {
+  const { analyses } = useContext(OracleReportContext);
+  // Track which analysis indices have been found to enable highlighting
+  const [foundAnalysisIds, setFoundAnalysisIds] = useState<Set<string>>(new Set());
+
+  // Find analysis IDs in document titles
+  useEffect(() => {
+    if (!citations || !analyses) return;
+    
+    const foundIds = new Set<string>();
+    
+    citations.forEach(item => {
+      if (item.citations && Array.isArray(item.citations) && item.citations.length > 0) {
+        const documentTitle = item.citations[0].document_title;
+        if (documentTitle) {
+          const parts = documentTitle.split(":");
+          if (parts.length >= 2) {
+            const analysisId = parts[parts.length - 1].trim();
+            const exists = analyses.some(analysis => analysis.analysis_id === analysisId);
+            if (exists) {
+              foundIds.add(analysisId);
+            }
+          }
+        }
+      }
+    });
+    
+    setFoundAnalysisIds(foundIds);
+  }, [citations, analyses]);
+
   if (!citations || citations.length === 0) {
     return null;
   }
+
+  // Function to handle citation click and select the related analysis
+  const handleCitationClick = (documentTitle: string) => {
+    // Parse the analysis_id from document_title format "some_text:analysis_id"
+    const parts = documentTitle.split(":");
+    if (parts.length < 2) return;
+    
+    const analysisId = parts[parts.length - 1].trim();
+    
+    // Find the index of the analysis in the analyses array
+    const analysisIndex = analyses.findIndex(analysis => analysis.analysis_id === analysisId);
+    
+    if (analysisIndex !== -1) {
+      // If setSelectedAnalysisIndex prop is provided, use it directly (preferred method)
+      if (setSelectedAnalysisIndex) {
+        setSelectedAnalysisIndex(analysisIndex);
+        return;
+      }
+      
+      // Fallback to DOM manipulation if the prop is not available
+      const analysisPanel = document.querySelector('.analysis-panel');
+      if (analysisPanel) {
+        const analysisButtons = analysisPanel.querySelectorAll('button[data-analysis-index]');
+        if (analysisButtons && analysisButtons.length > analysisIndex) {
+          (analysisButtons[analysisIndex] as HTMLButtonElement).click();
+        }
+      }
+    }
+  };
 
   return (
     <div className="flex flex-col space-y-4">
@@ -47,68 +111,45 @@ export function ReportCitationsContent({ citations }: ReportCitationsContentProp
               Array.isArray(item.citations) &&
               item.citations.length > 0 && (
                 <>
-                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 flex flex-wrap items-center">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-3 w-3 mr-1 flex-shrink-0 text-blue-500 dark:text-blue-400"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                    >
-                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                      <polyline points="14 2 14 8 20 8"></polyline>
-                    </svg>
-                    <span className="italic mr-1">Source:</span>
-                    <span className="break-all">
-                      {item.citations[0].document_title}
-                    </span>
+                  <div 
+                    className="text-xs border border-gray-200 dark:border-gray-600 rounded-md p-2 bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 mt-1 flex flex-wrap items-center cursor-pointer hover:border-blue-400 dark:hover:border-blue-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                    onClick={() => handleCitationClick(item.citations[0].document_title)}
+                  >
+                    <div className="flex items-center w-full">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-3.5 w-3.5 mr-1.5 flex-shrink-0 text-blue-500 dark:text-blue-400"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      >
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                      </svg>
+                      <span className="break-all flex-grow">
+                        {item.citations[0].document_title}
+                      </span>
+                      <svg 
+                        xmlns="http://www.w3.org/2000/svg" 
+                        className="h-3.5 w-3.5 ml-1 text-blue-500 dark:text-blue-400" 
+                        viewBox="0 0 24 24" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        strokeWidth="2"
+                      >
+                        <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"></path>
+                        <polyline points="15 3 21 3 21 9"></polyline>
+                        <line x1="10" y1="14" x2="21" y2="3"></line>
+                      </svg>
+                    </div>
                     {item.citations[0].start_page_number && (
-                      <span className="ml-1">
-                        (Pages{" "}
-                        {item.citations[0].start_page_number}-
-                        {item.citations[0].end_page_number})
+                      <span className="text-gray-500 dark:text-gray-400 text-xs mt-1">
+                        Pages {item.citations[0].start_page_number}-{item.citations[0].end_page_number}
                       </span>
                     )}
                   </div>
 
-                  {/* Citation hover/touch panel - adaptive for mobile */}
-                  <div className="absolute left-0 right-0 -bottom-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible md:transition-all md:duration-200 transform translate-y-full z-10">
-                    <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg border dark:border-gray-600 mt-2 shadow-lg">
-                      <h5 className="text-xs font-medium text-gray-700 dark:text-gray-200 mb-2">
-                        Cited Text:
-                      </h5>
-                      <p className="text-xs text-gray-600 dark:text-gray-300 italic bg-gray-100 dark:bg-gray-800 p-2 rounded">
-                        "{item.citations[0].cited_text}"
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Mobile-friendly citation toggle button */}
-                  <button 
-                    className="text-xs text-blue-600 dark:text-blue-400 mt-1 block md:hidden"
-                    onClick={(e) => {
-                      // Find the next sibling (the citation panel) and toggle its visibility
-                      const panel = e.currentTarget.parentElement?.querySelector('.mobile-citation-panel');
-                      if (panel) {
-                        panel.classList.toggle('hidden');
-                      }
-                    }}
-                  >
-                    View citation
-                  </button>
-
-                  {/* Mobile citation panel (initially hidden) */}
-                  <div className="mobile-citation-panel hidden mt-2 md:hidden">
-                    <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg border dark:border-gray-600 shadow-sm">
-                      <h5 className="text-xs font-medium text-gray-700 dark:text-gray-200 mb-2">
-                        Cited Text:
-                      </h5>
-                      <p className="text-xs text-gray-600 dark:text-gray-300 italic bg-gray-100 dark:bg-gray-800 p-2 rounded">
-                        "{item.citations[0].cited_text}"
-                      </p>
-                    </div>
-                  </div>
                 </>
               )}
           </div>
