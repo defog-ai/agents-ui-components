@@ -1,4 +1,5 @@
 import { OracleAnalysis } from "@oracle";
+import { useEffect, useRef } from "react";
 
 interface AnalysisListProps {
   analyses: OracleAnalysis[];
@@ -11,12 +12,44 @@ export function AnalysisList({
   selectedAnalysisIndex,
   onSelectAnalysis,
 }: AnalysisListProps) {
+  // Create refs for the container and the selected button
+  const containerRef = useRef<HTMLDivElement>(null);
+  const selectedButtonRef = useRef<HTMLButtonElement>(null);
+
+  // Scroll to the selected analysis when the selectedAnalysisIndex changes
+  useEffect(() => {
+    if (selectedButtonRef.current && containerRef.current) {
+      // Get the selected button and container
+      const button = selectedButtonRef.current;
+      const container = containerRef.current;
+      
+      // Scroll the button into view
+      // On mobile (horizontal scroll), scroll left
+      // On desktop (vertical scroll), scroll top
+      const isMobile = window.innerWidth < 768; // md breakpoint is 768px
+      
+      if (isMobile) {
+        // Horizontal scrolling for mobile
+        container.scrollLeft = button.offsetLeft - container.clientWidth / 2 + button.clientWidth / 2;
+      } else {
+        // Vertical scrolling for desktop
+        container.scrollTop = button.offsetTop - container.clientHeight / 2 + button.clientHeight / 2;
+      }
+    }
+  }, [selectedAnalysisIndex]);
+
   return (
-    <div className="w-full md:w-[250px] md:border-r dark:border-gray-700 overflow-x-auto md:overflow-x-visible md:overflow-y-auto bg-white dark:bg-gray-800">
+    <div 
+      ref={containerRef}
+      className="w-full md:w-[250px] md:border-r dark:border-gray-700 overflow-x-auto md:overflow-x-visible md:overflow-y-auto bg-white dark:bg-gray-800"
+    >
       <div className="flex md:flex-col min-w-max md:min-w-0">
         {analyses.map((analysis, index) => (
           <button
             key={index}
+            ref={selectedAnalysisIndex === index ? selectedButtonRef : null}
+            data-analysis-index={index}
+            data-analysis-id={analysis.analysis_id}
             onClick={() => onSelectAnalysis(index)}
             className={`flex-shrink-0 md:flex-shrink text-left p-3 md:w-full border-b dark:border-gray-700 text-sm ${
               index === 0 ? "" : "md:border-t-0"
