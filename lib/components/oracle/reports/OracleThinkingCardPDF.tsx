@@ -9,16 +9,19 @@ export interface ThinkingStepPDF {
     [key: string]: any;
   };
   result: {
-    text: string;
-    type: string;
-    citations?: {
-      cited_text: string;
-      document_title: string;
-      end_page_number: number;
-      start_page_number: number;
+    analysis_id: string;
+    citations: {
+      text: string;
       type: string;
+      citations?: {
+        cited_text: string;
+        document_title: string;
+        end_page_number: number;
+        start_page_number: number;
+        type: string;
+      }[];
     }[];
-  }[];
+  };
 }
 
 export default function OracleThinkingCard({
@@ -27,7 +30,7 @@ export default function OracleThinkingCard({
   step: ThinkingStepPDF;
 }) {
   const { function_name, result, inputs } = step;
-  const text = result.map((item) => item.text).join("");
+  const text = result.citations.map((item) => item.text).join("");
 
   // Convert markdown to HTML and sanitize it
   const sanitizedHtml = sanitizeHtml(marked.parse(text), {
