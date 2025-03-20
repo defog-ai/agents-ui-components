@@ -10,35 +10,35 @@ interface AnalysisContentProps {
   setShowSqlQuery: (show: boolean) => void;
 }
 
-export function AnalysisContent({ 
-  analysis, 
-  viewMode, 
-  showSqlQuery, 
-  setShowSqlQuery 
+export function AnalysisContent({
+  analysis,
+  viewMode,
+  showSqlQuery,
+  setShowSqlQuery,
 }: AnalysisContentProps) {
   if (!analysis) return null;
 
   // SQL Analysis
-  if (analysis.analysis_id) {
+  if (analysis.sql) {
     return (
-      <SqlAnalysisContent 
-        analysis={analysis} 
-        viewMode={viewMode} 
-        showSqlQuery={showSqlQuery} 
+      <SqlAnalysisContent
+        analysis={analysis}
+        viewMode={viewMode}
+        showSqlQuery={showSqlQuery}
         setShowSqlQuery={setShowSqlQuery}
       />
     );
   }
-  
+
   // Web Search
   if (analysis.function_name === "web_search_tool") {
     return <WebSearchContent analysis={analysis} />;
   }
-  
+
   // PDF Citations
   if (analysis.function_name === "pdf_citations_tool") {
     return <PdfCitationsContent analysis={analysis} />;
   }
-  
+
   return null;
 }

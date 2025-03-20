@@ -13,6 +13,7 @@ export interface OracleAnalysis {
   function_name: string;
   mdx?: string;
   question?: string;
+  sql?: string;
   inputs?: Record<string, any>;
   outputs?: Record<string, any>;
   rows?: Record<string, any>[];
@@ -20,7 +21,7 @@ export interface OracleAnalysis {
     title: string;
     dataIndex: string;
   }[];
-  result?: any;
+  result?: Record<string, any>;
   status?: string;
   error?: string;
 }

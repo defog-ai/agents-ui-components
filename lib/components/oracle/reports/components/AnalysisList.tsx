@@ -28,7 +28,7 @@ export function AnalysisList({
           >
             {/* Analysis type badge */}
             <div className="flex items-center mb-1.5">
-              {analysis.analysis_id && (
+              {analysis.sql && (
                 <span className="px-1.5 py-0.5 text-xs font-medium rounded bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 mr-1.5">
                   SQL
                 </span>
@@ -44,7 +44,7 @@ export function AnalysisList({
                 </span>
               )}
             </div>
-            
+
             {/* Use max-height transition for smooth expansion */}
             <div
               className={`overflow-hidden transition-all duration-300 ${
