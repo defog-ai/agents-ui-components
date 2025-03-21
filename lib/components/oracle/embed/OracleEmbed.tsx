@@ -887,7 +887,7 @@ export function OracleEmbed({
               setSelectedItemId(item?.itemId);
             }}
           />
-          <div className="flex flex-col grow p-2 relative min-w-0 overflow-hidden">
+          <div className="flex flex-col grow p-2 relative min-w-0 overflow-scroll">
             {/* Show CreateNewProject when the "Upload new" option is selected */}
             {selectedItemId === null &&
               selectedProjectName === uploadNewProjectOption && (

@@ -90,8 +90,7 @@ export function PdfCitationsContent({ analysis }: PdfCitationsContentProps) {
                       </span>
                       {item.citations[0].start_page_number && (
                         <span className="ml-1">
-                          (Pages{" "}
-                          {item.citations[0].start_page_number}-
+                          (Pages {item.citations[0].start_page_number}-
                           {item.citations[0].end_page_number})
                         </span>
                       )}
@@ -110,13 +109,16 @@ export function PdfCitationsContent({ analysis }: PdfCitationsContentProps) {
                     </div>
 
                     {/* Mobile-friendly citation toggle button */}
-                    <button 
+                    <button
                       className="text-xs text-blue-600 dark:text-blue-400 mt-1 block md:hidden"
                       onClick={(e) => {
                         // Find the next sibling (the citation panel) and toggle its visibility
-                        const panel = e.currentTarget.parentElement?.querySelector('.mobile-citation-panel');
+                        const panel =
+                          e.currentTarget.parentElement?.querySelector(
+                            ".mobile-citation-panel"
+                          );
                         if (panel) {
-                          panel.classList.toggle('hidden');
+                          panel.classList.toggle("hidden");
                         }
                       }}
                     >

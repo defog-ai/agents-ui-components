@@ -1,45 +1,127 @@
 import { CitationItem } from "@oracle";
+import { File } from "lucide-react";
+import katex from "katex";
+import "katex/dist/katex.min.css";
+import "katex/dist/fonts/KaTeX_Size2-Regular.woff2";
+import "katex/dist/fonts/KaTeX_Main-Regular.woff2";
+import "katex/dist/fonts/KaTeX_Math-Italic.woff2";
 import { marked } from "marked";
 
 interface ReportCitationsContentProps {
   citations: CitationItem[];
 }
 
-export function ReportCitationsContent({ citations }: ReportCitationsContentProps) {
+function mathsExpression(expr: string) {
+  // there might be multiple $..$ or $$...$$ in a single expression
+
+  // https://github.com/KaTeX/KaTeX/discussions/3509#discussioncomment-1992394
+  // There isn't currently an API for rendering a bunch of text with multiple math expressions like that (see #604). The intent is to call renderToString for each part within $ delimiters, e.g., renderToString(`\{y \in \mathbb{R}, y \leq 0\}`), and concatenate them yourself.
+  // There is code for doing roughly this in auto-render, but it's currently just intended to run on the DOM.
+
+  // find all matches of the two regexes
+  // Latex is always wrapped in <latex>$...$</latex> or <latex>$$...$$</latex>. (Otherwise it gets hard to differentiate it against dollar signs appearing in currency or text)
+
+  const regexes = [
+    /<latex>\$\$([\s\S]*?)\$\$<\/latex>/g,
+    /<latex-inline>\$([\s\S]*?)\$<\/latex-inline>/g,
+  ];
+
+  let matches: RegExpExecArray[] = [];
+
+  if (!expr) return null;
+
+  for (let i = 0; i < regexes.length; i++) {
+    const regex = regexes[i];
+
+    let match: RegExpExecArray | null;
+    do {
+      match = regex.exec(expr);
+      if (!match) continue;
+      matches.push(match);
+    } while (match);
+  }
+
+  if (matches && matches.length > 0) {
+    console.groupCollapsed("matches");
+    console.log(expr);
+    console.log(matches.map((d) => d.index));
+
+    const parsed: string[] = [];
+
+    for (let i = 0; i < matches.length; i++) {
+      const match = matches[i];
+      // first insert the text after the match till the next match
+      parsed.push(
+        marked.parse(
+          expr.slice(
+            match.index + match[0].length,
+            matches[i + 1] ? matches[i + 1].index : expr.length
+          )
+        )
+      );
+
+      // now parse the text within the match
+      parsed.push(
+        katex.renderToString(match[1], {
+          displayMode: i === 0,
+          output: "mathml",
+        })
+      );
+    }
+
+    // in the end, insert the remaining beginning text if any from 0 to the first match index
+    if (matches[0].index > 0) {
+      parsed.push(marked.parse(expr.slice(0, matches[0].index)));
+    }
+
+    console.log(parsed);
+    console.groupEnd();
+
+    return parsed.join("").replace("\n+", "\n\n").trim();
+  }
+
+  return expr;
+}
+
+export function ReportCitationsContent({
+  citations,
+}: ReportCitationsContentProps) {
   if (!citations || citations.length === 0) {
     return null;
   }
+
+  const citationsParsed = citations
+    .map((item) => {
+      if (!item.text) return null;
+      if (item.text.indexOf("<latex>") === -1) {
+        // parse and return
+        return {
+          ...item,
+          parsed: marked.parse(item.text),
+        };
+      } else {
+        // parse the math to katex and send
+        const text = item.text;
+        const math = mathsExpression(text);
+
+        return {
+          ...item,
+          parsed: math,
+        };
+      }
+    })
+    .filter((d) => d.parsed);
 
   return (
     <div className="flex flex-col space-y-4">
       {/* Citations Header */}
       <div className="bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-600 p-3 sm:p-4">
-        <div className="flex items-center gap-2 mb-2 pb-2 border-b dark:border-gray-600">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5 text-blue-500 dark:text-blue-400 flex-shrink-0"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-            <polyline points="14 2 14 8 20 8"></polyline>
-            <line x1="16" y1="13" x2="8" y2="13"></line>
-            <line x1="16" y1="17" x2="8" y2="17"></line>
-            <polyline points="10 9 9 9 8 9"></polyline>
-          </svg>
-          <h4 className="text-sm font-medium text-gray-700 dark:text-gray-200">
-            Report Citations
-          </h4>
-        </div>
-
-        {citations.map((item, index) => (
+        {citationsParsed.map((item, index) => (
           <div key={index} className="mb-4 relative group">
             <div
               className="prose dark:prose-invert prose-sm max-w-none py-1"
               dangerouslySetInnerHTML={{
-                __html: marked.parse(item.text),
+                __html: item.parsed,
               }}
             />
 
@@ -48,25 +130,14 @@ export function ReportCitationsContent({ citations }: ReportCitationsContentProp
               item.citations.length > 0 && (
                 <>
                   <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 flex flex-wrap items-center">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-3 w-3 mr-1 flex-shrink-0 text-blue-500 dark:text-blue-400"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                    >
-                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                      <polyline points="14 2 14 8 20 8"></polyline>
-                    </svg>
+                    <File className="mr-1 w-3 stroke-blue-500" />
                     <span className="italic mr-1">Source:</span>
                     <span className="break-all">
                       {item.citations[0].document_title}
                     </span>
                     {item.citations[0].start_page_number && (
                       <span className="ml-1">
-                        (Pages{" "}
-                        {item.citations[0].start_page_number}-
+                        (Pages {item.citations[0].start_page_number}-
                         {item.citations[0].end_page_number})
                       </span>
                     )}
@@ -85,13 +156,16 @@ export function ReportCitationsContent({ citations }: ReportCitationsContentProp
                   </div>
 
                   {/* Mobile-friendly citation toggle button */}
-                  <button 
+                  <button
                     className="text-xs text-blue-600 dark:text-blue-400 mt-1 block md:hidden"
                     onClick={(e) => {
                       // Find the next sibling (the citation panel) and toggle its visibility
-                      const panel = e.currentTarget.parentElement?.querySelector('.mobile-citation-panel');
+                      const panel =
+                        e.currentTarget.parentElement?.querySelector(
+                          ".mobile-citation-panel"
+                        );
                       if (panel) {
-                        panel.classList.toggle('hidden');
+                        panel.classList.toggle("hidden");
                       }
                     }}
                   >
