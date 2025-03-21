@@ -56,9 +56,7 @@ export const OracleEmbed = React.memo(function OracleEmbed({
   initialProjectNames: string[];
 }) {
   // Random UUID for upload new project option
-  const { current: uploadNewProjectOption } = useRef<string>(
-    generateUUID()
-  );
+  const { current: uploadNewProjectOption } = useRef<string>(generateUUID());
 
   // Refs and managers
   const searchBarManager = useRef(OracleSearchBarManager());
@@ -78,7 +76,7 @@ export const OracleEmbed = React.memo(function OracleEmbed({
     selectedItemId,
     setSelectedItemId,
     handleProjectChange,
-    handleNewProjectCreated
+    handleNewProjectCreated,
   } = useProjectAndHistory(
     initialProjectNames,
     updateUrlWithItemId,
@@ -107,7 +105,7 @@ export const OracleEmbed = React.memo(function OracleEmbed({
     onReportDelete,
     handleReportGenerated,
     handleReportParsed,
-    handleThinkingStreamClosed
+    handleThinkingStreamClosed,
   } = useReportHandlers(
     apiEndpoint,
     token,
@@ -161,11 +159,14 @@ export const OracleEmbed = React.memo(function OracleEmbed({
     selectedItem.treeManager.setActiveAnalysisId(visibleAnalysisId);
     selectedItem.treeManager.setActiveRootAnalysisId(rootAnalysisId);
   }, [selectedItem]);
-  
+
   // Memoized function for setting the selected item
-  const handleSetSelectedItem = useCallback((item) => {
-    setSelectedItemId(item?.itemId);
-  }, [setSelectedItemId]);
+  const handleSetSelectedItem = useCallback(
+    (item) => {
+      setSelectedItemId(item?.itemId);
+    },
+    [setSelectedItemId]
+  );
 
   // Handle new analysis creation
   const handleCreateNewAnalysis = useCallback(
