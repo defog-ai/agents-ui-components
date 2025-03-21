@@ -134,12 +134,11 @@ const findItemGroupInHistory = (
 };
 
 // Components
-import { AnalysisTreeContentWrapper } from './components/AnalysisTreeContentWrapper';
-import { OracleProjectSelector } from './components/OracleProjectSelector';
-import { OracleCreateNewAnalysis } from './components/OracleCreateNewAnalysis';
-import { OracleContent } from './components/OracleContent';
-import { OracleError } from './components/OracleError';
-import { OracleLoading } from './components/OracleLoading';
+import { OracleProjectSelector } from "./components/OracleProjectSelector";
+import { OracleCreateNewAnalysis } from "./components/OracleCreateNewAnalysis";
+import { OracleContent } from "./components/OracleContent";
+import { OracleError } from "./components/OracleError";
+import { OracleLoading } from "./components/OracleLoading";
 
 /**
  * Creates time-based groups for sorting history items
@@ -234,18 +233,19 @@ export function OracleEmbed({
   initialProjectNames: string[];
 }) {
   // State management
-  const [projectNames, setProjectNames] = useState<string[]>(initialProjectNames);
+  const [projectNames, setProjectNames] =
+    useState<string[]>(initialProjectNames);
   const [selectedProjectName, setSelectedProjectName] = useState(null);
   const [oracleHistory, setOracleHistory] = useState<OracleHistory>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
-  
+
   // Refs and managers
   const searchBarManager = useRef(OracleSearchBarManager());
   const messageManager = useRef(MessageManager());
   const initialSetupComplete = useRef(false);
-  
+
   // Random UUID for upload new project option
   const { current: uploadNewProjectOption } = useRef<string>(
     crypto.randomUUID().toString()
@@ -296,6 +296,8 @@ export function OracleEmbed({
   useEffect(() => {
     async function setup() {
       try {
+        setLoading(true);
+
         // Get the URL item ID directly
         const urlItemId = urlItemIdRef.current;
 
@@ -306,23 +308,38 @@ export function OracleEmbed({
         let foundUrlItemId = false;
         let foundUrlItemIdProjectName = null;
 
-        // Set default project (only if not found in URL)
-        if (projectNames.length && selectedProjectName === null && !urlItemId) {
-          setSelectedProjectName(
-            projectNames.length ? projectNames[0] : uploadNewProjectOption
-          );
-        } else if (selectedProjectName === null) {
-          setSelectedProjectName(uploadNewProjectOption);
+        // Set default project if none is selected
+        if (selectedProjectName === null) {
+          if (projectNames.length && !urlItemId) {
+            setSelectedProjectName(
+              projectNames.length ? projectNames[0] : uploadNewProjectOption
+            );
+            return; // Exit early, will re-run after state updates
+          } else {
+            setSelectedProjectName(uploadNewProjectOption);
+            return; // Exit early, will re-run after state updates
+          }
         }
 
+        // Preserve previously loaded data for other projects
         for (const projectName of projectNames) {
-          histories[projectName] = createHistoryTimeGroups();
+          // Initialize with empty groups or keep existing data
+          histories[projectName] =
+            oracleHistory[projectName] || createHistoryTimeGroups();
+        }
+
+        // Only load data for the selected project
+        if (
+          selectedProjectName !== uploadNewProjectOption &&
+          projectNames.includes(selectedProjectName)
+        ) {
+          histories[selectedProjectName] = createHistoryTimeGroups();
 
           try {
             // Load reports and analyses in parallel
             const [reports, analyses] = await Promise.all([
-              fetchReports(apiEndpoint, token, projectName),
-              fetchAllAnalyses(apiEndpoint, token, projectName)
+              fetchReports(apiEndpoint, token, selectedProjectName),
+              fetchAllAnalyses(apiEndpoint, token, selectedProjectName),
             ]);
 
             // Process the analyses and create trees from them if they exist
@@ -353,7 +370,7 @@ export function OracleEmbed({
                   String(rootAnalysis.analysis_id) === String(urlItemId)
                 ) {
                   foundUrlItemId = true;
-                  foundUrlItemIdProjectName = projectName;
+                  foundUrlItemIdProjectName = selectedProjectName;
                 }
 
                 // Create a QueryDataTree item to add to history
@@ -368,7 +385,7 @@ export function OracleEmbed({
                 // Parse date_created as UTC and add to appropriate date group
                 const date = new Date(rootAnalysis.timestamp);
                 const group = getDateGroup(date);
-                histories[projectName][group].push(queryDataTree);
+                histories[selectedProjectName][group].push(queryDataTree);
               }
             }
 
@@ -382,7 +399,7 @@ export function OracleEmbed({
               );
               if (reportMatch) {
                 foundUrlItemId = true;
-                foundUrlItemIdProjectName = projectName;
+                foundUrlItemIdProjectName = selectedProjectName;
               }
             }
 
@@ -398,7 +415,7 @@ export function OracleEmbed({
               // Parse date_created as UTC and convert to local timezone
               const date = new Date(report.date_created + "Z");
               const group = getDateGroup(date);
-              
+
               // Add itemId to make ListReportResponseItem compatible with OracleHistoryItem
               const reportWithItemId: OracleHistoryItem = {
                 ...report,
@@ -406,29 +423,34 @@ export function OracleEmbed({
                 itemType: "report",
               };
 
-              histories[projectName][group].push(reportWithItemId);
+              histories[selectedProjectName][group].push(reportWithItemId);
             });
 
             // Sort all items within each group by date created (newest first)
-            Object.entries(histories[projectName]).forEach(([group, items]) => {
-              items.sort((a, b) => {
-                // Handle both reports (with date_created + "Z") and analyses (with date_created already as timestamp)
-                const dateA =
-                  "report_id" in a
-                    ? new Date(a.date_created + "Z").getTime()
-                    : new Date(a.date_created).getTime();
+            Object.entries(histories[selectedProjectName]).forEach(
+              ([group, items]) => {
+                if (!items || !Array.isArray(items)) return;
 
-                const dateB =
-                  "report_id" in b
-                    ? new Date(b.date_created + "Z").getTime()
-                    : new Date(b.date_created).getTime();
+                items.sort((a, b) => {
+                  // Handle both reports (with date_created + "Z") and analyses (with date_created already as timestamp)
+                  const dateA =
+                    "report_id" in a
+                      ? new Date(a.date_created + "Z").getTime()
+                      : new Date(a.date_created).getTime();
 
-                return dateB - dateA;
-              });
-            });
+                  const dateB =
+                    "report_id" in b
+                      ? new Date(b.date_created + "Z").getTime()
+                      : new Date(b.date_created).getTime();
+
+                  return dateB - dateA;
+                });
+              }
+            );
           } catch (error) {
-            setError("Failed to fetch reports for project name " + projectName);
-            break;
+            setError(
+              "Failed to fetch reports for project name " + selectedProjectName
+            );
           }
         }
 
@@ -458,11 +480,18 @@ export function OracleEmbed({
     }
 
     setup();
-  }, [projectNames, apiEndpoint, token, uploadNewProjectOption, selectedProjectName]);
+  }, [
+    projectNames,
+    apiEndpoint,
+    token,
+    uploadNewProjectOption,
+    selectedProjectName,
+    urlItemIdRef,
+  ]);
 
-  // Set latest project as selected when project names change
+  // Set latest project as selected when project names change, but only on initial load
   useEffect(() => {
-    if (projectNames.length) {
+    if (!initialSetupComplete.current && projectNames.length) {
       setSelectedProjectName(projectNames[projectNames.length - 1]);
     }
   }, [projectNames]);
@@ -616,12 +645,15 @@ export function OracleEmbed({
   }, [selectedItem]);
 
   // Handle project selection
-  const handleProjectChange = useCallback((newProjectName: string) => {
-    setSelectedProjectName(newProjectName);
-    updateUrlWithItemId(null);
-    setSelectedItemId(null);
-    searchBarManager.current.resetDraft();
-  }, [updateUrlWithItemId]);
+  const handleProjectChange = useCallback(
+    (newProjectName: string) => {
+      setSelectedProjectName(newProjectName);
+      updateUrlWithItemId(null);
+      setSelectedItemId(null);
+      searchBarManager.current.resetDraft();
+    },
+    [updateUrlWithItemId]
+  );
 
   // Handle new project creation
   const handleNewProjectCreated = useCallback((newProjectName: string) => {
@@ -634,211 +666,233 @@ export function OracleEmbed({
   }, []);
 
   // Create the project selector component
-  const projectSelector = useMemo(() => (
-    <OracleProjectSelector
-      selectedProjectName={selectedProjectName}
-      projectNames={projectNames}
-      uploadNewProjectOption={uploadNewProjectOption}
-      hasUploadedFiles={hasUploadedFiles}
-      onProjectChange={handleProjectChange}
-    />
-  ), [selectedProjectName, projectNames, uploadNewProjectOption, hasUploadedFiles, handleProjectChange]);
+  const projectSelector = useMemo(
+    () => (
+      <OracleProjectSelector
+        selectedProjectName={selectedProjectName}
+        projectNames={projectNames}
+        uploadNewProjectOption={uploadNewProjectOption}
+        hasUploadedFiles={hasUploadedFiles}
+        onProjectChange={handleProjectChange}
+      />
+    ),
+    [
+      selectedProjectName,
+      projectNames,
+      uploadNewProjectOption,
+      hasUploadedFiles,
+      handleProjectChange,
+    ]
+  );
 
   // Handle new analysis creation
-  const handleCreateNewAnalysis = useCallback((question: string, projectName: string) => {
-    const analysisId = crypto.randomUUID() as string;
+  const handleCreateNewAnalysis = useCallback(
+    (question: string, projectName: string) => {
+      const analysisId = crypto.randomUUID() as string;
 
-    // Either a new project was created or we are on the "new report" screen
-    if (projectNames.indexOf(projectName) === -1 || !selectedItem) {
-      return OracleCreateNewAnalysis({
-        question,
-        projectName,
-        analysisId,
-        selectedItem,
-        createNewFastAnalysis,
-        setOracleHistory,
-        updateUrlWithItemId,
-        setSelectedItemId,
-        setSelectedProjectName,
-        messageManager: messageManager.current,
-      });
-    } else if (selectedItem?.itemType === "query-data") {
-      return createNewFastAnalysis({
-        question,
-        projectName,
-        analysisId,
-        rootAnalysisId: selectedItem.itemId,
-        treeManager: selectedItem.treeManager,
-      });
-    }
-  }, [
-    projectNames,
-    selectedItem,
-    createNewFastAnalysis,
-    updateUrlWithItemId,
-    messageManager,
-  ]);
+      // Either a new project was created or we are on the "new report" screen
+      if (projectNames.indexOf(projectName) === -1 || !selectedItem) {
+        return OracleCreateNewAnalysis({
+          question,
+          projectName,
+          analysisId,
+          selectedItem,
+          createNewFastAnalysis,
+          setOracleHistory,
+          updateUrlWithItemId,
+          setSelectedItemId,
+          setSelectedProjectName,
+          messageManager: messageManager.current,
+        });
+      } else if (selectedItem?.itemType === "query-data") {
+        return createNewFastAnalysis({
+          question,
+          projectName,
+          analysisId,
+          rootAnalysisId: selectedItem.itemId,
+          treeManager: selectedItem.treeManager,
+        });
+      }
+    },
+    [
+      projectNames,
+      selectedItem,
+      createNewFastAnalysis,
+      updateUrlWithItemId,
+      messageManager,
+    ]
+  );
 
   // Handle report generation
-  const handleReportGenerated = useCallback(({ userQuestion, reportId, status }) => {
-    setOracleHistory((prev) => {
-      const newHistory: OracleHistory = { ...prev };
+  const handleReportGenerated = useCallback(
+    ({ userQuestion, reportId, status }) => {
+      setOracleHistory((prev) => {
+        const newHistory: OracleHistory = { ...prev };
 
-      newHistory[selectedProjectName] = {
-        ...prev[selectedProjectName],
-        Today: [
-          {
-            report_id: reportId,
-            report_name: userQuestion,
-            status,
-            date_created: oracleReportTimestamp(),
-            itemId: reportId,
-            itemType: "report",
-          },
-          ...(prev?.[selectedProjectName]?.Today || []),
-        ],
-        Yesterday: prev?.[selectedProjectName]?.Yesterday || [],
-        "Past week": prev?.[selectedProjectName]?.["Past week"] || [],
-        "Past month": prev?.[selectedProjectName]?.["Past month"] || [],
-        Earlier: prev?.[selectedProjectName]?.Earlier || [],
-      };
+        newHistory[selectedProjectName] = {
+          ...prev[selectedProjectName],
+          Today: [
+            {
+              report_id: reportId,
+              report_name: userQuestion,
+              status,
+              date_created: oracleReportTimestamp(),
+              itemId: reportId,
+              itemType: "report",
+            },
+            ...(prev?.[selectedProjectName]?.Today || []),
+          ],
+          Yesterday: prev?.[selectedProjectName]?.Yesterday || [],
+          "Past week": prev?.[selectedProjectName]?.["Past week"] || [],
+          "Past month": prev?.[selectedProjectName]?.["Past month"] || [],
+          Earlier: prev?.[selectedProjectName]?.Earlier || [],
+        };
 
-      return newHistory;
-    });
+        return newHistory;
+      });
 
-    updateUrlWithItemId(reportId);
-    setSelectedItemId(reportId);
-  }, [selectedProjectName, updateUrlWithItemId]);
+      updateUrlWithItemId(reportId);
+      setSelectedItemId(reportId);
+    },
+    [selectedProjectName, updateUrlWithItemId]
+  );
 
   // Handle report data being parsed
-  const handleReportParsed = useCallback((data: ReportData) => {
-    // find the group of this report in histories
-    const group = findItemGroupInHistory(
-      selectedProjectName,
-      selectedItemId,
-      oracleHistory
-    );
+  const handleReportParsed = useCallback(
+    (data: ReportData) => {
+      // find the group of this report in histories
+      const group = findItemGroupInHistory(
+        selectedProjectName,
+        selectedItemId,
+        oracleHistory
+      );
 
-    setOracleHistory((prev) => {
-      const prevReports = prev[selectedProjectName][group];
-      // if report is found, update it
-      return {
-        ...prev,
-        [selectedProjectName]: {
-          ...prev[selectedProjectName],
-          [group]: prevReports.map((r) => {
-            if ("report_id" in r && r.report_id === selectedItemId) {
-              return {
-                ...r,
-                reportData: data,
-              };
-            }
-            return r;
-          }),
-        },
-      };
-    });
-  }, [selectedProjectName, selectedItemId, oracleHistory]);
+      setOracleHistory((prev) => {
+        const prevReports = prev[selectedProjectName][group];
+        // if report is found, update it
+        return {
+          ...prev,
+          [selectedProjectName]: {
+            ...prev[selectedProjectName],
+            [group]: prevReports.map((r) => {
+              if ("report_id" in r && r.report_id === selectedItemId) {
+                return {
+                  ...r,
+                  reportData: data,
+                };
+              }
+              return r;
+            }),
+          },
+        };
+      });
+    },
+    [selectedProjectName, selectedItemId, oracleHistory]
+  );
 
   // Handle thinking stream closed
-  const handleThinkingStreamClosed = useCallback((thinkingSteps, hadError) => {
-    // Safety check - make sure the project and report still exist
-    if (
-      !selectedProjectName ||
-      !selectedItemId ||
-      !oracleHistory[selectedProjectName]
-    ) {
-      console.warn("Stream closed but project or report data missing");
-      return;
-    }
+  const handleThinkingStreamClosed = useCallback(
+    (thinkingSteps, hadError) => {
+      // Safety check - make sure the project and report still exist
+      if (
+        !selectedProjectName ||
+        !selectedItemId ||
+        !oracleHistory[selectedProjectName]
+      ) {
+        console.warn("Stream closed but project or report data missing");
+        return;
+      }
 
-    const reportGroup = findItemGroupInHistory(
-      selectedProjectName,
-      selectedItemId,
-      oracleHistory
-    );
+      const reportGroup = findItemGroupInHistory(
+        selectedProjectName,
+        selectedItemId,
+        oracleHistory
+      );
 
-    // Safety check - make sure the report group exists
-    if (!oracleHistory[selectedProjectName][reportGroup]) {
-      console.warn("Stream closed but report group missing:", reportGroup);
-      return;
-    }
+      // Safety check - make sure the report group exists
+      if (!oracleHistory[selectedProjectName][reportGroup]) {
+        console.warn("Stream closed but report group missing:", reportGroup);
+        return;
+      }
 
-    if (hadError) {
-      // remove this report from the history
-      setOracleHistory((prev) => {
-        const newHistory = { ...prev };
+      if (hadError) {
+        // remove this report from the history
+        setOracleHistory((prev) => {
+          const newHistory = { ...prev };
 
-        // Extra safety check
-        if (
-          newHistory[selectedProjectName] &&
-          newHistory[selectedProjectName][reportGroup] &&
-          Array.isArray(newHistory[selectedProjectName][reportGroup])
-        ) {
-          newHistory[selectedProjectName][reportGroup] =
-            newHistory[selectedProjectName][reportGroup].filter(
-              (r) => {
-                return "report_id" in r
-                  ? r.report_id !== selectedItemId
-                  : r.itemId !== selectedItemId;
+          // Extra safety check
+          if (
+            newHistory[selectedProjectName] &&
+            newHistory[selectedProjectName][reportGroup] &&
+            Array.isArray(newHistory[selectedProjectName][reportGroup])
+          ) {
+            newHistory[selectedProjectName][reportGroup] = newHistory[
+              selectedProjectName
+            ][reportGroup].filter((r) => {
+              return "report_id" in r
+                ? r.report_id !== selectedItemId
+                : r.itemId !== selectedItemId;
+            });
+          }
+
+          return newHistory;
+        });
+
+        updateUrlWithItemId(null);
+        setSelectedItemId(null);
+      } else {
+        // set the status to done which will trigger the report rendering
+        setOracleHistory((prev) => {
+          const newHistory = { ...prev };
+
+          // Extra safety check
+          if (
+            newHistory[selectedProjectName] &&
+            newHistory[selectedProjectName][reportGroup] &&
+            Array.isArray(newHistory[selectedProjectName][reportGroup])
+          ) {
+            newHistory[selectedProjectName][reportGroup] = newHistory[
+              selectedProjectName
+            ][reportGroup].map((r) => {
+              if (r.itemId === selectedItemId) {
+                return {
+                  ...r,
+                  status: ORACLE_REPORT_STATUS.DONE,
+                };
               }
-            );
-        }
+              return r;
+            });
+          }
 
-        return newHistory;
-      });
-
-      updateUrlWithItemId(null);
-      setSelectedItemId(null);
-    } else {
-      // set the status to done which will trigger the report rendering
-      setOracleHistory((prev) => {
-        const newHistory = { ...prev };
-
-        // Extra safety check
-        if (
-          newHistory[selectedProjectName] &&
-          newHistory[selectedProjectName][reportGroup] &&
-          Array.isArray(newHistory[selectedProjectName][reportGroup])
-        ) {
-          newHistory[selectedProjectName][reportGroup] =
-            newHistory[selectedProjectName][reportGroup].map(
-              (r) => {
-                if (r.itemId === selectedItemId) {
-                  return {
-                    ...r,
-                    status: ORACLE_REPORT_STATUS.DONE,
-                  };
-                }
-                return r;
-              }
-            );
-        }
-
-        return newHistory;
-      });
-    }
-  }, [selectedProjectName, selectedItemId, oracleHistory, updateUrlWithItemId]);
+          return newHistory;
+        });
+      }
+    },
+    [selectedProjectName, selectedItemId, oracleHistory, updateUrlWithItemId]
+  );
 
   // Create the search bar component
-  const searchBar = useMemo(() => (
-    <OracleSearchBar
-      uploadNewProjectOption={uploadNewProjectOption}
-      key="search"
-      selectedItem={selectedItem}
-      projectName={selectedProjectName}
-      onNewProjectCreated={handleNewProjectCreated}
-      createNewFastAnalysis={handleCreateNewAnalysis}
-      onReportGenerated={handleReportGenerated}
-    />
-  ), [
-    uploadNewProjectOption,
-    selectedItem,
-    selectedProjectName,
-    handleNewProjectCreated,
-    handleCreateNewAnalysis,
-    handleReportGenerated,
-  ]);
+  const searchBar = useMemo(
+    () => (
+      <OracleSearchBar
+        uploadNewProjectOption={uploadNewProjectOption}
+        key="search"
+        selectedItem={selectedItem}
+        projectName={selectedProjectName}
+        onNewProjectCreated={handleNewProjectCreated}
+        createNewFastAnalysis={handleCreateNewAnalysis}
+        onReportGenerated={handleReportGenerated}
+      />
+    ),
+    [
+      uploadNewProjectOption,
+      selectedItem,
+      selectedProjectName,
+      handleNewProjectCreated,
+      handleCreateNewAnalysis,
+      handleReportGenerated,
+    ]
+  );
 
   // Error state
   if (error) {
@@ -869,8 +923,8 @@ export function OracleEmbed({
               setSelectedItemId(item?.itemId);
             }}
           />
-          
-          <OracleContent 
+
+          <OracleContent
             apiEndpoint={apiEndpoint}
             token={token}
             selectedItemId={selectedItemId}
