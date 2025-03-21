@@ -30,7 +30,7 @@ import { createProjectFromFiles } from "@utils/utils";
 import { statusDescriptions, Mode } from "./oracleSearchBarManager";
 import { OracleReportClarifications } from "../../reports/report-creation/OracleReportClarifications";
 import { twMerge } from "tailwind-merge";
-import { OracleHistoryItem } from "../OracleEmbed";
+import { OracleHistoryItem } from "../types";
 import { OracleSearchBarModeHeader } from "./OracleSearchBarModeHeader";
 import { KEYMAP } from "../../../../../lib/constants/keymap";
 

@@ -8,7 +8,7 @@ import {
   OracleHistoryItem,
   OracleReportType,
   QueryDataTree,
-} from "./OracleEmbed";
+} from "./types";
 import { AnalysisTreeItem } from "../../../../lib/components/query-data/analysis-tree-viewer/AnalysisTreeItem";
 import KeyboardShortcutIndicator from "../../core-ui/KeyboardShortcutIndicator";
 import { KEYMAP } from "../../../constants/keymap";

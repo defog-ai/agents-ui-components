@@ -2,7 +2,7 @@ import { SyntheticEvent, ReactNode } from "react";
 import { CreateNewProject } from "../../../common/CreateNewProject";
 import { ORACLE_REPORT_STATUS, OracleReport, ReportData } from "@oracle";
 import { OracleThinking } from "../../reports/OracleThinking";
-import { OracleHistoryItem, QueryDataTree } from "../OracleEmbed";
+import { OracleHistoryItem, QueryDataTree } from "../types";
 import ErrorBoundary from "../../../common/ErrorBoundary";
 import debounce from "lodash.debounce";
 import { AnalysisTreeContentWrapper } from "./AnalysisTreeContentWrapper";

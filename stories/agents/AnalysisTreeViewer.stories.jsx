@@ -26,7 +26,7 @@ const dbs = [
   metadataFetchingError: false,
   analysisTreeManager: AnalysisTreeManager(
     {},
-    d.projectName + "_" + Math.floor(Math.random() * 1000)
+    d.projectName + "_" + Math.floor(Math.random() * 1000),
   ),
   // do this after so that sqlOnly, and isTemp can be overwritten if defined by the user
   ...d,
