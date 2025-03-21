@@ -112,9 +112,9 @@ export function OracleReport({
       }}
     >
       <div className="relative overflow-auto">
-        <div className="relative oracle-report-ctr">
+        <div className="relative oracle-report-ctr w-full">
           {reportWithCitations && reportWithCitations.length > 0 ? (
-            <div className="max-w-none sm:max-w-2xl lg:max-w-3xl xl:max-w-4xl 2xl:max-w-5xl mx-auto py-2 px-4 sm:px-6 md:px-10 mb-12 md:mb-0">
+            <div className="w-full max-w-none sm:max-w-3xl lg:max-w-4xl xl:max-w-5xl 2xl:max-w-6xl mx-auto py-2 px-2 sm:px-4 md:px-6 mb-12 md:mb-0">
               <OracleNav onDelete={onDelete} />
               <ReportCitationsContent 
                 citations={reportWithCitations} 
@@ -130,7 +130,7 @@ export function OracleReport({
               editorProps={{
                 attributes: {
                   class:
-                    "max-w-none sm:max-w-2xl lg:max-w-3xl xl:max-w-4xl 2xl:max-w-5xl oracle-report-tiptap relative prose prose-base dark:prose-invert mx-auto py-2 px-4 sm:px-6 md:px-10 mb-12 md:mb-0 focus:outline-none *:cursor-default",
+                    "w-full max-w-none sm:max-w-3xl lg:max-w-4xl xl:max-w-5xl 2xl:max-w-6xl oracle-report-tiptap relative prose prose-base dark:prose-invert mx-auto py-2 px-2 sm:px-4 md:px-6 mb-12 md:mb-0 focus:outline-none *:cursor-default",
                 },
               }}
             />
