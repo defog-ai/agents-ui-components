@@ -2,7 +2,7 @@ import { MessageManager } from "@ui-components";
 import { AnalysisTree } from "../../../query-data/analysis-tree-viewer/analysisTreeManager";
 import { oracleReportTimestamp } from "@oracle";
 import { AnalysisTreeManager } from "../../../query-data/analysis-tree-viewer/analysisTreeManager";
-import { OracleHistory, OracleHistoryItem, QueryDataTree } from "../OracleEmbed";
+import { OracleHistory, OracleHistoryItem, QueryDataTree } from "../types";
 import { raf } from "@utils/utils";
 import { scrollToAnalysis } from "../../../query-data/analysis-tree-viewer/AnalysisTreeViewer";
 

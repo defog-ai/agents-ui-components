@@ -9,7 +9,7 @@ import {
 } from "react";
 import { QueryDataEmbedContext } from "../../../context/QueryDataEmbedContext";
 import { OracleEmbedContext } from "../OracleEmbedContext";
-import { QueryDataTree } from "../OracleEmbed";
+import { QueryDataTree } from "../types";
 import { AnalysisTreeContent } from "../../../query-data/analysis-tree-viewer/AnalysisTreeViewer";
 import { AnalysisTreeManager } from "../../../query-data/analysis-tree-viewer/analysisTreeManager";
 
