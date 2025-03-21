@@ -49,6 +49,9 @@ import { QueryDataEmbedContext } from "../../../components/context/QueryDataEmbe
 import debounce from "lodash.debounce";
 import { raf } from "@utils/utils";
 
+/**
+ * Represents a report item in the Oracle history
+ */
 export interface OracleReportType extends ListReportResponseItem {
   /**
    * Always "report"
@@ -61,6 +64,9 @@ export interface OracleReportType extends ListReportResponseItem {
   reportData?: ReportData;
 }
 
+/**
+ * Represents a query data analysis tree in the Oracle history
+ */
 export interface QueryDataTree {
   /**
    * Always "query-data"
@@ -75,8 +81,14 @@ export interface QueryDataTree {
   treeManager?: AnalysisTreeManager;
 }
 
+/**
+ * Union type representing items in the Oracle history sidebar
+ */
 export type OracleHistoryItem = OracleReportType | QueryDataTree;
 
+/**
+ * Time groups for history organization
+ */
 export type groups =
   | "Today"
   | "Yesterday"
@@ -84,10 +96,16 @@ export type groups =
   | "Past month"
   | "Earlier";
 
+/**
+ * Structure of the Oracle history object
+ */
 export interface OracleHistory {
   [projectName: string]: Record<groups, OracleHistoryItem[]>;
 }
 
+/**
+ * Finds which group in history an item belongs to
+ */
 const findItemGroupInHistory = (
   projectName: string,
   itemId: string,
@@ -115,150 +133,73 @@ const findItemGroupInHistory = (
   return "Today";
 };
 
-// Wrapper component for AnalysisTreeContent to avoid conditional hooks
-const AnalysisTreeContentWrapper = ({
-  selectedItem,
-  selectedProjectName,
-  token,
-  apiEndpoint,
-}: {
-  selectedItem: QueryDataTree;
-  selectedProjectName: string;
-  token: string;
-  apiEndpoint: string;
-}) => {
-  // Setup necessary refs
-  const analysisDomRefs = useRef({});
-  const [contentLoading, setContentLoading] = useState(false);
+// Components
+import { AnalysisTreeContentWrapper } from './components/AnalysisTreeContentWrapper';
+import { OracleProjectSelector } from './components/OracleProjectSelector';
+import { OracleCreateNewAnalysis } from './components/OracleCreateNewAnalysis';
+import { OracleContent } from './components/OracleContent';
+import { OracleError } from './components/OracleError';
+import { OracleLoading } from './components/OracleLoading';
 
-  // Use the stored tree manager or create a new one
-  const treeManager = useMemo(
-    () =>
-      selectedItem.treeManager ||
-      AnalysisTreeManager(selectedItem.analysisTree),
-    [selectedItem]
-  );
+/**
+ * Creates time-based groups for sorting history items
+ */
+const createHistoryTimeGroups = () => ({
+  Today: [],
+  Yesterday: [],
+  "Past week": [],
+  "Past month": [],
+  Earlier: [],
+});
 
-  // Analysis data
-  const analysisTree = useSyncExternalStore(
-    treeManager.subscribeToDataChanges,
-    treeManager.getTree
-  );
+/**
+ * Determines which date group an item belongs to
+ */
+const getDateGroup = (date: Date): groups => {
+  const localToday = new Date();
+  const localYesterday = new Date(localToday);
+  localYesterday.setDate(localYesterday.getDate() - 1);
+  const localWeek = new Date(localToday);
+  localWeek.setDate(localWeek.getDate() - 7);
+  const localMonth = new Date(localToday);
+  localMonth.setMonth(localMonth.getMonth() - 1);
 
-  const nestedTree = useMemo(() => treeManager.getNestedTree(), [analysisTree]);
-
-  // Get active root analysis ID
-  const activeRootId = useMemo(() => {
-    // Take the first root analysis ID from the tree
-    return Object.keys(nestedTree)[0] || null;
-  }, [nestedTree]);
-
-  const { searchBarManager } = useContext(OracleEmbedContext);
-
-  // Set active root analysis for the manager
-  useEffect(() => {
-    if (activeRootId) {
-      treeManager.setActiveRootAnalysisId(activeRootId);
-      treeManager.setActiveAnalysisId(activeRootId);
-    }
-  }, [treeManager, activeRootId]);
-
-  // Function for handling follow-on questions
-  const submitFollowOn = useCallback(
-    (question: string) => {
-      if (!question) return;
-
-      // Set the question in the search bar
-      searchBarManager.setQuestion(question);
-    },
-    [searchBarManager]
-  );
-
-  if (!activeRootId) return null;
-
-  return (
-    <QueryDataEmbedContext.Provider
-      value={{
-        token,
-        apiEndpoint,
-        hiddenCharts: [],
-        hideSqlTab: false,
-        hidePreviewTabs: false,
-        hideRawAnalysis: true,
-        analysisDataCache: {},
-        updateConfig: () => {},
-      }}
-    >
-      <AnalysisTreeContent
-        projectName={selectedProjectName}
-        activeRootAnalysisId={activeRootId}
-        nestedTree={nestedTree}
-        metadata={null}
-        analysisDomRefs={analysisDomRefs}
-        analysisTreeManager={treeManager}
-        autoScroll={true}
-        setLoading={setContentLoading}
-        submitFollowOn={submitFollowOn}
-      />
-    </QueryDataEmbedContext.Provider>
-  );
+  if (date.toDateString() === localToday.toDateString()) {
+    return "Today";
+  } else if (date.toDateString() === localYesterday.toDateString()) {
+    return "Yesterday";
+  } else if (date >= localWeek) {
+    return "Past week";
+  } else if (date >= localMonth) {
+    return "Past month";
+  } else {
+    return "Earlier";
+  }
 };
 
 /**
- * Renders an Oracle report in an embedded mode.
- * This has a sidebar to select project names, and a report selector which shows a list of already generated reports.
- * Has a button to start a new report.
+ * Hook for managing URL item ID
  */
-export function OracleEmbed({
-  apiEndpoint,
-  token,
-  initialProjectNames = [],
-}: {
-  apiEndpoint: string;
-  token: string;
-  initialProjectNames: string[];
-}) {
-  const [projectNames, setProjectNames] =
-    useState<string[]>(initialProjectNames);
-  const [selectedProjectName, setSelectedProjectName] = useState(null);
-  const [oracleHistory, setOracleHistory] = useState<OracleHistory>({});
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
-  const searchBarManager = useRef(OracleSearchBarManager());
+const useUrlItemId = () => {
+  // Get item_id from URL
+  const getItemIdFromUrl = useCallback(() => {
+    if (typeof window !== "undefined") {
+      const urlParams = new URLSearchParams(window.location.search);
+      const itemIdParam = urlParams.get("item_id");
 
-  const selectedItem = useMemo(() => {
-    if (!selectedItemId || !oracleHistory[selectedProjectName]) return null;
+      if (itemIdParam) {
+        // Try to convert to number if it's numeric
+        const numericId = Number(itemIdParam);
+        const itemId = !isNaN(numericId) ? numericId.toString() : itemIdParam;
+        return itemId;
+      }
+      return null;
+    }
+    return null;
+  }, []);
 
-    const group = findItemGroupInHistory(
-      selectedProjectName,
-      selectedItemId,
-      oracleHistory
-    );
-    if (!oracleHistory[selectedProjectName][group]) return null;
-
-    // Use string comparison for safety
-    return oracleHistory[selectedProjectName][group].find(
-      (r) => String(r.itemId) === String(selectedItemId)
-    );
-  }, [selectedItemId, oracleHistory, selectedProjectName]);
-
-  const messageManager = useRef(MessageManager());
-  /**
-   * We set this to a random string every time.
-   * Just to prevent conflicts with uploaded files.
-   */
-  const { current: uploadNewProjectOption } = useRef<string>(
-    crypto.randomUUID().toString()
-  );
-
-  const draft = useSyncExternalStore(
-    searchBarManager.current.subscribeToDraftChanges,
-    searchBarManager.current.getDraft
-  );
-
-  // Since we're now uploading files immediately, we don't need to disable project switching
-  const hasUploadedFiles = false;
+  // Create a ref to store the URL item ID
+  const urlItemIdRef = useRef(getItemIdFromUrl());
 
   // Function to update URL with item_id
   const updateUrlWithItemId = useCallback((itemId: string | number | null) => {
@@ -275,6 +216,70 @@ export function OracleEmbed({
     }
   }, []);
 
+  return { urlItemIdRef, updateUrlWithItemId };
+};
+
+/**
+ * Renders an Oracle report in an embedded mode.
+ * This has a sidebar to select project names, and a report selector which shows a list of already generated reports.
+ * Has a button to start a new report.
+ */
+export function OracleEmbed({
+  apiEndpoint,
+  token,
+  initialProjectNames = [],
+}: {
+  apiEndpoint: string;
+  token: string;
+  initialProjectNames: string[];
+}) {
+  // State management
+  const [projectNames, setProjectNames] = useState<string[]>(initialProjectNames);
+  const [selectedProjectName, setSelectedProjectName] = useState(null);
+  const [oracleHistory, setOracleHistory] = useState<OracleHistory>({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
+  
+  // Refs and managers
+  const searchBarManager = useRef(OracleSearchBarManager());
+  const messageManager = useRef(MessageManager());
+  const initialSetupComplete = useRef(false);
+  
+  // Random UUID for upload new project option
+  const { current: uploadNewProjectOption } = useRef<string>(
+    crypto.randomUUID().toString()
+  );
+
+  // URL and navigation
+  const { urlItemIdRef, updateUrlWithItemId } = useUrlItemId();
+
+  // Get draft from search bar manager
+  const draft = useSyncExternalStore(
+    searchBarManager.current.subscribeToDraftChanges,
+    searchBarManager.current.getDraft
+  );
+
+  // Since we're now uploading files immediately, we don't need to disable project switching
+  const hasUploadedFiles = false;
+
+  // Selected item from history
+  const selectedItem = useMemo(() => {
+    if (!selectedItemId || !oracleHistory[selectedProjectName]) return null;
+
+    const group = findItemGroupInHistory(
+      selectedProjectName,
+      selectedItemId,
+      oracleHistory
+    );
+    if (!oracleHistory[selectedProjectName][group]) return null;
+
+    // Use string comparison for safety
+    return oracleHistory[selectedProjectName][group].find(
+      (r) => String(r.itemId) === String(selectedItemId)
+    );
+  }, [selectedItemId, oracleHistory, selectedProjectName]);
+
   // Listen for the new report custom event
   useEffect(() => {
     const handleNewReport = () => {
@@ -287,29 +292,7 @@ export function OracleEmbed({
       window.removeEventListener("oracle:new-report", handleNewReport);
   }, [updateUrlWithItemId]);
 
-  // Function to get item_id from URL - not as a callback to ensure it's actually checked
-  function getItemIdFromUrl() {
-    if (typeof window !== "undefined") {
-      const urlParams = new URLSearchParams(window.location.search);
-      const itemIdParam = urlParams.get("item_id");
-
-      if (itemIdParam) {
-        // Try to convert to number if it's numeric
-        const numericId = Number(itemIdParam);
-        const itemId = !isNaN(numericId) ? numericId.toString() : itemIdParam;
-        return itemId;
-      }
-      return null;
-    }
-    return null;
-  }
-
-  // Add a ref to track if initial setup is complete
-  const initialSetupComplete = useRef(false);
-
-  // Create a ref to store the URL item ID
-  const urlItemIdRef = useRef(getItemIdFromUrl());
-
+  // Main data loading effect
   useEffect(() => {
     async function setup() {
       try {
@@ -328,35 +311,19 @@ export function OracleEmbed({
           setSelectedProjectName(
             projectNames.length ? projectNames[0] : uploadNewProjectOption
           );
-        } else {
+        } else if (selectedProjectName === null) {
           setSelectedProjectName(uploadNewProjectOption);
         }
 
-        const today = new Date();
-        const yesterday = new Date(today);
-        yesterday.setDate(yesterday.getDate() - 1);
-        const week = new Date(today);
-        week.setDate(week.getDate() - 7);
-        const month = new Date(today);
-        month.setMonth(month.getMonth() - 1);
-
         for (const projectName of projectNames) {
-          histories[projectName] = {
-            Today: [],
-            Yesterday: [],
-            "Past week": [],
-            "Past month": [],
-            Earlier: [],
-          };
+          histories[projectName] = createHistoryTimeGroups();
 
           try {
-            const reports = await fetchReports(apiEndpoint, token, projectName);
-            // Fetch analyses for this project
-            const analyses = await fetchAllAnalyses(
-              apiEndpoint,
-              token,
-              projectName
-            );
+            // Load reports and analyses in parallel
+            const [reports, analyses] = await Promise.all([
+              fetchReports(apiEndpoint, token, projectName),
+              fetchAllAnalyses(apiEndpoint, token, projectName)
+            ]);
 
             // Process the analyses and create trees from them if they exist
             if (analyses && analyses.length > 0) {
@@ -398,30 +365,10 @@ export function OracleEmbed({
                   treeManager: treeManager,
                 };
 
-                // Parse date_created as UTC and convert to local timezone
+                // Parse date_created as UTC and add to appropriate date group
                 const date = new Date(rootAnalysis.timestamp);
-                const localToday = new Date();
-                const localYesterday = new Date(localToday);
-                localYesterday.setDate(localYesterday.getDate() - 1);
-                const localWeek = new Date(localToday);
-                localWeek.setDate(localWeek.getDate() - 7);
-                const localMonth = new Date(localToday);
-                localMonth.setMonth(localMonth.getMonth() - 1);
-
-                // Add to appropriate date group in history
-                if (date.toDateString() === localToday.toDateString()) {
-                  histories[projectName]["Today"].push(queryDataTree);
-                } else if (
-                  date.toDateString() === localYesterday.toDateString()
-                ) {
-                  histories[projectName]["Yesterday"].push(queryDataTree);
-                } else if (date >= localWeek) {
-                  histories[projectName]["Past week"].push(queryDataTree);
-                } else if (date >= localMonth) {
-                  histories[projectName]["Past month"].push(queryDataTree);
-                } else {
-                  histories[projectName]["Earlier"].push(queryDataTree);
-                }
+                const group = getDateGroup(date);
+                histories[projectName][group].push(queryDataTree);
               }
             }
 
@@ -439,25 +386,19 @@ export function OracleEmbed({
               }
             }
 
-            // Now filter for regular display
+            // Filter out errored or initialized reports
             const filteredReports = reports.filter(
               (report) =>
                 report.status !== ORACLE_REPORT_STATUS.ERRORED &&
                 report.status !== ORACLE_REPORT_STATUS.INITIALIZED
             );
 
-            // add to histories based on date created
+            // Add reports to history groups
             filteredReports.forEach((report) => {
               // Parse date_created as UTC and convert to local timezone
               const date = new Date(report.date_created + "Z");
-              const localToday = new Date();
-              const localYesterday = new Date(localToday);
-              localYesterday.setDate(localYesterday.getDate() - 1);
-              const localWeek = new Date(localToday);
-              localWeek.setDate(localWeek.getDate() - 7);
-              const localMonth = new Date(localToday);
-              localMonth.setMonth(localMonth.getMonth() - 1);
-
+              const group = getDateGroup(date);
+              
               // Add itemId to make ListReportResponseItem compatible with OracleHistoryItem
               const reportWithItemId: OracleHistoryItem = {
                 ...report,
@@ -465,24 +406,10 @@ export function OracleEmbed({
                 itemType: "report",
               };
 
-              // Compare dates using local timezone
-              if (date.toDateString() === localToday.toDateString()) {
-                histories[projectName]["Today"].push(reportWithItemId);
-              } else if (
-                date.toDateString() === localYesterday.toDateString()
-              ) {
-                histories[projectName]["Yesterday"].push(reportWithItemId);
-              } else if (date >= localWeek) {
-                histories[projectName]["Past week"].push(reportWithItemId);
-              } else if (date >= localMonth) {
-                histories[projectName]["Past month"].push(reportWithItemId);
-              } else {
-                histories[projectName]["Earlier"].push(reportWithItemId);
-              }
+              histories[projectName][group].push(reportWithItemId);
             });
 
-            // sort all items (reports and analyses) within each group in the history
-            // by date created in reverse chronological order
+            // Sort all items within each group by date created (newest first)
             Object.entries(histories[projectName]).forEach(([group, items]) => {
               items.sort((a, b) => {
                 // Handle both reports (with date_created + "Z") and analyses (with date_created already as timestamp)
@@ -531,8 +458,16 @@ export function OracleEmbed({
     }
 
     setup();
-  }, [projectNames, apiEndpoint, token]);
+  }, [projectNames, apiEndpoint, token, uploadNewProjectOption, selectedProjectName]);
 
+  // Set latest project as selected when project names change
+  useEffect(() => {
+    if (projectNames.length) {
+      setSelectedProjectName(projectNames[projectNames.length - 1]);
+    }
+  }, [projectNames]);
+
+  // Handle report deletion
   const onReportDelete = useCallback(async () => {
     const reportGroup = findItemGroupInHistory(
       selectedProjectName,
@@ -588,6 +523,7 @@ export function OracleEmbed({
     selectedItemId,
     selectedProjectName,
     updateUrlWithItemId,
+    oracleHistory,
   ]);
 
   // Function to handle analysis creation when in query-data mode
@@ -659,49 +595,12 @@ export function OracleEmbed({
       messageManager.current.error(
         "Failed to create analysis: " + error.message
       );
+      throw error;
     }
   }, []);
 
-  const projectSelector = useMemo(() => {
-    return (
-      <div>
-        <SingleSelect
-          disabled={hasUploadedFiles}
-          label="Select project"
-          rootClassNames="mb-2"
-          value={selectedProjectName}
-          allowClear={false}
-          allowCreateNewOption={false}
-          options={[
-            {
-              value: uploadNewProjectOption,
-              label: "Upload new",
-            },
-          ].concat(
-            projectNames.map((projectName) => ({
-              value: projectName,
-              label: projectName,
-            }))
-          )}
-          onChange={(v: string) => {
-            setSelectedProjectName(v);
-            updateUrlWithItemId(null);
-            setSelectedItemId(null);
-            searchBarManager.current.resetDraft();
-          }}
-        />
-      </div>
-    );
-  }, [
-    selectedProjectName,
-    selectedItemId,
-    projectNames,
-    hasUploadedFiles,
-    updateUrlWithItemId,
-  ]);
-
   const setMostVisibleAnalysisAsActive = useCallback(() => {
-    if (selectedItem.itemType !== "query-data" || !selectedItem.treeManager)
+    if (selectedItem?.itemType !== "query-data" || !selectedItem.treeManager)
       return;
 
     const allAnalyses = selectedItem.treeManager.getAll();
@@ -716,159 +615,242 @@ export function OracleEmbed({
     selectedItem.treeManager.setActiveRootAnalysisId(rootAnalysisId);
   }, [selectedItem]);
 
-  const nullState = useMemo(() => {
-    return (
-      <OracleSearchBar
-        uploadNewProjectOption={uploadNewProjectOption}
-        key="search"
-        selectedItem={selectedItem}
-        projectName={selectedProjectName}
-        onNewProjectCreated={(newProjectName: string) => {
-          setProjectNames((prev) => [...prev, newProjectName]);
-          setSelectedItemId(null);
-          setOracleHistory((prev) => ({
-            ...prev,
-            [newProjectName]: {
-              Today: [],
-              Yesterday: [],
-              "Past week": [],
-              "Past month": [],
-              Earlier: [],
-            },
-          }));
-        }}
-        createNewFastAnalysis={(question, projectName) => {
-          const analysisId = crypto.randomUUID() as string;
+  // Handle project selection
+  const handleProjectChange = useCallback((newProjectName: string) => {
+    setSelectedProjectName(newProjectName);
+    updateUrlWithItemId(null);
+    setSelectedItemId(null);
+    searchBarManager.current.resetDraft();
+  }, [updateUrlWithItemId]);
 
-          // either a new project was created
-          // or we are on the "new report" screen
-          if (projectNames.indexOf(projectName) === -1 || !selectedItem) {
-            createNewFastAnalysis({
-              question,
-              projectName: projectName,
-              analysisId: analysisId,
-              rootAnalysisId: analysisId,
-              treeManager:
-                selectedItem?.itemType === "query-data"
-                  ? selectedItem.treeManager
-                  : undefined,
-            }).then(({ rootAnalysisId, analysisTree, treeManager }) => {
-              const timestamp = oracleReportTimestamp();
+  // Handle new project creation
+  const handleNewProjectCreated = useCallback((newProjectName: string) => {
+    setProjectNames((prev) => [...prev, newProjectName]);
+    setSelectedItemId(null);
+    setOracleHistory((prev) => ({
+      ...prev,
+      [newProjectName]: createHistoryTimeGroups(),
+    }));
+  }, []);
 
-              // Create a new QueryDataTree item
-              const newQueryDataTree: QueryDataTree = {
-                date_created: timestamp,
-                itemId: rootAnalysisId,
-                analysisTree: analysisTree,
-                treeManager: treeManager,
-                itemType: "query-data",
-              };
+  // Create the project selector component
+  const projectSelector = useMemo(() => (
+    <OracleProjectSelector
+      selectedProjectName={selectedProjectName}
+      projectNames={projectNames}
+      uploadNewProjectOption={uploadNewProjectOption}
+      hasUploadedFiles={hasUploadedFiles}
+      onProjectChange={handleProjectChange}
+    />
+  ), [selectedProjectName, projectNames, uploadNewProjectOption, hasUploadedFiles, handleProjectChange]);
 
-              // Add the new analysis to the history
-              setOracleHistory((prev) => {
-                let newHistory: OracleHistory = { ...prev };
+  // Handle new analysis creation
+  const handleCreateNewAnalysis = useCallback((question: string, projectName: string) => {
+    const analysisId = crypto.randomUUID() as string;
 
-                newHistory = {
-                  ...prev,
-                  [projectName]: {
-                    ...prev[projectName],
-                    Today: [
-                      newQueryDataTree,
-                      ...(prev?.[projectName]?.["Today"] || []),
-                    ],
-                    Yesterday: prev?.[projectName]?.["Yesterday"] || [],
-                    "Past week": prev?.[projectName]?.["Past week"] || [],
-                    "Past month": prev?.[projectName]?.["Past month"] || [],
-                    Earlier: prev?.[projectName]?.["Earlier"] || [],
-                  },
-                };
-
-                return newHistory;
-              });
-
-              // Update URL and selected report ID
-              updateUrlWithItemId(rootAnalysisId);
-              setSelectedItemId(rootAnalysisId);
-              setSelectedProjectName(projectName);
-
-              messageManager.current.success("New analysis created");
-            });
-          } else {
-            if (selectedItem?.itemType !== "query-data") return;
-
-            return createNewFastAnalysis({
-              question,
-              projectName: projectName,
-              analysisId: analysisId,
-              rootAnalysisId: selectedItem.itemId,
-              treeManager: selectedItem.treeManager,
-            });
-          }
-        }}
-        onReportGenerated={({ userQuestion, reportId, status }) => {
-          setOracleHistory((prev) => {
-            let newHistory: OracleHistory = { ...prev };
-
-            newHistory = {
-              ...prev,
-              [selectedProjectName]: {
-                ...prev[selectedProjectName],
-                Today: [
-                  {
-                    report_id: reportId,
-                    report_name: userQuestion,
-                    status,
-                    date_created: oracleReportTimestamp(),
-                    itemId: reportId,
-                    itemType: "report",
-                  },
-                  ...(prev?.[selectedProjectName]?.["Today"] || []),
-                ],
-                Yesterday: prev?.[selectedProjectName]?.["Yesterday"] || [],
-                "Past week": prev?.[selectedProjectName]?.["Past week"] || [],
-                "Past month": prev?.[selectedProjectName]?.["Past month"] || [],
-                Earlier: prev?.[selectedProjectName]?.["Earlier"] || [],
-              },
-            };
-
-            return newHistory;
-          });
-
-          updateUrlWithItemId(reportId);
-          setSelectedItemId(reportId);
-        }}
-      />
-    );
+    // Either a new project was created or we are on the "new report" screen
+    if (projectNames.indexOf(projectName) === -1 || !selectedItem) {
+      return OracleCreateNewAnalysis({
+        question,
+        projectName,
+        analysisId,
+        selectedItem,
+        createNewFastAnalysis,
+        setOracleHistory,
+        updateUrlWithItemId,
+        setSelectedItemId,
+        setSelectedProjectName,
+        messageManager: messageManager.current,
+      });
+    } else if (selectedItem?.itemType === "query-data") {
+      return createNewFastAnalysis({
+        question,
+        projectName,
+        analysisId,
+        rootAnalysisId: selectedItem.itemId,
+        treeManager: selectedItem.treeManager,
+      });
+    }
   }, [
-    messageManager,
-    selectedProjectName,
-    updateUrlWithItemId,
-    token,
-    apiEndpoint,
+    projectNames,
     selectedItem,
+    createNewFastAnalysis,
+    updateUrlWithItemId,
+    messageManager,
   ]);
 
-  useEffect(() => {
-    if (projectNames.length) {
-      setSelectedProjectName(projectNames[projectNames.length - 1]);
+  // Handle report generation
+  const handleReportGenerated = useCallback(({ userQuestion, reportId, status }) => {
+    setOracleHistory((prev) => {
+      const newHistory: OracleHistory = { ...prev };
+
+      newHistory[selectedProjectName] = {
+        ...prev[selectedProjectName],
+        Today: [
+          {
+            report_id: reportId,
+            report_name: userQuestion,
+            status,
+            date_created: oracleReportTimestamp(),
+            itemId: reportId,
+            itemType: "report",
+          },
+          ...(prev?.[selectedProjectName]?.Today || []),
+        ],
+        Yesterday: prev?.[selectedProjectName]?.Yesterday || [],
+        "Past week": prev?.[selectedProjectName]?.["Past week"] || [],
+        "Past month": prev?.[selectedProjectName]?.["Past month"] || [],
+        Earlier: prev?.[selectedProjectName]?.Earlier || [],
+      };
+
+      return newHistory;
+    });
+
+    updateUrlWithItemId(reportId);
+    setSelectedItemId(reportId);
+  }, [selectedProjectName, updateUrlWithItemId]);
+
+  // Handle report data being parsed
+  const handleReportParsed = useCallback((data: ReportData) => {
+    // find the group of this report in histories
+    const group = findItemGroupInHistory(
+      selectedProjectName,
+      selectedItemId,
+      oracleHistory
+    );
+
+    setOracleHistory((prev) => {
+      const prevReports = prev[selectedProjectName][group];
+      // if report is found, update it
+      return {
+        ...prev,
+        [selectedProjectName]: {
+          ...prev[selectedProjectName],
+          [group]: prevReports.map((r) => {
+            if ("report_id" in r && r.report_id === selectedItemId) {
+              return {
+                ...r,
+                reportData: data,
+              };
+            }
+            return r;
+          }),
+        },
+      };
+    });
+  }, [selectedProjectName, selectedItemId, oracleHistory]);
+
+  // Handle thinking stream closed
+  const handleThinkingStreamClosed = useCallback((thinkingSteps, hadError) => {
+    // Safety check - make sure the project and report still exist
+    if (
+      !selectedProjectName ||
+      !selectedItemId ||
+      !oracleHistory[selectedProjectName]
+    ) {
+      console.warn("Stream closed but project or report data missing");
+      return;
     }
-  }, [projectNames]);
 
+    const reportGroup = findItemGroupInHistory(
+      selectedProjectName,
+      selectedItemId,
+      oracleHistory
+    );
+
+    // Safety check - make sure the report group exists
+    if (!oracleHistory[selectedProjectName][reportGroup]) {
+      console.warn("Stream closed but report group missing:", reportGroup);
+      return;
+    }
+
+    if (hadError) {
+      // remove this report from the history
+      setOracleHistory((prev) => {
+        const newHistory = { ...prev };
+
+        // Extra safety check
+        if (
+          newHistory[selectedProjectName] &&
+          newHistory[selectedProjectName][reportGroup] &&
+          Array.isArray(newHistory[selectedProjectName][reportGroup])
+        ) {
+          newHistory[selectedProjectName][reportGroup] =
+            newHistory[selectedProjectName][reportGroup].filter(
+              (r) => {
+                return "report_id" in r
+                  ? r.report_id !== selectedItemId
+                  : r.itemId !== selectedItemId;
+              }
+            );
+        }
+
+        return newHistory;
+      });
+
+      updateUrlWithItemId(null);
+      setSelectedItemId(null);
+    } else {
+      // set the status to done which will trigger the report rendering
+      setOracleHistory((prev) => {
+        const newHistory = { ...prev };
+
+        // Extra safety check
+        if (
+          newHistory[selectedProjectName] &&
+          newHistory[selectedProjectName][reportGroup] &&
+          Array.isArray(newHistory[selectedProjectName][reportGroup])
+        ) {
+          newHistory[selectedProjectName][reportGroup] =
+            newHistory[selectedProjectName][reportGroup].map(
+              (r) => {
+                if (r.itemId === selectedItemId) {
+                  return {
+                    ...r,
+                    status: ORACLE_REPORT_STATUS.DONE,
+                  };
+                }
+                return r;
+              }
+            );
+        }
+
+        return newHistory;
+      });
+    }
+  }, [selectedProjectName, selectedItemId, oracleHistory, updateUrlWithItemId]);
+
+  // Create the search bar component
+  const searchBar = useMemo(() => (
+    <OracleSearchBar
+      uploadNewProjectOption={uploadNewProjectOption}
+      key="search"
+      selectedItem={selectedItem}
+      projectName={selectedProjectName}
+      onNewProjectCreated={handleNewProjectCreated}
+      createNewFastAnalysis={handleCreateNewAnalysis}
+      onReportGenerated={handleReportGenerated}
+    />
+  ), [
+    uploadNewProjectOption,
+    selectedItem,
+    selectedProjectName,
+    handleNewProjectCreated,
+    handleCreateNewAnalysis,
+    handleReportGenerated,
+  ]);
+
+  // Error state
   if (error) {
-    return (
-      <div className="w-screen h-screen flex items-center justify-center bg-rose-50 text-rose-500">
-        Error: {error}
-      </div>
-    );
-  }
-  if (loading) {
-    return (
-      <div className="w-screen h-screen flex items-center justify-center bg-gray-50 text-gray-400">
-        <SpinningLoader /> <span>Loading</span>
-      </div>
-    );
+    return <OracleError error={error} />;
   }
 
+  // Loading state
+  if (loading) {
+    return <OracleLoading />;
+  }
+
+  // Main component
   return (
     <OracleEmbedContext.Provider
       value={{ token, apiEndpoint, searchBarManager: searchBarManager.current }}
@@ -887,199 +869,21 @@ export function OracleEmbed({
               setSelectedItemId(item?.itemId);
             }}
           />
-          <div className="flex flex-col grow p-2 relative min-w-0 overflow-hidden">
-            {/* Show CreateNewProject when the "Upload new" option is selected */}
-            {selectedItemId === null &&
-              selectedProjectName === uploadNewProjectOption && (
-                <CreateNewProject
-                  apiEndpoint={apiEndpoint}
-                  token={token}
-                  onProjectCreated={(projectName) => {
-                    setOracleHistory((prev) => ({
-                      ...prev,
-                      [projectName]: {
-                        Today: [],
-                        Yesterday: [],
-                        "Past week": [],
-                        "Past month": [],
-                        Earlier: [],
-                      },
-                    }));
-                    setProjectNames((prev) => [...prev, projectName]);
-                  }}
-                />
-              )}
-
-            {/* Show analysis tree for query-data */}
-            {selectedItemId &&
-            selectedItem &&
-            "analysisTree" in selectedItem ? (
-              <div
-                className="p-4 space-y-4 max-h-full overflow-y-auto pb-48"
-                onScroll={debounce((e: SyntheticEvent) => {
-                  e.stopPropagation();
-                  setMostVisibleAnalysisAsActive();
-                }, 100)}
-              >
-                <ErrorBoundary>
-                  {Object.keys((selectedItem as QueryDataTree).analysisTree)
-                    .length > 0 && (
-                    <>
-                      {/* Use AnalysisTreeContent to render the analysis */}
-                      <AnalysisTreeContentWrapper
-                        selectedItem={selectedItem as QueryDataTree}
-                        selectedProjectName={selectedProjectName}
-                        token={token}
-                        apiEndpoint={apiEndpoint}
-                      />
-                    </>
-                  )}
-                </ErrorBoundary>
-              </div>
-            ) : /* Show completed report */
-            selectedItemId &&
-              selectedItem &&
-              "status" in selectedItem &&
-              selectedItem.status === ORACLE_REPORT_STATUS.DONE ? (
-              <OracleReport
-                key={selectedItemId}
-                reportId={selectedItemId}
-                apiEndpoint={apiEndpoint}
-                projectName={selectedProjectName}
-                token={token}
-                onDelete={onReportDelete}
-                onReportParsed={(data: ReportData) => {
-                  // find the group of this report in histories
-                  const group = findItemGroupInHistory(
-                    selectedProjectName,
-                    selectedItemId,
-                    oracleHistory
-                  );
-
-                  setOracleHistory((prev) => {
-                    const prevReports = prev[selectedProjectName][group];
-                    // if report is found, update it
-                    return {
-                      ...prev,
-                      [selectedProjectName]: {
-                        ...prev[selectedProjectName],
-                        [group]: prevReports.map((r) => {
-                          if (
-                            "report_id" in r &&
-                            r.report_id === selectedItemId
-                          ) {
-                            return {
-                              ...r,
-                              reportData: data,
-                            };
-                          }
-                          return r;
-                        }),
-                      },
-                    };
-                  });
-                }}
-              />
-            ) : selectedItemId ? (
-              // Show thinking status for in-progress report
-              <OracleThinking
-                apiEndpoint={apiEndpoint}
-                token={token}
-                reportId={selectedItemId}
-                onDelete={onReportDelete}
-                onStreamClosed={(thinkingSteps, hadError) => {
-                  // Safety check - make sure the project and report still exist
-                  if (
-                    !selectedProjectName ||
-                    !selectedItemId ||
-                    !oracleHistory[selectedProjectName]
-                  ) {
-                    console.warn(
-                      "Stream closed but project or report data missing"
-                    );
-                    return;
-                  }
-
-                  const reportGroup = findItemGroupInHistory(
-                    selectedProjectName,
-                    selectedItemId,
-                    oracleHistory
-                  );
-
-                  // Safety check - make sure the report group exists
-                  if (!oracleHistory[selectedProjectName][reportGroup]) {
-                    console.warn(
-                      "Stream closed but report group missing:",
-                      reportGroup
-                    );
-                    return;
-                  }
-
-                  if (hadError) {
-                    // remove this report from the history
-                    setOracleHistory((prev) => {
-                      const newHistory = { ...prev };
-
-                      // Extra safety check
-                      if (
-                        newHistory[selectedProjectName] &&
-                        newHistory[selectedProjectName][reportGroup] &&
-                        Array.isArray(
-                          newHistory[selectedProjectName][reportGroup]
-                        )
-                      ) {
-                        newHistory[selectedProjectName][reportGroup] =
-                          newHistory[selectedProjectName][reportGroup].filter(
-                            (r) => {
-                              return "report_id" in r
-                                ? r.report_id !== selectedItemId
-                                : r.itemId !== selectedItemId;
-                            }
-                          );
-                      }
-
-                      return newHistory;
-                    });
-
-                    updateUrlWithItemId(null);
-                    setSelectedItemId(null);
-                  } else {
-                    // set the status to done which will trigger the report rendering
-                    setOracleHistory((prev) => {
-                      const newHistory = { ...prev };
-
-                      // Extra safety check
-                      if (
-                        newHistory[selectedProjectName] &&
-                        newHistory[selectedProjectName][reportGroup] &&
-                        Array.isArray(
-                          newHistory[selectedProjectName][reportGroup]
-                        )
-                      ) {
-                        newHistory[selectedProjectName][reportGroup] =
-                          newHistory[selectedProjectName][reportGroup].map(
-                            (r) => {
-                              if (r.itemId === selectedItemId) {
-                                return {
-                                  ...r,
-                                  status: ORACLE_REPORT_STATUS.DONE,
-                                };
-                              }
-                              return r;
-                            }
-                          );
-                      }
-
-                      return newHistory;
-                    });
-                  }
-                }}
-              />
-            ) : null}
-
-            {/* Always show the search bar, but it will transform based on conditions */}
-            {nullState}
-          </div>
+          
+          <OracleContent 
+            apiEndpoint={apiEndpoint}
+            token={token}
+            selectedItemId={selectedItemId}
+            selectedItem={selectedItem}
+            selectedProjectName={selectedProjectName}
+            uploadNewProjectOption={uploadNewProjectOption}
+            searchBar={searchBar}
+            onReportDelete={onReportDelete}
+            onReportParsed={handleReportParsed}
+            onThinkingStreamClosed={handleThinkingStreamClosed}
+            setMostVisibleAnalysisAsActive={setMostVisibleAnalysisAsActive}
+            onProjectCreated={handleNewProjectCreated}
+          />
         </div>
       </MessageManagerContext.Provider>
     </OracleEmbedContext.Provider>
