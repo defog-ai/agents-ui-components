@@ -1,6 +1,12 @@
 import { CitationItem } from "@oracle";
+import { File } from "lucide-react";
+import katex from "katex";
+import "katex/dist/katex.min.css";
+import "katex/dist/fonts/KaTeX_Size2-Regular.woff2";
+import "katex/dist/fonts/KaTeX_Main-Regular.woff2";
+import "katex/dist/fonts/KaTeX_Math-Italic.woff2";
 import { marked } from "marked";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { OracleReportContext } from "../../utils/OracleReportContext";
 import { SqlAnalysisContent } from "./SqlAnalysisContent";
 import { WebSearchContent } from "./WebSearchContent";
@@ -9,6 +15,78 @@ import { PdfCitationsContent } from "./PdfCitationsContent";
 interface ReportCitationsContentProps {
   citations: CitationItem[];
   setSelectedAnalysisIndex?: (index: number) => void;
+}
+
+function mathsExpression(expr: string) {
+  // there might be multiple $..$ or $$...$$ in a single expression
+
+  // https://github.com/KaTeX/KaTeX/discussions/3509#discussioncomment-1992394
+  // There isn't currently an API for rendering a bunch of text with multiple math expressions like that (see #604). The intent is to call renderToString for each part within $ delimiters, e.g., renderToString(`\{y \in \mathbb{R}, y \leq 0\}`), and concatenate them yourself.
+  // There is code for doing roughly this in auto-render, but it's currently just intended to run on the DOM.
+
+  // find all matches of the two regexes
+  // Latex is always wrapped in <latex>$...$</latex> or <latex>$$...$$</latex>. (Otherwise it gets hard to differentiate it against dollar signs appearing in currency or text)
+
+  const regexes = [
+    /<latex>\$\$([\s\S]*?)\$\$<\/latex>/g,
+    /<latex-inline>\$([\s\S]*?)\$<\/latex-inline>/g,
+  ];
+
+  let matches: RegExpExecArray[] = [];
+
+  if (!expr) return null;
+
+  for (let i = 0; i < regexes.length; i++) {
+    const regex = regexes[i];
+
+    let match: RegExpExecArray | null;
+    do {
+      match = regex.exec(expr);
+      if (!match) continue;
+      matches.push(match);
+    } while (match);
+  }
+
+  if (matches && matches.length > 0) {
+    console.groupCollapsed("matches");
+    console.log(expr);
+    console.log(matches.map((d) => d.index));
+
+    const parsed: string[] = [];
+
+    for (let i = 0; i < matches.length; i++) {
+      const match = matches[i];
+      // first insert the text after the match till the next match
+      parsed.push(
+        marked.parse(
+          expr.slice(
+            match.index + match[0].length,
+            matches[i + 1] ? matches[i + 1].index : expr.length
+          )
+        )
+      );
+
+      // now parse the text within the match
+      parsed.push(
+        katex.renderToString(match[1], {
+          displayMode: i === 0,
+          output: "mathml",
+        })
+      );
+    }
+
+    // in the end, insert the remaining beginning text if any from 0 to the first match index
+    if (matches[0].index > 0) {
+      parsed.push(marked.parse(expr.slice(0, matches[0].index)));
+    }
+
+    console.log(parsed);
+    console.groupEnd();
+
+    return parsed.join("").replace("\n+", "\n\n").trim();
+  }
+
+  return expr;
 }
 
 export function ReportCitationsContent({
@@ -60,9 +138,31 @@ export function ReportCitationsContent({
     setFoundAnalysisIds(foundIds);
   }, [citations, analyses]);
 
-  if (!citations || citations.length === 0) {
-    return null;
-  }
+  const citationsParsed = useMemo(
+    () =>
+      citations
+        .map((item) => {
+          if (!item.text) return null;
+          if (item.text.indexOf("<latex>") === -1) {
+            // parse and return
+            return {
+              ...item,
+              parsed: marked.parse(item.text),
+            };
+          } else {
+            // parse the math to katex and send
+            const text = item.text;
+            const math = mathsExpression(text);
+
+            return {
+              ...item,
+              parsed: math,
+            };
+          }
+        })
+        .filter((d) => d.parsed),
+    [citations]
+  );
 
   // Function to handle citation click and expand/collapse the analysis content
   const handleCitationClick = (index: number, documentTitle: string) => {
@@ -165,7 +265,7 @@ export function ReportCitationsContent({
           const shownCitationSources = new Set<string>();
 
           // Filter out empty items first, then map the valid ones
-          return citations
+          return citationsParsed
             .filter((item) => {
               // Check if this citation has a valid document title
               const hasValidCitation =
