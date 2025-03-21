@@ -11,7 +11,7 @@ import {
   ReportData,
   CitationItem
 } from "@oracle";
-import { LoadingState, ErrorState, AnalysisPanel, ReportCitationsContent } from "./components";
+import { LoadingState, ErrorState, ReportCitationsContent } from "./components";
 
 export function OracleReport({
   apiEndpoint,
@@ -35,11 +35,6 @@ export function OracleReport({
   const [reportWithCitations, setReportWithCitations] = useState<CitationItem[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-
-  // State for analysis panel
-  const [selectedAnalysisIndex, setSelectedAnalysisIndex] = useState<number>(0);
-  const [viewMode, setViewMode] = useState<"table" | "chart">("table");
-  const [showSqlQuery, setShowSqlQuery] = useState<boolean>(false);
 
   useEffect(() => {
     // Skip if we're already loading or if we have data
@@ -116,14 +111,13 @@ export function OracleReport({
         }),
       }}
     >
-      <div className="flex flex-col lg:flex-row gap-4 relative overflow-auto">
-        <div className="flex-1 relative oracle-report-ctr">
+      <div className="relative overflow-auto">
+        <div className="relative oracle-report-ctr">
           {reportWithCitations && reportWithCitations.length > 0 ? (
             <div className="max-w-none sm:max-w-2xl lg:max-w-3xl xl:max-w-4xl 2xl:max-w-5xl mx-auto py-2 px-4 sm:px-6 md:px-10 mb-12 md:mb-0">
               <OracleNav onDelete={onDelete} />
               <ReportCitationsContent 
                 citations={reportWithCitations} 
-                setSelectedAnalysisIndex={setSelectedAnalysisIndex}
               />
             </div>
           ) : (
@@ -142,19 +136,6 @@ export function OracleReport({
             />
           )}
         </div>
-
-        {/* Analysis panel */}
-        {validAnalyses.length > 0 && (
-          <AnalysisPanel
-            analyses={validAnalyses}
-            selectedAnalysisIndex={selectedAnalysisIndex}
-            setSelectedAnalysisIndex={setSelectedAnalysisIndex}
-            viewMode={viewMode}
-            setViewMode={setViewMode}
-            showSqlQuery={showSqlQuery}
-            setShowSqlQuery={setShowSqlQuery}
-          />
-        )}
       </div>
     </OracleReportContext.Provider>
   );
