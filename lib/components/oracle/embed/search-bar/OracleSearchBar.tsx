@@ -56,6 +56,7 @@ export function OracleSearchBar({
   createNewFastAnalysis,
   rootClassNames = "",
   selectedItem = null,
+  setSelectedItemId,
 }: {
   projectName: string;
   uploadNewProjectOption: string;
@@ -68,6 +69,7 @@ export function OracleSearchBar({
   }) => void;
   rootClassNames?: string;
   selectedItem: OracleHistoryItem;
+  setSelectedItemId: (itemId: string | null) => void;
 }) {
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [isDropping, setIsDropping] = useState<boolean>(false);
@@ -102,44 +104,58 @@ export function OracleSearchBar({
         throw new Error("No question!");
       }
 
+      // Get the report ID and question before anything else
+      const reportId = draft.reportId;
+      const userQuestion = draft.userQuestion || textAreaRef.current?.value;
+
+      // Set submitting status
       searchBarManager.setDraft((prev) => ({
         ...prev,
         status: "submitting",
       }));
 
       setLoading(true);
-
-      // prepare either for success or a new error message
       setErrorMessage("");
 
       try {
-        // This will always error because of a 10ms timeout
-        await generateReport(
-          apiEndpoint,
-          token,
-          projectName,
-          draft.reportId,
-          draft.userQuestion || textAreaRef.current?.value,
-          draft.clarifications?.filter((c) => c.answer && c.is_answered) || [],
-          // Add websearch parameter
-          draft.useWebsearch
-        );
-      } catch (error) {
-        message.success("Report submitted for generation");
+        // First update the history with the new report item
+        // This causes a new entry to be created in oracleHistory
         onReportGenerated({
-          userQuestion: draft.userQuestion || textAreaRef.current?.value,
-          reportId: draft.reportId,
+          userQuestion: userQuestion,
+          reportId: reportId,
           status: ORACLE_REPORT_STATUS.THINKING,
         });
+
+        // Immediately set the selected item ID to directly navigate to the thinking view
+        setSelectedItemId(reportId);
+
+        // Show success message
+        message.success("Report submitted for generation");
+
+        // Then try to generate the report (will likely timeout as expected)
+        try {
+          await generateReport(
+            apiEndpoint,
+            token,
+            projectName,
+            reportId,
+            userQuestion,
+            draft.clarifications?.filter((c) => c.answer && c.is_answered) || [],
+            draft.useWebsearch
+          );
+        } catch (error) {
+          // This is expected - the report generation continues on server
+          console.log("Expected timeout for report generation");
+        }
+      } catch (error) {
+        console.error("Error handling report generation:", error);
       }
 
-      // clear everything
+      // Clear inputs
       searchBarManager.resetDraft();
       textAreaRef.current.value = "";
     } catch (error) {
       setErrorMessage(`Error generating report: ${error}`);
-
-      // also use message for this error because user is usually scrolled down to the bottom when they click "generate"
       message.error(`Error generating report: ${error}`);
     } finally {
       setLoading(false);

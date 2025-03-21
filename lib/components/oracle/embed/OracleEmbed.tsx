@@ -244,6 +244,7 @@ export function OracleEmbed({
         onNewProjectCreated={handleNewProjectCreated}
         createNewFastAnalysis={handleCreateNewAnalysis}
         onReportGenerated={handleReportGenerated}
+        setSelectedItemId={setSelectedItemId}
       />
     ),
     [
@@ -253,6 +254,7 @@ export function OracleEmbed({
       handleNewProjectCreated,
       handleCreateNewAnalysis,
       handleReportGenerated,
+      setSelectedItemId,
     ]
   );
 
