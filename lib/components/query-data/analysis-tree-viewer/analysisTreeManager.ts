@@ -2,6 +2,7 @@ import {
   AnalysisManager,
   AnalysisRowFromBackend,
 } from "../analysis/analysisManager.js";
+import { generateUUID } from "../../utils/utils";
 
 type TabTypes = "table" | "chart" | "pdf";
 
@@ -127,7 +128,7 @@ export interface AnalysisTreeManager {
  */
 export function AnalysisTreeManager(
   initialTree: AnalysisTree = {},
-  id: string | null = crypto.randomUUID()
+  id: string | null = generateUUID()
 ): AnalysisTreeManager {
   // Initializes the unique identifier for this analysis tree manager instance.
   let _id = id;

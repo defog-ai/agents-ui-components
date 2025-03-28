@@ -1,4 +1,5 @@
 import { useCallback, useContext, useMemo, useRef } from "react";
+import { generateUUID } from "../../../utils/utils";
 import { AnalysisOutputsTable } from "./AnalysisOutputTable";
 import { AnalysisError } from "./AnalysisError";
 import { AnalysisInputs } from "./AnalysisInputs";
@@ -145,7 +146,7 @@ export function AnalysisResults({
         // if we have an error message in the step, show that
         // if we have no parsedOutputs: show a message saying "No data found"
         content: (
-          <div key={crypto.randomUUID()}>
+          <div key={generateUUID()}>
             <AnalysisOutputsTable
               projectName={projectName}
               analysis={analysis}

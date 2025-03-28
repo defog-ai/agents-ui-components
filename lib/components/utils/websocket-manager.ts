@@ -1,3 +1,5 @@
+import { generateUUID } from "./utils";
+
 interface WebSocketManagerOptions {
   /**
    * The url of the websocket.
@@ -139,7 +141,7 @@ export function createWebsocketManager(
   let _onClose = config.onClose;
   let _onError = config.onError;
   let _onTimeout = config.onTimeout;
-  const id = crypto.randomUUID().slice(0, 8);
+  const id = generateUUID(8);
 
   let eventListeners: any[] = [];
 
