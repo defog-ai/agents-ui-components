@@ -28,6 +28,10 @@
       "types": "./dist/core-ui.d.ts",
       "import": "./dist/core-ui.js"
     },
+    "./utils": {
+      "types": "./dist/utils.d.ts",
+      "import": "./dist/utils.js"
+    },
     "./css": "./dist/style.css"
   },
   "files": [
