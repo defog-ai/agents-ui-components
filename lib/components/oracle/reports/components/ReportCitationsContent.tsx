@@ -48,6 +48,7 @@ function parseTextWithMath(expr: string) {
 
     // First, add the content before the first match
     if (matches[0].index > 0) {
+      // @ts-ignore
       parsed.push(marked.parse(expr.slice(0, matches[0].index)));
     }
 
