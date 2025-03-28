@@ -15,7 +15,7 @@ export const useReportHandlers = (
   updateUrlWithItemId: (itemId: string | number | null) => void,
   oracleHistory: OracleHistory,
   setOracleHistory: React.Dispatch<React.SetStateAction<OracleHistory>>,
-  messageManager: MessageManager
+  messageManager: ReturnType<typeof MessageManager>
 ) => {
   // Handle report deletion
   const onReportDelete = useCallback(async () => {
