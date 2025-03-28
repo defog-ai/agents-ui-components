@@ -8,7 +8,7 @@ import { raf } from "@utils/utils";
  * Hook for analysis tree management
  */
 export const useAnalysisTree = (
-  messageManager: MessageManager
+  messageManager: ReturnType<typeof MessageManager>
 ) => {
   // Function to handle analysis creation when in query-data mode
   const createNewFastAnalysis = useCallback(async function ({
