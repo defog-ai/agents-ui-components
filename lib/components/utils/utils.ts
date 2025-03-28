@@ -569,6 +569,18 @@ export const formatFileSize = (bytes: number): string => {
 
 /**
  * Generate a UUID v4 with fallback for environments where crypto.randomUUID is not available
+ * 
+ * This function can be imported directly from the package:
+ * ```
+ * import { generateUUID } from '@defogdotai/agents-ui-components/utils';
+ * 
+ * // Generate a full UUID
+ * const id = generateUUID();
+ * 
+ * // Generate a shortened UUID (e.g., 8 characters)
+ * const shortId = generateUUID(8);
+ * ```
+ * 
  * @param sliceLength Optional parameter to slice the UUID to a specific length (e.g. 8 characters)
  * @returns A UUID string
  */
