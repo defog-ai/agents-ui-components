@@ -3,6 +3,7 @@ import {
   MessageManagerContext,
   MessageMonitor,
 } from "@ui-components";
+import { generateUUID } from "../../utils/utils";
 import { OracleHistorySidebar } from "./OracleHistorySidebar";
 import {
   useCallback,
@@ -55,7 +56,7 @@ export function OracleEmbed({
 }) {
   // Random UUID for upload new project option
   const { current: uploadNewProjectOption } = useRef<string>(
-    crypto.randomUUID().toString()
+    generateUUID()
   );
 
   // Refs and managers
@@ -163,7 +164,7 @@ export function OracleEmbed({
   // Handle new analysis creation
   const handleCreateNewAnalysis = useCallback(
     (question: string, projectName: string) => {
-      const analysisId = crypto.randomUUID() as string;
+      const analysisId = generateUUID() as string;
 
       // Either a new project was created or we are on the "new report" screen
       if (projectNames.indexOf(projectName) === -1 || !selectedItem) {

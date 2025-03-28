@@ -1,4 +1,5 @@
 import { useContext, useEffect, useState, useSyncExternalStore } from "react";
+import { generateUUID } from "../../../../utils/utils";
 import { OracleCommentPopover } from "./OracleCommentPopover";
 import type { OracleReportComment } from "../../../utils";
 import {
@@ -233,7 +234,7 @@ function OracleCommentHandlerInner({
                     .chain()
                     .setNodeSelection(interactionState.pmPos.inside)
                     .addComment({
-                      id: crypto.randomUUID(),
+                      id: generateUUID(),
                       content: "",
                       user: localStorage.getItem("user"),
                     })

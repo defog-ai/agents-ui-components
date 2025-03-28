@@ -566,3 +566,24 @@ export const formatFileSize = (bytes: number): string => {
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
 };
+
+/**
+ * Generate a UUID v4 with fallback for environments where crypto.randomUUID is not available
+ * @param sliceLength Optional parameter to slice the UUID to a specific length (e.g. 8 characters)
+ * @returns A UUID string
+ */
+export function generateUUID(sliceLength?: number): string {
+  try {
+    // Try to use the native crypto.randomUUID method
+    const uuid = crypto.randomUUID();
+    return sliceLength ? uuid.slice(0, sliceLength) : uuid;
+  } catch (error) {
+    // Fallback implementation for environments where crypto.randomUUID is not available
+    // This implementation follows the UUID v4 format
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      const r = Math.random() * 16 | 0;
+      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    }).slice(0, sliceLength);
+  }
+}

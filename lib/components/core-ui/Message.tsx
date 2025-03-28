@@ -1,4 +1,5 @@
 import { CircleCheck, CircleAlert, Info, CircleX } from "lucide-react";
+import { generateUUID } from "../utils/utils";
 import React, { createContext, useContext, useSyncExternalStore } from "react";
 import { twMerge } from "tailwind-merge";
 
@@ -89,7 +90,7 @@ export function MessageManager(): MessageManager {
     persist?: boolean
   ) {
     const time = performance.now();
-    const id = crypto.randomUUID();
+    const id = generateUUID();
 
     list = [
       ...list,
