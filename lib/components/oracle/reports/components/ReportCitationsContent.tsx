@@ -11,19 +11,12 @@ interface ReportCitationsContentProps {
   citations: CitationItem[];
 }
 
-function mathsExpression(expr: string) {
-  // there might be multiple $..$ or $$...$$ in a single expression
-
-  // https://github.com/KaTeX/KaTeX/discussions/3509#discussioncomment-1992394
-  // There isn't currently an API for rendering a bunch of text with multiple math expressions like that (see #604). The intent is to call renderToString for each part within $ delimiters, e.g., renderToString(`\{y \in \mathbb{R}, y \leq 0\}`), and concatenate them yourself.
-  // There is code for doing roughly this in auto-render, but it's currently just intended to run on the DOM.
-
-  // find all matches of the two regexes
-  // Latex is always wrapped in <latex>$...$</latex> or <latex>$$...$$</latex>. (Otherwise it gets hard to differentiate it against dollar signs appearing in currency or text)
+function parseTextWithMath(expr: string) {
+  // Latex is wrapped in <latex-block>...</latex-block> for block equations or <latex-inline>...</latex-inline> for inline expressions
 
   const regexes = [
-    /<latex>\$\$([\s\S]*?)\$\$<\/latex>/g,
-    /<latex-inline>\$([\s\S]*?)\$<\/latex-inline>/g,
+    /<latex-block>([\s\S]*?)<\/latex-block>/g, // Block LaTeX
+    /<latex-inline>([\s\S]*?)<\/latex-inline>/g, // Inline LaTeX
   ];
 
   let matches: RegExpExecArray[] = [];
@@ -41,44 +34,72 @@ function mathsExpression(expr: string) {
     } while (match);
   }
 
+  console.groupCollapsed("LaTeX matches found");
   if (matches && matches.length > 0) {
-    console.groupCollapsed("matches");
     console.log(expr);
     console.log(matches.map((d) => d.index));
 
+    // Sort matches by their index to ensure proper order of processing
+    matches.sort((a, b) => a.index - b.index);
+
+    console.log("matches", matches);
+
     const parsed: string[] = [];
 
-    for (let i = 0; i < matches.length; i++) {
-      const match = matches[i];
-      // first insert the text after the match till the next match
-      parsed.push(
-        marked.parse(
-          expr.slice(
-            match.index + match[0].length,
-            matches[i + 1] ? matches[i + 1].index : expr.length
-          )
-        )
-      );
-
-      // now parse the text within the match
-      parsed.push(
-        katex.renderToString(match[1], {
-          displayMode: i === 0,
-          output: "mathml",
-        })
-      );
-    }
-
-    // in the end, insert the remaining beginning text if any from 0 to the first match index
+    // First, add the content before the first match
     if (matches[0].index > 0) {
       parsed.push(marked.parse(expr.slice(0, matches[0].index)));
     }
 
-    console.log(parsed);
-    console.groupEnd();
+    // Process each match in order
+    for (let i = 0; i < matches.length; i++) {
+      const match = matches[i];
 
-    return parsed.join("").replace("\n+", "\n\n").trim();
+      // Parse the LaTeX content
+      // Check if this is a block or inline LaTeX based on the tag
+      const isBlockLatex = match[0].includes("<latex-block>");
+
+      // Get the content between this match and the next match (or end of string)
+      const nextIndex =
+        i < matches.length - 1 ? matches[i + 1].index : expr.length;
+      const textBetween = expr.slice(match.index + match[0].length, nextIndex);
+
+      // if this was block latex, add it as a separate entry in the parsed array
+      // otherwise, append it to the previous entry in the parsed array to maintain the same sentence when parsing via
+      // marked later.
+      // if the parsed array is empty, create the first entry
+      if (isBlockLatex) {
+        parsed.push(
+          katex.renderToString(match[1], {
+            displayMode: true,
+          })
+        );
+
+        if (textBetween.length > 0) {
+          parsed.push(textBetween);
+        }
+      } else {
+        const rendered = katex.renderToString(match[1], {
+          displayMode: false,
+        });
+        if (parsed.length > 0) {
+          parsed[parsed.length - 1] += rendered + textBetween;
+        } else {
+          parsed.push(rendered + textBetween);
+        }
+      }
+    }
+
+    // run all the entries through marked.parse
+    const parsedMarkdown = parsed.map((d) => marked.parse(d));
+
+    console.log("Parsed LaTeX and markdown:", parsedMarkdown);
+
+    // Join all the parsed fragments and replace newline sequences
+    return parsedMarkdown.join("").replace(/\n+/g, "\n\n").trim();
   }
+
+  console.groupEnd();
 
   return expr;
 }
@@ -93,20 +114,21 @@ export function ReportCitationsContent({
   const citationsParsed = citations
     .map((item) => {
       if (!item.text) return null;
-      if (item.text.indexOf("<latex>") === -1) {
-        // parse and return
+      // Check for both <latex-block> and <latex-inline> tags
+      if (
+        item.text.indexOf("<latex-block>") === -1 &&
+        item.text.indexOf("<latex-inline>") === -1
+      ) {
+        // No LaTeX content, just parse markdown and return
         return {
           ...item,
           parsed: marked.parse(item.text),
         };
       } else {
-        // parse the math to katex and send
         const text = item.text;
-        const math = mathsExpression(text);
-
         return {
           ...item,
-          parsed: math,
+          parsed: parseTextWithMath(text),
         };
       }
     })

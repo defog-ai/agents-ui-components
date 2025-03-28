@@ -43,7 +43,8 @@ const itemTypeClasses = {
   default:
     "absolute bottom-1/2 left-1/2 -translate-x-1/2 translate-y-1/2 w-full px-4",
   "query-data": "absolute bottom-2 left-1/2 -translate-x-1/2 w-full px-4",
-  report: "absolute -bottom-48 left-1/2 -translate-x-1/2 w-full px-4 opacity-0",
+  report:
+    "absolute -bottom-48 left-1/2 -translate-x-1/2 w-full px-4 opacity-0 h-0 overflow-hidden",
   "new-project":
     "absolute -bottom-48 left-1/2 -translate-x-1/2 w-full px-4 opacity-0",
 };
@@ -358,7 +359,7 @@ export function OracleSearchBar({
 
       <DropFilesHeadless
         rootClassNames={twMerge(
-          "drop-drop min-h-0 relative z-[2] rounded-2xl p-2 border bg-white dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 overflow-visible",
+          "min-h-0 relative z-[2] rounded-2xl p-2 border bg-white dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 overflow-visible",
           selectedItem?.itemType === "query-data"
             ? "shadow-custom border-gray-300 dark:border-gray-600"
             : "",
