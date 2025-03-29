@@ -1,4 +1,4 @@
-import { SyntheticEvent, ReactNode } from "react";
+import React, { SyntheticEvent, ReactNode, useMemo } from "react";
 import { CreateNewProject } from "../../../common/CreateNewProject";
 import { ORACLE_REPORT_STATUS, OracleReport, ReportData } from "@oracle";
 import { OracleThinking } from "../../reports/OracleThinking";
@@ -10,7 +10,7 @@ import { AnalysisTreeContentWrapper } from "./AnalysisTreeContentWrapper";
 /**
  * Main content area for the Oracle Embed component
  */
-export const OracleContent = ({
+export const OracleContent = React.memo(function OracleContent({
   apiEndpoint,
   token,
   selectedItemId,
@@ -36,7 +36,7 @@ export const OracleContent = ({
   onThinkingStreamClosed: (thinkingSteps: any, hadError: boolean) => void;
   setMostVisibleAnalysisAsActive: () => void;
   onProjectCreated: (projectName: string) => void;
-}) => {
+}) {
   return (
     <div className="flex flex-col grow p-2 relative min-w-0 overflow-hidden">
       {/* Show CreateNewProject when the "Upload new" option is selected */}
@@ -52,10 +52,10 @@ export const OracleContent = ({
       {selectedItemId && selectedItem && "analysisTree" in selectedItem ? (
         <div
           className="p-4 space-y-4 max-h-full overflow-y-auto pb-48"
-          onScroll={debounce((e: SyntheticEvent) => {
+          onScroll={useMemo(() => debounce((e: SyntheticEvent) => {
             e.stopPropagation();
             setMostVisibleAnalysisAsActive();
-          }, 100)}
+          }, 100), [setMostVisibleAnalysisAsActive])}
         >
           <ErrorBoundary>
             {Object.keys((selectedItem as QueryDataTree).analysisTree).length > 0 && (
@@ -97,4 +97,4 @@ export const OracleContent = ({
       {searchBar}
     </div>
   );
-};
+});

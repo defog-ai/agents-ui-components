@@ -1,3 +1,4 @@
+import React from "react";
 import {
   generateReport,
   getClarifications,
@@ -48,7 +49,7 @@ const itemTypeClasses = {
     "absolute -bottom-48 left-1/2 -translate-x-1/2 w-full px-4 opacity-0",
 };
 
-export function OracleSearchBar({
+export const OracleSearchBar = React.memo(function OracleSearchBar({
   projectName,
   uploadNewProjectOption,
   onReportGenerated,
@@ -275,7 +276,199 @@ export function OracleSearchBar({
     return null; // Files are uploaded immediately so we don't need to show them in the search bar
   }, []);
 
-  // Create a component to display available tables and PDF files
+  // Create a component to display available tables and PDF files - memoized to prevent unnecessary re-renders
+  // Event handler for submit button click
+  const handleSubmitClick = useCallback(async () => {
+    if (!textAreaRef.current?.value) {
+      setErrorMessage("Please enter a question");
+      return;
+    }
+
+    // Simulate cmd+enter keypress by running the same logic
+    try {
+      setClarificationStarted(true);
+      setLoading(true);
+
+      searchBarManager.setDraft((prev) => ({
+        ...prev,
+        userQuestion: textAreaRef.current.value,
+        status: "getting_clarifications",
+      }));
+
+      setErrorMessage("");
+
+      if (draft.uploadedFiles?.length > 0) {
+        try {
+          await createProjectFromFiles(
+            apiEndpoint,
+            token,
+            draft.uploadedFiles,
+            projectName
+          );
+
+          const result = await getTablesAndFiles(
+            apiEndpoint,
+            token,
+            projectName
+          );
+          setAvailableTables(result.tables);
+          setAvailablePdfFiles(result.pdf_files);
+        } catch (uploadError) {
+          throw new Error(
+            `Failed to upload files: ${uploadError.message}`
+          );
+        }
+      }
+
+      const useProjectName = newProjectName.current || projectName;
+
+      if (
+        draft.mode === "query-data" ||
+        selectedItem?.itemType === "query-data"
+      ) {
+        searchBarManager.resetDraft();
+        createNewFastAnalysis(
+          textAreaRef.current.value,
+          useProjectName
+        );
+        if (textAreaRef.current) {
+          textAreaRef.current.value = "";
+        }
+      } else {
+        const res = await getClarifications(
+          apiEndpoint,
+          token,
+          useProjectName,
+          textAreaRef.current.value
+        );
+
+        searchBarManager.setDraft((prev) => ({
+          ...prev,
+          loading: false,
+          userQuestion: textAreaRef.current.value,
+          status: "clarifications_received",
+          clarifications: res.clarifications,
+          reportId: res.report_id,
+          uploadedFiles: [],
+        }));
+      }
+    } catch (e) {
+      console.log(e);
+      setErrorMessage(e.toString());
+      searchBarManager.resetDraft();
+    } finally {
+      setLoading(false);
+      setClarificationStarted(false);
+      newProjectName.current = null;
+    }
+  }, [apiEndpoint, token, draft, selectedItem, projectName, textAreaRef, setClarificationStarted, setLoading, searchBarManager, setErrorMessage, setAvailableTables, setAvailablePdfFiles, newProjectName, createNewFastAnalysis]);
+
+  // Event handler for keyboard input
+  const handleKeyDown = useCallback(async (e) => {
+    // only do this for slash
+    if (e.key === "/") {
+      e.stopPropagation();
+    }
+    // Show hint when normal Enter is pressed (not with modifiers)
+    if (
+      e.key === "Enter" &&
+      !e.metaKey &&
+      !e.ctrlKey &&
+      !e.shiftKey &&
+      !hasShownSubmitHint
+    ) {
+      e.stopPropagation();
+      setShowSubmitHint(true);
+      setHasShownSubmitHint(true);
+      // Auto-hide after 3 seconds
+      setTimeout(() => {
+        setShowSubmitHint(false);
+      }, 3000);
+    }
+    if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+      const question = e.currentTarget.value;
+      if (!question) {
+        setErrorMessage("Please enter a question");
+        return;
+      }
+      try {
+        // Set clarification started flag immediately
+        setClarificationStarted(true);
+        setLoading(true);
+
+        searchBarManager.setDraft((prev) => ({
+          ...prev,
+          userQuestion: question,
+          status: "getting_clarifications",
+        }));
+
+        // prepare either for success or a new error message
+        setErrorMessage("");
+
+        if (draft.uploadedFiles?.length > 0) {
+          try {
+            await createProjectFromFiles(
+              apiEndpoint,
+              token,
+              draft.uploadedFiles,
+              projectName
+            );
+
+            const result = await getTablesAndFiles(
+              apiEndpoint,
+              token,
+              projectName
+            );
+            setAvailableTables(result.tables);
+            setAvailablePdfFiles(result.pdf_files);
+          } catch (uploadError) {
+            throw new Error(
+              `Failed to upload files: ${uploadError.message}`
+            );
+          }
+        }
+
+        const useProjectName = newProjectName.current || projectName;
+
+        if (
+          draft.mode === "query-data" ||
+          selectedItem?.itemType === "query-data"
+        ) {
+          searchBarManager.resetDraft();
+          createNewFastAnalysis(question, useProjectName);
+          if (textAreaRef.current) {
+            textAreaRef.current.value = "";
+          }
+        } else {
+          const res = await getClarifications(
+            apiEndpoint,
+            token,
+            useProjectName,
+            question
+          );
+
+          searchBarManager.setDraft((prev) => ({
+            ...prev,
+            loading: false,
+            userQuestion: question,
+            status: "clarifications_received",
+            clarifications: res.clarifications,
+            reportId: res.report_id,
+            uploadedFiles: [],
+          }));
+        }
+      } catch (e) {
+        console.log(e);
+        setErrorMessage(e.toString());
+        searchBarManager.resetDraft();
+      } finally {
+        setLoading(false);
+        setClarificationStarted(false);
+        newProjectName.current = null;
+      }
+    }
+  }, [apiEndpoint, token, draft, selectedItem, projectName, textAreaRef, setClarificationStarted, setLoading, searchBarManager, setShowSubmitHint, setHasShownSubmitHint, setErrorMessage, hasShownSubmitHint, newProjectName, createNewFastAnalysis]);
+
   const ResourcesDisplay = useMemo(() => {
     if (
       (availableTables.length === 0 && availablePdfFiles.length === 0) ||
@@ -346,7 +539,7 @@ export function OracleSearchBar({
         </div>
       </div>
     );
-  }, [availableTables, availablePdfFiles, isLoadingResources, selectedItem]);
+  }, [availableTables.length, availablePdfFiles.length, isLoadingResources, selectedItem?.itemType]);
 
   return (
     <div
@@ -513,91 +706,7 @@ export function OracleSearchBar({
                   <div className="relative">
                     {/* Regular button */}
                     <button
-                      onClick={async () => {
-                        if (!textAreaRef.current?.value) {
-                          setErrorMessage("Please enter a question");
-                          return;
-                        }
-
-                        // Simulate cmd+enter keypress by running the same logic
-                        try {
-                          setClarificationStarted(true);
-                          setLoading(true);
-
-                          searchBarManager.setDraft((prev) => ({
-                            ...prev,
-                            userQuestion: textAreaRef.current.value,
-                            status: "getting_clarifications",
-                          }));
-
-                          setErrorMessage("");
-
-                          if (draft.uploadedFiles?.length > 0) {
-                            try {
-                              await createProjectFromFiles(
-                                apiEndpoint,
-                                token,
-                                draft.uploadedFiles,
-                                projectName
-                              );
-
-                              const result = await getTablesAndFiles(
-                                apiEndpoint,
-                                token,
-                                projectName
-                              );
-                              setAvailableTables(result.tables);
-                              setAvailablePdfFiles(result.pdf_files);
-                            } catch (uploadError) {
-                              throw new Error(
-                                `Failed to upload files: ${uploadError.message}`
-                              );
-                            }
-                          }
-
-                          const useProjectName =
-                            newProjectName.current || projectName;
-
-                          if (
-                            draft.mode === "query-data" ||
-                            selectedItem?.itemType === "query-data"
-                          ) {
-                            searchBarManager.resetDraft();
-                            createNewFastAnalysis(
-                              textAreaRef.current.value,
-                              useProjectName
-                            );
-                            if (textAreaRef.current) {
-                              textAreaRef.current.value = "";
-                            }
-                          } else {
-                            const res = await getClarifications(
-                              apiEndpoint,
-                              token,
-                              useProjectName,
-                              textAreaRef.current.value
-                            );
-
-                            searchBarManager.setDraft((prev) => ({
-                              ...prev,
-                              loading: false,
-                              userQuestion: textAreaRef.current.value,
-                              status: "clarifications_received",
-                              clarifications: res.clarifications,
-                              reportId: res.report_id,
-                              uploadedFiles: [],
-                            }));
-                          }
-                        } catch (e) {
-                          console.log(e);
-                          setErrorMessage(e.toString());
-                          searchBarManager.resetDraft();
-                        } finally {
-                          setLoading(false);
-                          setClarificationStarted(false);
-                          newProjectName.current = null;
-                        }
-                      }}
+                      onClick={handleSubmitClick}
                       disabled={loading}
                       className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                     >
@@ -730,136 +839,7 @@ export function OracleSearchBar({
               resize: "none",
             },
           }}
-          onKeyDown={async (e) => {
-            // only do this for slash
-            if (e.key === "/") {
-              e.stopPropagation();
-            }
-            // Show hint when normal Enter is pressed (not with modifiers)
-            if (
-              e.key === "Enter" &&
-              !e.metaKey &&
-              !e.ctrlKey &&
-              !e.shiftKey &&
-              !hasShownSubmitHint
-            ) {
-              e.stopPropagation();
-              setShowSubmitHint(true);
-              setHasShownSubmitHint(true);
-              // Auto-hide after 3 seconds
-              setTimeout(() => {
-                setShowSubmitHint(false);
-              }, 3000);
-            }
-            if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
-              const question = e.currentTarget.value;
-              if (!question) {
-                setErrorMessage("Please enter a question");
-                return;
-              }
-              try {
-                // Set clarification started flag immediately
-                setClarificationStarted(true);
-                setLoading(true);
-
-                searchBarManager.setDraft((prev) => ({
-                  ...prev,
-                  userQuestion: question,
-                  status: "getting_clarifications",
-                }));
-
-                // prepare either for success or a new error message
-                setErrorMessage("");
-
-                // NOTE: Files are now uploaded immediately on drop, so this block
-                // is unlikely to execute since draft.uploadedFiles should be empty.
-                // Keeping a simplified version for backward compatibility.
-                if (draft.uploadedFiles?.length > 0) {
-                  console.log(
-                    "Uploading remaining files before submitting question"
-                  );
-                  try {
-                    await createProjectFromFiles(
-                      apiEndpoint,
-                      token,
-                      draft.uploadedFiles,
-                      projectName // Pass current project name
-                    );
-
-                    // Refresh tables and files
-                    const result = await getTablesAndFiles(
-                      apiEndpoint,
-                      token,
-                      projectName
-                    );
-                    setAvailableTables(result.tables);
-                    setAvailablePdfFiles(result.pdf_files);
-                  } catch (uploadError) {
-                    console.error("Error uploading files:", uploadError);
-                    throw new Error(
-                      `Failed to upload files: ${uploadError.message}`
-                    );
-                  }
-                }
-
-                // Now get clarifications with the possibly updated project name
-                const useProjectName = newProjectName.current || projectName;
-
-                // If in query-data mode, create a new analysis instead of getting clarifications
-                // of if we're in a query-data item itself, create analysis
-                if (
-                  draft.mode === "query-data" ||
-                  selectedItem?.itemType === "query-data"
-                ) {
-                  console.log(
-                    "Starting fast analysis with project name:",
-                    useProjectName
-                  );
-
-                  searchBarManager.resetDraft();
-
-                  // Create new analysis for fast data analysis mode
-                  createNewFastAnalysis(question, useProjectName);
-
-                  // Reset the search bar text
-                  if (textAreaRef.current) {
-                    textAreaRef.current.value = "";
-                  }
-                } else {
-                  console.log(
-                    "Getting clarifications with project name:",
-                    useProjectName
-                  );
-
-                  const res = await getClarifications(
-                    apiEndpoint,
-                    token,
-                    useProjectName,
-                    question
-                  );
-
-                  searchBarManager.setDraft((prev) => ({
-                    ...prev,
-                    loading: false,
-                    userQuestion: question,
-                    status: "clarifications_received",
-                    clarifications: res.clarifications,
-                    reportId: res.report_id,
-                    uploadedFiles: [],
-                  }));
-                }
-              } catch (e) {
-                console.log(e);
-                setErrorMessage(e.toString());
-                searchBarManager.resetDraft();
-              } finally {
-                setLoading(false);
-                // If there's an error, allow the user to try again
-                setClarificationStarted(false);
-                newProjectName.current = null;
-              }
-            }
-          }}
+          onKeyDown={handleKeyDown}
         />
       </DropFilesHeadless>
 
@@ -902,4 +882,4 @@ export function OracleSearchBar({
       )}
     </div>
   );
-}
+});

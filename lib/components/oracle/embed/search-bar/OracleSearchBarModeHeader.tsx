@@ -1,11 +1,11 @@
-import { useContext, useSyncExternalStore, useState, useEffect } from "react";
+import React, { useContext, useSyncExternalStore, useState, useEffect, memo } from "react";
 import { OracleEmbedContext } from "../OracleEmbedContext";
 import { twMerge } from "tailwind-merge";
 import { statusDescriptions } from "./oracleSearchBarManager";
 import { KEYMAP } from "../../../../../lib/constants/keymap";
 import { KeyboardShortcutIndicator } from "../../../../../lib/components/core-ui/KeyboardShortcutIndicator";
 
-export const OracleSearchBarModeHeader = ({ selectedItem }) => {
+export const OracleSearchBarModeHeader = memo(({ selectedItem }) => {
   const { searchBarManager } = useContext(OracleEmbedContext);
   const [isMac, setIsMac] = useState(false);
 
@@ -42,4 +42,4 @@ export const OracleSearchBarModeHeader = ({ selectedItem }) => {
       )} */}
     </div>
   );
-};
+});

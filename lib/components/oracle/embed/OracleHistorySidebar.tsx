@@ -23,7 +23,7 @@ interface OracleHistorySidebarProps {
   setSelectedItem: (item: OracleHistoryItem | null) => void;
 }
 
-export const OracleHistorySidebar: React.FC<OracleHistorySidebarProps> = ({
+export const OracleHistorySidebar: React.FC<OracleHistorySidebarProps> = React.memo(({
   oracleHistory,
   selectedProjectName,
   uploadNewProjectOption,
@@ -170,4 +170,4 @@ export const OracleHistorySidebar: React.FC<OracleHistorySidebarProps> = ({
       </div>
     </Sidebar>
   );
-};
+});
