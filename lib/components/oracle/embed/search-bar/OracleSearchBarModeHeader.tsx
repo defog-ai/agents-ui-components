@@ -5,7 +5,13 @@ import { statusDescriptions } from "./oracleSearchBarManager";
 import { KEYMAP } from "../../../../../lib/constants/keymap";
 import { KeyboardShortcutIndicator } from "../../../../../lib/components/core-ui/KeyboardShortcutIndicator";
 
-export const OracleSearchBarModeHeader = memo(({ selectedItem }) => {
+import { OracleHistoryItem } from "../types";
+
+interface OracleSearchBarModeHeaderProps {
+  selectedItem: OracleHistoryItem | null;
+}
+
+export const OracleSearchBarModeHeader = memo(({ selectedItem }: OracleSearchBarModeHeaderProps) => {
   const { searchBarManager } = useContext(OracleEmbedContext);
   const [isMac, setIsMac] = useState(false);
 
