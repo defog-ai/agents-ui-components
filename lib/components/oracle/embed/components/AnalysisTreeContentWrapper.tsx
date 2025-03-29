@@ -1,4 +1,4 @@
-import {
+import React, {
   useCallback,
   useContext,
   useEffect,
@@ -16,7 +16,7 @@ import { AnalysisTreeManager } from "../../../query-data/analysis-tree-viewer/an
 /**
  * Wrapper component for AnalysisTreeContent to avoid conditional hooks
  */
-export const AnalysisTreeContentWrapper = ({
+export const AnalysisTreeContentWrapper = React.memo(function AnalysisTreeContentWrapper({
   selectedItem,
   selectedProjectName,
   token,
@@ -26,7 +26,7 @@ export const AnalysisTreeContentWrapper = ({
   selectedProjectName: string;
   token: string;
   apiEndpoint: string;
-}) => {
+}) {
   // Setup necessary refs
   const analysisDomRefs = useRef({});
   const [contentLoading, setContentLoading] = useState(false);
@@ -102,4 +102,4 @@ export const AnalysisTreeContentWrapper = ({
       />
     </QueryDataEmbedContext.Provider>
   );
-};
+});

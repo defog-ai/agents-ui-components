@@ -1,3 +1,4 @@
+import React from "react";
 import {
   MessageManager,
   MessageManagerContext,
@@ -45,7 +46,7 @@ import { findItemGroupInHistory } from "./utils/historyUtils";
  * This has a sidebar to select project names, and a report selector which shows a list of already generated reports.
  * Has a button to start a new report.
  */
-export function OracleEmbed({
+export const OracleEmbed = React.memo(function OracleEmbed({
   apiEndpoint,
   token,
   initialProjectNames = [],
@@ -144,7 +145,7 @@ export function OracleEmbed({
     );
   }, [selectedItemId, oracleHistory, selectedProjectName]);
 
-  // Set most visible analysis as active
+  // Set most visible analysis as active - memoized to prevent unnecessary re-creation
   const setMostVisibleAnalysisAsActive = useCallback(() => {
     if (selectedItem?.itemType !== "query-data" || !selectedItem.treeManager)
       return;
@@ -160,6 +161,11 @@ export function OracleEmbed({
     selectedItem.treeManager.setActiveAnalysisId(visibleAnalysisId);
     selectedItem.treeManager.setActiveRootAnalysisId(rootAnalysisId);
   }, [selectedItem]);
+  
+  // Memoized function for setting the selected item
+  const handleSetSelectedItem = useCallback((item) => {
+    setSelectedItemId(item?.itemId);
+  }, [setSelectedItemId]);
 
   // Handle new analysis creation
   const handleCreateNewAnalysis = useCallback(
@@ -285,9 +291,7 @@ export function OracleEmbed({
             selectedItemId={selectedItemId}
             updateUrlWithItemId={updateUrlWithItemId}
             projectSelector={projectSelector}
-            setSelectedItem={(item) => {
-              setSelectedItemId(item?.itemId);
-            }}
+            setSelectedItem={handleSetSelectedItem}
           />
 
           <OracleContent
@@ -308,4 +312,4 @@ export function OracleEmbed({
       </MessageManagerContext.Provider>
     </OracleEmbedContext.Provider>
   );
-}
+});
