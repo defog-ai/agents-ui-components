@@ -18,97 +18,107 @@ interface ReportCitationsContentProps {
 }
 
 function parseTextWithMath(expr: string) {
-  // Latex is wrapped in <latex-block>...</latex-block> for block equations or <latex-inline>...</latex-inline> for inline expressions
+  try {
+    // Latex is wrapped in <latex-block>...</latex-block> for block equations or <latex-inline>...</latex-inline> for inline expressions
 
-  const regexes = [
-    /<latex-block>([\s\S]*?)<\/latex-block>/g, // Block LaTeX
-    /<latex-inline>([\s\S]*?)<\/latex-inline>/g, // Inline LaTeX
-  ];
+    const regexes = [
+      /<latex-block>([\s\S]*?)<\/latex-block>/g, // Block LaTeX
+      /<latex-inline>([\s\S]*?)<\/latex-inline>/g, // Inline LaTeX
+    ];
 
-  let matches: RegExpExecArray[] = [];
+    let matches: RegExpExecArray[] = [];
 
-  if (!expr) return null;
+    if (!expr) return null;
 
-  for (let i = 0; i < regexes.length; i++) {
-    const regex = regexes[i];
+    for (let i = 0; i < regexes.length; i++) {
+      const regex = regexes[i];
 
-    let match: RegExpExecArray | null;
-    do {
-      match = regex.exec(expr);
-      if (!match) continue;
-      matches.push(match);
-    } while (match);
-  }
-
-  console.groupCollapsed("LaTeX matches found");
-  if (matches && matches.length > 0) {
-    console.log(expr);
-    console.log(matches.map((d) => d.index));
-
-    // Sort matches by their index to ensure proper order of processing
-    matches.sort((a, b) => a.index - b.index);
-
-    console.log("matches", matches);
-
-    const parsed: string[] = [];
-
-    // First, add the content before the first match
-    if (matches[0].index > 0) {
-      // @ts-ignore
-      parsed.push(marked.parse(expr.slice(0, matches[0].index)));
+      let match: RegExpExecArray | null;
+      do {
+        match = regex.exec(expr);
+        if (!match) continue;
+        matches.push(match);
+      } while (match);
     }
 
-    // Process each match in order
-    for (let i = 0; i < matches.length; i++) {
-      const match = matches[i];
+    if (matches && matches.length > 0) {
+      console.groupCollapsed("Latex Matches");
+      console.log(expr);
+      console.log(matches.map((d) => d.index));
 
-      // Parse the LaTeX content
-      // Check if this is a block or inline LaTeX based on the tag
-      const isBlockLatex = match[0].includes("<latex-block>");
+      // Sort matches by their index to ensure proper order of processing
+      matches.sort((a, b) => a.index - b.index);
 
-      // Get the content between this match and the next match (or end of string)
-      const nextIndex =
-        i < matches.length - 1 ? matches[i + 1].index : expr.length;
-      const textBetween = expr.slice(match.index + match[0].length, nextIndex);
+      console.log("matches", matches);
 
-      // if this was block latex, add it as a separate entry in the parsed array
-      // otherwise, append it to the previous entry in the parsed array to maintain the same sentence when parsing via
-      // marked later.
-      // if the parsed array is empty, create the first entry
-      if (isBlockLatex) {
-        parsed.push(
-          katex.renderToString(match[1], {
-            displayMode: true,
-          })
+      const parsed: string[] = [];
+
+      // First, add the content before the first match
+      if (matches[0].index > 0) {
+        // @ts-ignore
+        parsed.push(marked.parse(expr.slice(0, matches[0].index)));
+      }
+
+      // Process each match in order
+      for (let i = 0; i < matches.length; i++) {
+        const match = matches[i];
+
+        // Parse the LaTeX content
+        // Check if this is a block or inline LaTeX based on the tag
+        const isBlockLatex = match[0].includes("<latex-block>");
+
+        // Get the content between this match and the next match (or end of string)
+        const nextIndex =
+          i < matches.length - 1 ? matches[i + 1].index : expr.length;
+        const textBetween = expr.slice(
+          match.index + match[0].length,
+          nextIndex
         );
 
-        if (textBetween.length > 0) {
-          parsed.push(textBetween);
-        }
-      } else {
-        const rendered = katex.renderToString(match[1], {
-          displayMode: false,
-        });
-        if (parsed.length > 0) {
-          parsed[parsed.length - 1] += rendered + textBetween;
+        // if this was block latex, add it as a separate entry in the parsed array
+        // otherwise, append it to the previous entry in the parsed array to maintain the same sentence when parsing via
+        // marked later.
+        // if the parsed array is empty, create the first entry
+        if (isBlockLatex) {
+          parsed.push(
+            katex.renderToString(match[1], {
+              displayMode: true,
+            })
+          );
+
+          if (textBetween.length > 0) {
+            parsed.push(textBetween);
+          }
         } else {
-          parsed.push(rendered + textBetween);
+          const rendered = katex.renderToString(match[1], {
+            displayMode: false,
+          });
+          if (parsed.length > 0) {
+            parsed[parsed.length - 1] += rendered + textBetween;
+          } else {
+            parsed.push(rendered + textBetween);
+          }
         }
       }
+
+      // run all the entries through marked.parse
+      const parsedMarkdown = parsed.map((d) => marked.parse(d));
+
+      console.log("Parsed LaTeX and markdown:", parsedMarkdown);
+
+      console.groupEnd();
+      // Join all the parsed fragments and replace newline sequences
+      return parsedMarkdown.join("").replace(/\n+/g, "\n\n").trim();
     }
 
-    // run all the entries through marked.parse
-    const parsedMarkdown = parsed.map((d) => marked.parse(d));
+    console.log("No latex matches, returning text as is");
 
-    console.log("Parsed LaTeX and markdown:", parsedMarkdown);
-
-    // Join all the parsed fragments and replace newline sequences
-    return parsedMarkdown.join("").replace(/\n+/g, "\n\n").trim();
+    return expr;
+  } catch (e) {
+    console.error(e);
+    return expr;
+  } finally {
   }
-
-  console.groupEnd();
-
-  return expr;
 }
 
 export function ReportCitationsContent({
@@ -132,28 +142,41 @@ export function ReportCitationsContent({
   const citationsParsed = useMemo(() => {
     if (!citations) return null;
 
-    return citations
-      .map((item) => {
-        if (!item.text) return null;
-        // Check for both <latex-block> and <latex-inline> tags
-        if (
-          item.text.indexOf("<latex-block>") === -1 &&
-          item.text.indexOf("<latex-inline>") === -1
-        ) {
-          // No LaTeX content, just parse markdown and return
-          return {
-            ...item,
-            parsed: marked.parse(item.text),
-          };
-        } else {
-          const text = item.text;
-          return {
-            ...item,
-            parsed: parseTextWithMath(text),
-          };
-        }
-      })
-      .filter((d) => d.parsed);
+    console.groupCollapsed("Parsing citations");
+
+    try {
+      return citations
+        .map((item) => {
+          if (!item.text)
+            return {
+              ...item,
+              parsed: "",
+            };
+          // Check for both <latex-block> and <latex-inline> tags
+          if (
+            item.text.indexOf("<latex-block>") === -1 &&
+            item.text.indexOf("<latex-inline>") === -1
+          ) {
+            // No LaTeX content, just parse markdown and return
+            return {
+              ...item,
+              parsed: marked.parse(item.text),
+            };
+          } else {
+            const text = item.text;
+            return {
+              ...item,
+              parsed: parseTextWithMath(text),
+            };
+          }
+        })
+        .filter((d) => d.parsed);
+    } catch (e) {
+      console.error(e);
+      return null;
+    } finally {
+      console.groupEnd();
+    }
   }, [citations]);
 
   // Find analysis IDs in document titles
@@ -297,15 +320,16 @@ export function ReportCitationsContent({
                 item.citations.length > 0;
 
               // Check for meaningful text content
-              const hasNonEmptyText = item.text && item.text.trim().length > 0;
-              const parsedHTML = String(
-                hasNonEmptyText ? marked.parse(item.text) : ""
-              );
-              const hasNonEmptyHTML =
-                parsedHTML.replace(/<[^>]*>/g, "").trim().length > 0;
+              // const hasNonEmptyText =
+              //   item.parsed && item.parsed.trim().length > 0;
+              // const parsedHTML = String(
+              //   hasNonEmptyText ? marked.parse(item.parsed) : ""
+              // );
+              // const hasNonEmptyHTML =
+              //   parsedHTML.replace(/<[^>]*>/g, "").trim().length > 0;
 
               // Keep item only if it has either valid citation or non-empty content
-              return hasValidCitation || hasNonEmptyHTML;
+              return hasValidCitation || item.parsed;
             })
             .map((item, index) => {
               // Check if this citation has a valid document title
@@ -329,20 +353,21 @@ export function ReportCitationsContent({
               }
 
               // Process text content
-              const hasNonEmptyText = item.text && item.text.trim().length > 0;
-              const parsedHTML = String(
-                hasNonEmptyText ? marked.parse(item.text) : ""
-              );
-              const hasNonEmptyHTML =
-                parsedHTML.replace(/<[^>]*>/g, "").trim().length > 0;
+              // const hasNonEmptyText =
+              //   item.parsed && item.parsed.trim().length > 0;
+              // const parsedHTML = String(
+              //   hasNonEmptyText ? marked.parse(item.parsed) : ""
+              // );
+              // const hasNonEmptyHTML =
+              //   parsedHTML.replace(/<[^>]*>/g, "").trim().length > 0;
 
               return (
                 <div key={index} className="mb-4 relative group">
-                  {hasNonEmptyHTML && (
+                  {item.parsed && (
                     <div
                       className="prose dark:prose-invert prose-sm max-w-none py-1"
                       dangerouslySetInnerHTML={{
-                        __html: parsedHTML,
+                        __html: item.parsed,
                       }}
                     />
                   )}
