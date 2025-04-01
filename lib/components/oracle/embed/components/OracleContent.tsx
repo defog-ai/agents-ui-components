@@ -40,13 +40,14 @@ export const OracleContent = React.memo(function OracleContent({
   return (
     <div className="flex flex-col grow p-2 relative min-w-0 overflow-hidden">
       {/* Show CreateNewProject when the "Upload new" option is selected */}
-      {selectedItemId === null && selectedProjectName === uploadNewProjectOption && (
-        <CreateNewProject
-          apiEndpoint={apiEndpoint}
-          token={token}
-          onProjectCreated={onProjectCreated}
-        />
-      )}
+      {selectedItemId === null &&
+        selectedProjectName === uploadNewProjectOption && (
+          <CreateNewProject
+            apiEndpoint={apiEndpoint}
+            token={token}
+            onProjectCreated={onProjectCreated}
+          />
+        )}
 
       {/* Show analysis tree for query-data */}
       {selectedItemId && selectedItem && "analysisTree" in selectedItem ? (
@@ -58,7 +59,8 @@ export const OracleContent = React.memo(function OracleContent({
           }, 100), [setMostVisibleAnalysisAsActive])}
         >
           <ErrorBoundary>
-            {Object.keys((selectedItem as QueryDataTree).analysisTree).length > 0 && (
+            {Object.keys((selectedItem as QueryDataTree).analysisTree).length >
+              0 && (
               <AnalysisTreeContentWrapper
                 selectedItem={selectedItem as QueryDataTree}
                 selectedProjectName={selectedProjectName}

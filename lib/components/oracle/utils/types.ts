@@ -42,6 +42,10 @@ export type ListReportResponse = ListReportResponseItem[];
 
 export interface CitationItem {
   text: string;
+  /**
+   * Parsed content of the citation.
+   */
+  parsed: string | null;
   citations?: {
     cited_text: string;
     document_title: string;

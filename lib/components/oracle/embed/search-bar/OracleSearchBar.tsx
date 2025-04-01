@@ -142,7 +142,8 @@ export const OracleSearchBar = React.memo(function OracleSearchBar({
             projectName,
             reportId,
             userQuestion,
-            draft.clarifications?.filter((c) => c.answer && c.is_answered) || [],
+            draft.clarifications?.filter((c) => c.answer && c.is_answered) ||
+              [],
             draft.useWebsearch
           );
         } catch (error) {
@@ -545,7 +546,7 @@ export const OracleSearchBar = React.memo(function OracleSearchBar({
   return (
     <div
       className={twMerge(
-        "oracle-search transition-all duration-700 ease-in-out z-[30] *:transition-all *:duration-700 *:ease-in-out",
+        "oracle-search max-h-full py-2 transition-all duration-700 ease-in-out z-[30] *:transition-all *:duration-700 *:ease-in-out",
         itemTypeClasses[
           selectedItem?.itemType ||
             (projectName === uploadNewProjectOption ? "new-project" : "default")
