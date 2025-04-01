@@ -42,12 +42,12 @@ const modeIcons: Record<Mode, React.ReactNode> = {
 
 const itemTypeClasses = {
   default:
-    "absolute bottom-1/2 left-1/2 -translate-x-1/2 translate-y-1/2 w-full px-4",
+    "absolute bottom-1/2 left-1/2 -translate-x-1/2 translate-y-1/2 w-full px-4 py-2",
   "query-data": "absolute bottom-2 left-1/2 -translate-x-1/2 w-full px-4",
   report:
     "absolute -bottom-48 left-1/2 -translate-x-1/2 w-full px-4 opacity-0 h-0 overflow-hidden",
   "new-project":
-    "absolute -bottom-48 left-1/2 -translate-x-1/2 w-full px-4 opacity-0",
+    "absolute -bottom-48 left-1/2 -translate-x-1/2 w-full px-4 opacity-0 h-0 overflow-hidden",
 };
 
 export const OracleSearchBar = React.memo(function OracleSearchBar({
@@ -546,7 +546,7 @@ export const OracleSearchBar = React.memo(function OracleSearchBar({
   return (
     <div
       className={twMerge(
-        "oracle-search max-h-full py-2 transition-all duration-700 ease-in-out z-[30] *:transition-all *:duration-700 *:ease-in-out",
+        "oracle-search max-h-full transition-all duration-700 ease-in-out z-[30] *:transition-all *:duration-700 *:ease-in-out",
         itemTypeClasses[
           selectedItem?.itemType ||
             (projectName === uploadNewProjectOption ? "new-project" : "default")
