@@ -282,10 +282,20 @@ export function createActionHandlers(): ActionHandlers {
     autoSelectVariables: function () {
       const { selectedChart, availableColumns } = this.config;
 
-      const dateColumn = availableColumns.find((col) => col.isDate);
+      // Explicitly find date columns with enhanced detection
+      const dateColumn = availableColumns.find((col) => {
+        const isExplicitlyDate = col.isDate === true || col.colType === 'date';
+        const hasDateName = col.title && /date|year|month|week|time/gi.test(col.title);
+        const hasSampleDate = col.sample && typeof col.sample === 'string' && 
+          (/^\d{4}-\d{2}-\d{2}/.test(col.sample) || !isNaN(new Date(col.sample).getTime()));
+        
+        return isExplicitlyDate || hasDateName || hasSampleDate;
+      });
+      
       const quantColumns = availableColumns.filter(
         (col) => col.variableType === "quantitative"
       );
+      
       const nonQuantNonDateColumns = availableColumns.filter(
         (col) => col.variableType !== "quantitative" && !col.isDate
       );
@@ -351,8 +361,26 @@ export function createActionHandlers(): ActionHandlers {
       }
     ): Promise<void> {
       try {
+        // Validate required fields with detailed logging
+        if (!token || !userQuestion || !chartEditUrl || !this.config.availableColumns?.length) {
+          console.warn("Chart edit skipped - missing required fields:", { 
+            hasToken: !!token, 
+            hasQuestion: !!userQuestion, 
+            hasUrl: !!chartEditUrl, 
+            columnsLength: this.config.availableColumns?.length || 0 
+          });
+          
+          // Don't return, continue with auto-selection even if we can't call the API
+          this.autoSelectVariables();
+        }
+
         // start loading
         this.mergeConfigUpdates({ loading: true }).render();
+
+        // Auto-select columns if none selected
+        if (!this.config.selectedColumns.x || !this.config.selectedColumns.y) {
+          this.autoSelectVariables();
+        }
 
         const response = await fetch(chartEditUrl, {
           method: "POST",
@@ -365,15 +393,24 @@ export function createActionHandlers(): ActionHandlers {
             current_chart_state: this.clone(["data", "availableColumns"]),
             columns: this.config.availableColumns.map((col) => ({
               title: col.title,
-              col_type: col.colType,
+              col_type: col.colType || "string",
             })),
           }),
         });
 
+        // If response is not ok, don't throw error, just log and continue with auto-selection
+        if (!response.ok) {
+          console.warn("Chart edit request failed - continuing with auto-selection");
+          this.mergeConfigUpdates({ loading: false }).render();
+          return;
+        }
+
         const data = await response.json();
 
-        if (!response.ok || data.error || !data.success) {
-          throw new Error(data.error || "Failed to edit chart");
+        if (data.error || !data.success) {
+          console.warn("Chart edit response error:", data.error);
+          this.mergeConfigUpdates({ loading: false }).render();
+          return;
         }
 
         const chartConfigEdits = data["chart_state_edits"];
@@ -383,9 +420,10 @@ export function createActionHandlers(): ActionHandlers {
           loading: false,
         }).render();
       } catch (error) {
+        console.error("Chart edit error:", error);
         this.mergeConfigUpdates({ loading: false }).render();
         callbacks?.onError?.(error as Error);
-        throw error;
+        // Don't rethrow - handle gracefully
       }
     },
   };

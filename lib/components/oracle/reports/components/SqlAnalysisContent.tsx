@@ -2,13 +2,28 @@ import { OracleAnalysis } from "@oracle";
 import ErrorBoundary from "../../../common/ErrorBoundary";
 import { Table } from "@ui-components";
 import { ChartContainer } from "../../../observable-charts/ChartContainer";
+import { createChartManager } from "../../../observable-charts/ChartManagerContext";
 import { CodeEditor } from "../../../query-data/analysis/analysis-results/CodeEditor";
+import { useEffect, useMemo, useState } from "react";
+import { ChartBarIcon, TableIcon } from "lucide-react";
+import { KeyboardShortcutIndicator } from "../../../core-ui/KeyboardShortcutIndicator";
+import { KEYMAP, matchesKey } from "../../../../constants/keymap";
+import { parseData } from "@agent";
+import { checkIfDate, reFormatData } from "../../../query-data/queryDataUtils";
 
 interface SqlAnalysisContentProps {
   analysis: OracleAnalysis;
   viewMode: "table" | "chart";
   showSqlQuery: boolean;
   setShowSqlQuery: (show: boolean) => void;
+  setViewMode: (mode: "table" | "chart") => void;
+}
+
+interface TabItem {
+  key: "table" | "chart";
+  tabLabel: string;
+  icon?: React.ReactNode;
+  component: React.ReactNode;
 }
 
 export function SqlAnalysisContent({
@@ -16,7 +31,130 @@ export function SqlAnalysisContent({
   viewMode,
   showSqlQuery,
   setShowSqlQuery,
+  setViewMode,
 }: SqlAnalysisContentProps) {
+  const [isChartOptionsExpanded, setIsChartOptionsExpanded] = useState(false);
+  const [results, setResults] = useState<TabItem[]>([]);
+
+  // Create a parsedOutput object that exactly matches what parseOutput() creates in analysisManager.ts
+  const parsedOutputs = useMemo(() => {
+    if (!analysis) return null;
+    
+    // Convert analysis rows to CSV string (exactly like the backend would)
+    let csvString = '';
+    
+    // Add header
+    csvString += analysis.columns.map(col => col.title || col.key || '').join(',') + '\n';
+    
+    // Add data rows
+    analysis.rows.forEach(row => {
+      const rowStr = analysis.columns.map(col => {
+        const key = col.title || col.key || col.dataIndex;
+        return row[key] === undefined || row[key] === null ? '' : row[key];
+      }).join(',');
+      csvString += rowStr + '\n';
+    });
+    
+    // Now use the exact same function as analysisManager.ts to parse the output
+    // This is the most direct approach - we're using the same parseData function with CSV
+    const parsedData = parseData(csvString);
+    
+    // Create chart manager exactly like analysisManager.parseOutput does
+    const chartManager = createChartManager({
+      data: parsedData.data,
+      availableColumns: parsedData.columns,
+    });
+    
+    // Auto-select variables (exactly like the backend)
+    chartManager.autoSelectVariables();
+    
+    return {
+      csvString,
+      data: parsedData,
+      chartManager: chartManager, // Exact same structure as in analysisManager.parseOutput
+      reactive_vars: {},
+      chart_images: {},
+      analysis: {}
+    };
+  }, [analysis.analysis_id]);
+
+  const chartContainer = useMemo(() => {
+    return (
+      parsedOutputs && (
+        <ChartContainer
+          stepData={parsedOutputs}
+          initialQuestion={analysis?.question}
+          initialOptionsExpanded={isChartOptionsExpanded}
+        />
+      )
+    );
+  }, [analysis.analysis_id, parsedOutputs, isChartOptionsExpanded]);
+
+  useEffect(() => {
+    let tabs: TabItem[] = [];
+
+    tabs.push({
+      component: (
+        <div className="w-full overflow-x-auto">
+          <Table
+            columns={analysis.columns}
+            rows={analysis.rows}
+            columnHeaderClassNames="py-2"
+            skipColumns={["index"]}
+            rootClassNames="shadow-sm min-w-[400px]"
+          />
+        </div>
+      ),
+      key: "table",
+      tabLabel: "Table",
+      icon: <TableIcon className="w-4 h-4 mb-0.5 mr-1 inline" />,
+    });
+
+    tabs.push({
+      component: (
+        <ErrorBoundary>
+          {chartContainer}
+        </ErrorBoundary>
+      ),
+      key: "chart",
+      tabLabel: "Chart",
+      icon: <ChartBarIcon className="w-4 h-4 mb-0.5 mr-1 inline" />,
+    });
+
+    setResults(tabs);
+  }, [analysis.analysis_id, chartContainer]);
+
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (document.activeElement === document.body) {
+        // If any modifier keys are pressed, do not match
+        if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) {
+          return;
+        }
+        // Only handle chart options when chart tab is active
+        if (
+          matchesKey(e.key, KEYMAP.TOGGLE_CHART_OPTIONS) &&
+          viewMode === "chart"
+        ) {
+          setIsChartOptionsExpanded((prev) => !prev);
+          e.preventDefault();
+        }
+        // Add handlers for table/chart view switching
+        if (matchesKey(e.key, KEYMAP.VIEW_TABLE)) {
+          setViewMode("table");
+          e.preventDefault();
+        }
+        if (matchesKey(e.key, KEYMAP.VIEW_CHART)) {
+          setViewMode("chart");
+          e.preventDefault();
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyPress);
+    return () => window.removeEventListener("keydown", handleKeyPress);
+  }, [viewMode, setViewMode]);
+
   return (
     <div className="flex flex-col space-y-4">
       {/* Question header with icon */}
@@ -73,21 +211,40 @@ export function SqlAnalysisContent({
       {/* SQL Results with Query Toggle */}
       <div className="bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-600 overflow-hidden">
         <div className="flex flex-wrap items-center justify-between p-3 border-b dark:border-gray-600 bg-gray-50 dark:bg-gray-700">
-          <div className="flex items-center gap-2 mb-2 sm:mb-0">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5 text-indigo-500 dark:text-indigo-400"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <polyline points="16 18 22 12 16 6"></polyline>
-              <polyline points="8 6 2 12 8 18"></polyline>
-            </svg>
-            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-200">
-              {viewMode === "table" ? "SQL Results" : "SQL Chart"}
-            </h4>
+          <div className="flex items-center gap-2">
+            <nav className="flex space-x-4" aria-label="Tabs">
+              {results.map((tab) => (
+                <button
+                  key={tab.key}
+                  onClick={() => setViewMode(tab.key)}
+                  className={`
+                    px-3 py-2 text-sm font-medium rounded-t-lg flex items-center gap-2
+                    ${
+                      viewMode === tab.key
+                        ? "border-b-2 border-blue-500 text-blue-600 dark:text-white"
+                        : "text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300"
+                    }
+                  `}
+                >
+                  <span className="flex items-center">
+                    {tab.icon}
+                    {tab.tabLabel}
+                  </span>
+                  {tab.key === "table" && (
+                    <KeyboardShortcutIndicator
+                      keyValue={KEYMAP.VIEW_TABLE}
+                      className="opacity-50 px-1 py-0.5"
+                    />
+                  )}
+                  {tab.key === "chart" && (
+                    <KeyboardShortcutIndicator
+                      keyValue={KEYMAP.VIEW_CHART}
+                      className="opacity-50 px-1 py-0.5"
+                    />
+                  )}
+                </button>
+              ))}
+            </nav>
           </div>
 
           {(analysis as any)?.sql && (
@@ -176,29 +333,18 @@ export function SqlAnalysisContent({
         )}
 
         <div className="p-2 sm:p-3">
-          {viewMode === "table" ? (
-            <div className="w-full overflow-x-auto">
-              <Table
-                columns={analysis.columns}
-                rows={analysis.rows}
-                columnHeaderClassNames="py-2"
-                skipColumns={["index"]}
-                rootClassNames="shadow-sm min-w-[400px]"
-              />
+          {results.map((tab) => (
+            <div
+              key={tab.key}
+              className={
+                tab.key === viewMode
+                  ? "z-2"
+                  : "absolute overflow-hidden top-[-100%] z-[-1] pointer-events-none *:pointer-events-none opacity-0"
+              }
+            >
+              {tab.component}
             </div>
-          ) : (
-            <ErrorBoundary>
-              <div className="min-h-[250px] sm:min-h-[300px]">
-                <ChartContainer
-                  key={`chart-${analysis.analysis_id}`}
-                  rows={analysis.rows}
-                  columns={analysis.columns}
-                  initialQuestion={analysis.question}
-                  initialOptionsExpanded={false}
-                />
-              </div>
-            </ErrorBoundary>
-          )}
+          ))}
         </div>
       </div>
     </div>

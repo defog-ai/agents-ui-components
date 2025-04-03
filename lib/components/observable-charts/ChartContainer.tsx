@@ -92,12 +92,14 @@ export function ChartContainer({
   rows,
   columns,
   stepData,
+  chartManager: providedChartManager,
   initialQuestion = null,
   initialOptionsExpanded = false,
 }: {
   rows?: any[];
   columns?: any[];
   stepData?: ParsedOutput;
+  chartManager?: ChartManager;
   initialQuestion: string | null;
   initialOptionsExpanded?: boolean;
 }) {
@@ -105,15 +107,22 @@ export function ChartContainer({
     initialOptionsExpanded
   );
 
-  // support for oracle: if chart manager is not provided, we will create using rows and columns passed
+  // Support multiple ways of providing chart manager:
+  // 1. Direct chartManager prop (highest priority)
+  // 2. Via stepData (from AnalysisAgent)
+  // 3. Create new one from rows/columns (legacy support)
   const chartManager: ChartManager = useMemo(() => {
-    return stepData
-      ? stepData?.chartManager
-      : createChartManager({
-          data: rows,
-          availableColumns: columns,
-        });
-  }, [stepData, rows, columns]);
+    if (providedChartManager) {
+      return providedChartManager;
+    } else if (stepData?.chartManager) {
+      return stepData.chartManager;
+    } else {
+      return createChartManager({
+        data: rows,
+        availableColumns: columns,
+      });
+    }
+  }, [providedChartManager, stepData, rows, columns]);
 
   const [chartConfig, setChartConfig] = useState(chartManager.config);
 
@@ -141,14 +150,17 @@ export function ChartContainer({
   const { selectedColumns } = chartConfig;
 
   useEffect(() => {
-    // don't send request while chart is already loading
+    // Always send the edit chart request and let the function handle validation
     if (initialQuestion && !chartManager.config.loading) {
       chartManager.editChart(token, initialQuestion, chartEditUrl, {
         onError: (e) => {
-          messageManager.error(e.message);
-          console.error(e);
+          // Error handling is now done in the editChart function
+          console.warn("Chart edit warning:", e?.message);
         },
       });
+    } else if (!initialQuestion) {
+      // If no question, just auto-select variables
+      chartManager.autoSelectVariables().render();
     }
   }, []);
 
