@@ -564,7 +564,7 @@ export function ReportCitationsContent({
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {dashboardAnalyses.webSearches.map((item, index) => (
                 <div key={index} className="bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-600 p-4">
-                  <h4 className="font-medium mb-4 text-gray-700 dark:text-gray-300 pb-2 border-b dark:border-gray-700 line-clamp-2 h-14 overflow-hidden">
+                  <h4 className="font-medium mb-4 text-gray-700 dark:text-gray-300 pb-2 border-b dark:border-gray-700">
                     {item.question || item.inputs?.question || "Web Search"}
                   </h4>
                   <div className="overflow-auto max-h-[600px]">
