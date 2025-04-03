@@ -26,6 +26,58 @@ export const downloadFile = (
 };
 
 /**
+ * Converts MDX content to a podcast transcript format between two people
+ * 
+ * @param mdx - The MDX content to convert
+ * @param reportId - The ID of the report
+ * @param apiEndpoint - The API endpoint for podcast conversion
+ * @param projectName - The name of the project
+ * @param token - Authentication token
+ * @param onLoadingChange - Optional callback to update loading state
+ */
+export const exportAsPodcast = async (
+  mdx: string,
+  reportId: string,
+  apiEndpoint: string,
+  projectName: string,
+  token: string,
+  onLoadingChange?: (isLoading: boolean) => void
+): Promise<void> => {
+  try {
+    // Set loading state to true
+    onLoadingChange?.(true);
+    
+    // Create the request to the backend endpoint
+    const response = await fetch(`${apiEndpoint}/oracle/export_podcast`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        db_name: projectName,
+        report_id: parseInt(reportId),
+        token: token
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error exporting podcast: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    
+    // Download the transcript as a text file
+    downloadFile(result.transcript, `podcast-transcript-${reportId}.txt`, 'text/plain');
+  } catch (error) {
+    console.error('Error exporting podcast:', error);
+    throw error;
+  } finally {
+    // Set loading state to false regardless of success or failure
+    onLoadingChange?.(false);
+  }
+};
+
+/**
  * Exports the report content as a Markdown file
  *
  * @param mdx - The MDX content to export

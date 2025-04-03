@@ -81,7 +81,20 @@ export interface OracleReportContext {
 
   extra?: { [key: string]: any };
 
+  /**
+   * Comment manager for handling report comments
+   */
   commentManager?: CommentManager;
+  
+  /**
+   * Loading state indicator
+   */
+  isLoading?: boolean;
+  
+  /**
+   * Function to set loading state
+   */
+  setIsLoading?: (isLoading: boolean) => void;
 }
 
 /**
@@ -102,4 +115,6 @@ export const OracleReportContext = createContext<OracleReportContext>({
     introduction: "",
     recommendations: [],
   },
+  isLoading: false,
+  setIsLoading: () => {},
 });
