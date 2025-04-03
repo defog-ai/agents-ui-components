@@ -16,6 +16,7 @@ export function AnalysisContent({
   showSqlQuery,
   setShowSqlQuery,
 }: AnalysisContentProps) {
+  const setViewMode = (mode: "table" | "chart") => {}; // Stub implementation to satisfy type requirements
   if (!analysis) return null;
 
   // SQL Analysis
@@ -26,6 +27,7 @@ export function AnalysisContent({
         viewMode={viewMode}
         showSqlQuery={showSqlQuery}
         setShowSqlQuery={setShowSqlQuery}
+        setViewMode={setViewMode}
       />
     );
   }
