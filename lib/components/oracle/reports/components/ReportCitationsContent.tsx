@@ -1,5 +1,5 @@
 import { CitationItem } from "@oracle";
-import { LayoutDashboard } from "lucide-react";
+import { LayoutDashboard, ChartBarIcon, File } from "lucide-react";
 import katex from "katex";
 import "katex/dist/katex.min.css";
 import "katex/dist/fonts/KaTeX_Size2-Regular.woff2";
@@ -146,6 +146,12 @@ export function ReportCitationsContent({
   const [sqlQueryVisibility, setSqlQueryVisibility] = useState<Record<string, boolean>>({});
   // Dashboard mode to show all charts together
   const [showDashboard, setShowDashboard] = useState(false);
+  // Dashboard view options
+  const [showInDashboard, setShowInDashboard] = useState({
+    charts: true,
+    pdfs: true,
+    webSearches: true
+  });
 
   const citationsParsed = useMemo(() => {
     if (!citations) return null;
@@ -300,17 +306,55 @@ export function ReportCitationsContent({
     );
   };
 
-  // Function to gather all SQL analyses with valid data for dashboard
-  const chartAnalyses = useMemo(() => {
-    if (!analyses) return [];
+  // Function to gather all analyses by type for dashboard
+  const dashboardAnalyses = useMemo(() => {
+    if (!analyses) return { charts: [], pdfs: [], webSearches: [] };
     
-    // Filter analyses to only include those with SQL results and valid data
-    return analyses.filter(analysis => {
+    // Filter analyses by type
+    const charts = analyses.filter(analysis => {
+      // Chart analyses have rows and columns of data
       return analysis.rows && 
              analysis.rows.length > 0 && 
              analysis.columns && 
-             analysis.columns.length > 0;
-    }).map(analysis => {
+             analysis.columns.length > 0 &&
+             // Make sure it's not a PDF or web search analysis by function name
+             !(analysis.function_name === 'pdf_citations_tool' || 
+               analysis.function_name === 'web_search_tool');
+    });
+    
+    const pdfs = analyses.filter(analysis => {
+      // PDF analyses are identified by function_name
+      return analysis.function_name === 'pdf_citations_tool' &&
+             // Make sure we have result data for PDFs
+             analysis.result && 
+             analysis.result.citations && 
+             Array.isArray(analysis.result.citations) && 
+             analysis.result.citations.length > 0;
+    });
+    
+    const webSearches = analyses.filter(analysis => {
+      // Web search analyses are identified by function_name
+      return analysis.function_name === 'web_search_tool' &&
+             // Make sure we have result data for web searches
+             analysis.result && 
+             (analysis.result.answer || 
+              (analysis.result.reference_sources && 
+               Array.isArray(analysis.result.reference_sources) && 
+               analysis.result.reference_sources.length > 0));
+    });
+    
+    console.log('Dashboard analyses:', { 
+      charts: charts.length, 
+      pdfs: pdfs.length, 
+      webSearches: webSearches.length 
+    });
+    
+    return { charts, pdfs, webSearches };
+  }, [analyses]);
+  
+  // Process chart analyses for visualization
+  const chartAnalyses = useMemo(() => {
+    return dashboardAnalyses.charts.map(analysis => {
       // Convert analysis rows to a proper array of objects for d3's csvFormat
       const formattedRows = analysis.rows.map(row => {
         const formattedRow = {};
@@ -388,44 +432,151 @@ export function ReportCitationsContent({
     });
   }, [analyses]);
   
+  // For debugging: log complete analysis data when dashboard is toggled
+  useEffect(() => {
+    if (showDashboard && analyses) {
+      console.log('All analyses:', analyses);
+      console.log('Dashboard analyses structure:', dashboardAnalyses);
+    }
+  }, [showDashboard, analyses, dashboardAnalyses]);
+
   // Render either the dashboard view or the regular citations view
-  if (showDashboard && chartAnalyses.length > 0) {
+  if (showDashboard && (chartAnalyses.length > 0 || dashboardAnalyses.pdfs.length > 0 || dashboardAnalyses.webSearches.length > 0)) {
     return (
       <div className="flex flex-col space-y-6 mt-10">
-        {/* Dashboard header with back button */}
-        <div className="flex justify-between items-center">
-          <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">Charts Dashboard</h2>
-          <button
-            onClick={() => setShowDashboard(false)}
-            className="flex items-center gap-2 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-300 rounded-md px-3 py-1.5 font-medium transition-colors"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M19 12H5M12 19l-7-7 7-7"/>
-            </svg>
-            Back to Report
-          </button>
+        {/* Dashboard header with back button and view options */}
+        <div className="flex flex-col gap-4">
+          <div className="flex justify-between items-center">
+            <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">Content Dashboard</h2>
+            <button
+              onClick={() => setShowDashboard(false)}
+              className="flex items-center gap-2 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-300 rounded-md px-3 py-1.5 font-medium transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+              </svg>
+              Back to Report
+            </button>
+          </div>
+          
+          {/* View options */}
+          <div className="flex flex-wrap gap-3 pb-2">
+            <div className="text-sm text-gray-600 dark:text-gray-400 self-center mr-2">Show:</div>
+            <button
+              onClick={() => setShowInDashboard(prev => ({ ...prev, charts: !prev.charts }))}
+              className={`px-3 py-1 text-sm rounded-full flex items-center gap-1 ${
+                showInDashboard.charts 
+                  ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300' 
+                  : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'
+              }`}
+            >
+              <ChartBarIcon className="w-4 h-4" />
+              Charts {dashboardAnalyses.charts.length > 0 && `(${dashboardAnalyses.charts.length})`}
+            </button>
+            <button
+              onClick={() => setShowInDashboard(prev => ({ ...prev, pdfs: !prev.pdfs }))}
+              className={`px-3 py-1 text-sm rounded-full flex items-center gap-1 ${
+                showInDashboard.pdfs 
+                  ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300' 
+                  : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'
+              }`}
+            >
+              <File className="w-4 h-4" />
+              PDFs {dashboardAnalyses.pdfs.length > 0 && `(${dashboardAnalyses.pdfs.length})`}
+            </button>
+            <button
+              onClick={() => setShowInDashboard(prev => ({ ...prev, webSearches: !prev.webSearches }))}
+              className={`px-3 py-1 text-sm rounded-full flex items-center gap-1 ${
+                showInDashboard.webSearches 
+                  ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300' 
+                  : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'
+              }`}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              Web {dashboardAnalyses.webSearches.length > 0 && `(${dashboardAnalyses.webSearches.length})`}
+            </button>
+          </div>
         </div>
         
-        {/* Charts Dashboard - two charts per row on larger screens */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {chartAnalyses.map((item, index) => (
-            <div key={index} className="bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-600 p-4">
-              <h3 className="text-lg font-medium text-gray-800 dark:text-gray-200 mb-4">
-                {item.analysis.question}
-              </h3>
-              <div className="h-[600px] overflow-hidden">
-                <ErrorBoundary>
-                  <ChartContainer
-                    stepData={item.parsedOutputs}
-                    initialQuestion={item.analysis.question}
-                    initialOptionsExpanded={false}
-                    key={item.analysis.analysis_id} /* Important: Add key to ensure proper re-rendering */
-                  />
-                </ErrorBoundary>
-              </div>
+        {/* Charts Dashboard - show if enabled */}
+        {showInDashboard.charts && chartAnalyses.length > 0 && (
+          <div className="mt-4">
+            <h3 className="text-lg font-medium text-gray-800 dark:text-gray-200 mb-4 border-b pb-2 dark:border-gray-700">Charts</h3>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {chartAnalyses.map((item, index) => (
+                <div key={index} className="bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-600 p-4">
+                  <h3 className="text-lg font-medium text-gray-800 dark:text-gray-200 mb-4">
+                    {item.analysis.question}
+                  </h3>
+                  <div className="h-[600px] overflow-hidden">
+                    <ErrorBoundary>
+                      <ChartContainer
+                        stepData={item.parsedOutputs}
+                        initialQuestion={item.analysis.question}
+                        initialOptionsExpanded={false}
+                        key={item.analysis.analysis_id} /* Important: Add key to ensure proper re-rendering */
+                      />
+                    </ErrorBoundary>
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          </div>
+        )}
+        
+        {/* PDF Citations Dashboard - show if enabled */}
+        {showInDashboard.pdfs && dashboardAnalyses.pdfs.length > 0 && (
+          <div className="mt-8">
+            <h3 className="text-lg font-medium text-gray-800 dark:text-gray-200 mb-4 border-b pb-2 dark:border-gray-700">
+              <File className="w-5 h-5 inline-block mr-2 align-text-bottom" />
+              PDF Citations ({dashboardAnalyses.pdfs.length})
+            </h3>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {dashboardAnalyses.pdfs.map((item, index) => (
+                <div key={index} className="bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-600 p-4">
+                  <h4 className="font-medium mb-4 text-gray-700 dark:text-gray-300 pb-2 border-b dark:border-gray-700">
+                    {item.question || item.inputs?.question || "PDF Citation"}
+                  </h4>
+                  <div className="overflow-auto max-h-[600px]">
+                    <ErrorBoundary>
+                      <PdfCitationsContent analysis={item} />
+                    </ErrorBoundary>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        
+        {/* Web Search Dashboard - show if enabled */}
+        {showInDashboard.webSearches && dashboardAnalyses.webSearches.length > 0 && (
+          <div className="mt-8">
+            <h3 className="text-lg font-medium text-gray-800 dark:text-gray-200 mb-4 border-b pb-2 dark:border-gray-700">
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 inline-block mr-2 align-text-bottom" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              Web Search Results ({dashboardAnalyses.webSearches.length})
+            </h3>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {dashboardAnalyses.webSearches.map((item, index) => (
+                <div key={index} className="bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-600 p-4">
+                  <h4 className="font-medium mb-4 text-gray-700 dark:text-gray-300 pb-2 border-b dark:border-gray-700 line-clamp-2 h-14 overflow-hidden">
+                    {item.question || item.inputs?.question || "Web Search"}
+                  </h4>
+                  <div className="overflow-auto max-h-[600px]">
+                    <ErrorBoundary>
+                      <WebSearchContent analysis={item} />
+                    </ErrorBoundary>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     );
   }
