@@ -64,7 +64,7 @@ export const defaultOptions: ChartOptions = {
   yAxisUnitLabel: "",
   yAxisUnitPosition: "suffix",
   showLabels: false,
-  margin: { top: 20, right: 20, bottom: 120, left: 50 },
+  margin: { top: 20, right: 30, bottom: 150, left: 60 },
   dateFormat: "%Y-%m-%d",
 
   color: { legend: true },
@@ -199,12 +199,19 @@ export const getObservableOptions = (
       const xLocation = facetXLocations[facetIndex];
       const yLocation = facetYLocations[facetIndex];
 
+      // Truncate facet value if it's too long (likely a column name)
+      const facetText = typeof facetValue === 'string' && facetValue.length > 20 
+        ? facetValue.substring(0, 27) + '...' 
+        : facetValue;
+        
       chartMarks.push(
-        Plot.text([facetValue], {
+        Plot.text([facetText], {
           fx: xLocation,
           fy: yLocation,
           frameAnchor: "top",
           monospace: true,
+          fontSize: 12,
+          textAnchor: "middle",
         })
       );
     });
@@ -226,9 +233,14 @@ export const getObservableOptions = (
     color: {
       legend: true,
       tickFormat: (d: any) => {
+        // Truncate long legend labels
+        if (typeof d === 'string' && d.length > 25) {
+          return d.substring(0, 25) + (d.length > 25 ? '...' : '');
+        }
         return d;
       },
       swatchSize: 10,
+      style: { marginBottom: "1em" }
     },
     y: {
       grid: mergedOptions.yGrid,
