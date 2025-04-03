@@ -406,14 +406,14 @@ export function ReportCitationsContent({
           </button>
         </div>
         
-        {/* Charts Dashboard - one chart per row, full height */}
-        <div className="flex flex-col space-y-8">
+        {/* Charts Dashboard - two charts per row on larger screens */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {chartAnalyses.map((item, index) => (
             <div key={index} className="bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-600 p-4">
               <h3 className="text-lg font-medium text-gray-800 dark:text-gray-200 mb-4">
                 {item.analysis.question}
               </h3>
-              <div className="h-[600px] max-w-full overflow-hidden">
+              <div className="h-[600px] overflow-hidden">
                 <ErrorBoundary>
                   <ChartContainer
                     stepData={item.parsedOutputs}
