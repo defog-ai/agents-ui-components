@@ -127,8 +127,8 @@ export const getObservableOptions = (
     return null;
   }
 
-  // Apply the filter to the data
-  const filteredData = mergedOptions.filter
+  // Apply the filter to the data, with type safety check
+  const filteredData = mergedOptions.filter && typeof mergedOptions.filter === 'function'
     ? processedData.filter(mergedOptions.filter)
     : processedData;
 

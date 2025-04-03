@@ -1,5 +1,5 @@
 import { CitationItem } from "@oracle";
-import { ChartBarIcon, File, TableIcon } from "lucide-react";
+import { LayoutDashboard } from "lucide-react";
 import katex from "katex";
 import "katex/dist/katex.min.css";
 import "katex/dist/fonts/KaTeX_Size2-Regular.woff2";
@@ -11,6 +11,11 @@ import { OracleReportContext } from "../../utils/OracleReportContext";
 import { SqlAnalysisContent } from "./SqlAnalysisContent";
 import { WebSearchContent } from "./WebSearchContent";
 import { PdfCitationsContent } from "./PdfCitationsContent";
+import { ChartContainer } from "../../../observable-charts/ChartContainer";
+import ErrorBoundary from "../../../common/ErrorBoundary";
+import { createChartManager } from "../../../observable-charts/ChartManagerContext";
+import { parseData } from "@agent";
+import { csvFormat } from "d3";
 
 interface ReportCitationsContentProps {
   citations: CitationItem[];
@@ -139,6 +144,8 @@ export function ReportCitationsContent({
   const [viewModes, setViewModes] = useState<Record<string, "table" | "chart">>({});
   // Track SQL query visibility by analysis ID - default to hidden
   const [sqlQueryVisibility, setSqlQueryVisibility] = useState<Record<string, boolean>>({});
+  // Dashboard mode to show all charts together
+  const [showDashboard, setShowDashboard] = useState(false);
 
   const citationsParsed = useMemo(() => {
     if (!citations) return null;
@@ -293,8 +300,152 @@ export function ReportCitationsContent({
     );
   };
 
+  // Function to gather all SQL analyses with valid data for dashboard
+  const chartAnalyses = useMemo(() => {
+    if (!analyses) return [];
+    
+    // Filter analyses to only include those with SQL results and valid data
+    return analyses.filter(analysis => {
+      return analysis.rows && 
+             analysis.rows.length > 0 && 
+             analysis.columns && 
+             analysis.columns.length > 0;
+    }).map(analysis => {
+      // Convert analysis rows to a proper array of objects for d3's csvFormat
+      const formattedRows = analysis.rows.map(row => {
+        const formattedRow = {};
+        analysis.columns.forEach(col => {
+          const key = col.title || col.dataIndex;
+          // Create a clean object with proper column keys and values
+          formattedRow[key] = row[key] === undefined || row[key] === null ? '' : row[key];
+        });
+        return formattedRow;
+      });
+      
+      // Use d3's csvFormat to properly create a CSV string with all proper escaping
+      const csvString = csvFormat(formattedRows);
+      
+      // Parse the CSV data
+      const parsedData = parseData(csvString);
+      
+      // Create chart manager with properly formatted data
+      // Make sure the column types are correctly identified (especially date columns)
+      const enhancedColumns = parsedData.columns.map(col => {
+        // Check if column might be a date column by examining the first few non-empty values
+        let isDateColumn = col.isDate || false;
+        if (!isDateColumn && parsedData.data.length > 0) {
+          // Look at up to 5 values to determine if this might be a date column
+          const sampleValues = parsedData.data
+            .slice(0, Math.min(5, parsedData.data.length))
+            .map(row => row[col.key])
+            .filter(val => val !== null && val !== undefined && val !== '');
+          
+          if (sampleValues.length > 0) {
+            // Try to parse as date - if all samples are valid dates, mark as date column
+            const allAreDates = sampleValues.every(val => {
+              const date = new Date(val);
+              return !isNaN(date.getTime());
+            });
+            
+            if (allAreDates) {
+              isDateColumn = true;
+            }
+          }
+        }
+        
+        return {
+          ...col,
+          description: '', 
+          isDate: isDateColumn,
+          // Use proper date parsing function for consistency
+          dateToUnix: (date: string) => {
+            if (!date) return null;
+            const parsedDate = new Date(date);
+            return isNaN(parsedDate.getTime()) ? null : parsedDate.getTime();
+          }
+        };
+      });
+      
+      const chartManager = createChartManager({
+        data: parsedData.data,
+        availableColumns: enhancedColumns,
+      });
+      
+      // Auto-select appropriate variables based on data
+      chartManager.autoSelectVariables();
+      
+      return {
+        analysis,
+        parsedOutputs: {
+          csvString,
+          data: parsedData,
+          chartManager: chartManager,
+          reactive_vars: {},
+          chart_images: {},
+          analysis: {}
+        }
+      };
+    });
+  }, [analyses]);
+  
+  // Render either the dashboard view or the regular citations view
+  if (showDashboard && chartAnalyses.length > 0) {
+    return (
+      <div className="flex flex-col space-y-6 mt-10">
+        {/* Dashboard header with back button */}
+        <div className="flex justify-between items-center">
+          <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">Charts Dashboard</h2>
+          <button
+            onClick={() => setShowDashboard(false)}
+            className="flex items-center gap-2 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-300 rounded-md px-3 py-1.5 font-medium transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            Back to Report
+          </button>
+        </div>
+        
+        {/* Charts Dashboard - one chart per row, full height */}
+        <div className="flex flex-col space-y-8">
+          {chartAnalyses.map((item, index) => (
+            <div key={index} className="bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-600 p-4">
+              <h3 className="text-lg font-medium text-gray-800 dark:text-gray-200 mb-4">
+                {item.analysis.question}
+              </h3>
+              <div className="h-[600px] max-w-full overflow-hidden">
+                <ErrorBoundary>
+                  <ChartContainer
+                    stepData={item.parsedOutputs}
+                    initialQuestion={item.analysis.question}
+                    initialOptionsExpanded={false}
+                    key={item.analysis.analysis_id} /* Important: Add key to ensure proper re-rendering */
+                  />
+                </ErrorBoundary>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+  
+  // Regular citations view
   return (
     <div className="flex flex-col space-y-4 mt-10">
+      {/* Dashboard toggle button */}
+      {chartAnalyses.length > 0 && (
+        <div className="flex justify-end">
+          <button
+            onClick={() => setShowDashboard(true)}
+            className="flex items-center gap-2 text-sm bg-blue-50 hover:bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:hover:bg-blue-800/40 dark:text-blue-400 rounded-md px-3 py-1.5 font-medium transition-colors"
+          >
+            <LayoutDashboard className="w-4 h-4" />
+            View Charts Dashboard
+          </button>
+        </div>
+      )}
+      
       <div className="bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-600 py-3 px-3 sm:px-5 lg:px-7">
         {(() => {
           // Track which citation sources have already been shown
