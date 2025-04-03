@@ -2,7 +2,11 @@
 
 import * as Plot from "@observablehq/plot";
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
 import * as d3Colors from "d3-scale-chromatic";
+
+// Extend dayjs with UTC plugin to handle dates without timezone consideration
+dayjs.extend(utc);
 
 export interface Dimensions {
   width: number;
@@ -374,14 +378,15 @@ function getXAxis(options: ChartOptions): Plot.Mark {
       if (options.xIsDate) {
         let dateXTick;
         try {
-          dateXTick = dayjs(d);
+          // Use UTC mode to ensure dates are parsed without timezone consideration
+          dateXTick = dayjs.utc(d);
         } catch (e) {
           dateXTick = d;
         }
 
-        // Calculate the total time range
-        const firstDate = dayjs(ticks[0]);
-        const lastDate = dayjs(ticks[ticks.length - 1]);
+        // Calculate the total time range using UTC mode
+        const firstDate = dayjs.utc(ticks[0]);
+        const lastDate = dayjs.utc(ticks[ticks.length - 1]);
         const totalDays = lastDate.diff(firstDate, "day");
 
         // Choose format based on time range
@@ -535,7 +540,7 @@ function transformInputData(data: any[], options: ChartOptions): DataRecord[] {
 function processDateFacets(data: AggregatedRecord[]): AggregatedRecord[] {
   return data.map((d) => ({
     ...d,
-    facet: dayjs(d.facet),
+    facet: dayjs.utc(d.facet),
   }));
 }
 
