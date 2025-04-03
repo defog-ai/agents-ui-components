@@ -1,5 +1,10 @@
 import { createChartManager, ChartManager } from "../ChartManagerContext";
 import { ParsedOutput } from "../../query-data/analysis/analysisManager";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+
+// Extend dayjs with UTC plugin to handle dates without timezone consideration
+dayjs.extend(utc);
 
 // Define Column interface since it's not exported from ChartManagerContext
 interface Column {
@@ -52,7 +57,14 @@ export function createChartData(
       description: "",
       colType: col.colType || inferColType(col),
       dataIndex: col.dataIndex || col.title || col.key,
-      dateToUnix: (date: string) => new Date(date).getTime() / 1000
+      dateToUnix: (date: string) => {
+        // Parse date in UTC to avoid timezone issues
+        const parts = date.match(/^(\d{4})-(\d{2})-(\d{2})/);
+        if (parts) {
+          return Date.UTC(+parts[1], +parts[2] - 1, +parts[3]) / 1000;
+        }
+        return new Date(date).getTime() / 1000;
+      }
     }));
 
     // Create a new chart manager with the formatted data
