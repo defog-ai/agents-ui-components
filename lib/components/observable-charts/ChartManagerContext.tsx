@@ -286,10 +286,9 @@ export function createActionHandlers(): ActionHandlers {
       const dateColumn = availableColumns.find((col) => {
         const isExplicitlyDate = col.isDate === true || col.colType === 'date';
         const hasDateName = col.title && /date|year|month|week|time/gi.test(col.title);
-        const hasSampleDate = col.sample && typeof col.sample === 'string' && 
-          (/^\d{4}-\d{2}-\d{2}/.test(col.sample) || !isNaN(new Date(col.sample).getTime()));
+        // Remove sample check as it's not in the Column interface
         
-        return isExplicitlyDate || hasDateName || hasSampleDate;
+        return isExplicitlyDate || hasDateName;
       });
       
       const quantColumns = availableColumns.filter(

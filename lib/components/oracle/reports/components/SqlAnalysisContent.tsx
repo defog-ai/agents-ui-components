@@ -4,7 +4,7 @@ import { Table } from "@ui-components";
 import { ChartContainer } from "../../../observable-charts/ChartContainer";
 import { createChartManager } from "../../../observable-charts/ChartManagerContext";
 import { CodeEditor } from "../../../query-data/analysis/analysis-results/CodeEditor";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { ChartBarIcon, TableIcon } from "lucide-react";
 import { KeyboardShortcutIndicator } from "../../../core-ui/KeyboardShortcutIndicator";
 import { KEYMAP, matchesKey } from "../../../../constants/keymap";
@@ -44,12 +44,12 @@ export function SqlAnalysisContent({
     let csvString = '';
     
     // Add header
-    csvString += analysis.columns.map(col => col.title || col.key || '').join(',') + '\n';
+    csvString += analysis.columns.map(col => col.title || '').join(',') + '\n';
     
     // Add data rows
     analysis.rows.forEach(row => {
       const rowStr = analysis.columns.map(col => {
-        const key = col.title || col.key || col.dataIndex;
+        const key = col.title || col.dataIndex;
         return row[key] === undefined || row[key] === null ? '' : row[key];
       }).join(',');
       csvString += rowStr + '\n';
@@ -60,9 +60,16 @@ export function SqlAnalysisContent({
     const parsedData = parseData(csvString);
     
     // Create chart manager exactly like analysisManager.parseOutput does
+    // Create chartManager with properly typed columns
+    // We need to convert ColumnInfo[] to Column[] by adding required fields
     const chartManager = createChartManager({
       data: parsedData.data,
-      availableColumns: parsedData.columns,
+      availableColumns: parsedData.columns.map(col => ({
+        ...col,
+        description: '', // Add required description field
+        isDate: col.isDate || false, // Ensure isDate is not optional
+        dateToUnix: col.dateToUnix || ((date: string) => new Date(date).getTime()), // Add required dateToUnix function
+      })),
     });
     
     // Auto-select variables (exactly like the backend)
@@ -121,16 +128,30 @@ export function SqlAnalysisContent({
       icon: <ChartBarIcon className="w-4 h-4 mb-0.5 mr-1 inline" />,
     });
 
-    setResults(tabs);
+    setResults(tabs as TabItem[]);
   }, [analysis.analysis_id, chartContainer]);
 
+  // Create a container ref to check if the analysis is in focus
+  const analysisRef = useRef<HTMLDivElement>(null);
+  
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
-      if (document.activeElement === document.body) {
+      // Only process shortcuts if:
+      // 1. No active text input/textarea has focus
+      // 2. This analysis component or one of its children has focus or contains the active element
+      const isInputActive = document.activeElement instanceof HTMLInputElement || 
+                           document.activeElement instanceof HTMLTextAreaElement;
+      
+      // Check if this analysis container or any of its children has focus
+      const isAnalysisInFocus = analysisRef.current?.contains(document.activeElement) || 
+                               analysisRef.current === document.activeElement;
+      
+      if (!isInputActive && isAnalysisInFocus) {
         // If any modifier keys are pressed, do not match
         if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) {
           return;
         }
+        
         // Only handle chart options when chart tab is active
         if (
           matchesKey(e.key, KEYMAP.TOGGLE_CHART_OPTIONS) &&
@@ -139,11 +160,13 @@ export function SqlAnalysisContent({
           setIsChartOptionsExpanded((prev) => !prev);
           e.preventDefault();
         }
+        
         // Add handlers for table/chart view switching
         if (matchesKey(e.key, KEYMAP.VIEW_TABLE)) {
           setViewMode("table");
           e.preventDefault();
         }
+        
         if (matchesKey(e.key, KEYMAP.VIEW_CHART)) {
           setViewMode("chart");
           e.preventDefault();
@@ -156,7 +179,7 @@ export function SqlAnalysisContent({
   }, [viewMode, setViewMode]);
 
   return (
-    <div className="flex flex-col space-y-4">
+    <div ref={analysisRef} className="flex flex-col space-y-4" tabIndex={-1}>
       {/* Question header with icon */}
       {analysis.question && (
         <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg border dark:border-gray-600">
