@@ -5,7 +5,7 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
-import { Download, FileText, Info, MessageSquare } from "lucide-react";
+import { Download, FileText, Info, MessageSquare, Mic } from "lucide-react";
 import { Button, MessageManagerContext, Modal, TextArea } from "@ui-components";
 import { OracleReportContext } from "../utils/OracleReportContext";
 import { EditorProvider, useCurrentEditor } from "@tiptap/react";
@@ -14,6 +14,7 @@ import {
   submitForRevision,
   exportAsMarkdown,
   exportAsPdf,
+  exportAsPodcast,
 } from "../utils";
 import { OracleCommentsSidebar } from "./tiptap-extensions/comments/OracleCommentsSidebar";
 
@@ -23,11 +24,10 @@ export const OracleNav = ({
   onDelete: (reportId: string, projectName: string) => void;
 }) => {
   const [reviseModalOpen, setReviseModalOpen] = useState<boolean>(false);
-  const [showCommentsSidebar, setShowCommentsSidebar] =
-    useState<boolean>(false);
+  const [showCommentsSidebar, setShowCommentsSidebar] = useState<boolean>(false);
 
   const message = useContext(MessageManagerContext);
-  const { apiEndpoint, reportId, projectName, token, commentManager } =
+  const { apiEndpoint, reportId, projectName, token, commentManager, isLoading, setIsLoading } =
     useContext(OracleReportContext);
 
   const generalCommentsRef = useRef<HTMLTextAreaElement>(null);
@@ -205,6 +205,30 @@ export const OracleNav = ({
     }
   };
 
+  // Function to handle exporting as Podcast
+  const handleExportPodcast = () => {
+    if (editor) {
+      try {
+        const mdxContent = editor.storage.markdown.getMarkdown();
+        setExportDropdownOpen(false);
+        exportAsPodcast(
+          mdxContent, 
+          reportId, 
+          apiEndpoint, 
+          projectName, 
+          token,
+          setIsLoading
+        ).catch(error => {
+          message.error("Failed to export podcast. Please try again.");
+          console.error(error);
+        });
+      } catch (error) {
+        message.error("Failed to export podcast. Please try again.");
+        console.error(error);
+      }
+    }
+  };
+
   // Add click outside handler to close dropdown
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -224,7 +248,24 @@ export const OracleNav = ({
 
   return (
     <div className="flex flex-col">
-      <div className="flex items-center flex-row-reverse justify-between px-4 py-2 border-b dark:border-gray-700">
+      {isLoading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-5 flex flex-col items-center shadow-lg">
+            <div className="w-12 h-12 border-t-4 border-blue-500 border-solid rounded-full animate-spin mb-4"></div>
+            <p className="text-gray-800 dark:text-gray-200 font-medium">
+              Generating podcast transcript...
+            </p>
+            <p className="text-gray-600 dark:text-gray-400 text-sm mt-2">
+              This may take a minute, please wait.
+            </p>
+          </div>
+        </div>
+      )}
+      <div className="flex items-center justify-between px-4 py-2 border-b dark:border-gray-700">
+        <Button variant="danger" onClick={() => setDeleteModalOpen(true)}>
+          Delete
+        </Button>
+
         <div className="relative flex gap-2">
           {/* Comments button */}
           <div className="relative">
@@ -276,15 +317,18 @@ export const OracleNav = ({
                     <FileText className="w-4 h-4 mr-2" />
                     Export as PDF
                   </button>
+                  <button
+                    onClick={handleExportPodcast}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center"
+                  >
+                    <Mic className="w-4 h-4 mr-2" />
+                    Export as Podcast
+                  </button>
                 </div>
               </div>
             )}
           </div>
         </div>
-
-        <Button variant="danger" onClick={() => setDeleteModalOpen(true)}>
-          Delete
-        </Button>
         <Modal
           open={deleteModalOpen}
           onOk={() => {
