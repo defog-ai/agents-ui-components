@@ -9,7 +9,7 @@ import { ChartBarIcon, TableIcon } from "lucide-react";
 import { KeyboardShortcutIndicator } from "../../../core-ui/KeyboardShortcutIndicator";
 import { KEYMAP, matchesKey } from "../../../../constants/keymap";
 import { parseData } from "@agent";
-import { checkIfDate, reFormatData } from "../../../query-data/queryDataUtils";
+import { csvFormat } from "d3";
 
 interface SqlAnalysisContentProps {
   analysis: OracleAnalysis;
@@ -40,20 +40,19 @@ export function SqlAnalysisContent({
   const parsedOutputs = useMemo(() => {
     if (!analysis) return null;
     
-    // Convert analysis rows to CSV string (exactly like the backend would)
-    let csvString = '';
-    
-    // Add header
-    csvString += analysis.columns.map(col => col.title || '').join(',') + '\n';
-    
-    // Add data rows
-    analysis.rows.forEach(row => {
-      const rowStr = analysis.columns.map(col => {
+    // Convert analysis rows to a properly formatted array of objects for d3's csvFormat
+    const formattedRows = analysis.rows.map(row => {
+      const formattedRow = {};
+      analysis.columns.forEach(col => {
         const key = col.title || col.dataIndex;
-        return row[key] === undefined || row[key] === null ? '' : row[key];
-      }).join(',');
-      csvString += rowStr + '\n';
+        // Create a clean object with proper column keys and values
+        formattedRow[key] = row[key] === undefined || row[key] === null ? '' : row[key];
+      });
+      return formattedRow;
     });
+    
+    // Use d3's csvFormat to properly create a CSV string with all proper escaping
+    const csvString = csvFormat(formattedRows);
     
     // Now use the exact same function as analysisManager.ts to parse the output
     // This is the most direct approach - we're using the same parseData function with CSV
