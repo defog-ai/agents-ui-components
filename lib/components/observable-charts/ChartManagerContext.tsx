@@ -187,17 +187,33 @@ export function createActionHandlers(): ActionHandlers {
       this.setConfigCallback(this.config);
     },
     setSelectedChart: function (payload) {
+      // Preserve existing selections when changing chart types
+      const currentSelectedColumns = this.config.selectedColumns;
+      
       this.config = {
         ...this.config,
         selectedChart: payload,
         selectedColumns: {
-          x: null,
-          y: payload === "line" || payload === "bar" ? [] : null,
+          // Preserve x and y selections when changing chart types
+          x: currentSelectedColumns.x,
+          // For line and bar charts, ensure y is an array; for others ensure it's a single value
+          y: payload === "line" || payload === "bar"
+              ? Array.isArray(currentSelectedColumns.y) 
+                ? currentSelectedColumns.y 
+                : currentSelectedColumns.y ? [currentSelectedColumns.y] : []
+              : Array.isArray(currentSelectedColumns.y) && currentSelectedColumns.y.length > 0
+                ? currentSelectedColumns.y[0] 
+                : currentSelectedColumns.y,
+          // Preserve other column selections
+          facet: currentSelectedColumns.facet,
+          fill: currentSelectedColumns.fill,
+          stroke: currentSelectedColumns.stroke,
+          filter: currentSelectedColumns.filter
         },
         chartStyle: {
           ...defaultChartManager.config.chartStyle,
-          xLabel: null,
-          yLabel: null,
+          xLabel: this.config.chartStyle.xLabel,
+          yLabel: this.config.chartStyle.yLabel,
         },
       };
 
