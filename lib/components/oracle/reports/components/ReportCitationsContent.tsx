@@ -1,5 +1,5 @@
 import { CitationItem } from "@oracle";
-import { File } from "lucide-react";
+import { ChartBarIcon, File, TableIcon } from "lucide-react";
 import katex from "katex";
 import "katex/dist/katex.min.css";
 import "katex/dist/fonts/KaTeX_Size2-Regular.woff2";
@@ -135,9 +135,10 @@ export function ReportCitationsContent({
     new Set()
   );
   // Track the view mode for SQL content
-  const [viewMode, setViewMode] = useState<"table" | "chart">("table");
-  // Track SQL query visibility - default to hidden
-  const [showSqlQuery, setShowSqlQuery] = useState<boolean>(false);
+  // Track which analysis is in which view mode (analysis_id -> "table"|"chart")
+  const [viewModes, setViewModes] = useState<Record<string, "table" | "chart">>({});
+  // Track SQL query visibility by analysis ID - default to hidden
+  const [sqlQueryVisibility, setSqlQueryVisibility] = useState<Record<string, boolean>>({});
 
   const citationsParsed = useMemo(() => {
     if (!citations) return null;
@@ -246,33 +247,22 @@ export function ReportCitationsContent({
     if (documentTitle.includes("text_to_sql")) {
       return (
         <div className="mt-2 border-l-2 border-blue-400 pl-3 py-2 bg-white dark:bg-gray-800 rounded">
-          <div className="flex items-center justify-start space-x-2 mb-3">
-            <button
-              onClick={() => setViewMode("table")}
-              className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
-                viewMode === "table"
-                  ? "bg-primary-highlight text-gray-200 dark:bg-blue-600 dark:text-white"
-                  : "bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
-              }`}
-            >
-              Table
-            </button>
-            <button
-              onClick={() => setViewMode("chart")}
-              className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
-                viewMode === "chart"
-                  ? "bg-primary-highlight text-gray-200 dark:bg-blue-600 dark:text-white"
-                  : "bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
-              }`}
-            >
-              Chart
-            </button>
-          </div>
           <SqlAnalysisContent
             analysis={analysis}
-            viewMode={viewMode}
-            showSqlQuery={showSqlQuery}
-            setShowSqlQuery={setShowSqlQuery}
+            viewMode={viewModes[analysis.analysis_id] || "table"}
+            showSqlQuery={sqlQueryVisibility[analysis.analysis_id] || false}
+            setShowSqlQuery={(show) => {
+              setSqlQueryVisibility(prev => ({
+                ...prev,
+                [analysis.analysis_id]: show
+              }));
+            }}
+            setViewMode={(mode) => {
+              setViewModes(prev => ({
+                ...prev,
+                [analysis.analysis_id]: mode
+              }));
+            }}
           />
         </div>
       );
@@ -460,7 +450,7 @@ export function ReportCitationsContent({
                       )}
 
                       {expandedCitations.has(index) && (
-                        <div className="mt-2 transition-all duration-200 ease-in-out max-h-[500px] overflow-y-auto">
+                        <div className="mt-2 transition-all duration-200 ease-in-out max-h-[800px] overflow-y-auto">
                           {getAnalysisContent(
                             item.citations[0].document_title,
                             analyses.findIndex(

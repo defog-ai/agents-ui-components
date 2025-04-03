@@ -137,7 +137,27 @@ export const getObservableOptions = (
     availableColumns
   );
 
-  const xIsDate = mergedOptions.xIsDate || false;
+  // Determine if X axis is a date column
+  let xIsDate = mergedOptions.xIsDate;
+  
+  // If xIsDate isn't explicitly set, check columns for date data
+  if (xIsDate === undefined) {
+    const xKey = mergedOptions.x;
+    if (xKey && processedData && processedData.length > 0) {
+      // Check if the data format looks like dates
+      const sample = processedData[0][xKey];
+      const looksLikeDate = typeof sample === 'string' && 
+        (/^\d{4}-\d{2}-\d{2}/.test(sample) || !isNaN(new Date(sample).getTime()));
+        
+      // Check if column name looks like date
+      const dateNamePattern = /date|year|month|week|time/gi;
+      const hasDateName = typeof xKey === 'string' && dateNamePattern.test(xKey);
+      
+      xIsDate = looksLikeDate || hasDateName;
+    }
+  } else {
+    xIsDate = Boolean(xIsDate);
+  }
 
   // if there is faceting, then calculate the facet positions
   if (mergedOptions.facet && mergedOptions.type !== "bar") {
