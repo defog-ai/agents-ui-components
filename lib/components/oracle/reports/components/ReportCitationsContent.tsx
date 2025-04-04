@@ -907,7 +907,7 @@ const DashboardCard: React.FC<DashboardCardProps> = ({
       } ${ isHidden ? 'border-dashed border-yellow-500 dark:border-yellow-600' : '' }`} // Style for hidden
     >
       {/* Card Header */}
-      <div className="flex justify-between items-center p-3 border-b dark:border-gray-700 bg-gray-50 dark:bg-gray-750">
+      <div className="flex justify-between items-center p-3 border-b dark:border-gray-700 bg-gray-100 dark:bg-gray-700">
         <div className="flex items-center gap-2 overflow-hidden">
           {/* Drag Handle */}
           <button
@@ -919,7 +919,7 @@ const DashboardCard: React.FC<DashboardCardProps> = ({
              <GripVertical size={16} />
            </button>
           {icon}
-          <h4 className="font-medium text-sm text-gray-800 dark:text-gray-200 truncate" title={cardTitle}>
+          <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300" title={cardTitle}>
             {cardTitle}
           </h4>
         </div>
