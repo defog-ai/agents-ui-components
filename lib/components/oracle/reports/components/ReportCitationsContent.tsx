@@ -1,12 +1,12 @@
 import { CitationItem } from "@oracle";
-import { LayoutDashboard, ChartBarIcon, File } from "lucide-react";
+import { LayoutDashboard, ChartBarIcon, File, GripVertical, ChevronDown, ChevronUp, EyeOff, Eye, X } from "lucide-react";
 import katex from "katex";
 import "katex/dist/katex.min.css";
 import "katex/dist/fonts/KaTeX_Size2-Regular.woff2";
 import "katex/dist/fonts/KaTeX_Main-Regular.woff2";
 import "katex/dist/fonts/KaTeX_Math-Italic.woff2";
 import { marked } from "marked";
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState, useRef, useCallback } from "react";
 import { OracleReportContext } from "../../utils/OracleReportContext";
 import { SqlAnalysisContent } from "./SqlAnalysisContent";
 import { WebSearchContent } from "./WebSearchContent";
@@ -16,10 +16,29 @@ import ErrorBoundary from "../../../common/ErrorBoundary";
 import { createChartManager } from "../../../observable-charts/ChartManagerContext";
 import { parseData } from "@agent";
 import { csvFormat } from "d3";
+import {
+  draggable,
+  dropTargetForElements,
+  monitorForElements,
+} from '@atlaskit/pragmatic-drag-and-drop/element/adapter';
+import { reorder } from '@atlaskit/pragmatic-drag-and-drop/reorder';
+import { combine } from '@atlaskit/pragmatic-drag-and-drop/combine';
+
+// TODO: Define or import proper AnalysisItem type if available
+// Using 'any' for now based on observed usage.
+type AnalysisItem = any;
 
 interface ReportCitationsContentProps {
   citations: CitationItem[];
   setSelectedAnalysisIndex?: (index: number) => void;
+}
+
+// Define a unified structure for dashboard items
+interface DashboardItem {
+  id: string; // analysis_id
+  type: 'chart' | 'pdf' | 'webSearch';
+  analysis: AnalysisItem; // Use a proper type
+  chartData?: any; // Specific data needed for charts (like parsedOutputs)
 }
 
 function parseTextWithMath(expr: string) {
@@ -152,6 +171,13 @@ export function ReportCitationsContent({
     pdfs: true,
     webSearches: true
   });
+
+  // Dashboard specific state
+  const [dashboardItems, setDashboardItems] = useState<DashboardItem[]>([]);
+  const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
+  const [hiddenCards, setHiddenCards] = useState<Set<string>>(new Set());
+  const [activeFilter, setActiveFilter] = useState<'all' | 'charts' | 'pdfs' | 'webSearches' | 'hidden'>('all');
+  const [draggingItemId, setDraggingItemId] = useState<string | null>(null); // Track dragging state
 
   const citationsParsed = useMemo(() => {
     if (!citations) return null;
@@ -306,145 +332,231 @@ export function ReportCitationsContent({
     );
   };
 
-  // Function to gather all analyses by type for dashboard
-  const dashboardAnalyses = useMemo(() => {
-    if (!analyses) return { charts: [], pdfs: [], webSearches: [] };
-    
-    // Filter analyses by type
-    const charts = analyses.filter(analysis => {
-      // Chart analyses have rows and columns of data
-      return analysis.rows && 
-             analysis.rows.length > 0 && 
-             analysis.columns && 
-             analysis.columns.length > 0 &&
-             // Make sure it's not a PDF or web search analysis by function name
-             !(analysis.function_name === 'pdf_citations_tool' || 
-               analysis.function_name === 'web_search_tool');
-    });
-    
-    const pdfs = analyses.filter(analysis => {
-      // PDF analyses are identified by function_name
-      return analysis.function_name === 'pdf_citations_tool' &&
-             // Make sure we have result data for PDFs
-             analysis.result && 
-             analysis.result.citations && 
-             Array.isArray(analysis.result.citations) && 
-             analysis.result.citations.length > 0;
-    });
-    
-    const webSearches = analyses.filter(analysis => {
-      // Web search analyses are identified by function_name
-      return analysis.function_name === 'web_search_tool' &&
-             // Make sure we have result data for web searches
-             analysis.result && 
-             (analysis.result.answer || 
-              (analysis.result.reference_sources && 
-               Array.isArray(analysis.result.reference_sources) && 
-               analysis.result.reference_sources.length > 0));
-    });
-    
-    console.log('Dashboard analyses:', { 
-      charts: charts.length, 
-      pdfs: pdfs.length, 
-      webSearches: webSearches.length 
-    });
-    
-    return { charts, pdfs, webSearches };
-  }, [analyses]);
-  
-  // Process chart analyses for visualization
-  const chartAnalyses = useMemo(() => {
-    return dashboardAnalyses.charts.map(analysis => {
-      // Convert analysis rows to a proper array of objects for d3's csvFormat
-      const formattedRows = analysis.rows.map(row => {
-        const formattedRow = {};
-        analysis.columns.forEach(col => {
-          const key = col.title || col.dataIndex;
-          // Create a clean object with proper column keys and values
-          formattedRow[key] = row[key] === undefined || row[key] === null ? '' : row[key];
+  // Effect to set up drag and drop monitoring
+  useEffect(() => {
+    return monitorForElements({
+      onDragStart: ({ source }) => setDraggingItemId(source.data.id as string),
+      onDrop: ({ location, source }) => {
+        setDraggingItemId(null); // Clear dragging state on drop
+
+        const target = location.current.dropTargets[0];
+        if (!target) return; // No valid drop target
+
+        const sourceId = source.data.id as string;
+        const targetId = target.data.id as string;
+
+        const sourceIndex = dashboardItems.findIndex(item => item.id === sourceId);
+        const targetIndex = dashboardItems.findIndex(item => item.id === targetId);
+
+        if (sourceIndex < 0 || targetIndex < 0 || sourceIndex === targetIndex) {
+          console.warn("Drag and drop failed: Invalid indices", { sourceId, targetId, sourceIndex, targetIndex });
+          return; // Invalid indices or dropped on itself
+        }
+
+        console.log(`Dropping item ${sourceId} (index ${sourceIndex}) onto ${targetId} (index ${targetIndex})`);
+
+        setDashboardItems(currentItems => {
+          const reorderedItems = reorder({
+            list: currentItems,
+            startIndex: sourceIndex,
+            finishIndex: targetIndex,
+          });
+          console.log('Reordered items:', reorderedItems.map(i => i.id));
+          return reorderedItems;
         });
-        return formattedRow;
-      });
-      
-      // Use d3's csvFormat to properly create a CSV string with all proper escaping
-      const csvString = csvFormat(formattedRows);
-      
-      // Parse the CSV data
-      const parsedData = parseData(csvString);
-      
-      // Create chart manager with properly formatted data
-      // Make sure the column types are correctly identified (especially date columns)
-      const enhancedColumns = parsedData.columns.map(col => {
-        // Check if column might be a date column by examining the first few non-empty values
-        let isDateColumn = col.isDate || false;
-        if (!isDateColumn && parsedData.data.length > 0) {
-          // Look at up to 5 values to determine if this might be a date column
-          const sampleValues = parsedData.data
-            .slice(0, Math.min(5, parsedData.data.length))
-            .map(row => row[col.key])
-            .filter(val => val !== null && val !== undefined && val !== '');
-          
-          if (sampleValues.length > 0) {
-            // Try to parse as date - if all samples are valid dates, mark as date column
-            const allAreDates = sampleValues.every(val => {
-              const date = new Date(val);
-              return !isNaN(date.getTime());
-            });
-            
-            if (allAreDates) {
-              isDateColumn = true;
-            }
-          }
-        }
-        
-        return {
-          ...col,
-          description: '', 
-          isDate: isDateColumn,
-          // Use proper date parsing function for consistency
-          dateToUnix: (date: string) => {
-            if (!date) return null;
-            const parsedDate = new Date(date);
-            return isNaN(parsedDate.getTime()) ? null : parsedDate.getTime();
-          }
-        };
-      });
-      
-      const chartManager = createChartManager({
-        data: parsedData.data,
-        availableColumns: enhancedColumns,
-      });
-      
-      // Auto-select appropriate variables based on data
-      chartManager.autoSelectVariables();
-      
-      return {
-        analysis,
-        parsedOutputs: {
-          csvString,
-          data: parsedData,
-          chartManager: chartManager,
-          reactive_vars: {},
-          chart_images: {},
-          analysis: {}
-        }
-      };
+      },
     });
+  }, [dashboardItems]); // Re-run monitor setup if dashboardItems array instance changes
+
+  // Effect to initialize and update dashboard items when analyses change
+  useEffect(() => {
+    if (!analyses) {
+      setDashboardItems([]);
+      return;
+    }
+
+    const newDashboardItems: DashboardItem[] = [];
+
+    // Process charts
+    analyses.forEach(analysis => {
+      if (
+        analysis.rows &&
+        analysis.rows.length > 0 &&
+        analysis.columns &&
+        analysis.columns.length > 0 &&
+        !(analysis.function_name === 'pdf_citations_tool' || analysis.function_name === 'web_search_tool')
+      ) {
+        try {
+            // Convert analysis rows to a proper array of objects for d3's csvFormat
+            const formattedRows = analysis.rows.map(row => {
+              const formattedRow: Record<string, any> = {};
+              analysis.columns.forEach(col => {
+                  const key = col.title || col.dataIndex;
+                  formattedRow[key] = row[key] === undefined || row[key] === null ? '' : row[key];
+              });
+              return formattedRow;
+            });
+            const csvString = csvFormat(formattedRows);
+            const parsedData = parseData(csvString);
+
+            const enhancedColumns = parsedData.columns.map(col => {
+                let isDateColumn = col.isDate || false;
+                if (!isDateColumn && parsedData.data.length > 0) {
+                const sampleValues = parsedData.data
+                    .slice(0, Math.min(5, parsedData.data.length))
+                    .map(row => row[col.key])
+                    .filter(val => val !== null && val !== undefined && val !== '');
+                if (sampleValues.length > 0) {
+                    const allAreDates = sampleValues.every(val => !isNaN(new Date(val).getTime()));
+                    if (allAreDates) isDateColumn = true;
+                }
+                }
+                return {
+                ...col,
+                description: '',
+                isDate: isDateColumn,
+                dateToUnix: (date: string) => {
+                    if (!date) return null;
+                    const parsedDate = new Date(date);
+                    return isNaN(parsedDate.getTime()) ? null : parsedDate.getTime();
+                }
+                };
+            });
+
+            const chartManager = createChartManager({
+                data: parsedData.data,
+                availableColumns: enhancedColumns,
+            });
+            chartManager.autoSelectVariables();
+
+            newDashboardItems.push({
+                id: analysis.analysis_id,
+                type: 'chart',
+                analysis,
+                chartData: { // This structure should match ChartContainer's expected stepData prop
+                    csvString,
+                    data: parsedData,
+                    chartManager: chartManager,
+                    reactive_vars: {},
+                    chart_images: {},
+                    analysis: {} // Assuming this structure is needed by ChartContainer
+                }
+            });
+        } catch (error) {
+            console.error(`Error processing chart analysis ${analysis.analysis_id}:`, error);
+        }
+      }
+      // Process PDFs
+      else if (
+        analysis.function_name === 'pdf_citations_tool' &&
+        analysis.result?.citations &&
+        Array.isArray(analysis.result.citations) &&
+        analysis.result.citations.length > 0
+      ) {
+        newDashboardItems.push({
+          id: analysis.analysis_id,
+          type: 'pdf',
+          analysis,
+        });
+      }
+      // Process Web Searches
+      else if (
+        analysis.function_name === 'web_search_tool' &&
+        analysis.result &&
+        (analysis.result.answer ||
+         (analysis.result.reference_sources && Array.isArray(analysis.result.reference_sources) && analysis.result.reference_sources.length > 0))
+      ) {
+        newDashboardItems.push({
+          id: analysis.analysis_id,
+          type: 'webSearch',
+          analysis,
+        });
+      }
+    });
+
+    console.log('Initialized dashboard items:', newDashboardItems.map(i => `${i.id} (${i.type})`));
+    setDashboardItems(newDashboardItems);
+
+    // Reset expanded/hidden state when analyses change
+    setExpandedCards(new Set(newDashboardItems.map(item => item.id)));
+    setHiddenCards(new Set());
+    setActiveFilter('all');
+
   }, [analyses]);
-  
+
+  // Calculate counts for filters
+  const dashboardCounts = useMemo(() => {
+    const counts = { charts: 0, pdfs: 0, webSearches: 0, hidden: hiddenCards.size };
+    dashboardItems.forEach(item => {
+      if (!hiddenCards.has(item.id)) {
+        if (item.type === 'chart') counts.charts++;
+        else if (item.type === 'pdf') counts.pdfs++;
+        else if (item.type === 'webSearch') counts.webSearches++;
+      }
+    });
+    return counts;
+  }, [dashboardItems, hiddenCards]);
+
+  // Filter dashboard items based on active filter and hidden status
+  const filteredDashboardItems = useMemo(() => {
+    let itemsToShow = dashboardItems;
+
+    if (activeFilter === 'hidden') {
+      itemsToShow = itemsToShow.filter(item => hiddenCards.has(item.id));
+    } else if (activeFilter === 'all') {
+      itemsToShow = itemsToShow.filter(item => !hiddenCards.has(item.id));
+    } else {
+      itemsToShow = itemsToShow.filter(item =>
+        item.type === (activeFilter === 'charts' ? 'chart' : activeFilter === 'pdfs' ? 'pdf' : 'webSearch') &&
+        !hiddenCards.has(item.id)
+      );
+    }
+    console.log(`Filter '${activeFilter}': Showing ${itemsToShow.length} items`, itemsToShow.map(i => i.id));
+    return itemsToShow;
+  }, [dashboardItems, activeFilter, hiddenCards]);
+
+  const toggleExpanded = useCallback((id: string) => {
+    setExpandedCards(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  }, []);
+
+  const toggleHidden = useCallback((id: string) => {
+    setHiddenCards(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id); // Unhide
+      } else {
+        newSet.add(id); // Hide
+        // Optional: Collapse card when hiding it
+        setExpandedCards(currentExpanded => {
+            const expandedSet = new Set(currentExpanded);
+            expandedSet.delete(id);
+            return expandedSet;
+        });
+      }
+      return newSet;
+    });
+  }, []);
+
   // For debugging: log complete analysis data when dashboard is toggled
   useEffect(() => {
-    if (showDashboard && analyses) {
-      console.log('All analyses:', analyses);
-      console.log('Dashboard analyses structure:', dashboardAnalyses);
+    if (showDashboard) {
+      console.log('Rendering Dashboard. Items:', dashboardItems, 'Filtered:', filteredDashboardItems);
     }
-  }, [showDashboard, analyses, dashboardAnalyses]);
+  }, [showDashboard, dashboardItems, filteredDashboardItems]);
 
-  // Render either the dashboard view or the regular citations view
-  if (showDashboard && (chartAnalyses.length > 0 || dashboardAnalyses.pdfs.length > 0 || dashboardAnalyses.webSearches.length > 0)) {
+  // Render Dashboard View
+  if (showDashboard && analyses && analyses.length > 0) {
     return (
       <div className="flex flex-col space-y-6 mt-10">
-        {/* Dashboard header with back button and view options */}
+        {/* Dashboard header */}
         <div className="flex flex-col gap-4">
           <div className="flex justify-between items-center">
             <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">Content Dashboard</h2>
@@ -452,157 +564,128 @@ export function ReportCitationsContent({
               onClick={() => setShowDashboard(false)}
               className="flex items-center gap-2 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-300 rounded-md px-3 py-1.5 font-medium transition-colors"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M19 12H5M12 19l-7-7 7-7"/>
-              </svg>
-              Back to Report
+              <X className="w-4 h-4" />
+              Close Dashboard
             </button>
           </div>
-          
-          {/* View options */}
-          <div className="flex flex-wrap gap-3 pb-2">
-            <div className="text-sm text-gray-600 dark:text-gray-400 self-center mr-2">Show:</div>
-            <button
-              onClick={() => setShowInDashboard(prev => ({ ...prev, charts: !prev.charts }))}
-              className={`px-3 py-1 text-sm rounded-full flex items-center gap-1 ${
-                showInDashboard.charts 
-                  ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300' 
-                  : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'
-              }`}
-            >
-              <ChartBarIcon className="w-4 h-4" />
-              Charts {dashboardAnalyses.charts.length > 0 && `(${dashboardAnalyses.charts.length})`}
-            </button>
-            <button
-              onClick={() => setShowInDashboard(prev => ({ ...prev, pdfs: !prev.pdfs }))}
-              className={`px-3 py-1 text-sm rounded-full flex items-center gap-1 ${
-                showInDashboard.pdfs 
-                  ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300' 
-                  : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'
-              }`}
-            >
-              <File className="w-4 h-4" />
-              PDFs {dashboardAnalyses.pdfs.length > 0 && `(${dashboardAnalyses.pdfs.length})`}
-            </button>
-            <button
-              onClick={() => setShowInDashboard(prev => ({ ...prev, webSearches: !prev.webSearches }))}
-              className={`px-3 py-1 text-sm rounded-full flex items-center gap-1 ${
-                showInDashboard.webSearches 
-                  ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300' 
-                  : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'
-              }`}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="11" cy="11" r="8"></circle>
-                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-              </svg>
-              Web {dashboardAnalyses.webSearches.length > 0 && `(${dashboardAnalyses.webSearches.length})`}
-            </button>
+
+          {/* Filter options */}
+          <div className="flex flex-wrap gap-3 pb-2 border-b dark:border-gray-700">
+            <div className="text-sm text-gray-600 dark:text-gray-400 self-center mr-2">Filter:</div>
+            {/* ALL Button - Implicitly selected if no other is */}
+             <button
+               onClick={() => setActiveFilter('all')}
+               className={`px-3 py-1 text-sm rounded-full flex items-center gap-1 ${
+                 activeFilter === 'all'
+                   ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 ring-1 ring-blue-300 dark:ring-blue-600'
+                   : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+               }`}
+             >
+               All ({dashboardCounts.charts + dashboardCounts.pdfs + dashboardCounts.webSearches})
+             </button>
+            {/* Charts Button */}
+            {dashboardCounts.charts > 0 && (
+                 <button
+                 onClick={() => setActiveFilter('charts')}
+                 className={`px-3 py-1 text-sm rounded-full flex items-center gap-1 ${
+                     activeFilter === 'charts'
+                     ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 ring-1 ring-blue-300 dark:ring-blue-600'
+                     : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                 }`}
+                 >
+                 <ChartBarIcon className="w-4 h-4" />
+                 Charts ({dashboardCounts.charts})
+                 </button>
+            )}
+            {/* PDFs Button */}
+             {dashboardCounts.pdfs > 0 && (
+                 <button
+                 onClick={() => setActiveFilter('pdfs')}
+                 className={`px-3 py-1 text-sm rounded-full flex items-center gap-1 ${
+                     activeFilter === 'pdfs'
+                     ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 ring-1 ring-blue-300 dark:ring-blue-600'
+                     : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                 }`}
+                 >
+                 <File className="w-4 h-4" />
+                 PDFs ({dashboardCounts.pdfs})
+                 </button>
+             )}
+            {/* Web Searches Button */}
+            {dashboardCounts.webSearches > 0 && (
+                 <button
+                 onClick={() => setActiveFilter('webSearches')}
+                 className={`px-3 py-1 text-sm rounded-full flex items-center gap-1 ${
+                     activeFilter === 'webSearches'
+                     ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 ring-1 ring-blue-300 dark:ring-blue-600'
+                     : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                 }`}
+                 >
+                 <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"> <circle cx="11" cy="11" r="8"></circle> <line x1="21" y1="21" x2="16.65" y2="16.65"></line> </svg>
+                 Web ({dashboardCounts.webSearches})
+                 </button>
+             )}
+            {/* Hidden Button */}
+            {dashboardCounts.hidden > 0 && (
+                 <button
+                 onClick={() => setActiveFilter('hidden')}
+                 className={`px-3 py-1 text-sm rounded-full flex items-center gap-1 ${
+                     activeFilter === 'hidden'
+                     ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-300 ring-1 ring-yellow-300 dark:ring-yellow-600'
+                     : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                 }`}
+                 >
+                 <EyeOff className="w-4 h-4" />
+                 Hidden ({dashboardCounts.hidden})
+                 </button>
+             )}
           </div>
         </div>
-        
-        {/* Charts Dashboard - show if enabled */}
-        {showInDashboard.charts && chartAnalyses.length > 0 && (
-          <div className="mt-4">
-            <h3 className="text-lg font-medium text-gray-800 dark:text-gray-200 mb-4 border-b pb-2 dark:border-gray-700">Charts</h3>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {chartAnalyses.map((item, index) => (
-                <div key={index} className="bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-600 p-4">
-                  <h3 className="text-lg font-medium text-gray-800 dark:text-gray-200 mb-4">
-                    {item.analysis.question}
-                  </h3>
-                  <div className="h-[600px] overflow-hidden">
-                    <ErrorBoundary>
-                      <ChartContainer
-                        stepData={item.parsedOutputs}
-                        initialQuestion={item.analysis.question}
-                        initialOptionsExpanded={false}
-                        key={item.analysis.analysis_id} /* Important: Add key to ensure proper re-rendering */
-                      />
-                    </ErrorBoundary>
-                  </div>
-                </div>
-              ))}
-            </div>
+
+        {/* Dashboard Grid - Apply drop target to the grid */}
+        {filteredDashboardItems.length > 0 ? (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {filteredDashboardItems.map((item) => (
+              <DashboardCard
+                key={item.id}
+                item={item}
+                isExpanded={expandedCards.has(item.id)}
+                isHidden={hiddenCards.has(item.id)}
+                isDragging={draggingItemId === item.id}
+                toggleExpanded={toggleExpanded}
+                toggleHidden={toggleHidden}
+              />
+            ))}
           </div>
-        )}
-        
-        {/* PDF Citations Dashboard - show if enabled */}
-        {showInDashboard.pdfs && dashboardAnalyses.pdfs.length > 0 && (
-          <div className="mt-8">
-            <h3 className="text-lg font-medium text-gray-800 dark:text-gray-200 mb-4 border-b pb-2 dark:border-gray-700">
-              <File className="w-5 h-5 inline-block mr-2 align-text-bottom" />
-              PDF Citations ({dashboardAnalyses.pdfs.length})
-            </h3>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {dashboardAnalyses.pdfs.map((item, index) => (
-                <div key={index} className="bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-600 p-4">
-                  <h4 className="font-medium mb-4 text-gray-700 dark:text-gray-300 pb-2 border-b dark:border-gray-700">
-                    {item.question || item.inputs?.question || "PDF Citation"}
-                  </h4>
-                  <div className="overflow-auto max-h-[600px]">
-                    <ErrorBoundary>
-                      <PdfCitationsContent analysis={item} />
-                    </ErrorBoundary>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-        
-        {/* Web Search Dashboard - show if enabled */}
-        {showInDashboard.webSearches && dashboardAnalyses.webSearches.length > 0 && (
-          <div className="mt-8">
-            <h3 className="text-lg font-medium text-gray-800 dark:text-gray-200 mb-4 border-b pb-2 dark:border-gray-700">
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 inline-block mr-2 align-text-bottom" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="11" cy="11" r="8"></circle>
-                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-              </svg>
-              Web Search Results ({dashboardAnalyses.webSearches.length})
-            </h3>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {dashboardAnalyses.webSearches.map((item, index) => (
-                <div key={index} className="bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-600 p-4">
-                  <h4 className="font-medium mb-4 text-gray-700 dark:text-gray-300 pb-2 border-b dark:border-gray-700">
-                    {item.question || item.inputs?.question || "Web Search"}
-                  </h4>
-                  <div className="overflow-auto max-h-[600px]">
-                    <ErrorBoundary>
-                      <WebSearchContent analysis={item} />
-                    </ErrorBoundary>
-                  </div>
-                </div>
-              ))}
-            </div>
+        ) : (
+          <div className="text-center py-10 text-gray-500 dark:text-gray-400">
+            {activeFilter === 'hidden' ? "No hidden items." : "No items match the current filter."}
           </div>
         )}
       </div>
     );
   }
-  
-  // Regular citations view
+
+  // Regular citations view (Remains largely unchanged, but adjust the Dashboard toggle button logic)
   return (
     <div className="flex flex-col space-y-4 mt-10">
-      {/* Dashboard toggle button */}
-      {chartAnalyses.length > 0 && (
+      {/* Dashboard toggle button - Condition might change based on whether any items exist */}
+      {dashboardItems.length > 0 && (
         <div className="flex justify-end">
           <button
             onClick={() => setShowDashboard(true)}
             className="flex items-center gap-2 text-sm bg-blue-50 hover:bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:hover:bg-blue-800/40 dark:text-blue-400 rounded-md px-3 py-1.5 font-medium transition-colors"
           >
             <LayoutDashboard className="w-4 h-4" />
-            View Charts Dashboard
+            View Content Dashboard ({dashboardItems.length})
           </button>
         </div>
       )}
-      
+
+      {/* Rest of the existing citation rendering logic */}
       <div className="bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-600 py-3 px-3 sm:px-5 lg:px-7">
         {(() => {
-          // Track which citation sources have already been shown
           const shownCitationSources = new Set<string>();
-
-          // Filter out empty items first, then map the valid ones
           return citationsParsed
             .filter((item) => {
               // Check if this citation has a valid document title
@@ -610,15 +693,6 @@ export function ReportCitationsContent({
                 item.citations &&
                 Array.isArray(item.citations) &&
                 item.citations.length > 0;
-
-              // Check for meaningful text content
-              // const hasNonEmptyText =
-              //   item.parsed && item.parsed.trim().length > 0;
-              // const parsedHTML = String(
-              //   hasNonEmptyText ? marked.parse(item.parsed) : ""
-              // );
-              // const hasNonEmptyHTML =
-              //   parsedHTML.replace(/<[^>]*>/g, "").trim().length > 0;
 
               // Keep item only if it has either valid citation or non-empty content
               return hasValidCitation || item.parsed;
@@ -643,15 +717,6 @@ export function ReportCitationsContent({
               if (shouldShowDigDeeper && citationSourceId) {
                 shownCitationSources.add(citationSourceId);
               }
-
-              // Process text content
-              // const hasNonEmptyText =
-              //   item.parsed && item.parsed.trim().length > 0;
-              // const parsedHTML = String(
-              //   hasNonEmptyText ? marked.parse(item.parsed) : ""
-              // );
-              // const hasNonEmptyHTML =
-              //   parsedHTML.replace(/<[^>]*>/g, "").trim().length > 0;
 
               return (
                 <div key={index} className="mb-4 relative group">
@@ -727,7 +792,11 @@ export function ReportCitationsContent({
                               </svg>
                             )}
                             <span className="break-all flex-grow">
-                              Dig Deeper
+                              {/* Updated Text based on type */}
+                              {item.citations[0].document_title.includes("text_to_sql") ? "SQL Analysis" :
+                               item.citations[0].document_title.includes("pdf_citations") ? "PDF Source" :
+                               item.citations[0].document_title.includes("web_search") ? "Web Search" :
+                               "Dig Deeper"}
                             </span>
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -776,3 +845,133 @@ export function ReportCitationsContent({
     </div>
   );
 }
+
+// Define a new component for the Dashboard Card
+interface DashboardCardProps {
+  item: DashboardItem;
+  isExpanded: boolean;
+  isHidden: boolean;
+  isDragging: boolean;
+  toggleExpanded: (id: string) => void;
+  toggleHidden: (id: string) => void;
+}
+
+const DashboardCard: React.FC<DashboardCardProps> = ({
+  item,
+  isExpanded,
+  isHidden,
+  isDragging,
+  toggleExpanded,
+  toggleHidden,
+}) => {
+  const ref = useRef<HTMLDivElement>(null); // Ref for the draggable element
+
+  // Use effect for drag and drop setup on the card element
+  useEffect(() => {
+    const element = ref.current;
+    if (!element) return;
+
+    // Combine draggable and dropTarget for the element
+    return combine(
+      draggable({
+        element: element,
+        getInitialData: () => ({ id: item.id }), // Pass item ID for identification
+        onDragStart: () => console.log(`Drag start: ${item.id}`), // Debugging
+        onDrop: () => console.log(`Drop: ${item.id}`), // Debugging
+      }),
+      dropTargetForElements({
+        element: element,
+        getData: () => ({ id: item.id }), // Allow dropping onto this item
+        getIsSticky: () => true, // Make target sticky
+        onDragEnter: () => console.log(`Drag enter target: ${item.id}`), // Debugging
+        onDrop: () => console.log(`Drop on target: ${item.id}`), // Debugging
+      })
+    );
+  }, [item.id]); // Depend on item.id
+
+  const cardTitle = item.analysis.question || item.analysis.inputs?.question ||
+                    (item.type === 'chart' ? "Chart Analysis" :
+                     item.type === 'pdf' ? "PDF Citation" :
+                     item.type === 'webSearch' ? "Web Search" : "Analysis");
+
+  const icon = item.type === 'chart' ? <ChartBarIcon className="w-5 h-5 text-blue-500 dark:text-blue-400" /> :
+               item.type === 'pdf' ? <File className="w-5 h-5 text-green-500 dark:text-green-400" /> :
+               item.type === 'webSearch' ? <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-purple-500 dark:text-purple-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg> :
+               null;
+
+  return (
+    <div
+      ref={ref}
+      className={`bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-600 overflow-hidden shadow-sm transition-opacity ${
+        isDragging ? 'opacity-50 ring-2 ring-blue-500' : 'opacity-100' // Style for dragging
+      } ${ isHidden ? 'border-dashed border-yellow-500 dark:border-yellow-600' : '' }`} // Style for hidden
+    >
+      {/* Card Header */}
+      <div className="flex justify-between items-center p-3 border-b dark:border-gray-700 bg-gray-50 dark:bg-gray-750">
+        <div className="flex items-center gap-2 overflow-hidden">
+          {/* Drag Handle */}
+          <button
+             className="cursor-grab text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 p-1 -ml-1"
+             // Drag handle props will be implicitly picked up by draggable if needed,
+             // or we can explicitly pass dragHandleProps from the hook if we configure it.
+             // For now, the whole card is draggable via the ref. Let's add a visual handle.
+           >
+             <GripVertical size={16} />
+           </button>
+          {icon}
+          <h4 className="font-medium text-sm text-gray-800 dark:text-gray-200 truncate" title={cardTitle}>
+            {cardTitle}
+          </h4>
+        </div>
+        <div className="flex items-center gap-1 flex-shrink-0">
+          {/* Hide/Unhide Button */}
+          <button
+            onClick={() => toggleHidden(item.id)}
+            title={isHidden ? "Unhide Card" : "Hide Card"}
+            className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+          >
+            {isHidden ? <Eye size={16} /> : <EyeOff size={16} />}
+          </button>
+          {/* Expand/Collapse Button - Don't show if hidden */}
+          {!isHidden && (
+            <button
+                onClick={() => toggleExpanded(item.id)}
+                title={isExpanded ? "Collapse Card" : "Expand Card"}
+                className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+            >
+                {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Card Content - Render based on expanded state, don't render if hidden */}
+      {!isHidden && (
+        <div
+          className={`transition-all duration-300 ease-in-out overflow-hidden ${
+            isExpanded ? 'max-h-[800px] opacity-100' : 'max-h-0 opacity-0' // Use max-h and opacity for transition
+          }`}
+          style={{ maxHeight: isExpanded ? '800px' : '0px' }} // Explicit max-height for transition
+        >
+          {/* Render content only when expanded to avoid performance issues with many charts/maps */}
+          {isExpanded && (
+              <div className="p-4">
+                <ErrorBoundary>
+                {item.type === 'chart' && item.chartData && (
+                    <ChartContainer
+                    stepData={item.chartData}
+                    initialQuestion={item.analysis.question}
+                    initialOptionsExpanded={false} // Keep options initially collapsed
+                    key={item.id} // Use item.id as key
+                    />
+                )}
+                {item.type === 'pdf' && <PdfCitationsContent analysis={item.analysis} />}
+                {item.type === 'webSearch' && <WebSearchContent analysis={item.analysis} />}
+                </ErrorBoundary>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
