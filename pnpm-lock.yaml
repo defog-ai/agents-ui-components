@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@atlaskit/pragmatic-drag-and-drop':
+        specifier: ^1.5.2
+        version: 1.5.2
       '@codemirror/lang-python':
         specifier: ^6.1.7
         version: 6.1.7
@@ -305,6 +308,9 @@ packages:
   '@ast-grep/napi@0.32.3':
     resolution: {integrity: sha512-EdgX3gnDGkKMeofSYQlmPccjnxmGGQoEKL7pVQUmenLrsUBXXcjY//6J0LJApfIzNCknjQkfWpj1IbWDkl66Iw==}
     engines: {node: '>= 10'}
+
+  '@atlaskit/pragmatic-drag-and-drop@1.5.2':
+    resolution: {integrity: sha512-fDuTwlDD11r3ev5tLJ6JnzQUiG9v77c8zGcNdO7RRNtZZbOHam8CFhmyFGY4E/mLjvgYng0UkcyCrSBc4FXYZw==}
 
   '@babel/code-frame@7.26.2':
     resolution: {integrity: sha512-RJlIHRueQgwWitWgF8OdFYGZX328Ax5BCemNGlqHfplnRT9ESi8JkFlvaVYbS+UubVY6dpv87Fs2u5M29iNFVQ==}
@@ -2098,6 +2104,9 @@ packages:
   binary-search-bounds@2.0.5:
     resolution: {integrity: sha512-H0ea4Fd3lS1+sTEB2TgcLoK21lLhwEJzlQv3IN47pJS976Gx4zoWe0ak3q+uYh60ppQxg9F16Ri4tS1sfD4+jA==}
 
+  bind-event-listener@3.0.0:
+    resolution: {integrity: sha512-PJvH288AWQhKs2v9zyfYdPzlPqf5bXbGMmhmUIY9x4dAUGIWgomO771oBQNwJnMQSnUIXhKu6sgzpBRXTlvb8Q==}
+
   brace-expansion@1.1.11:
     resolution: {integrity: sha512-iCuPHDFgrHX7H2vEI/5xpz07zSHB00TpugqhmYtVmMO6518mCuRMoOYFldEBl0g187ufozdaHgWKcYFb61qGiA==}
 
@@ -3548,6 +3557,9 @@ packages:
   queue-microtask@1.2.3:
     resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
 
+  raf-schd@4.0.3:
+    resolution: {integrity: sha512-tQkJl2GRWh83ui2DiPTJz9wEiMN20syf+5oKfB03yYP7ioZcJwsIK8FjrtLwH1m7C7e+Tt2yYBlrOpdT+dyeIQ==}
+
   react-docgen-typescript@2.2.2:
     resolution: {integrity: sha512-tvg2ZtOpOi6QDwsb3GZhOjDkkX0h8Z2gipvTg6OVMUyoYoURhEiRNePT8NZItTVCDh39JJHnLdfCOkzoLbFnTg==}
     peerDependencies:
@@ -4166,6 +4178,12 @@ snapshots:
       '@ast-grep/napi-win32-arm64-msvc': 0.32.3
       '@ast-grep/napi-win32-ia32-msvc': 0.32.3
       '@ast-grep/napi-win32-x64-msvc': 0.32.3
+
+  '@atlaskit/pragmatic-drag-and-drop@1.5.2':
+    dependencies:
+      '@babel/runtime': 7.26.9
+      bind-event-listener: 3.0.0
+      raf-schd: 4.0.3
 
   '@babel/code-frame@7.26.2':
     dependencies:
@@ -6023,6 +6041,8 @@ snapshots:
 
   binary-search-bounds@2.0.5: {}
 
+  bind-event-listener@3.0.0: {}
+
   brace-expansion@1.1.11:
     dependencies:
       balanced-match: 1.0.2
@@ -7632,6 +7652,8 @@ snapshots:
   quansync@0.2.6: {}
 
   queue-microtask@1.2.3: {}
+
+  raf-schd@4.0.3: {}
 
   react-docgen-typescript@2.2.2(typescript@5.8.2):
     dependencies:
