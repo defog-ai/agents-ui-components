@@ -52,3 +52,13 @@
 }
 
 /* Dark mode styles already added in prose-dark.scss */
+
+/* Sidebar resize cursor */
+body.resize-sidebar {
+  cursor: col-resize !important;
+  
+  * {
+    cursor: col-resize !important;
+    user-select: none !important;
+  }
+}
