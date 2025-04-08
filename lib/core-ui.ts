@@ -1,4 +1,5 @@
 export { Handle } from "./components/core-ui/Handle.tsx";
+export { ResizableHandle } from "./components/core-ui/ResizableHandle.tsx";
 
 export {
   useBreakPoint,
@@ -24,7 +25,7 @@ export { Modal } from "./components/core-ui/Modal.tsx";
 export { MultiSelect } from "./components/core-ui/MultiSelect.tsx";
 export { Popover } from "./components/core-ui/Popover.tsx";
 export { RangeSlider } from "./components/core-ui/RangeSlider.jsx";
-export { Sidebar } from "./components/core-ui/Sidebar.jsx";
+export { Sidebar } from "./components/core-ui/Sidebar.tsx";
 export { SingleSelect } from "./components/core-ui/SingleSelect.tsx";
 export { Slider } from "./components/core-ui/Slider.jsx";
 export { Table } from "./components/core-ui/Table.jsx";
