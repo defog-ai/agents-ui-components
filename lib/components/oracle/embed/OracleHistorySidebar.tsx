@@ -43,7 +43,7 @@ export const OracleHistorySidebar: React.FC<OracleHistorySidebarProps> = React.m
           <span className="mr-2">📚</span> History
         </h2>
       }
-      contentClassNames="p-5 rounded-tl-lg relative sm:block min-h-96 max-h-full overflow-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent"
+      contentClassNames="p-5 pr-6 rounded-tl-lg relative sm:block min-h-96 max-h-full overflow-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent"
       resizable={true}
       minWidth={200}
       maxWidth={500}
