@@ -13,10 +13,6 @@ import { csvFormat } from "d3";
 
 interface SqlAnalysisContentProps {
   analysis: OracleAnalysis;
-  viewMode: "table" | "chart";
-  showSqlQuery: boolean;
-  setShowSqlQuery: (show: boolean) => void;
-  setViewMode: (mode: "table" | "chart") => void;
 }
 
 interface TabItem {
@@ -26,61 +22,59 @@ interface TabItem {
   component: React.ReactNode;
 }
 
-export function SqlAnalysisContent({
-  analysis,
-  viewMode,
-  showSqlQuery,
-  setShowSqlQuery,
-  setViewMode,
-}: SqlAnalysisContentProps) {
+export function SqlAnalysisContent({ analysis }: SqlAnalysisContentProps) {
   const [isChartOptionsExpanded, setIsChartOptionsExpanded] = useState(false);
   const [results, setResults] = useState<TabItem[]>([]);
+  const [viewMode, setViewMode] = useState<"table" | "chart">("table");
+  const [showSqlQuery, setShowSqlQuery] = useState<boolean>(false);
 
   // Create a parsedOutput object that exactly matches what parseOutput() creates in analysisManager.ts
   const parsedOutputs = useMemo(() => {
     if (!analysis) return null;
-    
+
     // Convert analysis rows to a properly formatted array of objects for d3's csvFormat
-    const formattedRows = analysis.rows.map(row => {
+    const formattedRows = analysis.rows.map((row) => {
       const formattedRow = {};
-      analysis.columns.forEach(col => {
+      analysis.columns.forEach((col) => {
         const key = col.title || col.dataIndex;
         // Create a clean object with proper column keys and values
-        formattedRow[key] = row[key] === undefined || row[key] === null ? '' : row[key];
+        formattedRow[key] =
+          row[key] === undefined || row[key] === null ? "" : row[key];
       });
       return formattedRow;
     });
-    
+
     // Use d3's csvFormat to properly create a CSV string with all proper escaping
     const csvString = csvFormat(formattedRows);
-    
+
     // Now use the exact same function as analysisManager.ts to parse the output
     // This is the most direct approach - we're using the same parseData function with CSV
     const parsedData = parseData(csvString);
-    
+
     // Create chart manager exactly like analysisManager.parseOutput does
     // Create chartManager with properly typed columns
     // We need to convert ColumnInfo[] to Column[] by adding required fields
     const chartManager = createChartManager({
       data: parsedData.data,
-      availableColumns: parsedData.columns.map(col => ({
+      availableColumns: parsedData.columns.map((col) => ({
         ...col,
-        description: '', // Add required description field
+        description: "", // Add required description field
         isDate: col.isDate || false, // Ensure isDate is not optional
-        dateToUnix: col.dateToUnix || ((date: string) => new Date(date).getTime()), // Add required dateToUnix function
+        dateToUnix:
+          col.dateToUnix || ((date: string) => new Date(date).getTime()), // Add required dateToUnix function
       })),
     });
-    
+
     // Auto-select variables (exactly like the backend)
     chartManager.autoSelectVariables();
-    
+
     return {
       csvString,
       data: parsedData,
       chartManager: chartManager, // Exact same structure as in analysisManager.parseOutput
       reactive_vars: {},
       chart_images: {},
-      analysis: {}
+      analysis: {},
     };
   }, [analysis.analysis_id]);
 
@@ -117,11 +111,7 @@ export function SqlAnalysisContent({
     });
 
     tabs.push({
-      component: (
-        <ErrorBoundary>
-          {chartContainer}
-        </ErrorBoundary>
-      ),
+      component: <ErrorBoundary>{chartContainer}</ErrorBoundary>,
       key: "chart",
       tabLabel: "Chart",
       icon: <ChartBarIcon className="w-4 h-4 mb-0.5 mr-1 inline" />,
@@ -132,25 +122,27 @@ export function SqlAnalysisContent({
 
   // Create a container ref to check if the analysis is in focus
   const analysisRef = useRef<HTMLDivElement>(null);
-  
+
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
       // Only process shortcuts if:
       // 1. No active text input/textarea has focus
       // 2. This analysis component or one of its children has focus or contains the active element
-      const isInputActive = document.activeElement instanceof HTMLInputElement || 
-                           document.activeElement instanceof HTMLTextAreaElement;
-      
+      const isInputActive =
+        document.activeElement instanceof HTMLInputElement ||
+        document.activeElement instanceof HTMLTextAreaElement;
+
       // Check if this analysis container or any of its children has focus
-      const isAnalysisInFocus = analysisRef.current?.contains(document.activeElement) || 
-                               analysisRef.current === document.activeElement;
-      
+      const isAnalysisInFocus =
+        analysisRef.current?.contains(document.activeElement) ||
+        analysisRef.current === document.activeElement;
+
       if (!isInputActive && isAnalysisInFocus) {
         // If any modifier keys are pressed, do not match
         if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) {
           return;
         }
-        
+
         // Only handle chart options when chart tab is active
         if (
           matchesKey(e.key, KEYMAP.TOGGLE_CHART_OPTIONS) &&
@@ -159,13 +151,13 @@ export function SqlAnalysisContent({
           setIsChartOptionsExpanded((prev) => !prev);
           e.preventDefault();
         }
-        
+
         // Add handlers for table/chart view switching
         if (matchesKey(e.key, KEYMAP.VIEW_TABLE)) {
           setViewMode("table");
           e.preventDefault();
         }
-        
+
         if (matchesKey(e.key, KEYMAP.VIEW_CHART)) {
           setViewMode("chart");
           e.preventDefault();
@@ -224,8 +216,7 @@ export function SqlAnalysisContent({
         </span>
         {analysis.rows && (
           <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-blue-900/30 dark:text-blue-300">
-            {analysis.rows.length}{" "}
-            {analysis.rows.length === 1 ? "row" : "rows"}
+            {analysis.rows.length} {analysis.rows.length === 1 ? "row" : "rows"}
           </span>
         )}
       </div>
@@ -307,14 +298,7 @@ export function SqlAnalysisContent({
                 >
                   <path d="M8 9l3 3-3 3"></path>
                   <line x1="13" y1="15" x2="16" y2="15"></line>
-                  <rect
-                    x="3"
-                    y="3"
-                    width="18"
-                    height="18"
-                    rx="2"
-                    ry="2"
-                  ></rect>
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                 </svg>
                 <span className="text-xs font-medium text-gray-600 dark:text-gray-300">
                   SQL Query
@@ -323,9 +307,7 @@ export function SqlAnalysisContent({
 
               <button
                 onClick={() => {
-                  navigator.clipboard.writeText(
-                    (analysis as any).sql || ""
-                  );
+                  navigator.clipboard.writeText((analysis as any).sql || "");
                   // You could add a toast notification here if you have one
                 }}
                 className="text-xs bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-300 rounded px-1.5 py-0.5 transition-colors flex items-center gap-1"

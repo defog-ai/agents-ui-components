@@ -12,7 +12,7 @@ import {
   CitationItem,
   exportAsMarkdown,
   exportAsPdf,
-  exportAsPodcast
+  exportAsPodcast,
 } from "@oracle";
 import { Download, FileText, Mic } from "lucide-react";
 import { Button, Modal } from "@ui-components";
@@ -37,7 +37,9 @@ export function OracleReport({
   const [analyses, setAnalyses] = useState<OracleAnalysis[]>([]);
   const [comments, setComments] = useState<OracleReportComment[]>([]);
   const [mdx, setMDX] = useState<string | null>(null);
-  const [reportWithCitations, setReportWithCitations] = useState<CitationItem[] | null>(null);
+  const [reportWithCitations, setReportWithCitations] = useState<
+    CitationItem[] | null
+  >(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [exportDropdownOpen, setExportDropdownOpen] = useState(false);
@@ -66,7 +68,8 @@ export function OracleReport({
         data.parsed.tables && setTables(data.parsed.tables);
         data.analyses && setAnalyses(data.analyses);
         data.comments && setComments(data.comments);
-        data.report_with_citations && setReportWithCitations(data.report_with_citations);
+        data.report_with_citations &&
+          setReportWithCitations(data.report_with_citations);
 
         onReportParsed && onReportParsed(data);
       } catch (e: any) {
@@ -116,9 +119,9 @@ export function OracleReport({
   const handleExportMarkdown = () => {
     const fileName = `report-${reportId}.md`;
     // For citation-based reports, we'll generate simple markdown
-    const markdownContent = reportWithCitations 
-      ? reportWithCitations.map(item => item.text || '').join('\n\n')
-      : mdx || '';
+    const markdownContent = reportWithCitations
+      ? reportWithCitations.map((item) => item.text || "").join("\n\n")
+      : mdx || "";
     exportAsMarkdown(markdownContent, fileName);
     setExportDropdownOpen(false);
   };
@@ -127,9 +130,9 @@ export function OracleReport({
   const handleExportPdf = () => {
     const fileName = `report-${reportId}.pdf`;
     // For citation-based reports, we'll generate simple markdown
-    const markdownContent = reportWithCitations 
-      ? reportWithCitations.map(item => item.text || '').join('\n\n')
-      : mdx || '';
+    const markdownContent = reportWithCitations
+      ? reportWithCitations.map((item) => item.text || "").join("\n\n")
+      : mdx || "";
     exportAsPdf(markdownContent, fileName);
     setExportDropdownOpen(false);
   };
@@ -138,18 +141,18 @@ export function OracleReport({
   const handleExportPodcast = () => {
     try {
       // For citation-based reports, we'll generate simple markdown
-      const markdownContent = reportWithCitations 
-        ? reportWithCitations.map(item => item.text || '').join('\n\n')
-        : mdx || '';
+      const markdownContent = reportWithCitations
+        ? reportWithCitations.map((item) => item.text || "").join("\n\n")
+        : mdx || "";
       setExportDropdownOpen(false);
       exportAsPodcast(
-        markdownContent, 
-        reportId, 
-        apiEndpoint, 
-        projectName, 
+        markdownContent,
+        reportId,
+        apiEndpoint,
+        projectName,
         token,
         setIsPodcastLoading
-      ).catch(error => {
+      ).catch((error) => {
         console.error(error);
       });
     } catch (error) {
@@ -164,9 +167,7 @@ export function OracleReport({
       <Button
         variant="secondary"
         onClick={() => setExportDropdownOpen(!exportDropdownOpen)}
-        className={
-          exportDropdownOpen ? "bg-gray-100 dark:bg-gray-700" : ""
-        }
+        className={exportDropdownOpen ? "bg-gray-100 dark:bg-gray-700" : ""}
       >
         <Download className="w-5 h-5" />
       </Button>
@@ -256,10 +257,13 @@ export function OracleReport({
           {reportWithCitations && reportWithCitations.length > 0 ? (
             <div className="w-full max-w-none sm:max-w-3xl lg:max-w-4xl xl:max-w-5xl 2xl:max-w-6xl mx-auto py-2 px-2 sm:px-4 md:px-6 mb-12 md:mb-0">
               <div className="sticky top-0 bg-white dark:bg-gray-800 z-10 flex items-center justify-between px-4 py-2 border-b dark:border-gray-700">
-                <Button variant="danger" onClick={() => setDeleteModalOpen(true)}>
+                <Button
+                  variant="danger"
+                  onClick={() => setDeleteModalOpen(true)}
+                >
                   Delete
                 </Button>
-                
+
                 <ExportDropdown />
 
                 <Modal
@@ -273,12 +277,13 @@ export function OracleReport({
                   okVariant="danger"
                   title="Delete Report"
                 >
-                  <p>Are you sure you want to delete this report? This action cannot be undone.</p>
+                  <p>
+                    Are you sure you want to delete this report? This action
+                    cannot be undone.
+                  </p>
                 </Modal>
               </div>
-              <ReportCitationsContent 
-                citations={reportWithCitations} 
-              />
+              <ReportCitationsContent citations={reportWithCitations} />
             </div>
           ) : (
             <EditorProvider

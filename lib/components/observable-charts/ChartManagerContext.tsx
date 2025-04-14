@@ -189,7 +189,7 @@ export function createActionHandlers(): ActionHandlers {
     setSelectedChart: function (payload) {
       // Preserve existing selections when changing chart types
       const currentSelectedColumns = this.config.selectedColumns;
-      
+
       this.config = {
         ...this.config,
         selectedChart: payload,
@@ -197,18 +197,22 @@ export function createActionHandlers(): ActionHandlers {
           // Preserve x and y selections when changing chart types
           x: currentSelectedColumns.x,
           // For line and bar charts, ensure y is an array; for others ensure it's a single value
-          y: payload === "line" || payload === "bar"
-              ? Array.isArray(currentSelectedColumns.y) 
-                ? currentSelectedColumns.y 
-                : currentSelectedColumns.y ? [currentSelectedColumns.y] : []
-              : Array.isArray(currentSelectedColumns.y) && currentSelectedColumns.y.length > 0
-                ? currentSelectedColumns.y[0] 
+          y:
+            payload === "line" || payload === "bar"
+              ? Array.isArray(currentSelectedColumns.y)
+                ? currentSelectedColumns.y
+                : currentSelectedColumns.y
+                  ? [currentSelectedColumns.y]
+                  : []
+              : Array.isArray(currentSelectedColumns.y) &&
+                  currentSelectedColumns.y.length > 0
+                ? currentSelectedColumns.y[0]
                 : currentSelectedColumns.y,
           // Preserve other column selections
           facet: currentSelectedColumns.facet,
           fill: currentSelectedColumns.fill,
           stroke: currentSelectedColumns.stroke,
-          filter: currentSelectedColumns.filter
+          filter: currentSelectedColumns.filter,
         },
         chartStyle: {
           ...defaultChartManager.config.chartStyle,
@@ -284,17 +288,18 @@ export function createActionHandlers(): ActionHandlers {
 
       // Explicitly find date columns with enhanced detection
       const dateColumn = availableColumns.find((col) => {
-        const isExplicitlyDate = col.isDate === true || col.colType === 'date';
-        const hasDateName = col.title && /date|year|month|week|time/gi.test(col.title);
+        const isExplicitlyDate = col.isDate === true || col.colType === "date";
+        const hasDateName =
+          col.title && /date|year|month|week|time/gi.test(col.title);
         // Remove sample check as it's not in the Column interface
-        
+
         return isExplicitlyDate || hasDateName;
       });
-      
+
       const quantColumns = availableColumns.filter(
         (col) => col.variableType === "quantitative"
       );
-      
+
       const nonQuantNonDateColumns = availableColumns.filter(
         (col) => col.variableType !== "quantitative" && !col.isDate
       );
@@ -361,14 +366,19 @@ export function createActionHandlers(): ActionHandlers {
     ): Promise<void> {
       try {
         // Validate required fields with detailed logging
-        if (!token || !userQuestion || !chartEditUrl || !this.config.availableColumns?.length) {
-          console.warn("Chart edit skipped - missing required fields:", { 
-            hasToken: !!token, 
-            hasQuestion: !!userQuestion, 
-            hasUrl: !!chartEditUrl, 
-            columnsLength: this.config.availableColumns?.length || 0 
+        if (
+          !token ||
+          !userQuestion ||
+          !chartEditUrl ||
+          !this.config.availableColumns?.length
+        ) {
+          console.warn("Chart edit skipped - missing required fields:", {
+            hasToken: !!token,
+            hasQuestion: !!userQuestion,
+            hasUrl: !!chartEditUrl,
+            columnsLength: this.config.availableColumns?.length || 0,
           });
-          
+
           // Don't return, continue with auto-selection even if we can't call the API
           this.autoSelectVariables();
         }
@@ -399,7 +409,9 @@ export function createActionHandlers(): ActionHandlers {
 
         // If response is not ok, don't throw error, just log and continue with auto-selection
         if (!response.ok) {
-          console.warn("Chart edit request failed - continuing with auto-selection");
+          console.warn(
+            "Chart edit request failed - continuing with auto-selection"
+          );
           this.mergeConfigUpdates({ loading: false }).render();
           return;
         }

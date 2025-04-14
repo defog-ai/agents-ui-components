@@ -34,3 +34,55 @@
 .revise-modal-header {
   @apply px-2 p-2 text-xs text-gray-400 bg-gray-50 dark:bg-gray-700;
 }
+
+.report-citation-label {
+  @apply cursor-pointer text-xs mx-1 rounded-lg bg-gray-200 text-gray-400 dark:bg-gray-600 dark:text-gray-400 px-1 py-1 hover:bg-gray-300 hover:text-gray-500 dark:hover:bg-gray-600 dark:hover:text-gray-300;
+}
+
+.report-citation-content {
+  @apply transition-all inline-block border-0 border-transparent overflow-hidden relative;
+
+  @keyframes show {
+    0% {
+      @apply h-0 block my-4;
+    }
+    100% {
+      @apply h-[500px] max-h-[500px] block;
+    }
+  }
+
+  animation-fill-mode: forwards;
+  animation-duration: 0.4s;
+
+  &.initial {
+    @apply *:!hidden;
+  }
+
+  &.hide {
+    animation-name: hide;
+  }
+
+  .report-citation-header {
+    @apply block mb-2 text-xs text-gray-400 dark:text-gray-300;
+  }
+
+  &.show {
+    @apply overflow-auto border border-l-gray-300 border-l-4 mt-2 rounded-md p-2 pt-0;
+    animation-name: show;
+  }
+
+  @keyframes hide {
+    0% {
+      @apply h-[500px] max-h-[500px] block border-l-gray-300 border-l-4 mt-2 rounded-md p-2 pt-0;
+    }
+    20% {
+      @apply w-full;
+    }
+    90% {
+      @apply h-0 block border-l-gray-300 border-l-4 mt-2 rounded-md p-2 pt-0;
+    }
+    100% {
+      @apply h-0 inline-block w-0 border-0 m-0 p-0;
+    }
+  }
+}
