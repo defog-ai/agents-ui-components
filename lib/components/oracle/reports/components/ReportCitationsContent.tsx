@@ -49,7 +49,6 @@ const toolToLabel = {
   text_to_sql_tool: "SQL",
   pdf_citations_tool: "PDF",
   web_search_tool: "Web",
-  code_interpreter_tool: "Code",
 };
 
 // TODO: Define or import proper AnalysisItem type if available
