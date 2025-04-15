@@ -49,6 +49,7 @@ const toolToLabel = {
   text_to_sql_tool: "SQL",
   pdf_citations_tool: "PDF",
   web_search_tool: "Web",
+  code_interpreter_tool: "Code",
 };
 
 // TODO: Define or import proper AnalysisItem type if available
@@ -339,6 +340,15 @@ export function ReportCitationsContent({
       return (
         <div className="bg-white dark:bg-gray-800 rounded">
           <WebSearchContent analysis={analysis} />
+        </div>
+      );
+    }
+
+    if (documentTitle.includes("code_interpreter")) {
+      return (
+        <div className="bg-white dark:bg-gray-800 rounded">
+          {/* @ts-ignore */}
+          <CodeInterpreterContent {...analysis.result} />
         </div>
       );
     }
