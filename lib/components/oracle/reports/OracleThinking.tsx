@@ -8,6 +8,8 @@ import OracleThinkingCardSearch, {
   ThinkingStep,
 } from "./OracleThinkingCardSearch";
 import OracleThinkingCardPDF from "./OracleThinkingCardPDF";
+import OracleThinkingCardCodeInterpreter from "./OracleThinkingCardCodeInterpreter";
+import OracleThinkingCardThinkTool from "./OracleThinkingCardThinkTool";
 
 type OracleThinkingProps = {
   apiEndpoint: string;
@@ -201,6 +203,12 @@ export function OracleThinking({
               ) : step.function_name === "pdf_citations_tool" ? (
                 // @ts-ignore
                 <OracleThinkingCardPDF step={step} />
+              ) : step.function_name === "code_interpreter_tool" ? (
+                // @ts-ignore
+                <OracleThinkingCardCodeInterpreter step={step} />
+              ) : step.function_name === "think_tool" ? (
+                // @ts-ignore
+                <OracleThinkingCardThinkTool step={step} />
               ) : null}
             </div>
           ))}
