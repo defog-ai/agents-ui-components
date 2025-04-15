@@ -10,6 +10,7 @@ import {
   Eye,
   X,
   Search,
+  Code2,
 } from "lucide-react";
 import katex from "katex";
 import "katex/dist/katex.min.css";
@@ -42,6 +43,7 @@ import {
 import { reorder } from "@atlaskit/pragmatic-drag-and-drop/reorder";
 import { combine } from "@atlaskit/pragmatic-drag-and-drop/combine";
 import { createRoot } from "react-dom/client";
+import { CodeInterpreterContent } from "./CodeInterpreterContent";
 
 const toolToLabel = {
   text_to_sql_tool: "SQL",
@@ -61,7 +63,7 @@ interface ReportCitationsContentProps {
 // Define a unified structure for dashboard items
 interface DashboardItem {
   id: string; // analysis_id
-  type: "chart" | "pdf" | "webSearch";
+  type: "chart" | "pdf" | "webSearch" | "codeInterpreter";
   analysis: AnalysisItem; // Use a proper type
   chartData?: any; // Specific data needed for charts (like parsedOutputs)
 }
@@ -180,7 +182,7 @@ export function ReportCitationsContent({
   const [dashboardItems, setDashboardItems] = useState<DashboardItem[]>([]);
   const [hiddenCards, setHiddenCards] = useState<Set<string>>(new Set());
   const [activeFilter, setActiveFilter] = useState<
-    "all" | "charts" | "pdfs" | "webSearches" | "hidden"
+    "all" | "charts" | "pdfs" | "webSearches" | "codeInterpreterRuns" | "hidden"
   >("all");
   const [draggingItemId, setDraggingItemId] = useState<string | null>(null); // Track dragging state
 
@@ -380,20 +382,12 @@ export function ReportCitationsContent({
           return; // Invalid indices or dropped on itself
         }
 
-        console.log(
-          `Dropping item ${sourceId} (index ${sourceIndex}) onto ${targetId} (index ${targetIndex})`
-        );
-
         setDashboardItems((currentItems) => {
           const reorderedItems = reorder({
             list: currentItems,
             startIndex: sourceIndex,
             finishIndex: targetIndex,
           });
-          console.log(
-            "Reordered items:",
-            reorderedItems.map((i) => i.id)
-          );
           return reorderedItems;
         });
       },
@@ -519,13 +513,21 @@ export function ReportCitationsContent({
           type: "webSearch",
           analysis,
         });
+      } else if (
+        analysis.function_name === "code_interpreter_tool" &&
+        analysis.result &&
+        !analysis?.result?.error &&
+        analysis?.result?.result &&
+        analysis.result.sql
+      ) {
+        newDashboardItems.push({
+          id: analysis.analysis_id,
+          type: "codeInterpreter",
+          analysis,
+        });
       }
     });
 
-    console.log(
-      "Initialized dashboard items:",
-      newDashboardItems.map((i) => `${i.id} (${i.type})`)
-    );
     setDashboardItems(newDashboardItems);
 
     // Reset expanded/hidden state when analyses change
@@ -539,6 +541,7 @@ export function ReportCitationsContent({
       charts: 0,
       pdfs: 0,
       webSearches: 0,
+      codeInterpreterRuns: 0,
       hidden: hiddenCards.size,
     };
     dashboardItems.forEach((item) => {
@@ -546,6 +549,7 @@ export function ReportCitationsContent({
         if (item.type === "chart") counts.charts++;
         else if (item.type === "pdf") counts.pdfs++;
         else if (item.type === "webSearch") counts.webSearches++;
+        else if (item.type === "codeInterpreter") counts.codeInterpreterRuns++;
       }
     });
     return counts;
@@ -567,13 +571,12 @@ export function ReportCitationsContent({
               ? "chart"
               : activeFilter === "pdfs"
                 ? "pdf"
-                : "webSearch") && !hiddenCards.has(item.id)
+                : activeFilter === "webSearches"
+                  ? "webSearch"
+                  : "codeInterpreter") && !hiddenCards.has(item.id)
       );
     }
-    console.log(
-      `Filter '${activeFilter}': Showing ${itemsToShow.length} items`,
-      itemsToShow.map((i) => i.id)
-    );
+
     return itemsToShow;
   }, [dashboardItems, activeFilter, hiddenCards]);
 
@@ -588,18 +591,6 @@ export function ReportCitationsContent({
       return newSet;
     });
   }, []);
-
-  // For debugging: log complete analysis data when dashboard is toggled
-  useEffect(() => {
-    if (showDashboard) {
-      console.log(
-        "Rendering Dashboard. Items:",
-        dashboardItems,
-        "Filtered:",
-        filteredDashboardItems
-      );
-    }
-  }, [showDashboard, dashboardItems, filteredDashboardItems]);
 
   // Render Dashboard View
   if (showDashboard && analyses && analyses.length > 0) {
@@ -682,6 +673,22 @@ export function ReportCitationsContent({
                 Web ({dashboardCounts.webSearches})
               </button>
             )}
+
+            {/* Code Interpreter Button */}
+            {dashboardCounts.codeInterpreterRuns > 0 && (
+              <button
+                onClick={() => setActiveFilter("codeInterpreterRuns")}
+                className={`px-3 py-1 text-sm rounded-full flex items-center gap-1 ${
+                  activeFilter === "codeInterpreterRuns"
+                    ? "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 ring-1 ring-blue-300 dark:ring-blue-600"
+                    : "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+                }`}
+              >
+                <Code2 className="w-4 h-4" />
+                Code ({dashboardCounts.codeInterpreterRuns})
+              </button>
+            )}
+
             {/* Hidden Button */}
             {dashboardCounts.hidden > 0 && (
               <button
@@ -797,15 +804,11 @@ const DashboardCard: React.FC<DashboardCardProps> = ({
       draggable({
         element: element,
         getInitialData: () => ({ id: item.id }), // Pass item ID for identification
-        onDragStart: () => console.log(`Drag start: ${item.id}`), // Debugging
-        onDrop: () => console.log(`Drop: ${item.id}`), // Debugging
       }),
       dropTargetForElements({
         element: element,
         getData: () => ({ id: item.id }), // Allow dropping onto this item
         getIsSticky: () => true, // Make target sticky
-        onDragEnter: () => console.log(`Drag enter target: ${item.id}`), // Debugging
-        onDrop: () => console.log(`Drop on target: ${item.id}`), // Debugging
       })
     );
   }, [item.id]); // Depend on item.id
@@ -828,6 +831,8 @@ const DashboardCard: React.FC<DashboardCardProps> = ({
       <File className="min-w-3 min-h-3 w-3 h-3 text-green-500 dark:text-green-400" />
     ) : item.type === "webSearch" ? (
       <Search className="min-w-3 min-h-3 w-3 h-3 text-purple-500 dark:text-purple-400" />
+    ) : item.type === "codeInterpreter" ? (
+      <Code2 className="min-w-3 min-h-3 w-3 h-3 text-purple-500 dark:text-purple-400" />
     ) : null;
 
   useEffect(() => {
@@ -856,6 +861,9 @@ const DashboardCard: React.FC<DashboardCardProps> = ({
           )}
           {item.type === "webSearch" && (
             <WebSearchContent analysis={item.analysis} />
+          )}
+          {item.type === "codeInterpreter" && (
+            <CodeInterpreterContent {...item.analysis.result} />
           )}
         </ErrorBoundary>
       </div>

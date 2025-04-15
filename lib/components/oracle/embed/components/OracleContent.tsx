@@ -53,10 +53,14 @@ export const OracleContent = React.memo(function OracleContent({
       {selectedItemId && selectedItem && "analysisTree" in selectedItem ? (
         <div
           className="p-4 space-y-4 max-h-full overflow-y-auto pb-48"
-          onScroll={useMemo(() => debounce((e: SyntheticEvent) => {
-            e.stopPropagation();
-            setMostVisibleAnalysisAsActive();
-          }, 100), [setMostVisibleAnalysisAsActive])}
+          onScroll={useMemo(
+            () =>
+              debounce((e: SyntheticEvent) => {
+                e.stopPropagation();
+                setMostVisibleAnalysisAsActive();
+              }, 100),
+            [setMostVisibleAnalysisAsActive]
+          )}
         >
           <ErrorBoundary>
             {Object.keys((selectedItem as QueryDataTree).analysisTree).length >
@@ -71,10 +75,7 @@ export const OracleContent = React.memo(function OracleContent({
           </ErrorBoundary>
         </div>
       ) : /* Show completed report */
-      selectedItemId &&
-        selectedItem &&
-        "status" in selectedItem &&
-        selectedItem.status === ORACLE_REPORT_STATUS.DONE ? (
+      selectedItemId && selectedItem && "status" in selectedItem && false ? (
         <OracleReport
           key={selectedItemId}
           reportId={selectedItemId}
