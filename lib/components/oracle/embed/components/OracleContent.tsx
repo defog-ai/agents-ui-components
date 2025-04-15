@@ -75,7 +75,10 @@ export const OracleContent = React.memo(function OracleContent({
           </ErrorBoundary>
         </div>
       ) : /* Show completed report */
-      selectedItemId && selectedItem && "status" in selectedItem && false ? (
+      selectedItemId &&
+        selectedItem &&
+        "status" in selectedItem &&
+        selectedItem.status === ORACLE_REPORT_STATUS.DONE ? (
         <OracleReport
           key={selectedItemId}
           reportId={selectedItemId}
