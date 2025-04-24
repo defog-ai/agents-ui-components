@@ -24,10 +24,6 @@ export function AnalysisContent({
     return (
       <SqlAnalysisContent
         analysis={analysis}
-        viewMode={viewMode}
-        showSqlQuery={showSqlQuery}
-        setShowSqlQuery={setShowSqlQuery}
-        setViewMode={setViewMode}
       />
     );
   }
