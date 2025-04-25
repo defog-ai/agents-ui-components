@@ -477,7 +477,7 @@ export async function fetchAndParseReportData(
   projectName: string,
   token: string
 ): Promise<ReportData> {
-  const { mdx, analyses, report_with_citations } = await getReportMDX(
+  const { mdx, analyses, report_with_citations, is_public, public_url } = await getReportMDX(
     apiEndpoint,
     reportId,
     projectName,
@@ -497,6 +497,8 @@ export async function fetchAndParseReportData(
     analyses: analyses,
     comments: fetchedComments,
     report_with_citations: report_with_citations,
+    is_public: is_public,
+    public_url: public_url,
   };
 }
 
@@ -563,6 +565,47 @@ export const deleteReport = async (
   } catch (error) {
     console.error("Error deleting report:", error);
     return false;
+  }
+};
+
+/**
+ * Toggle public status of a report
+ */
+export const toggleReportPublicStatus = async (
+  apiEndpoint: string,
+  reportId: string,
+  token: string,
+  projectName: string,
+  makePublic: boolean
+) => {
+  try {
+    const res = await fetch(
+      setupBaseUrl({
+        apiEndpoint,
+        protocol: "http",
+        path: "oracle/toggle_public_status",
+      }),
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          db_name: projectName,
+          report_id: reportId,
+          token,
+          make_public: makePublic,
+        }),
+      }
+    );
+
+    if (!res.ok) {
+      throw new Error("Failed to toggle public status");
+    }
+
+    const data = await res.json();
+    return data;
+  } catch (error) {
+    console.error("Error toggling public status:", error);
+    throw error;
   }
 };
 

@@ -36,6 +36,8 @@ export interface ListReportResponseItem {
   is_being_revised?: boolean;
   is_revision?: boolean;
   status?: string;
+  is_public?: boolean;
+  public_url?: string;
 }
 
 export type ListReportResponse = ListReportResponseItem[];
@@ -60,6 +62,8 @@ export interface ReportData {
   analyses: OracleAnalysis[];
   comments: OracleReportComment[];
   report_with_citations?: CitationItem[];
+  is_public?: boolean;
+  public_url?: string;
 }
 
 export interface ClarificationObject {

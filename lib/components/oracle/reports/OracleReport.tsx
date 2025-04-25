@@ -13,8 +13,9 @@ import {
   exportAsMarkdown,
   exportAsPdf,
   exportAsPodcast,
+  toggleReportPublicStatus,
 } from "@oracle";
-import { Download, FileText, Mic } from "lucide-react";
+import { Download, FileText, Mic, Globe, Copy, Check } from "lucide-react";
 import { Button, Modal } from "@ui-components";
 import { LoadingState, ErrorState, ReportCitationsContent } from "./components";
 
@@ -45,6 +46,10 @@ export function OracleReport({
   const [exportDropdownOpen, setExportDropdownOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [isPodcastLoading, setIsPodcastLoading] = useState(false);
+  const [isPublic, setIsPublic] = useState(false);
+  const [publicUrl, setPublicUrl] = useState<string | null>(null);
+  const [isPublicToggleLoading, setIsPublicToggleLoading] = useState(false);
+  const [shareModalOpen, setShareModalOpen] = useState(false);
   const exportDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -70,6 +75,15 @@ export function OracleReport({
         data.comments && setComments(data.comments);
         data.report_with_citations &&
           setReportWithCitations(data.report_with_citations);
+        
+        // Check if the report has public sharing enabled
+        if (data.is_public !== undefined) {
+          setIsPublic(data.is_public);
+        }
+        
+        if (data.public_url) {
+          setPublicUrl(data.public_url);
+        }
 
         onReportParsed && onReportParsed(data);
       } catch (e: any) {
@@ -84,6 +98,48 @@ export function OracleReport({
       setup(reportId, projectName);
     }
   }, [reportId]);
+  
+  // Handle toggling the public status
+  const handleTogglePublic = async () => {
+    try {
+      setIsPublicToggleLoading(true);
+      const result = await toggleReportPublicStatus(
+        apiEndpoint,
+        reportId,
+        token,
+        projectName,
+        !isPublic
+      );
+      
+      setIsPublic(!isPublic);
+      
+      if (result.public_url) {
+        setPublicUrl(result.public_url);
+        
+        // If making public, show the share modal
+        if (!isPublic) {
+          setShareModalOpen(true);
+        }
+      } else {
+        setPublicUrl(null);
+      }
+    } catch (e) {
+      console.error("Error toggling public status:", e);
+    } finally {
+      setIsPublicToggleLoading(false);
+    }
+  };
+  
+  // Copy public URL to clipboard
+  const [copied, setCopied] = useState(false);
+  const copyToClipboard = () => {
+    if (publicUrl) {
+      const fullUrl = window.location.origin + publicUrl;
+      navigator.clipboard.writeText(fullUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
 
   // Add click outside handler to close dropdown
   useEffect(() => {
@@ -264,7 +320,23 @@ export function OracleReport({
                   Delete
                 </Button>
 
-                <ExportDropdown />
+                <div className="flex space-x-2">
+                  <Button
+                    variant={isPublic ? "primary" : "secondary"}
+                    onClick={handleTogglePublic}
+                    disabled={isPublicToggleLoading}
+                    className="flex items-center"
+                  >
+                    {isPublicToggleLoading ? (
+                      <div className="w-4 h-4 border-t-2 border-current border-solid rounded-full animate-spin mr-2"></div>
+                    ) : (
+                      <Globe className="w-4 h-4 mr-2" />
+                    )}
+                    {isPublic ? "Published" : "Publish Publicly"}
+                  </Button>
+                  
+                  <ExportDropdown />
+                </div>
 
                 <Modal
                   open={deleteModalOpen}
@@ -280,6 +352,37 @@ export function OracleReport({
                   <p>
                     Are you sure you want to delete this report? This action
                     cannot be undone.
+                  </p>
+                </Modal>
+                
+                <Modal
+                  open={shareModalOpen}
+                  onOk={() => setShareModalOpen(false)}
+                  onCancel={() => setShareModalOpen(false)}
+                  okText="Close"
+                  title="Share Report"
+                >
+                  <div className="mb-4">
+                    <p className="mb-2">
+                      Your report is now publicly accessible. Share this link with anyone to view the report:
+                    </p>
+                    <div className="flex items-center mt-3">
+                      <input
+                        type="text"
+                        readOnly
+                        value={publicUrl ? window.location.origin + publicUrl : ""}
+                        className="flex-grow p-2 border rounded-l-md bg-gray-50 dark:bg-gray-800 text-sm"
+                      />
+                      <button
+                        onClick={copyToClipboard}
+                        className="p-2 bg-blue-500 hover:bg-blue-600 text-white rounded-r-md"
+                      >
+                        {copied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
+                      </button>
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-500">
+                    Note: Anyone with this link can view this report without logging in.
                   </p>
                 </Modal>
               </div>
