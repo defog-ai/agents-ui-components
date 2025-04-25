@@ -30,7 +30,7 @@ export default ({ mode }) => {
       middlewareMode: false,
       proxy: {
         // For API calls to the backend
-        "/api/oracle/public/report": {
+        "/api/public/report": {
           target: env.VITE_API_ENDPOINT,
           changeOrigin: true,
           rewrite: (path) => path.replace('/api', '')
@@ -40,7 +40,7 @@ export default ({ mode }) => {
       configureServer: (server) => {
         server.middlewares.use((req, res, next) => {
           // Check if the URL matches a public report path
-          if (req.url?.startsWith('/oracle/public/report/')) {
+          if (req.url?.startsWith('/public/report/')) {
             // Handle API requests vs. UI navigation
             if (req.headers.accept?.includes('application/json')) {
               // If this is a data request, proxy to the real API

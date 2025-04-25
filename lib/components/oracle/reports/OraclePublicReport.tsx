@@ -36,8 +36,8 @@ export function OraclePublicReport({
         // Use the /api prefix for local development environment
         const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
         const apiUrl = isLocalDev 
-          ? `/api/oracle/public/report/${publicUuid}`
-          : `${apiEndpoint}/oracle/public/report/${publicUuid}`;
+          ? `/api/public/report/${publicUuid}`
+          : `${apiEndpoint}/public/report/${publicUuid}`;
           
         console.log("Fetching from URL:", apiUrl);
         
