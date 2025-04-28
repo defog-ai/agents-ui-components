@@ -26,38 +26,7 @@ export default ({ mode }) => {
     },
     server: {
       strictPort: false,
-      // Custom middleware to handle public report routes
       middlewareMode: false,
-      proxy: {
-        // For API calls to the backend
-        "/api/public/report": {
-          target: env.VITE_API_ENDPOINT,
-          changeOrigin: true,
-          rewrite: (path) => path.replace('/api', '')
-        }
-      },
-      // Make public report routes work
-      configureServer: (server) => {
-        server.middlewares.use((req, res, next) => {
-          // Check if the URL matches a public report path
-          if (req.url?.startsWith('/public/report/')) {
-            // Handle API requests vs. UI navigation
-            if (req.headers.accept?.includes('application/json')) {
-              // If this is a data request, proxy to the real API
-              req.url = '/api' + req.url;
-              next();
-            } else {
-              // If this is a page request, serve the public-report-viewer.html
-              const publicViewerPath = resolve(__dirname, 'test/oracle/public-report-viewer.html');
-              const html = fs.readFileSync(publicViewerPath, 'utf-8');
-              res.setHeader('Content-Type', 'text/html');
-              res.end(html);
-            }
-          } else {
-            next();
-          }
-        });
-      }
     },
     build: {
       lib: {
