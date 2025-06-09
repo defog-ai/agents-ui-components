@@ -320,7 +320,7 @@ function createAnalysisManager({
         temp: isTemp,
         db_name: projectName,
         db_creds: null,
-        previous_context: previousContextCreator(),
+        previous_context: previousContextCreator().reverse(),
         root_analysis_id: rootAnalysisId,
         extra_tools: extraTools,
         planner_question_suffix: plannerQuestionSuffix,
